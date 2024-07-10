@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>臺灣國中英語 Wordle (300字版)</title>
     <style>
-        /* 保留原有的 CSS 樣式 */
+        /* 保持原有的 CSS 樣式 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -17,13 +17,73 @@
         }
         #game-container {
             background-color: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
-        /* ... 其他樣式保持不變 ... */
+        #word-grid {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .letter-box {
+            aspect-ratio: 1 / 1;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #guess-input, select {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #message, #hint, #word-length-info, #first-letter-hint, #score-display, #high-score, #round-info {
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        #hint, #first-letter-hint {
+            color: #666;
+        }
+        #error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        #score-display, #high-score, #round-info {
+            color: #4CAF50;
+        }
+        h1 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -86,7 +146,7 @@
         let currentWordObj = null;
         let score = 0;
         let totalScore = 0;
-        let highScore = 0; // 在這裡定義 highScore
+        let highScore = 0;
         let currentRound = 0;
         let firstLetterGuessed = false;
         let currentDifficulty = 'easy';
