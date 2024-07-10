@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>臺灣國中英語 Wordle (300字版)</title>
     <style>
-        /* 保持原有的 CSS 樣式不變 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -81,33 +80,53 @@
         <div id="word-grid"></div>
         <input type="text" id="guess-input" placeholder="輸入你的猜測">
         <button id="submit-guess">提交猜測</button>
-        <button id="show-first-letter">提示首字母</button>
         <button id="show-hint">顯示提示</button>
+        <button id="show-first-letter">提示首字母</button>
         <div id="error-message"></div>
         <div id="message"></div>
-        <div id="first-letter-hint"></div>
         <div id="hint"></div>
+        <div id="first-letter-hint"></div>
     </div>
 
     <script>
-        // JavaScript 代碼保持不變
         const wordList = {
             easy: [
                 {word: "BOOK", meaning: "書", usage: "I love reading books."},
                 {word: "CAT", meaning: "貓", usage: "The cat is sleeping on the sofa."},
                 {word: "DOG", meaning: "狗", usage: "I walk my dog every morning."},
+                {word: "PEN", meaning: "筆", usage: "Can I borrow your pen?"},
+                {word: "BALL", meaning: "球", usage: "Let's play with the ball."},
+                {word: "TREE", meaning: "樹", usage: "The bird is sitting in the tree."},
+                {word: "FISH", meaning: "魚", usage: "We had fish for dinner."},
+                {word: "HAND", meaning: "手", usage: "Wash your hands before eating."},
+                {word: "FOOD", meaning: "食物", usage: "I like Chinese food."},
+                {word: "BLUE", meaning: "藍色", usage: "The sky is blue today."},
                 // ... 其他簡單單詞 ...
             ],
             medium: [
                 {word: "SCHOOL", meaning: "學校", usage: "I go to school by bus."},
                 {word: "FRIEND", meaning: "朋友", usage: "She is my best friend."},
                 {word: "FAMILY", meaning: "家庭", usage: "I love my family."},
+                {word: "TEACHER", meaning: "老師", usage: "Our English teacher is very kind."},
+                {word: "STUDENT", meaning: "學生", usage: "He is a hardworking student."},
+                {word: "COMPUTER", meaning: "電腦", usage: "I use my computer to do homework."},
+                {word: "WATER", meaning: "水", usage: "Drink plenty of water every day."},
+                {word: "MUSIC", meaning: "音樂", usage: "I enjoy listening to music."},
+                {word: "WEATHER", meaning: "天氣", usage: "The weather is nice today."},
+                {word: "ANIMAL", meaning: "動物", usage: "Lions are wild animals."},
                 // ... 其他中等難度單詞 ...
             ],
             hard: [
                 {word: "EDUCATION", meaning: "教育", usage: "Education is important for everyone."},
                 {word: "ENVIRONMENT", meaning: "環境", usage: "We need to protect our environment."},
                 {word: "TECHNOLOGY", meaning: "科技", usage: "Technology is changing our lives."},
+                {word: "COMMUNICATION", meaning: "溝通", usage: "Good communication is key to success."},
+                {word: "RESPONSIBILITY", meaning: "責任", usage: "Taking care of a pet is a big responsibility."},
+                {word: "ACHIEVEMENT", meaning: "成就", usage: "Winning the competition was a great achievement."},
+                {word: "OPPORTUNITY", meaning: "機會", usage: "This job is a great opportunity for you."},
+                {word: "EXPERIENCE", meaning: "經驗", usage: "Work experience is valuable for your career."},
+                {word: "COMMUNITY", meaning: "社區", usage: "Our community organizes many events."},
+                {word: "CHALLENGE", meaning: "挑戰", usage: "Learning a new language can be a big challenge."},
                 // ... 其他困難單詞 ...
             ]
         };
@@ -119,31 +138,126 @@
         let currentWordObj = null;
 
         function newGame() {
-            // ... 函數內容保持不變 ...
+            const difficulty = document.getElementById('difficulty').value;
+            const validWords = wordList[difficulty];
+            
+            if (!validWords || validWords.length === 0) {
+                alert('此難度沒有可用的單詞。請選擇其他難度。');
+                return;
+            }
+
+            currentWordObj = validWords[Math.floor(Math.random() * validWords.length)];
+            targetWord = currentWordObj.word;
+            wordLength = targetWord.length;
+
+            attempts = 0;
+            document.getElementById('word-grid').innerHTML = '';
+            document.getElementById('message').textContent = '';
+            document.getElementById('hint').textContent = '';
+            document.getElementById('first-letter-hint').textContent = '';
+            document.getElementById('error-message').textContent = '';
+            document.getElementById('guess-input').value = '';
+            document.getElementById('guess-input').disabled = false;
+            document.getElementById('guess-input').maxLength = wordLength;
+            document.getElementById('submit-guess').disabled = false;
+            document.getElementById('show-hint').disabled = false;
+            document.getElementById('show-first-letter').disabled = false;
+            document.getElementById('word-grid').style.gridTemplateColumns = `repeat(${wordLength}, 1fr)`;
+
+            document.getElementById('word-length-info').textContent = `本次遊戲單詞長度為 ${wordLength} 個字母。`;
         }
 
         function submitGuess() {
-            // ... 函數內容保持不變 ...
+            const guessInput = document.getElementById('guess-input');
+            const guess = guessInput.value.toUpperCase();
+            const errorMessageElement = document.getElementById('error-message');
+
+            if (guess.length !== wordLength) {
+                errorMessageElement.textContent = `錯誤：請輸入${wordLength}個字母。你輸入了${guess.length}個字母。`;
+                return;
+            }
+
+            errorMessageElement.textContent = '';
+
+            attempts++;
+            const result = checkGuess(guess);
+            displayResult(result, guess);
+
+            if (result.every(r => r === '🟩')) {
+                endGame(`恭喜！你在${attempts}次嘗試中猜對了單詞。`);
+            } else if (attempts >= maxAttempts) {
+                endGame(`遊戲結束。正確的單詞是 ${targetWord}。`);
+            }
+
+            guessInput.value = '';
         }
 
         function checkGuess(guess) {
-            // ... 函數內容保持不變 ...
+            let result = Array(wordLength).fill('⬜');
+            let targetFreq = {};
+
+            for (let i = 0; i < wordLength; i++) {
+                if (guess[i] === targetWord[i]) {
+                    result[i] = '🟩';
+                } else {
+                    targetFreq[targetWord[i]] = (targetFreq[targetWord[i]] || 0) + 1;
+                }
+            }
+
+            for (let i = 0; i < wordLength; i++) {
+                if (result[i] === '⬜' && targetFreq[guess[i]] > 0) {
+                    result[i] = '🟨';
+                    targetFreq[guess[i]]--;
+                }
+            }
+
+            return result;
         }
 
         function displayResult(result, guess) {
-            // ... 函數內容保持不變 ...
+            const wordGrid = document.getElementById('word-grid');
+            const row = document.createElement('div');
+            row.style.display = 'contents';
+
+            for (let i = 0; i < wordLength; i++) {
+                const box = document.createElement('div');
+                box.className = 'letter-box';
+                box.textContent = guess[i];
+                switch (result[i]) {
+                    case '🟩':
+                        box.style.backgroundColor = '#6aaa64';
+                        break;
+                    case '🟨':
+                        box.style.backgroundColor = '#c9b458';
+                        break;
+                    default:
+                        box.style.backgroundColor = '#787c7e';
+                }
+                box.style.color = 'white';
+                row.appendChild(box);
+            }
+
+            wordGrid.appendChild(row);
         }
 
         function endGame(message) {
-            // ... 函數內容保持不變 ...
+            document.getElementById('message').textContent = message;
+            document.getElementById('guess-input').disabled = true;
+            document.getElementById('submit-guess').disabled = true;
+            document.getElementById('show-hint').disabled = true;
+            document.getElementById('show-first-letter').disabled = true;
+            showHint();
         }
 
         function showHint() {
-            // ... 函數內容保持不變 ...
+            const hintElement = document.getElementById('hint');
+            hintElement.textContent = `提示：${currentWordObj.meaning}（${currentWordObj.usage}）`;
         }
 
         function showFirstLetter() {
-            // ... 函數內容保持不變 ...
+            const firstLetterHintElement = document.getElementById('first-letter-hint');
+            firstLetterHintElement.textContent = `首字母提示：${targetWord[0]}`;
+            document.getElementById('show-first-letter').disabled = true;
         }
 
         document.getElementById('start-game').addEventListener('click', newGame);
