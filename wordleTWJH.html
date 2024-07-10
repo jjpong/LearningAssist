@@ -53,7 +53,11 @@
             cursor: pointer;
             margin-bottom: 10px;
         }
-        #message, #hint, #word-length-info, #first-letter-hint {
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #message, #hint, #word-length-info, #first-letter-hint, #score-display, #high-score, #round-info {
             margin-top: 20px;
             font-weight: bold;
         }
@@ -64,6 +68,9 @@
             color: red;
             font-weight: bold;
             margin-top: 10px;
+        }
+        #score-display, #high-score, #round-info {
+            color: #4CAF50;
         }
     </style>
 </head>
@@ -77,15 +84,18 @@
         </select>
         <button id="start-game">開始新遊戲</button>
         <div id="word-length-info"></div>
+        <div id="round-info"></div>
+        <div id="score-display"></div>
+        <div id="high-score"></div>
         <div id="word-grid"></div>
         <input type="text" id="guess-input" placeholder="輸入你的猜測">
         <button id="submit-guess">提交猜測</button>
-        <button id="show-hint">顯示提示</button>
         <button id="show-first-letter">提示首字母</button>
+        <button id="show-hint">顯示提示</button>
         <div id="error-message"></div>
         <div id="message"></div>
-        <div id="hint"></div>
         <div id="first-letter-hint"></div>
+        <div id="hint"></div>
     </div>
 
     <script>
@@ -96,11 +106,6 @@
                 {word: "DOG", meaning: "狗", usage: "I walk my dog every morning."},
                 {word: "PEN", meaning: "筆", usage: "Can I borrow your pen?"},
                 {word: "BALL", meaning: "球", usage: "Let's play with the ball."},
-                {word: "TREE", meaning: "樹", usage: "The bird is sitting in the tree."},
-                {word: "FISH", meaning: "魚", usage: "We had fish for dinner."},
-                {word: "HAND", meaning: "手", usage: "Wash your hands before eating."},
-                {word: "FOOD", meaning: "食物", usage: "I like Chinese food."},
-                {word: "BLUE", meaning: "藍色", usage: "The sky is blue today."},
                 // ... 其他簡單單詞 ...
             ],
             medium: [
@@ -109,11 +114,6 @@
                 {word: "FAMILY", meaning: "家庭", usage: "I love my family."},
                 {word: "TEACHER", meaning: "老師", usage: "Our English teacher is very kind."},
                 {word: "STUDENT", meaning: "學生", usage: "He is a hardworking student."},
-                {word: "COMPUTER", meaning: "電腦", usage: "I use my computer to do homework."},
-                {word: "WATER", meaning: "水", usage: "Drink plenty of water every day."},
-                {word: "MUSIC", meaning: "音樂", usage: "I enjoy listening to music."},
-                {word: "WEATHER", meaning: "天氣", usage: "The weather is nice today."},
-                {word: "ANIMAL", meaning: "動物", usage: "Lions are wild animals."},
                 // ... 其他中等難度單詞 ...
             ],
             hard: [
@@ -122,22 +122,35 @@
                 {word: "TECHNOLOGY", meaning: "科技", usage: "Technology is changing our lives."},
                 {word: "COMMUNICATION", meaning: "溝通", usage: "Good communication is key to success."},
                 {word: "RESPONSIBILITY", meaning: "責任", usage: "Taking care of a pet is a big responsibility."},
-                {word: "ACHIEVEMENT", meaning: "成就", usage: "Winning the competition was a great achievement."},
-                {word: "OPPORTUNITY", meaning: "機會", usage: "This job is a great opportunity for you."},
-                {word: "EXPERIENCE", meaning: "經驗", usage: "Work experience is valuable for your career."},
-                {word: "COMMUNITY", meaning: "社區", usage: "Our community organizes many events."},
-                {word: "CHALLENGE", meaning: "挑戰", usage: "Learning a new language can be a big challenge."},
                 // ... 其他困難單詞 ...
             ]
         };
 
         const maxAttempts = 10;
+        const roundsPerGame = 5;
         let targetWord = '';
         let wordLength = 0;
         let attempts = 0;
         let currentWordObj = null;
+        let score = 0;
+        let totalScore = 0;
+        let highScore = 0;
+        let currentRound = 0;
+        let firstLetterGuessed = false;
 
         function newGame() {
+            currentRound = 0;
+            totalScore = 0;
+            nextRound();
+        }
+
+        function nextRound() {
+            currentRound++;
+            if (currentRound > roundsPerGame) {
+                endGame("遊戲結束！");
+                return;
+            }
+
             const difficulty = document.getElementById('difficulty').value;
             const validWords = wordList[difficulty];
             
@@ -151,6 +164,10 @@
             wordLength = targetWord.length;
 
             attempts = 0;
+            score = 10;
+            firstLetterGuessed = false;
+            updateScoreDisplay();
+
             document.getElementById('word-grid').innerHTML = '';
             document.getElementById('message').textContent = '';
             document.getElementById('hint').textContent = '';
@@ -165,6 +182,7 @@
             document.getElementById('word-grid').style.gridTemplateColumns = `repeat(${wordLength}, 1fr)`;
 
             document.getElementById('word-length-info').textContent = `本次遊戲單詞長度為 ${wordLength} 個字母。`;
+            document.getElementById('round-info').textContent = `當前回合：${currentRound} / ${roundsPerGame}`;
         }
 
         function submitGuess() {
@@ -183,10 +201,36 @@
             const result = checkGuess(guess);
             displayResult(result, guess);
 
+            if (result[0] === '🟩' && !firstLetterGuessed) {
+                firstLetterGuessed = true;
+                document.getElementById('show-first-letter').disabled = true;
+            }
+
             if (result.every(r => r === '🟩')) {
-                endGame(`恭喜！你在${attempts}次嘗試中猜對了單詞。`);
+                totalScore += score;
+                updateScoreDisplay();
+                if (currentRound < roundsPerGame) {
+                    setTimeout(() => {
+                        alert(`恭喜！你猜對了單詞 "${targetWord}"。準備進入下一回合！`);
+                        nextRound();
+                    }, 1000);
+                } else {
+                    endGame("恭喜！你完成了所有回合。");
+                }
             } else if (attempts >= maxAttempts) {
-                endGame(`遊戲結束。正確的單詞是 ${targetWord}。`);
+                totalScore += score;
+                updateScoreDisplay();
+                if (currentRound < roundsPerGame) {
+                    setTimeout(() => {
+                        alert(`很遺憾，你沒有猜出單詞 "${targetWord}"。準備進入下一回合！`);
+                        nextRound();
+                    }, 1000);
+                } else {
+                    endGame("遊戲結束！你完成了所有回合。");
+                }
+            } else {
+                score = Math.max(0, score - 1);
+                updateScoreDisplay();
             }
 
             guessInput.value = '';
@@ -247,17 +291,36 @@
             document.getElementById('show-hint').disabled = true;
             document.getElementById('show-first-letter').disabled = true;
             showHint();
+
+            if (totalScore > highScore) {
+                highScore = totalScore;
+                updateHighScoreDisplay();
+            }
         }
 
         function showHint() {
             const hintElement = document.getElementById('hint');
             hintElement.textContent = `提示：${currentWordObj.meaning}（${currentWordObj.usage}）`;
+            score = Math.max(0, score - 8);
+            updateScoreDisplay();
+            document.getElementById('show-hint').disabled = true;
         }
 
         function showFirstLetter() {
             const firstLetterHintElement = document.getElementById('first-letter-hint');
             firstLetterHintElement.textContent = `首字母提示：${targetWord[0]}`;
+            score = Math.max(0, score - 4);
+            updateScoreDisplay();
             document.getElementById('show-first-letter').disabled = true;
+            firstLetterGuessed = true;
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = `當前分數：${score} | 總分：${totalScore}`;
+        }
+
+        function updateHighScoreDisplay() {
+            document.getElementById('high-score').textContent = `最高分：${highScore}`;
         }
 
         document.getElementById('start-game').addEventListener('click', newGame);
@@ -270,6 +333,7 @@
             }
         });
 
+        updateHighScoreDisplay();
         newGame();
     </script>
 </body>
