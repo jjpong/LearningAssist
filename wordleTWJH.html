@@ -263,32 +263,32 @@
                 document.getElementById('show-first-letter').disabled = true;
             }
 
-            if (result.every(r => r === '🟩')) {
-                totalScore += score;
-                updateGameInfo();
-                if (currentRound < roundsPerGame) {
-                    setTimeout(() => {
-                        alert(`恭喜！你猜對了單詞 "${targetWord}"。\n本回合得分：${score}\n目前總分：${totalScore}`);
-                        nextRound();
-                    }, 1000);
-                } else {
-                    endGame();
-                }
-            } else if (attempts >= maxAttempts) {
-                totalScore += score;
-                updateGameInfo();
-                if (currentRound < roundsPerGame) {
-                    setTimeout(() => {
-                        alert(`很遺憾，你沒有猜出單詞 "${targetWord}"。\n本回合得分：${score}\n目前總分：${totalScore}`);
-                        nextRound();
-                    }, 1000);
-                } else {
-                    endGame();
-                }
-            } else {
-                score = Math.max(0, score - 1);
-                updateGameInfo();
-            }
+               if (result.every(r => r === '🟩')) {
+        totalScore += score;
+        updateGameInfo();
+        if (currentRound < roundsPerGame) {
+            setTimeout(() => {
+                alert(`恭喜！你猜對了單詞 "${targetWord}"。\n意思：${currentWordObj.meaning}\n例句：${currentWordObj.usage}\n本回合得分：${score}\n目前總分：${totalScore}`);
+                nextRound();
+            }, 1000);
+        } else {
+            endGame();
+        }
+    } else if (attempts >= maxAttempts) {
+        totalScore += score;
+        updateGameInfo();
+        if (currentRound < roundsPerGame) {
+            setTimeout(() => {
+                alert(`很遺憾，你沒有猜出單詞 "${targetWord}"。\n意思：${currentWordObj.meaning}\n例句：${currentWordObj.usage}\n本回合得分：${score}\n目前總分：${totalScore}`);
+                nextRound();
+            }, 1000);
+        } else {
+            endGame();
+        }
+    } else {
+        score = Math.max(0, score - 1);
+        updateGameInfo();
+    }
 
             guessInput.value = '';
         }
@@ -341,17 +341,17 @@
             wordGrid.appendChild(row);
         }
 
-        function endGame() {
-            if (totalScore > highScore) {
-                highScore = totalScore;
-                updateGameInfo();
-            }
-            
-            setTimeout(() => {
-                alert(`遊戲結束！\n你的總分是：${totalScore}\n最高分：${highScore}`);
-                newGame(); // 直接開始新遊戲
-            }, 1000);
-        }
+function endGame() {
+    if (totalScore > highScore) {
+        highScore = totalScore;
+        updateGameInfo();
+    }
+    
+    setTimeout(() => {
+        alert(`遊戲結束！\n最後一個單詞是：${targetWord}\n意思：${currentWordObj.meaning}\n例句：${currentWordObj.usage}\n你的總分是：${totalScore}\n最高分：${highScore}`);
+        newGame(); // 直接開始新遊戲
+    }, 1000);
+}
 
         function showHint() {
             const hintElement = document.getElementById('hint');
