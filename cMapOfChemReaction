@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>概念圖製作工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            padding: 1rem;
+            background-color: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+
+        .new-window-btn {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+
+        .button-blue { background-color: #3b82f6; }
+        .button-blue:hover { background-color: #2563eb; }
+        .button-red { background-color: #ef4444; }
+        .button-red:hover { background-color: #dc2626; }
+        .button-green { background-color: #10b981; }
+        .button-green:hover { background-color: #059669; }
+        .button-purple { background-color: #8b5cf6; }
+        .button-purple:hover { background-color: #7c3aed; }
+        .button-gray { background-color: #6b7280; }
+        .button-gray:hover { background-color: #4b5563; }
+
+        .select-container {
+            margin: 1rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .select-group {
+            flex: 1;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .canvas-container {
+            position: relative;
+            height: calc(100vh - 250px);
+            overflow: hidden;
+            background-color: white;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            position: absolute;
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            min-width: 100px;
+            text-align: center;
+            cursor: move;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 16px;
+            height: 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .node:hover .delete-btn {
+            display: flex;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            min-width: 300px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 1rem 0;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+        }
+
+        .instructions {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+        }
+
+        .connecting {
+            cursor: crosshair !important;
+        }
+
+        .connecting .node {
+            cursor: crosshair !important;
+        }
+
+        .status-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="instructions">
+            <strong>使用說明：</strong>
+            <ol>
+                <li>從下拉選單選擇概念後點擊「新增」，或選擇「自定義概念」來新增自己的概念</li>
+                <li>要連接兩個概念：先選擇連接詞，然後點擊"開始連接"按鈕，依序點擊要連接的兩個概念</li>
+                <li>重新整理網頁即可將概念圖清空。    
+             
+            </ol>
+        </div>
+
+        <div class="select-container">
+            <div class="select-group">
+                <label>選擇概念：</label>
+                <select id="conceptSelect">
+                    <option value="">請選擇概念</option>
+                    <option value="custom">自定義概念</option>
+                </select>
+                <button class="button button-blue" id="addNodeBtn">新增</button>
+            </div>
+            <div class="select-group">
+                <label>選擇連接詞：</label>
+                <select id="connectorSelect">
+                    <option value="">請選擇連接詞</option>
+                    <option value="custom">自定義連接詞</option>
+                </select>
+                <button class="button button-green" id="startConnectingBtn">開始連接</button>
+            </div>
+        </div>
+        <button class="button button-purple" id="exportBtn">匯出</button>
+    </div>
+
+    <div class="canvas-container">
+        <svg id="canvas"></svg>
+    </div>
+
+    <!-- 自定義概念的對話框 -->
+    <div id="customConceptModal" class="modal">
+        <div class="modal-content">
+            <h2>輸入自定義概念</h2>
+            <input type="text" id="customConceptInput" placeholder="請輸入概念">
+            <button class="button button-blue" id="saveCustomConceptBtn">確認</button>
+            <button class="button button-red" id="cancelCustomConceptBtn">取消</button>
+        </div>
+    </div>
+
+    <!-- 自定義連接詞的對話框 -->
+    <div id="customConnectorModal" class="modal">
+        <div class="modal-content">
+            <h2>輸入自定義連接詞</h2>
+            <input type="text" id="customConnectorInput" placeholder="請輸入連接詞">
+            <button class="button button-blue" id="saveCustomConnectorBtn">確認</button>
+            <button class="button button-red" id="cancelCustomConnectorBtn">取消</button>
+        </div>
+    </div>
+
+    <!-- 導出格式選擇對話框 -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <h2>選擇匯出格式</h2>
+<button class="button button-blue" id="exportJsonBtn">JSON格式</button>
+            <button class="button button-green" id="exportPdfBtn">PDF格式</button>
+            <button class="button button-purple" id="exportDrawioModalBtn">Draw.io格式</button>
+            <button class="button button-red" id="cancelExportBtn">取消</button>
+        </div>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+<script>
+        window.jsPDF = window.jspdf.jsPDF;
+
+        // 基本配置和變數
+        const defaultConcepts = [
+            '化學反應', '反應物', '生成物', '質量守恆定律', '原子',
+            '分子', '化學式', '化學方程式', '係數', '平衡方程式'
+        ];
+
+        const defaultConnectors = [
+            '包含', '轉變成', '遵循', '由...組成', '表示為',
+            '需要', '證明', '必須', '保持', '說明'
+        ];
+
+        let nodes = [];
+        let connections = [];
+        let customConcepts = [];
+        let customConnectors = [];
+        let isDragging = false;
+        let selectedNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        let isConnecting = false;
+        let connectionStart = null;
+        let isStandalone = window.opener !== null;
+
+        // Draw.io XML 模板
+        const drawioTemplate = `
+        <mxfile host="app.diagrams.net" modified="2024-02-05T00:00:00.000Z" agent="Concept Map Generator" version="21.1.1">
+            <diagram id="conceptMap" name="概念圖">
+                <mxGraphModel dx="1422" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+                    <root>
+                        <mxCell id="0"/>
+                        <mxCell id="1" parent="0"/>
+                        {{CELLS}}
+                    </root>
+                </mxGraphModel>
+            </diagram>
+        </mxfile>`;
+
+
+
+        // 匯入狀態
+        function importState(state) {
+            // 清空現有狀態
+            nodes.forEach(node => node.remove());
+            nodes = [];
+            connections = [];
+            customConcepts = state.customConcepts || [];
+            customConnectors = state.customConnectors || [];
+
+            // 重新建立節點
+            state.nodes.forEach(nodeData => {
+                createNode(nodeData.text, nodeData.x + 50, nodeData.y + 25);
+            });
+
+            // 重新建立連接
+            state.connections.forEach(conn => {
+                const startNode = nodes.find(n => 
+                    n.textContent.replace('×', '').trim() === conn.from
+                );
+                const endNode = nodes.find(n => 
+                    n.textContent.replace('×', '').trim() === conn.to
+                );
+                if (startNode && endNode) {
+                    connections.push({
+                        start: startNode,
+                        end: endNode,
+                        text: conn.text
+                    });
+                }
+            });
+
+            initializeSelects();
+            updateConnections();
+        }
+
+        // 顯示狀態訊息
+        function showStatus(message, isError = false, duration = 3000) {
+            const status = document.getElementById('statusMessage');
+            status.textContent = message;
+            status.style.backgroundColor = isError ? '#ef4444' : '#4CAF50';
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, duration);
+        }
+// 初始化功能
+        function initialize() {
+            initializeSelects();
+            initializeButtons();
+            initializeDragAndDrop();
+        }
+
+        // 初始化選單
+        function initializeSelects() {
+            const conceptSelect = document.getElementById('conceptSelect');
+            const connectorSelect = document.getElementById('connectorSelect');
+            
+            // 清空現有選項
+            conceptSelect.innerHTML = '<option value="">請選擇概念</option><option value="custom">自定義概念</option>';
+            connectorSelect.innerHTML = '<option value="">請選擇連接詞</option><option value="custom">自定義連接詞</option>';
+
+            // 添加預設選項
+            [...defaultConcepts, ...customConcepts].forEach(concept => {
+                const option = document.createElement('option');
+                option.value = concept;
+                option.textContent = concept;
+                conceptSelect.appendChild(option);
+            });
+
+            [...defaultConnectors, ...customConnectors].forEach(connector => {
+                const option = document.createElement('option');
+                option.value = connector;
+                option.textContent = connector;
+                connectorSelect.appendChild(option);
+            });
+        }
+
+        // 初始化按鈕
+       // 初始化按鈕
+function initializeButtons() {
+    // 新增概念按鈕
+    document.getElementById('addNodeBtn').addEventListener('click', handleAddNode);
+
+    // 開始連接按鈕
+    document.getElementById('startConnectingBtn').addEventListener('click', startConnecting);
+
+    // 匯出按鈕 - 開啟匯出選項對話框
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        document.getElementById('exportModal').style.display = 'block';
+    });
+
+    // === 匯出對話框中的按鈕 ===
+    // JSON 格式匯出按鈕
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+        exportToJson();
+        document.getElementById('exportModal').style.display = 'none';
+    });
+
+    // PDF 格式匯出按鈕
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+        exportToPdf();
+        document.getElementById('exportModal').style.display = 'none';
+    });
+
+    // Draw.io 格式匯出按鈕
+    document.getElementById('exportDrawioModalBtn').addEventListener('click', () => {
+        exportToDrawio();
+        document.getElementById('exportModal').style.display = 'none';
+    });
+
+    // 取消匯出按鈕
+    document.getElementById('cancelExportBtn').addEventListener('click', () => {
+        document.getElementById('exportModal').style.display = 'none';
+    });
+
+    // === 自定義概念對話框按鈕 ===
+    // 儲存自定義概念按鈕
+    document.getElementById('saveCustomConceptBtn').addEventListener('click', saveCustomConcept);
+
+    // 取消自定義概念按鈕
+    document.getElementById('cancelCustomConceptBtn').addEventListener('click', () => {
+        document.getElementById('customConceptModal').style.display = 'none';
+    });
+
+    // === 自定義連接詞對話框按鈕 ===
+    // 儲存自定義連接詞按鈕
+    document.getElementById('saveCustomConnectorBtn').addEventListener('click', saveCustomConnector);
+
+    // 取消自定義連接詞按鈕
+    document.getElementById('cancelCustomConnectorBtn').addEventListener('click', () => {
+        document.getElementById('customConnectorModal').style.display = 'none';
+    });
+}
+
+        // 處理新增節點
+        function handleAddNode() {
+            const select = document.getElementById('conceptSelect');
+            const selectedValue = select.value;
+
+            if (!selectedValue) {
+                showStatus('請選擇或輸入概念', true);
+                return;
+            }
+
+            if (selectedValue === 'custom') {
+                document.getElementById('customConceptModal').style.display = 'block';
+                return;
+            }
+
+            const rect = document.querySelector('.canvas-container').getBoundingClientRect();
+            createNode(selectedValue, rect.width / 2, rect.height / 2);
+        }
+
+        // 建立節點
+        function createNode(text, x, y) {
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '×';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteNode(node);
+            });
+            
+            node.appendChild(deleteBtn);
+            node.appendChild(document.createTextNode(text));
+            
+            document.querySelector('.canvas-container').appendChild(node);
+            nodes.push(node);
+            
+            node.addEventListener('mousedown', handleNodeMouseDown);
+            node.addEventListener('click', handleNodeClick);
+            
+            return node;
+        }
+// 拖曳相關功能初始化
+        function initializeDragAndDrop() {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        // 處理節點的滑鼠按下事件
+        function handleNodeMouseDown(e) {
+            if (isConnecting) return;
+            
+            e.preventDefault();
+            selectedNode = e.currentTarget;
+            isDragging = true;
+            
+            const rect = selectedNode.getBoundingClientRect();
+            dragOffset = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        // 處理滑鼠移動
+        function handleMouseMove(e) {
+            if (!isDragging || isConnecting) return;
+
+            const container = document.querySelector('.canvas-container');
+            const rect = container.getBoundingClientRect();
+            
+            let newX = e.clientX - rect.left - dragOffset.x;
+            let newY = e.clientY - rect.top - dragOffset.y;
+            
+            // 確保節點不會超出容器邊界
+            newX = Math.max(0, Math.min(newX, rect.width - selectedNode.offsetWidth));
+            newY = Math.max(0, Math.min(newY, rect.height - selectedNode.offsetHeight));
+            
+            selectedNode.style.left = `${newX}px`;
+            selectedNode.style.top = `${newY}px`;
+            
+            updateConnections();
+        }
+
+        // 處理滑鼠放開
+        function handleMouseUp() {
+            isDragging = false;
+            selectedNode = null;
+        }
+
+        // 刪除節點
+        function deleteNode(node) {
+            const index = nodes.indexOf(node);
+            if (index > -1) {
+                nodes.splice(index, 1);
+                connections = connections.filter(conn => 
+                    conn.start !== node && conn.end !== node
+                );
+                node.remove();
+                updateConnections();
+            }
+        }
+
+        // 開始連接模式
+        function startConnecting() {
+            const connector = document.getElementById('connectorSelect').value;
+            
+            if (!connector) {
+                showStatus('請選擇連接詞', true);
+                return;
+            }
+
+            if (connector === 'custom') {
+                document.getElementById('customConnectorModal').style.display = 'block';
+                return;
+            }
+
+            isConnecting = true;
+            connectionStart = null;
+            document.querySelector('.canvas-container').classList.add('connecting');
+            showStatus('請點選第一個概念');
+        }
+
+        // 處理節點點擊
+        function handleNodeClick(e) {
+            if (!isConnecting) return;
+
+            const node = e.currentTarget;
+            
+            if (!connectionStart) {
+                connectionStart = node;
+                showStatus('請點選第二個概念');
+            } else if (node !== connectionStart) {
+                const connector = document.getElementById('connectorSelect').value;
+                
+                // 檢查是否已存在相同的連接
+                const exists = connections.some(conn => 
+                    (conn.start === connectionStart && conn.end === node) ||
+                    (conn.start === node && conn.end === connectionStart)
+                );
+
+                if (exists) {
+                    showStatus('這兩個概念已經連接', true);
+                } else {
+                    connections.push({
+                        start: connectionStart,
+                        end: node,
+                        text: connector
+                    });
+                    updateConnections();
+                }
+
+                // 重置連接模式
+                isConnecting = false;
+                connectionStart = null;
+                document.querySelector('.canvas-container').classList.remove('connecting');
+                document.getElementById('connectorSelect').value = '';
+                showStatus('連接完成！');
+            }
+        }
+
+        // 更新連接線
+        function updateConnections() {
+            const svg = document.getElementById('canvas');
+            svg.innerHTML = '';
+            
+            connections.forEach(conn => {
+                const start = getNodeCenter(conn.start);
+                const end = getNodeCenter(conn.end);
+                
+                // 建立連接線
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const controlPoint = calculateControlPoint(start, end);
+                const d = `M ${start.x} ${start.y} Q ${controlPoint.x} ${controlPoint.y} ${end.x} ${end.y}`;
+                
+                line.setAttribute('d', d);
+                line.setAttribute('stroke', '#3b82f6');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('fill', 'none');
+                line.setAttribute('marker-end', 'url(#arrowhead)');
+                
+                // 建立箭頭標記
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', 'arrowhead');
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '9');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', 'auto');
+                
+                const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+                polygon.setAttribute('fill', '#3b82f6');
+                
+                marker.appendChild(polygon);
+                defs.appendChild(marker);
+                svg.appendChild(defs);
+                svg.appendChild(line);
+                
+                // 添加連接詞文本
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                const textPos = {
+                    x: (start.x + end.x) / 2,
+                    y: (start.y + end.y) / 2 - 10
+                };
+                
+                text.setAttribute('x', textPos.x);
+                text.setAttribute('y', textPos.y);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#4b5563');
+                text.textContent = conn.text;
+                
+                svg.appendChild(text);
+            });
+        }
+// 計算節點中心點
+        function getNodeCenter(node) {
+            const rect = node.getBoundingClientRect();
+            const container = document.querySelector('.canvas-container').getBoundingClientRect();
+            return {
+                x: rect.left - container.left + rect.width / 2,
+                y: rect.top - container.top + rect.height / 2
+            };
+        }
+
+        // 計算控制點
+        function calculateControlPoint(start, end) {
+            const midPoint = {
+                x: (start.x + end.x) / 2,
+                y: (start.y + end.y) / 2
+            };
+            
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            return {
+                x: midPoint.x,
+                y: midPoint.y - distance * 0.2
+            };
+        }
+
+
+        // 儲存自定義概念
+        function saveCustomConcept() {
+            const input = document.getElementById('customConceptInput');
+            const concept = input.value.trim();
+            
+            if (!concept) {
+                showStatus('請輸入概念', true);
+                return;
+            }
+            
+            if ([...defaultConcepts, ...customConcepts].includes(concept)) {
+                showStatus('此概念已存在', true);
+                return;
+            }
+            
+            customConcepts.push(concept);
+            initializeSelects();
+            
+            document.getElementById('conceptSelect').value = concept;
+            document.getElementById('customConceptModal').style.display = 'none';
+            input.value = '';
+            
+            handleAddNode();
+        }
+
+        // 儲存自定義連接詞
+        function saveCustomConnector() {
+            const input = document.getElementById('customConnectorInput');
+            const connector = input.value.trim();
+            
+            if (!connector) {
+                showStatus('請輸入連接詞', true);
+                return;
+            }
+            
+            if ([...defaultConnectors, ...customConnectors].includes(connector)) {
+                showStatus('此連接詞已存在', true);
+                return;
+            }
+            
+            customConnectors.push(connector);
+            initializeSelects();
+            
+            document.getElementById('connectorSelect').value = connector;
+            document.getElementById('customConnectorModal').style.display = 'none';
+            input.value = '';
+            
+            startConnecting();
+        }
+
+        // 匯出為 JSON
+        function exportToJson() {
+            const data = {
+                nodes: nodes.map(node => ({
+                    text: node.textContent.replace('×', '').trim(),
+                    x: parseInt(node.style.left),
+                    y: parseInt(node.style.top)
+                })),
+                connections: connections.map(conn => ({
+                    from: conn.start.textContent.replace('×', '').trim(),
+                    to: conn.end.textContent.replace('×', '').trim(),
+                    text: conn.text
+                })),
+                customConcepts,
+                customConnectors
+            };
+
+const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'concept-map.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('exportModal').style.display = 'none';
+    showStatus('已匯出 JSON 檔案');
+        }
+
+        // 匯出為 PDF
+        async function exportToPdf() {
+            const container = document.querySelector('.canvas-container');
+            try {
+                const canvas = await html2canvas(container);
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'px',
+                    format: [container.offsetWidth, container.offsetHeight]
+                });
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, container.offsetWidth, container.offsetHeight);
+               pdf.save('concept-map.pdf');
+        document.getElementById('exportModal').style.display = 'none';
+        showStatus('已匯出 PDF 檔案');
+    } catch (error) {
+        showStatus('PDF 匯出失敗', true);
+        console.error('PDF export error:', error);
+    }
+        }
+
+        // 匯出為 Draw.io 格式
+        function exportToDrawio() {
+            let cells = '';
+            const nodeStyle = 'rounded=1;whiteSpace=wrap;html=1;';
+            const edgeStyle = 'edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;';
+
+            // 新增節點
+            nodes.forEach((node, index) => {
+                const x = parseInt(node.style.left);
+                const y = parseInt(node.style.top);
+                const text = node.textContent.replace('×', '').trim();
+                cells += `
+                    <mxCell id="node${index}" value="${text}" style="${nodeStyle}" vertex="1" parent="1">
+                        <mxGeometry x="${x}" y="${y}" width="120" height="60" as="geometry"/>
+                    </mxCell>
+                `;
+            });
+
+            // 新增連接
+            connections.forEach((conn, index) => {
+                const startIndex = nodes.indexOf(conn.start);
+                const endIndex = nodes.indexOf(conn.end);
+                cells += `
+                    <mxCell id="edge${index}" value="${conn.text}" style="${edgeStyle}" edge="1" parent="1" source="node${startIndex}" target="node${endIndex}">
+                        <mxGeometry relative="1" as="geometry"/>
+                    </mxCell>
+                `;
+            });
+
+            const xmlContent = drawioTemplate.replace('{{CELLS}}', cells);
+            const blob = new Blob([xmlContent], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'concept-map.drawio';
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('exportModal').style.display = 'none';
+    showStatus('已匯出 Draw.io 檔案');
+        }
+
+        // 初始化應用程式
+        initialize();
+    </script>
+</body>
+</html>
