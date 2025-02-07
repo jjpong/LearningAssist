@@ -175,6 +175,8 @@
         <button onclick="exportToDrawIO()">匯出 draw.io</button>
         <button onclick="exportToPDF()">匯出 PDF</button>
         <button onclick="exportToPNG()">匯出 PNG</button>
+    <button onclick="downloadOfflineVersion()">下載離線版本</button>
+
     </div>
 </div>
 <div class="canvas-container">
@@ -569,6 +571,47 @@ function updateConnections() {
     });
 }
 
+function downloadOfflineVersion() {
+    // 複製當前的 HTML 內容
+    let currentHTML = document.documentElement.outerHTML;
+    
+    // 移除原有的 fetch 相關代碼
+    const fetchPattern = /fetch\(SCRIPT_URL\)[\s\S]*?\.catch\(error => console\.error\('Error:', error\)\);/;
+    
+    // 建立內建資料初始化程式碼
+    const initCode = `
+        // 初始化
+        const globalData = ${JSON.stringify(globalData, null, 2)};
+        
+        // 直接初始化章節選單
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeChapterSelect(globalData.chapters);
+        });
+    `;
+    
+    // 替換 fetch 相關程式碼
+    currentHTML = currentHTML.replace(fetchPattern, initCode);
+    
+    // 移除 SCRIPT_URL 定義
+    currentHTML = currentHTML.replace(/const SCRIPT_URL = .*?;/, '');
+    
+    // 建立 Blob 物件
+    const blob = new Blob([currentHTML], { type: 'text/html' });
+    
+    // 建立下載連結
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = '概念圖製作工具_離線版.html';
+    
+    // 觸發下載
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // 釋放 URL 物件
+    URL.revokeObjectURL(downloadLink.href);
+}
+
 // 添加貝茲曲線計算函數
 function getBezierPoint(t, p0, p1, p2, p3) {
     const mt = 1 - t;
@@ -579,74 +622,109 @@ function getBezierPoint(t, p0, p1, p2, p3) {
 }
 
         // 刪除選取的元素
-        function deleteSelected() {
-            selectedNodes.forEach(node => {
-                connections = connections.filter(conn => {
-                    if (conn.from === node || conn.to === node) {
-                        conn.line.remove();
-                        conn.textElement.remove();
-                        return false;
-                    }
-                    return true;
-                });
-                
-                node.remove();
-                concepts = concepts.filter(n => n !== node);
-            });
-            
-            selectedNodes = [];
-            saveState();
-        }
+       function deleteSelected() {
+    selectedNodes.forEach(node => {
+        // 找出所有與當前節點相關的連接
+        const relatedConnections = connections.filter(conn => 
+            conn.from === node || conn.to === node
+        );
+
+        // 刪除相關的連接
+        relatedConnections.forEach(conn => {
+            // 移除 SVG 路徑
+            conn.path.remove();
+            // 移除控制點
+            conn.controlPoint1.remove();
+            conn.controlPoint2.remove();
+            // 移除連接詞文字
+            conn.textElement.remove();
+        });
+
+        // 更新 connections 陣列，移除已刪除的連接
+        connections = connections.filter(conn => 
+            conn.from !== node && conn.to !== node
+        );
+        
+        // 移除節點
+        node.remove();
+        concepts = concepts.filter(n => n !== node);
+    });
+    
+    selectedNodes = [];
+    saveState();
+}
 
         // 狀態管理
-        function saveState() {
-            const state = {
-                concepts: concepts.map(node => ({
-                    text: node.textContent,
-                    left: node.style.left,
-                    top: node.style.top
-                })),
-                connections: connections.map(conn => ({
-                    fromIndex: concepts.indexOf(conn.from),
-                    toIndex: concepts.indexOf(conn.to),
-                    text: conn.text
-                }))
-            };
-            undoStack.push(JSON.stringify(state));
-        }
+	// 修改 saveState 函數，確保保存正確的文字內容
+	function saveState() {
+    		const state = {
+        		concepts: concepts.map(node => ({
+            text: node.childNodes[0].nodeType === Node.TEXT_NODE 
+                ? node.childNodes[0].textContent 
+                : node.textContent,
+            left: node.style.left,
+            top: node.style.top
+        })),
+        connections: connections.map(conn => ({
+            fromIndex: concepts.indexOf(conn.from),
+            toIndex: concepts.indexOf(conn.to),
+            text: conn.textElement.textContent
+        }))
+    };
+    undoStack.push(JSON.stringify(state));
+}
+
 
         function undo() {
-            if (undoStack.length > 1) {
-                undoStack.pop(); // 移除當前狀態
-                const previousState = JSON.parse(undoStack[undoStack.length - 1]);
-                
-                // 清空畫布
-                concepts.forEach(node => node.remove());
-                connections.forEach(conn => {
-                    conn.line.remove();
-                    conn.textElement.remove();
-                });
-                
-                concepts = [];
-                connections = [];
-                selectedNodes = [];
+    if (undoStack.length > 1) {
+        undoStack.pop(); // 移除當前狀態
+        const previousState = JSON.parse(undoStack[undoStack.length - 1]);
+        
+        // 清空畫布
+        concepts.forEach(node => node.remove());
+        connections.forEach(conn => {
+            conn.path.remove();
+            conn.controlPoint1.remove();
+            conn.controlPoint2.remove();
+            conn.textElement.remove();
+        });
+        
+        concepts = [];
+        connections = [];
+        selectedNodes = [];
 
-                // 重建狀態
-                previousState.concepts.forEach(conceptData => {
-                    const node = createNode(conceptData.text);
-                    node.style.left = conceptData.left;
-                    node.style.top = conceptData.top;
-                });
+        // 重建狀態
+        previousState.concepts.forEach(conceptData => {
+            const node = document.createElement('div');
+            node.className = 'concept-node';
+            node.textContent = conceptData.text;  // 使用保存的文字
+            node.style.left = conceptData.left;
+            node.style.top = conceptData.top;
 
-                previousState.connections.forEach(connData => {
-                    createConnection(
-                        concepts[connData.fromIndex],
-                        concepts[connData.toIndex],
-                        connData.text
-                    );
-                });
-            }
-        }
+            // 添加提示框
+            const tooltip = document.createElement('div');
+            tooltip.className = 'concept-tooltip';
+            tooltip.textContent = globalData.conceptDescriptions[conceptData.text] || '暫無描述';
+            node.appendChild(tooltip);
+
+            node.addEventListener('mousedown', startDrag);
+            node.addEventListener('click', toggleSelect);
+
+            document.getElementById('canvas').appendChild(node);
+            concepts.push(node);
+        });
+
+        // 重建連接
+        previousState.connections.forEach(connData => {
+            createConnection(
+                concepts[connData.fromIndex],
+                concepts[connData.toIndex],
+                connData.text
+            );
+        });
+    }
+}
+
 
         // 匯出功能
         function exportToDrawIO() {
