@@ -78,7 +78,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             transform: translate(-50%, -50%);
-    z-index: 3; /* 確保連接詞在最上層 */
+    z-index: 3; /* 確保關連詞彙在最上層 */
 
         }
 /* 在原有的 style 標籤中添加 */
@@ -165,7 +165,7 @@
             <option value="custom">自訂概念</option>
         </select>
         <select id="connectorList">
-            <option value="">選擇連接詞</option>
+            <option value="">選擇關連詞彙</option>
         </select>
         <button onclick="addConnection()">連接所選概念</button>
         <button onclick="deleteSelected()">刪除選取</button>
@@ -175,7 +175,6 @@
         <button onclick="exportToDrawIO()">匯出 draw.io</button>
         <button onclick="exportToPDF()">匯出 PDF</button>
         <button onclick="exportToPNG()">匯出 PNG</button>
-    <button onclick="downloadOfflineVersion()">下載離線版本</button>
 
     </div>
 </div>
@@ -226,14 +225,14 @@
             chapterSelect.addEventListener('change', updateConceptsAndConnectors);
         }
 
-        // 更新概念和連接詞選單
+        // 更新概念和選擇關連詞彙選單
         function updateConceptsAndConnectors() {
             const chapterCode = document.getElementById('chapter').value;
             const conceptSelect = document.getElementById('conceptList');
             const connectorSelect = document.getElementById('connectorList');
 
             conceptSelect.innerHTML = '<option value="">選擇概念</option><option value="custom">自訂概念</option>';
-            connectorSelect.innerHTML = '<option value="">選擇連接詞</option>';
+            connectorSelect.innerHTML = '<option value="">選擇選擇關連詞彙</option>';
 
             if (chapterCode && globalData.chapterData[chapterCode]) {
                 const chapterData = globalData.chapterData[chapterCode];
@@ -392,7 +391,7 @@
             const connector = document.getElementById('connectorList').value;
             
             if (!connector) {
-                alert('請選擇連接詞');
+                alert('請選擇關連詞彙');
                 return;
             }
 
@@ -636,7 +635,7 @@ function getBezierPoint(t, p0, p1, p2, p3) {
             // 移除控制點
             conn.controlPoint1.remove();
             conn.controlPoint2.remove();
-            // 移除連接詞文字
+            // 移除關連詞彙文字
             conn.textElement.remove();
         });
 
