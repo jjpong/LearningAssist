@@ -152,6 +152,22 @@
             border: 1px solid #ccc;
             min-width: 150px;
         }
+<style>
+        body {
+            overscroll-behavior: none; /* 防止過度滾動 */
+            touch-action: none; /* 防止預設觸控行為 */
+            position: fixed; /* 防止 iOS 的彈性滾動 */
+            width: 100%;
+            height: 100%;
+        }
+        
+        .canvas-container {
+            touch-action: none; /* 防止預設觸控行為 */
+        }
+
+        .concept-node {
+            touch-action: none; /* 防止預設觸控行為 */
+        }
     </style>
 </head>
 <body>
@@ -232,7 +248,7 @@
             const connectorSelect = document.getElementById('connectorList');
 
             conceptSelect.innerHTML = '<option value="">選擇概念</option><option value="custom">自訂概念</option>';
-            connectorSelect.innerHTML = '<option value="">選擇選擇關連詞彙</option>';
+            connectorSelect.innerHTML = '<option value="">選擇關連詞彙</option>';
 
             if (chapterCode && globalData.chapterData[chapterCode]) {
                 const chapterData = globalData.chapterData[chapterCode];
@@ -304,66 +320,127 @@
         }
 
         // 創建概念節點
-        function createNode(text) {
-    const node = document.createElement('div');
-    node.className = 'concept-node';
-    node.textContent = text;
-    node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
-    node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
+ function createNode(text) {
+        const node = document.createElement('div');
+        node.className = 'concept-node';
+        node.textContent = text;
+        node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
+        node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
 
-    // 創建提示框
-    const tooltip = document.createElement('div');
-    tooltip.className = 'concept-tooltip';
-    tooltip.textContent = globalData.conceptDescriptions[text] || '暫無描述';
-    node.appendChild(tooltip);
+        const tooltip = document.createElement('div');
+        tooltip.className = 'concept-tooltip';
+        tooltip.textContent = globalData.conceptDescriptions[text] || '暫無描述';
+        node.appendChild(tooltip);
 
-    node.addEventListener('mousedown', startDrag);
-    node.addEventListener('click', toggleSelect);
+        // 添加觸控事件支援
+        if (window.PointerEvent) {
+            node.addEventListener('pointerdown', startDrag);
+        } else {
+            node.addEventListener('mousedown', startDrag);
+            node.addEventListener('touchstart', startDrag);
+        }
+        node.addEventListener('click', toggleSelect);
 
-    document.getElementById('canvas').appendChild(node);
-    concepts.push(node);
-    return node;
-}
+        document.getElementById('canvas').appendChild(node);
+        concepts.push(node);
+        return node;
+    }
 
         // 拖曳相關函數
-        function startDrag(e) {
-            if (e.target.tagName === 'INPUT') return;
-            
-            draggedNode = e.target;
+            function startDrag(e) {
+        e.preventDefault(); // 防止預設行為
+        if (e.target.tagName === 'INPUT') return;
+        
+        draggedNode = e.target;
+        
+        // 處理滑鼠事件
+        if (e.type === 'mousedown') {
             const rect = draggedNode.getBoundingClientRect();
             dragOffset.x = e.clientX - rect.left;
             dragOffset.y = e.clientY - rect.top;
+        }
+        // 處理觸控事件
+        else if (e.type === 'touchstart') {
+            const touch = e.touches[0];
+            const rect = draggedNode.getBoundingClientRect();
+            dragOffset.x = touch.clientX - rect.left;
+            dragOffset.y = touch.clientY - rect.top;
+        }
 
+        // 添加事件監聽器
+        if (window.PointerEvent) {
+            document.addEventListener('pointermove', drag);
+            document.addEventListener('pointerup', stopDrag);
+        } else {
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+        }
+    }
+
+    // 修改 drag 函數
+    function drag(e) {
+        e.preventDefault(); // 防止預設行為
+        if (!draggedNode) return;
+
+        const canvas = document.getElementById('canvas');
+        const rect = canvas.getBoundingClientRect();
+        
+        let clientX, clientY;
+        
+        // 處理不同類型的事件
+        if (e.type === 'mousemove' || e.type === 'pointermove') {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        } else if (e.type === 'touchmove') {
+            const touch = e.touches[0];
+            clientX = touch.clientX;
+            clientY = touch.clientY;
         }
 
-        function drag(e) {
-            if (draggedNode) {
-                const canvas = document.getElementById('canvas');
-                const rect = canvas.getBoundingClientRect();
-                
-                let left = e.clientX - rect.left - dragOffset.x;
-                let top = e.clientY - rect.top - dragOffset.y;
+        let left = clientX - rect.left - dragOffset.x;
+        let top = clientY - rect.top - dragOffset.y;
 
-                left = Math.max(0, Math.min(left, canvas.offsetWidth - draggedNode.offsetWidth));
-                top = Math.max(0, Math.min(top, canvas.offsetHeight - draggedNode.offsetHeight));
+        // 確保節點不會超出畫布範圍
+        left = Math.max(0, Math.min(left, canvas.offsetWidth - draggedNode.offsetWidth));
+        top = Math.max(0, Math.min(top, canvas.offsetHeight - draggedNode.offsetHeight));
 
-                draggedNode.style.left = left + 'px';
-                draggedNode.style.top = top + 'px';
+        draggedNode.style.left = left + 'px';
+        draggedNode.style.top = top + 'px';
 
-                updateConnections();
-            }
-        }
+        updateConnections();
+    }
 
-        function stopDrag() {
-            if (draggedNode) {
-                saveState();
-                draggedNode = null;
+    // 修改 stopDrag 函數
+    function stopDrag(e) {
+        if (draggedNode) {
+            saveState();
+            draggedNode = null;
+            
+            // 移除所有事件監聽器
+            if (window.PointerEvent) {
+                document.removeEventListener('pointermove', drag);
+                document.removeEventListener('pointerup', stopDrag);
+            } else {
                 document.removeEventListener('mousemove', drag);
                 document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', stopDrag);
             }
         }
+    }
+    // 在初始化時添加觸控事件監聽
+    function initializeTouchEvents() {
+        concepts.forEach(node => {
+            if (window.PointerEvent) {
+                node.addEventListener('pointerdown', startDrag);
+            } else {
+                node.addEventListener('mousedown', startDrag);
+                node.addEventListener('touchstart', startDrag);
+            }
+        });
+    }
 
         // 選取節點
         function toggleSelect(e) {
