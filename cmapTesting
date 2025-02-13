@@ -237,6 +237,7 @@
             </select>
             <select id="connectorList">
                 <option value="">選擇關連詞彙</option>
+    		ˋ<option value="custom">自訂關連詞彙</option>
             </select>
             <button onclick="addConnection()">連接所選概念</button>
             <button onclick="toggleArrowDirection()">切換箭頭方向</button>
@@ -327,32 +328,34 @@
         }
 
         // 更新概念和關連詞彙選單
-        function updateConceptsAndConnectors() {
-            const chapterCode = document.getElementById('chapter').value;
-            const conceptSelect = document.getElementById('conceptList');
-            const connectorSelect = document.getElementById('connectorList');
-
-            conceptSelect.innerHTML = '<option value="">選擇概念</option><option value="custom">自訂概念</option>';
-            connectorSelect.innerHTML = '<option value="">選擇關連詞彙</option>';
-
-            if (chapterCode && globalData.chapterData[chapterCode]) {
-                const chapterData = globalData.chapterData[chapterCode];
-
-                chapterData.concepts.forEach(concept => {
-                    const option = document.createElement('option');
-                    option.value = concept;
-                    option.textContent = concept;
-                    conceptSelect.appendChild(option);
-                });
-
-                chapterData.connectors.forEach(connector => {
-                    const option = document.createElement('option');
-                    option.value = connector;
-                    option.textContent = connector;
-                    connectorSelect.appendChild(option);
-                });
-            }
-        }
+function updateConceptsAndConnectors() {
+    const chapterCode = document.getElementById('chapter').value;
+    const conceptSelect = document.getElementById('conceptList');
+    const connectorSelect = document.getElementById('connectorList');
+    
+    conceptSelect.innerHTML = '<option value="">選擇概念</option><option value="custom">自訂概念</option>';
+    connectorSelect.innerHTML = '<option value="">選擇關連詞彙</option><option value="custom">自訂關連詞彙</option>';
+    
+    if (chapterCode && globalData.chapterData[chapterCode]) {
+        const chapterData = globalData.chapterData[chapterCode];
+        
+        // 添加概念選項
+        chapterData.concepts.forEach(concept => {
+            const option = document.createElement('option');
+            option.value = concept;
+            option.textContent = concept;
+            conceptSelect.appendChild(option);
+        });
+        
+        // 添加關連詞彙選項
+        chapterData.connectors.forEach(connector => {
+            const option = document.createElement('option');
+            option.value = connector;
+            option.textContent = connector;
+            connectorSelect.insertBefore(option, connectorSelect.lastElementChild);
+        });
+    }
+}
 // 在前面的 script 標籤中繼續添加以下代碼
 
 // 處理概念選擇
@@ -413,6 +416,28 @@ function createEditableNode() {
 
     input.focus();
     return node;
+}
+
+// 處理關連詞彙選擇
+function handleConnectorSelect(value) {
+    const connectorList = document.getElementById('connectorList');
+    
+    if (value === "custom") {
+        // 創建輸入對話框
+        const customConnector = prompt("請輸入自訂的關連詞彙:");
+        
+        if (customConnector && customConnector.trim()) {
+            // 如果使用者已經選擇了兩個節點，直接創建連接
+            if (selectedNodes.length === 2) {
+                createConnection(selectedNodes[0], selectedNodes[1], customConnector);
+                selectedNodes.forEach(node => node.classList.remove('selected'));
+                selectedNodes = [];
+                saveState();
+            }
+        }
+        // 重置選單選項
+        connectorList.value = "";
+    }
 }
 
 // 創建概念節點
@@ -601,17 +626,27 @@ function addConnection() {
         alert('請選擇兩個概念節點進行連接');
         return;
     }
-
+    
     const connector = document.getElementById('connectorList').value;
     if (!connector) {
-        alert('請選擇關連詞彙');
+        alert('請選擇或輸入關連詞彙');
         return;
     }
-
-    createConnection(selectedNodes[0], selectedNodes[1], connector);
-    selectedNodes.forEach(node => node.classList.remove('selected'));
-    selectedNodes = [];
-    saveState();
+    
+    if (connector === 'custom') {
+        const customConnector = prompt("請輸入自訂的關連詞彙:");
+        if (customConnector && customConnector.trim()) {
+            createConnection(selectedNodes[0], selectedNodes[1], customConnector);
+            selectedNodes.forEach(node => node.classList.remove('selected'));
+            selectedNodes = [];
+            saveState();
+        }
+    } else {
+        createConnection(selectedNodes[0], selectedNodes[1], connector);
+        selectedNodes.forEach(node => node.classList.remove('selected'));
+        selectedNodes = [];
+        saveState();
+    }
 }
 
 // 尋找最佳連接點
@@ -1238,4 +1273,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
     </script>
 </body>
-
