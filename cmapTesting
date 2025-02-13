@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>概念圖製作工具</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,18 +14,26 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overscroll-behavior: none;
+            touch-action: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
+
         .controls {
             padding: 10px;
             background: #f5f5f5;
             border-radius: 8px;
             margin-bottom: 20px;
         }
+
         .toolbar {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
+
         .canvas-container {
             flex-grow: 1;
             border: 2px solid #ccc;
@@ -33,11 +41,31 @@
             position: relative;
             overflow: hidden;
             background: #fff;
+            touch-action: none;
         }
+.control-point {
+    width: 10px;
+    height: 10px;
+    background: #666;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    position: absolute;
+    cursor: move;
+    z-index: 1000;
+}
+
+.connection-path {
+    cursor: pointer;
+}
+
+.connection-path:hover {
+    stroke-width: 3px;
+}
         #canvas {
             width: 100%;
             height: 100%;
         }
+
         .concept-node {
             position: absolute;
             background: #e3f2fd;
@@ -48,13 +76,15 @@
             user-select: none;
             min-width: 100px;
             text-align: center;
-    position: absolute;
-    z-index: 2; /* 確保概念方塊在連線上方 */
+            z-index: 2;
+            touch-action: none;
         }
+
         .concept-node.selected {
             border-color: #f44336;
             background: #ffebee;
         }
+
         .concept-node.editable {
             padding: 0;
         }
@@ -67,12 +97,52 @@
             text-align: center;
             outline: none;
         }
+
+        .connection-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #2196f3;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 3;
+        }
+
+        .concept-node:hover .connection-point {
+            display: block;
+        }
+
+        .connection-point.top {
+            top: 0;
+            left: 50%;
+        }
+
+        .connection-point.right {
+            top: 50%;
+            right: 0;
+            transform: translate(50%, -50%);
+        }
+
+        .connection-point.bottom {
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, 50%);
+        }
+
+        .connection-point.left {
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+        }
+
         .connector-line {
             position: absolute;
             background: #000;
             height: 2px;
             transform-origin: left center;
         }
+
         .connector-text {
             position: absolute;
             background: white;
@@ -80,63 +150,54 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             transform: translate(-50%, -50%);
-    z-index: 3; /* 確保關連詞彙在最上層 */
-
+            z-index: 3;
+            pointer-events: all;
+            cursor: move;
         }
-/* 在原有的 style 標籤中添加 */
-.canvas-container {
-    position: relative;
-}
 
-#svgContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1; /* 設置較低的 z-index */
-}
-/* 在 style 標籤中添加 */
-.concept-tooltip {
-    display: none;
-    position: absolute;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-}
+        .canvas-container {
+            position: relative;
+        }
 
-.concept-node:hover .concept-tooltip {
-    display: block;
-}
+        #svgContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
 
-.connection-path {
-    fill: none;
-    stroke: #000;
-    stroke-width: 2;
-}
+        .concept-tooltip {
+            display: none;
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
 
-.control-point {
-    fill: #2196f3;
-    cursor: move;
-    pointer-events: all;
-}
+        .concept-node:hover .concept-tooltip {
+            display: block;
+        }
 
-.control-point:hover {
-    fill: #1976d2;
-}
+        .connection-path {
+            fill: none;
+            stroke: #000;
+            stroke-width: 2;
+        }
 
-.connector-text {
-    pointer-events: all;
-    cursor: move;
-}
+        .arrow-marker {
+            fill: #000;
+        }
+
         button {
             padding: 8px 15px;
             border: none;
@@ -145,68 +206,57 @@
             color: white;
             cursor: pointer;
         }
+
         button:hover {
             background: #1976d2;
         }
+
         select {
             padding: 8px;
             border-radius: 4px;
             border: 1px solid #ccc;
             min-width: 150px;
         }
-<style>
-        body {
-            overscroll-behavior: none; /* 防止過度滾動 */
-            touch-action: none; /* 防止預設觸控行為 */
-            position: fixed; /* 防止 iOS 的彈性滾動 */
-            width: 100%;
-            height: 100%;
-        }
-        
-        .canvas-container {
-            touch-action: none; /* 防止預設觸控行為 */
-        }
-
-        .concept-node {
-            touch-action: none; /* 防止預設觸控行為 */
-        }
     </style>
 </head>
-<body>
-   <div class="controls">
-    <div class="toolbar">
-        <select id="chapter">
-            <option value="">選擇章節</option>
-        </select>
-        <select id="conceptList" onchange="handleConceptSelect(this.value)">
-            <option value="">選擇概念</option>
-            <option value="custom">自訂概念</option>
-        </select>
-        <select id="connectorList">
-            <option value="">選擇關連詞彙</option>
-        </select>
-        <button onclick="addConnection()">連接所選概念</button>
-        <button onclick="deleteSelected()">刪除選取</button>
-        <button onclick="undo()">復原</button>
-    </div>
-    <div class="toolbar">
-        <button onclick="exportToDrawIO()">匯出 draw.io</button>
-        <button onclick="exportToPDF()">匯出 PDF</button>
-        <button onclick="exportToPNG()">匯出 PNG</button>
 
+<body>
+    <div class="controls">
+        <div class="toolbar">
+            <select id="chapter">
+                <option value="">選擇章節</option>
+            </select>
+            <select id="conceptList" onchange="handleConceptSelect(this.value)">
+                <option value="">選擇概念</option>
+                <option value="custom">自訂概念</option>
+            </select>
+            <select id="connectionType">
+                <option value="line">線段</option>
+                <option value="arrow">單向箭頭</option>
+                <option value="double-arrow">雙向箭頭</option>
+            </select>
+            <select id="connectorList">
+                <option value="">選擇關連詞彙</option>
+            </select>
+            <button onclick="addConnection()">連接所選概念</button>
+            <button onclick="toggleArrowDirection()">切換箭頭方向</button>
+            <button onclick="deleteSelected()">刪除選取</button>
+            <button onclick="undo()">復原</button>
+        </div>
+        <div class="toolbar">
+            <button onclick="exportToDrawIO()">匯出 draw.io</button>
+            <button onclick="exportToPDF()">匯出 PDF</button>
+            <button onclick="exportToPNG()">匯出 PNG</button>
+        </div>
     </div>
-</div>
-<div class="canvas-container">
-    <div id="canvas"></div>
-    <svg id="svgContainer">
-        <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="#000"/>
-            </marker>
-        </defs>
-    </svg>
-</div>
+    <div class="canvas-container">
+        <div id="canvas"></div>
+        <svg id="svgContainer">
+            <defs>
+                <!-- 箭頭標記將由 JavaScript 動態生成 -->
+            </defs>
+        </svg>
+    </div>
 
     <script>
         // 全域變數
@@ -230,6 +280,40 @@
             })
             .catch(error => console.error('Error:', error));
 
+        // 初始化 SVG 定義
+        function updateSVGDefs() {
+            const svgContainer = document.getElementById('svgContainer');
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+
+            // 單向箭頭
+            const singleArrow = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            singleArrow.setAttribute("id", "arrow");
+            singleArrow.setAttribute("markerWidth", "10");
+            singleArrow.setAttribute("markerHeight", "7");
+            singleArrow.setAttribute("refX", "9");
+            singleArrow.setAttribute("refY", "3.5");
+            singleArrow.setAttribute("orient", "auto");
+            const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+            polygon.setAttribute("class", "arrow-marker");
+            singleArrow.appendChild(polygon);
+
+            // 雙向箭頭（起點）
+            const startArrow = singleArrow.cloneNode(true);
+            startArrow.setAttribute("id", "start-arrow");
+
+            // 雙向箭頭（終點）
+            const endArrow = singleArrow.cloneNode(true);
+            endArrow.setAttribute("id", "end-arrow");
+
+            defs.appendChild(singleArrow);
+            defs.appendChild(startArrow);
+            defs.appendChild(endArrow);
+
+            svgContainer.innerHTML = '';
+            svgContainer.appendChild(defs);
+        }
+
         // 初始化章節選單
         function initializeChapterSelect(chapters) {
             const chapterSelect = document.getElementById('chapter');
@@ -239,11 +323,10 @@
                 option.textContent = `${chapter.code} - ${chapter.name}`;
                 chapterSelect.appendChild(option);
             });
-
             chapterSelect.addEventListener('change', updateConceptsAndConnectors);
         }
 
-        // 更新概念和選擇關連詞彙選單
+        // 更新概念和關連詞彙選單
         function updateConceptsAndConnectors() {
             const chapterCode = document.getElementById('chapter').value;
             const conceptSelect = document.getElementById('conceptList');
@@ -254,7 +337,7 @@
 
             if (chapterCode && globalData.chapterData[chapterCode]) {
                 const chapterData = globalData.chapterData[chapterCode];
-                
+
                 chapterData.concepts.forEach(concept => {
                     const option = document.createElement('option');
                     option.value = concept;
@@ -270,475 +353,511 @@
                 });
             }
         }
+// 在前面的 script 標籤中繼續添加以下代碼
 
-        // 處理概念選擇
-        function handleConceptSelect(value) {
-            if (!value) return;
-            
-            if (value === "custom") {
-                createEditableNode();
-            } else {
-                createNode(value);
-            }
-            
-            document.getElementById('conceptList').value = ''; // 重置選單
-            saveState();
-        }
+// 處理概念選擇
+function handleConceptSelect(value) {
+    if (!value) return;
 
-        // 創建可編輯的概念節點
-        function createEditableNode() {
-            const node = document.createElement('div');
-            node.className = 'concept-node editable';
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = '輸入概念';
-            input.addEventListener('blur', function() {
-                if (this.value.trim()) {
-                    node.textContent = this.value;
-                    node.classList.remove('editable');
-                } else {
-                    node.remove();
-                }
-            });
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    this.blur();
-                }
-            });
-
-            node.appendChild(input);
-            node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
-            node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
-
-            node.addEventListener('mousedown', startDrag);
-            node.addEventListener('click', toggleSelect);
-
-            document.getElementById('canvas').appendChild(node);
-            concepts.push(node);
-            
-            input.focus();
-            return node;
-        }
-
-        // 創建概念節點
- function createNode(text) {
-        const node = document.createElement('div');
-        node.className = 'concept-node';
-        node.textContent = text;
-        node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
-        node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
-
-        const tooltip = document.createElement('div');
-        tooltip.className = 'concept-tooltip';
-        tooltip.textContent = globalData.conceptDescriptions[text] || '暫無描述';
-        node.appendChild(tooltip);
-
-        // 添加觸控事件支援
-        if (window.PointerEvent) {
-            node.addEventListener('pointerdown', startDrag);
-        } else {
-            node.addEventListener('mousedown', startDrag);
-            node.addEventListener('touchstart', startDrag);
-        }
-        node.addEventListener('click', toggleSelect);
-
-        document.getElementById('canvas').appendChild(node);
-        concepts.push(node);
-        return node;
+    if (value === "custom") {
+        createEditableNode();
+    } else {
+        createNode(value);
     }
 
-        // 拖曳相關函數
-            function startDrag(e) {
-        e.preventDefault(); // 防止預設行為
-        if (e.target.tagName === 'INPUT') return;
-        
-        draggedNode = e.target;
-        
-        // 處理滑鼠事件
-        if (e.type === 'mousedown') {
-            const rect = draggedNode.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-        }
-        // 處理觸控事件
-        else if (e.type === 'touchstart') {
-            const touch = e.touches[0];
-            const rect = draggedNode.getBoundingClientRect();
-            dragOffset.x = touch.clientX - rect.left;
-            dragOffset.y = touch.clientY - rect.top;
-        }
+    document.getElementById('conceptList').value = '';
+    saveState();
+}
 
-        // 添加事件監聽器
-        if (window.PointerEvent) {
-            document.addEventListener('pointermove', drag);
-            document.addEventListener('pointerup', stopDrag);
+// 創建可編輯的概念節點
+function createEditableNode() {
+    const node = document.createElement('div');
+    node.className = 'concept-node editable';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = '輸入概念';
+    
+    input.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            node.textContent = this.value;
+            node.classList.remove('editable');
+            // 添加連接點
+            addConnectionPoints(node);
         } else {
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDrag);
-            document.addEventListener('touchmove', drag, { passive: false });
-            document.addEventListener('touchend', stopDrag);
+            node.remove();
         }
+    });
+
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.blur();
+        }
+    });
+
+    node.appendChild(input);
+    node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
+    node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
+
+    // 添加拖曳和選取事件
+    if (window.PointerEvent) {
+        node.addEventListener('pointerdown', startDrag);
+    } else {
+        node.addEventListener('mousedown', startDrag);
+        node.addEventListener('touchstart', startDrag);
     }
+    node.addEventListener('click', toggleSelect);
 
-    // 修改 drag 函數
-    function drag(e) {
-        e.preventDefault(); // 防止預設行為
-        if (!draggedNode) return;
+    document.getElementById('canvas').appendChild(node);
+    concepts.push(node);
 
-        const canvas = document.getElementById('canvas');
-        const rect = canvas.getBoundingClientRect();
+    input.focus();
+    return node;
+}
+
+// 創建概念節點
+function createNode(text) {
+    const node = document.createElement('div');
+    node.className = 'concept-node';
+    node.textContent = text;
+    node.style.left = Math.random() * (canvas.offsetWidth - 150) + 'px';
+    node.style.top = Math.random() * (canvas.offsetHeight - 80) + 'px';
+
+    // 添加提示框
+    const tooltip = document.createElement('div');
+    tooltip.className = 'concept-tooltip';
+    tooltip.textContent = globalData.conceptDescriptions[text] || '暫無描述';
+    node.appendChild(tooltip);
+
+    // 添加連接點
+    addConnectionPoints(node);
+
+    // 添加拖曳和選取事件
+    if (window.PointerEvent) {
+        node.addEventListener('pointerdown', startDrag);
+    } else {
+        node.addEventListener('mousedown', startDrag);
+        node.addEventListener('touchstart', startDrag);
+    }
+    node.addEventListener('click', toggleSelect);
+
+    document.getElementById('canvas').appendChild(node);
+    concepts.push(node);
+    return node;
+}
+
+// 添加連接點
+function addConnectionPoints(node) {
+    const positions = ['top', 'right', 'bottom', 'left'];
+    positions.forEach(pos => {
+        const point = document.createElement('div');
+        point.className = `connection-point ${pos}`;
+        point.dataset.position = pos;
+        node.appendChild(point);
+    });
+}
+
+// 切換箭頭方向
+function toggleArrowDirection() {
+    const selectedConnection = connections.find(conn => 
+        conn.from === selectedNodes[0] || conn.to === selectedNodes[0]);
+    
+    if (selectedConnection && selectedConnection.type === 'arrow') {
+        // 交換起點和終點
+        const temp = selectedConnection.from;
+        selectedConnection.from = selectedConnection.to;
+        selectedConnection.to = temp;
         
-        let clientX, clientY;
-        
-        // 處理不同類型的事件
-        if (e.type === 'mousemove' || e.type === 'pointermove') {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        } else if (e.type === 'touchmove') {
-            const touch = e.touches[0];
-            clientX = touch.clientX;
-            clientY = touch.clientY;
-        }
-
-        let left = clientX - rect.left - dragOffset.x;
-        let top = clientY - rect.top - dragOffset.y;
-
-        // 確保節點不會超出畫布範圍
-        left = Math.max(0, Math.min(left, canvas.offsetWidth - draggedNode.offsetWidth));
-        top = Math.max(0, Math.min(top, canvas.offsetHeight - draggedNode.offsetHeight));
-
-        draggedNode.style.left = left + 'px';
-        draggedNode.style.top = top + 'px';
-
         updateConnections();
+        saveState();
     }
+}
 
-    // 修改 stopDrag 函數
-    function stopDrag(e) {
-        if (draggedNode) {
-            saveState();
-            draggedNode = null;
-            
-            // 移除所有事件監聽器
-            if (window.PointerEvent) {
-                document.removeEventListener('pointermove', drag);
-                document.removeEventListener('pointerup', stopDrag);
-            } else {
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('mouseup', stopDrag);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('touchend', stopDrag);
-            }
-        }
-    }
-    // 在初始化時添加觸控事件監聽
-    function initializeTouchEvents() {
-        concepts.forEach(node => {
-            if (window.PointerEvent) {
-                node.addEventListener('pointerdown', startDrag);
-            } else {
-                node.addEventListener('mousedown', startDrag);
-                node.addEventListener('touchstart', startDrag);
-            }
-        });
-    }
-
-        // 選取節點
-        function toggleSelect(e) {
-            if (e.target.tagName === 'INPUT') return;
-            
-            const node = e.target;
-            if (node.classList.contains('selected')) {
-                node.classList.remove('selected');
-                selectedNodes = selectedNodes.filter(n => n !== node);
-            } else {
-                if (selectedNodes.length < 2) {
-                    node.classList.add('selected');
-                    selectedNodes.push(node);
-                }
-            }
-        }
-
-        // 連接節點
-        function addConnection() {
-            if (selectedNodes.length !== 2) {
-                alert('請選擇兩個概念節點進行連接');
-                return;
-            }
-
-            const connector = document.getElementById('connectorList').value;
-            
-            if (!connector) {
-                alert('請選擇關連詞彙');
-                return;
-            }
-
-            createConnection(selectedNodes[0], selectedNodes[1], connector);
-            selectedNodes.forEach(node => node.classList.remove('selected'));
-            selectedNodes = [];
-            saveState();
-        }
-
-        // 創建連接線
+// 創建連接
 function createConnection(node1, node2, text) {
+    const connectionType = document.getElementById('connectionType').value;
+    
     const connection = {
         from: node1,
         to: node2,
         text: text,
+        type: connectionType,
         path: document.createElementNS("http://www.w3.org/2000/svg", "path"),
         textElement: document.createElement('div'),
-        controlPoint1: document.createElementNS("http://www.w3.org/2000/svg", "circle"),
-        controlPoint2: document.createElementNS("http://www.w3.org/2000/svg", "circle"),
-        controlPoints: { x1: 0, y1: 0, x2: 0, y2: 0 }
+        controlPoint1: document.createElement('div'),
+        controlPoint2: document.createElement('div'),
+        // 預設控制點偏移量
+        control1Offset: { x: 0, y: 0 },
+        control2Offset: { x: 0, y: 0 }
     };
 
-    // 設置路徑
+    // 設置路徑樣式
     connection.path.setAttribute('class', 'connection-path');
-    connection.path.setAttribute('marker-end', 'url(#arrowhead)');
 
     // 設置控制點
-    connection.controlPoint1.setAttribute('class', 'control-point');
-    connection.controlPoint2.setAttribute('class', 'control-point');
-    connection.controlPoint1.setAttribute('r', '4');
-    connection.controlPoint2.setAttribute('r', '4');
-
-    // 添加控制點拖曳事件
+    connection.controlPoint1.className = 'control-point';
+    connection.controlPoint2.className = 'control-point';
+    
+    // 為控制點添加拖曳事件
     setupControlPointDrag(connection.controlPoint1, connection, 1);
     setupControlPointDrag(connection.controlPoint2, connection, 2);
 
-    // 設置文字
+    // 根據連線類型設置不同的標記
+    switch(connectionType) {
+        case 'arrow':
+            connection.path.setAttribute('marker-end', 'url(#arrow)');
+            break;
+        case 'double-arrow':
+            connection.path.setAttribute('marker-start', 'url(#start-arrow)');
+            connection.path.setAttribute('marker-end', 'url(#end-arrow)');
+            break;
+    }
+
+    // 設置文字元素
     connection.textElement.className = 'connector-text';
     connection.textElement.textContent = text;
 
-    // 添加到 SVG
+    // 添加到 DOM
     const svgContainer = document.getElementById('svgContainer');
+    const canvas = document.getElementById('canvas');
     svgContainer.appendChild(connection.path);
-    svgContainer.appendChild(connection.controlPoint1);
-    svgContainer.appendChild(connection.controlPoint2);
-    document.getElementById('canvas').appendChild(connection.textElement);
+    canvas.appendChild(connection.textElement);
+    canvas.appendChild(connection.controlPoint1);
+    canvas.appendChild(connection.controlPoint2);
 
     connections.push(connection);
     updateConnections();
+    return connection;
 }
 
-// 添加控制點拖曳功能
 function setupControlPointDrag(controlPoint, connection, pointNumber) {
     let isDragging = false;
-    let currentX;
-    let currentY;
+    let startX, startY;
 
-    controlPoint.addEventListener('mousedown', startDragging);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', stopDragging);
+    controlPoint.addEventListener('mousedown', startControlPointDrag);
+    controlPoint.addEventListener('touchstart', startControlPointDrag, { passive: false });
 
-    function startDragging(e) {
+    function startControlPointDrag(e) {
+        e.preventDefault();
         isDragging = true;
-        connection.isDragging = true;
-        currentX = e.clientX;
-        currentY = e.clientY;
-        e.stopPropagation();
-    }
-
-    function drag(e) {
-        if (!isDragging) return;
-
-        const dx = e.clientX - currentX;
-        const dy = e.clientY - currentY;
-        currentX = e.clientX;
-        currentY = e.clientY;
-
-        if (pointNumber === 1) {
-            connection.controlPoints.x1 += dx;
-            connection.controlPoints.y1 += dy;
-        } else {
-            connection.controlPoints.x2 += dx;
-            connection.controlPoints.y2 += dy;
+        
+        if (e.type === 'mousedown') {
+            startX = e.clientX;
+            startY = e.clientY;
+        } else if (e.type === 'touchstart') {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
         }
 
-        // 更新初始狀態
-        const rect1 = connection.from.getBoundingClientRect();
-        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-        const x1 = rect1.left + rect1.width/2 - canvasRect.left;
-        const y1 = rect1.top + rect1.height/2 - canvasRect.top;
+        document.addEventListener('mousemove', dragControlPoint);
+        document.addEventListener('touchmove', dragControlPoint, { passive: false });
+        document.addEventListener('mouseup', stopControlPointDrag);
+        document.addEventListener('touchend', stopControlPointDrag);
+    }
 
-        connection.initialState = {
-            ...connection.initialState,
-            cp1x: connection.controlPoints.x1 - x1,
-            cp1y: connection.controlPoints.y1 - y1,
-            cp2x: connection.controlPoints.x2 - x1,
-            cp2y: connection.controlPoints.y2 - y1
-        };
+    function dragControlPoint(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        let currentX, currentY;
+        if (e.type === 'mousemove') {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        } else if (e.type === 'touchmove') {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        }
+
+        const dx = currentX - startX;
+        const dy = currentY - startY;
+
+        if (pointNumber === 1) {
+            connection.control1Offset.x += dx;
+            connection.control1Offset.y += dy;
+        } else {
+            connection.control2Offset.x += dx;
+            connection.control2Offset.y += dy;
+        }
+
+        startX = currentX;
+        startY = currentY;
 
         updateConnections();
     }
 
-    function stopDragging() {
+    function stopControlPointDrag() {
         isDragging = false;
-        connection.isDragging = false;
+        document.removeEventListener('mousemove', dragControlPoint);
+        document.removeEventListener('touchmove', dragControlPoint);
+        document.removeEventListener('mouseup', stopControlPointDrag);
+        document.removeEventListener('touchend', stopControlPointDrag);
+        saveState();
     }
 }
 
+// 添加連接
+function addConnection() {
+    if (selectedNodes.length !== 2) {
+        alert('請選擇兩個概念節點進行連接');
+        return;
+    }
+
+    const connector = document.getElementById('connectorList').value;
+    if (!connector) {
+        alert('請選擇關連詞彙');
+        return;
+    }
+
+    createConnection(selectedNodes[0], selectedNodes[1], connector);
+    selectedNodes.forEach(node => node.classList.remove('selected'));
+    selectedNodes = [];
+    saveState();
+}
+
+// 尋找最佳連接點
+function findBestConnectionPoint(fromNode, toNode) {
+    const fromRect = fromNode.getBoundingClientRect();
+    const toRect = toNode.getBoundingClientRect();
+    const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+
+    // 獲取所有連接點
+    const points = {
+        top: { 
+            x: fromRect.left + fromRect.width/2 - canvasRect.left,
+            y: fromRect.top - canvasRect.top
+        },
+        right: { 
+            x: fromRect.right - canvasRect.left,
+            y: fromRect.top + fromRect.height/2 - canvasRect.top
+        },
+        bottom: { 
+            x: fromRect.left + fromRect.width/2 - canvasRect.left,
+            y: fromRect.bottom - canvasRect.top
+        },
+        left: { 
+            x: fromRect.left - canvasRect.left,
+            y: fromRect.top + fromRect.height/2 - canvasRect.top
+        }
+    };
+
+    // 計算目標中心點
+    const targetCenter = {
+        x: toRect.left + toRect.width/2 - canvasRect.left,
+        y: toRect.top + toRect.height/2 - canvasRect.top
+    };
+
+    // 找出最近的連接點
+    let bestPoint = null;
+    let minDistance = Infinity;
+
+    for (const [position, point] of Object.entries(points)) {
+        const distance = Math.sqrt(
+            Math.pow(point.x - targetCenter.x, 2) + 
+            Math.pow(point.y - targetCenter.y, 2)
+        );
+
+        if (distance < minDistance) {
+            minDistance = distance;
+            bestPoint = point;
+        }
+    }
+
+    return bestPoint;
+}
+// 更新連接
 function updateConnections() {
     connections.forEach(conn => {
-        const rect1 = conn.from.getBoundingClientRect();
-        const rect2 = conn.to.getBoundingClientRect();
-        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+        const fromRect = conn.from.getBoundingClientRect();
+        const toRect = conn.to.getBoundingClientRect();
+        const canvasRect = document.querySelector('.canvas-container').getBoundingClientRect();
 
-        // 計算起點和終點
-        const x1 = rect1.left + rect1.width/2 - canvasRect.left;
-        const y1 = rect1.top + rect1.height/2 - canvasRect.top;
-        const x2 = rect2.left + rect2.width/2 - canvasRect.left;
-        const y2 = rect2.top + rect2.height/2 - canvasRect.top;
+        // 找出起點和終點
+        const fromPoint = findBestConnectionPoint(conn.from, conn.to);
+        const toPoint = findBestConnectionPoint(conn.to, conn.from);
 
-        // 如果控制點未初始化，設置預設位置
-        if (!conn.controlPoints.x1) {
-            conn.controlPoints.x1 = x1 + (x2 - x1) / 3;
-            conn.controlPoints.y1 = y1;
-            conn.controlPoints.x2 = x1 + (x2 - x1) * 2/3;
-            conn.controlPoints.y2 = y2;
-        }
-
-        // 更新控制點相對位置
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        if (!conn.initialState) {
-            conn.initialState = {
-                dx: dx,
-                dy: dy,
-                cp1x: conn.controlPoints.x1 - x1,
-                cp1y: conn.controlPoints.y1 - y1,
-                cp2x: conn.controlPoints.x2 - x1,
-                cp2y: conn.controlPoints.y2 - y1
-            };
-        }
-
-        // 根據節點移動更新控制點位置
-        if (!conn.isDragging) {
-            const scale = {
-                x: dx / conn.initialState.dx,
-                y: dy / conn.initialState.dy
-            };
-
-            conn.controlPoints.x1 = x1 + conn.initialState.cp1x * scale.x;
-            conn.controlPoints.y1 = y1 + conn.initialState.cp1y * scale.y;
-            conn.controlPoints.x2 = x1 + conn.initialState.cp2x * scale.x;
-            conn.controlPoints.y2 = y1 + conn.initialState.cp2y * scale.y;
-        }
-
-        // 更新路徑
-        const pathData = `M ${x1} ${y1} ` +
-                        `C ${conn.controlPoints.x1} ${conn.controlPoints.y1}, ` +
-                        `${conn.controlPoints.x2} ${conn.controlPoints.y2}, ` +
-                        `${x2} ${y2}`;
-        conn.path.setAttribute('d', pathData);
+        // 計算控制點位置
+        const controlPoint1 = {
+            x: fromPoint.x + conn.control1Offset.x,
+            y: fromPoint.y + conn.control1Offset.y
+        };
+        const controlPoint2 = {
+            x: toPoint.x + conn.control2Offset.x,
+            y: toPoint.y + conn.control2Offset.y
+        };
 
         // 更新控制點位置
-        conn.controlPoint1.setAttribute('cx', conn.controlPoints.x1);
-        conn.controlPoint1.setAttribute('cy', conn.controlPoints.y1);
-        conn.controlPoint2.setAttribute('cx', conn.controlPoints.x2);
-        conn.controlPoint2.setAttribute('cy', conn.controlPoints.y2);
+        conn.controlPoint1.style.left = controlPoint1.x + 'px';
+        conn.controlPoint1.style.top = controlPoint1.y + 'px';
+        conn.controlPoint2.style.left = controlPoint2.x + 'px';
+        conn.controlPoint2.style.top = controlPoint2.y + 'px';
 
-        // 計算曲線中點（貝茲曲線的參數 t = 0.5 時的點）
-        const midX = getBezierPoint(0.5, x1, conn.controlPoints.x1, conn.controlPoints.x2, x2);
-        const midY = getBezierPoint(0.5, y1, conn.controlPoints.y1, conn.controlPoints.y2, y2);
+        // 創建貝茲曲線路徑
+        const pathData = `M ${fromPoint.x} ${fromPoint.y} ` +
+                        `C ${controlPoint1.x} ${controlPoint1.y}, ` +
+                        `${controlPoint2.x} ${controlPoint2.y}, ` +
+                        `${toPoint.x} ${toPoint.y}`;
+        
+        conn.path.setAttribute('d', pathData);
 
-        // 更新文字位置到曲線的中點
-        conn.textElement.style.left = midX + 'px';
-        conn.textElement.style.top = midY + 'px';
+        // 更新連接文字位置
+        const midPoint = getBezierPoint(0.5, fromPoint, controlPoint1, controlPoint2, toPoint);
+        conn.textElement.style.left = midPoint.x + 'px';
+        conn.textElement.style.top = midPoint.y + 'px';
     });
 }
 
-function downloadOfflineVersion() {
-    // 複製當前的 HTML 內容
-    let currentHTML = document.documentElement.outerHTML;
-    
-    // 移除原有的 fetch 相關代碼
-    const fetchPattern = /fetch\(SCRIPT_URL\)[\s\S]*?\.catch\(error => console\.error\('Error:', error\)\);/;
-    
-    // 建立內建資料初始化程式碼
-    const initCode = `
-        // 初始化
-        const globalData = ${JSON.stringify(globalData, null, 2)};
-        
-        // 直接初始化章節選單
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeChapterSelect(globalData.chapters);
-        });
-    `;
-    
-    // 替換 fetch 相關程式碼
-    currentHTML = currentHTML.replace(fetchPattern, initCode);
-    
-    // 移除 SCRIPT_URL 定義
-    currentHTML = currentHTML.replace(/const SCRIPT_URL = .*?;/, '');
-    
-    // 建立 Blob 物件
-    const blob = new Blob([currentHTML], { type: 'text/html' });
-    
-    // 建立下載連結
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = '概念圖製作工具_離線版.html';
-    
-    // 觸發下載
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    
-    // 釋放 URL 物件
-    URL.revokeObjectURL(downloadLink.href);
-}
-
-// 添加貝茲曲線計算函數
+// 計算貝茲曲線上的點
 function getBezierPoint(t, p0, p1, p2, p3) {
-    const mt = 1 - t;
-    return Math.pow(mt, 3) * p0 + 
-           3 * Math.pow(mt, 2) * t * p1 + 
-           3 * mt * Math.pow(t, 2) * p2 + 
-           Math.pow(t, 3) * p3;
+    const x = Math.pow(1-t, 3) * p0.x +
+             3 * Math.pow(1-t, 2) * t * p1.x +
+             3 * (1-t) * Math.pow(t, 2) * p2.x +
+             Math.pow(t, 3) * p3.x;
+    
+    const y = Math.pow(1-t, 3) * p0.y +
+             3 * Math.pow(1-t, 2) * t * p1.y +
+             3 * (1-t) * Math.pow(t, 2) * p2.y +
+             Math.pow(t, 3) * p3.y;
+    
+    return { x, y };
 }
 
-        // 刪除選取的元素
-       function deleteSelected() {
+// 拖曳相關函數
+function startDrag(e) {
+    e.preventDefault();
+    if (e.target.tagName === 'INPUT') return;
+
+    draggedNode = e.target.closest('.concept-node');
+    if (!draggedNode) return;
+
+    // 處理不同類型的事件
+    if (e.type === 'mousedown' || e.type === 'pointerdown') {
+        const rect = draggedNode.getBoundingClientRect();
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+    } else if (e.type === 'touchstart') {
+        const touch = e.touches[0];
+        const rect = draggedNode.getBoundingClientRect();
+        dragOffset.x = touch.clientX - rect.left;
+        dragOffset.y = touch.clientY - rect.top;
+    }
+
+    // 添加事件監聽器
+    if (window.PointerEvent) {
+        document.addEventListener('pointermove', drag);
+        document.addEventListener('pointerup', stopDrag);
+    } else {
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('touchend', stopDrag);
+    }
+}
+
+function drag(e) {
+    e.preventDefault();
+    if (!draggedNode) return;
+
+    const canvas = document.getElementById('canvas');
+    const rect = canvas.getBoundingClientRect();
+
+    let clientX, clientY;
+
+    // 處理不同類型的事件
+    if (e.type === 'mousemove' || e.type === 'pointermove') {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    } else if (e.type === 'touchmove') {
+        const touch = e.touches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    }
+
+    // 計算新位置
+    let left = clientX - rect.left - dragOffset.x;
+    let top = clientY - rect.top - dragOffset.y;
+
+    // 確保節點不會超出畫布範圍
+    left = Math.max(0, Math.min(left, canvas.offsetWidth - draggedNode.offsetWidth));
+    top = Math.max(0, Math.min(top, canvas.offsetHeight - draggedNode.offsetHeight));
+
+    // 更新位置
+    draggedNode.style.left = left + 'px';
+    draggedNode.style.top = top + 'px';
+
+    // 更新所有連接
+    updateConnections();
+}
+
+function stopDrag(e) {
+    if (draggedNode) {
+        saveState();
+        draggedNode = null;
+
+        // 移除所有事件監聽器
+        if (window.PointerEvent) {
+            document.removeEventListener('pointermove', drag);
+            document.removeEventListener('pointerup', stopDrag);
+        } else {
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+    }
+}
+
+// 選取節點
+function toggleSelect(e) {
+    if (e.target.tagName === 'INPUT' || e.target.classList.contains('connection-point')) return;
+
+    const node = e.target.closest('.concept-node');
+    if (!node) return;
+
+    if (node.classList.contains('selected')) {
+        node.classList.remove('selected');
+        selectedNodes = selectedNodes.filter(n => n !== node);
+    } else {
+        if (selectedNodes.length < 2) {
+            node.classList.add('selected');
+            selectedNodes.push(node);
+        }
+    }
+}
+
+// 刪除選取的元素
+function deleteSelected() {
     selectedNodes.forEach(node => {
         // 找出所有與當前節點相關的連接
-        const relatedConnections = connections.filter(conn => 
+        const relatedConnections = connections.filter(conn =>
             conn.from === node || conn.to === node
         );
 
         // 刪除相關的連接
         relatedConnections.forEach(conn => {
-            // 移除 SVG 路徑
             conn.path.remove();
-            // 移除控制點
-            conn.controlPoint1.remove();
-            conn.controlPoint2.remove();
-            // 移除關連詞彙文字
             conn.textElement.remove();
         });
 
-        // 更新 connections 陣列，移除已刪除的連接
-        connections = connections.filter(conn => 
+        // 更新 connections 陣列
+        connections = connections.filter(conn =>
             conn.from !== node && conn.to !== node
         );
-        
+
         // 移除節點
         node.remove();
         concepts = concepts.filter(n => n !== node);
     });
-    
+
     selectedNodes = [];
     saveState();
 }
 
-        // 狀態管理
-	// 修改 saveState 函數，確保保存正確的文字內容
-	function saveState() {
-    		const state = {
-        		concepts: concepts.map(node => ({
-            text: node.childNodes[0].nodeType === Node.TEXT_NODE 
-                ? node.childNodes[0].textContent 
+// 狀態管理
+function saveState() {
+    const state = {
+        concepts: concepts.map(node => ({
+            text: node.childNodes[0].nodeType === Node.TEXT_NODE
+                ? node.childNodes[0].textContent
                 : node.textContent,
             left: node.style.left,
             top: node.style.top
@@ -746,174 +865,377 @@ function getBezierPoint(t, p0, p1, p2, p3) {
         connections: connections.map(conn => ({
             fromIndex: concepts.indexOf(conn.from),
             toIndex: concepts.indexOf(conn.to),
-            text: conn.textElement.textContent
+            text: conn.textElement.textContent,
+            type: conn.type,
+            control1Offset: conn.control1Offset,
+            control2Offset: conn.control2Offset
         }))
     };
     undoStack.push(JSON.stringify(state));
 }
 
+// 在頁面載入時初始化
+document.addEventListener('DOMContentLoaded', function() {
+    updateSVGDefs();
+    saveState();
+    window.addEventListener('resize', updateConnections);
+});
+// 匯出為 PNG 格式
+async function exportToPNG() {
+    try {
+        // 顯示載入中提示
+        const loadingMessage = document.createElement('div');
+        loadingMessage.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 9999;
+        `;
+        loadingMessage.textContent = '正在產生圖片...';
+        document.body.appendChild(loadingMessage);
 
-        function undo() {
-    if (undoStack.length > 1) {
-        undoStack.pop(); // 移除當前狀態
-        const previousState = JSON.parse(undoStack[undoStack.length - 1]);
+        // 創建畫布容器的副本
+        const canvasContainer = document.querySelector('.canvas-container');
+        const clone = canvasContainer.cloneNode(true);
         
-        // 清空畫布
-        concepts.forEach(node => node.remove());
-        connections.forEach(conn => {
-            conn.path.remove();
-            conn.controlPoint1.remove();
-            conn.controlPoint2.remove();
-            conn.textElement.remove();
-        });
+        // 設定副本的樣式
+        clone.style.position = 'absolute';
+        clone.style.left = '-9999px';
+        clone.style.background = 'white';
+        document.body.appendChild(clone);
+
+        // 獲取所有概念節點的位置範圍
+        const bounds = getContentBounds();
         
-        concepts = [];
-        connections = [];
-        selectedNodes = [];
+        // 設定副本的大小和位置
+        clone.style.width = (bounds.maxX - bounds.minX + 100) + 'px';
+        clone.style.height = (bounds.maxY - bounds.minY + 100) + 'px';
 
-        // 重建狀態
-        previousState.concepts.forEach(conceptData => {
-            const node = document.createElement('div');
-            node.className = 'concept-node';
-            node.textContent = conceptData.text;  // 使用保存的文字
-            node.style.left = conceptData.left;
-            node.style.top = conceptData.top;
-
-            // 添加提示框
-            const tooltip = document.createElement('div');
-            tooltip.className = 'concept-tooltip';
-            tooltip.textContent = globalData.conceptDescriptions[conceptData.text] || '暫無描述';
-            node.appendChild(tooltip);
-
-            node.addEventListener('mousedown', startDrag);
-            node.addEventListener('click', toggleSelect);
-
-            document.getElementById('canvas').appendChild(node);
-            concepts.push(node);
+        // 調整副本中節點的位置
+        const offsetX = -bounds.minX + 50;
+        const offsetY = -bounds.minY + 50;
+        
+        // 調整所有節點的位置
+        const nodes = clone.querySelectorAll('.concept-node');
+        nodes.forEach(node => {
+            const left = parseInt(node.style.left) + offsetX;
+            const top = parseInt(node.style.top) + offsetY;
+            node.style.left = left + 'px';
+            node.style.top = top + 'px';
         });
 
-        // 重建連接
-        previousState.connections.forEach(connData => {
-            createConnection(
-                concepts[connData.fromIndex],
-                concepts[connData.toIndex],
-                connData.text
-            );
+        // 更新 SVG 連接線
+        const svgContainer = clone.querySelector('#svgContainer');
+        svgContainer.innerHTML = document.getElementById('svgContainer').innerHTML;
+        
+        // 調整連接線文字的位置
+        const connectorTexts = clone.querySelectorAll('.connector-text');
+        connectorTexts.forEach((text, index) => {
+            const originalText = document.querySelectorAll('.connector-text')[index];
+            const left = parseInt(originalText.style.left) + offsetX;
+            const top = parseInt(originalText.style.top) + offsetY;
+            text.style.left = left + 'px';
+            text.style.top = top + 'px';
         });
+
+        // 移除連接點顯示
+        const connectionPoints = clone.querySelectorAll('.connection-point');
+        connectionPoints.forEach(point => {
+            point.style.display = 'none';
+        });
+
+        // 移除提示框
+        const tooltips = clone.querySelectorAll('.concept-tooltip');
+        tooltips.forEach(tooltip => {
+            tooltip.remove();
+        });
+
+        // 使用 html2canvas 轉換為圖片
+        const canvas = await html2canvas(clone, {
+            backgroundColor: 'white',
+            scale: 2, // 提高解析度
+            useCORS: true,
+            logging: false
+        });
+
+        // 移除副本
+        clone.remove();
+
+        // 產生檔案名稱
+        const date = new Date();
+        const fileName = `概念圖_${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}${date.getSeconds().toString().padStart(2, '0')}.png`;
+
+        // 轉換並下載圖片
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 'image/png');
+
+        // 移除載入提示
+        loadingMessage.remove();
+    } catch (error) {
+        console.error('匯出 PNG 時發生錯誤:', error);
+        alert('匯出失敗，請稍後再試。');
     }
 }
 
+// 獲取內容的邊界範圍
+function getContentBounds() {
+    const nodes = document.querySelectorAll('.concept-node');
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
-        // 匯出功能
-       // PNG 匯出功能
-function exportToPNG() {
-    const container = document.querySelector('.canvas-container');
-    
-    // 創建臨時 canvas
-    const canvas = document.createElement('canvas');
+    nodes.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        const canvasRect = document.querySelector('.canvas-container').getBoundingClientRect();
+        
+        // 計算相對於畫布的位置
+        const left = parseInt(node.style.left);
+        const top = parseInt(node.style.top);
+        const right = left + rect.width;
+        const bottom = top + rect.height;
+
+        minX = Math.min(minX, left);
+        minY = Math.min(minY, top);
+        maxX = Math.max(maxX, right);
+        maxY = Math.max(maxY, bottom);
+    });
+
+    // 檢查連接線文字的位置
+    const connectorTexts = document.querySelectorAll('.connector-text');
+    connectorTexts.forEach(text => {
+        const left = parseInt(text.style.left);
+        const top = parseInt(text.style.top);
+        const rect = text.getBoundingClientRect();
+
+        minX = Math.min(minX, left - rect.width / 2);
+        minY = Math.min(minY, top - rect.height / 2);
+        maxX = Math.max(maxX, left + rect.width / 2);
+        maxY = Math.max(maxY, top + rect.height / 2);
+    });
+
+    // 如果沒有找到任何內容，返回預設值
+    if (minX === Infinity) {
+        return { minX: 0, minY: 0, maxX: 800, maxY: 600 };
+    }
+
+    return { minX, minY, maxX, maxY };
+}
+
+// 添加錯誤處理函數
+function handleExportError(error) {
+    console.error('匯出過程中發生錯誤:', error);
+    alert('匯出過程發生錯誤，請稍後再試。如果問題持續發生，請聯繫系統管理員。');
+}
+
+// 優化圖片品質的輔助函數
+function optimizeCanvas(canvas) {
     const context = canvas.getContext('2d');
     
-    // 設置 canvas 大小
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
+    // 設定更好的圖片品質
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     
-    // 設置白色背景
-    context.fillStyle = 'white';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 使用 html2canvas 捕獲畫面
-    html2canvas(container, {
-        backgroundColor: '#ffffff',
-        scale: 2, // 提高解析度
-        useCORS: true,
-        allowTaint: true
-    }).then(canvas => {
-        // 創建下載連結
-        const link = document.createElement('a');
-        link.download = '概念圖.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    });
+    // 設定更清晰的文字渲染
+    context.textRendering = 'optimizeLegibility';
+    context.antialias = true;
+    
+    return canvas;
 }
 
-// PDF 匯出功能
-function exportToPDF() {
-    const container = document.querySelector('.canvas-container');
-    
-    html2canvas(container, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        
-        // 創建 PDF
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
+// 在 window.onload 中初始化
+window.onload = function() {
+    // 為匯出按鈕添加錯誤處理
+    const exportButton = document.querySelector('button[onclick="exportToPNG()"]');
+    if (exportButton) {
+        exportButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            exportToPNG().catch(handleExportError);
         });
-
-        // 添加圖片到 PDF
-        pdf.addImage(
-            imgData,
-            'PNG',
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        // 下載 PDF
-        pdf.save('概念圖.pdf');
+    }
+};
+// 復原功能
+function undo() {
+    if (undoStack.length <= 1) return; // 保留初始狀態
+    
+    undoStack.pop(); // 移除當前狀態
+    const previousState = JSON.parse(undoStack[undoStack.length - 1]);
+    
+    // 清除當前畫布
+    const canvas = document.getElementById('canvas');
+    const svgContainer = document.getElementById('svgContainer');
+    canvas.innerHTML = '';
+    svgContainer.innerHTML = '';
+    updateSVGDefs();
+    
+    // 重新建立概念節點
+    concepts = [];
+    previousState.concepts.forEach(conceptData => {
+        const node = document.createElement('div');
+        node.className = 'concept-node';
+        node.textContent = conceptData.text;
+        node.style.left = conceptData.left;
+        node.style.top = conceptData.top;
+        
+        // 重新添加事件監聽器
+        if (window.PointerEvent) {
+            node.addEventListener('pointerdown', startDrag);
+        } else {
+            node.addEventListener('mousedown', startDrag);
+            node.addEventListener('touchstart', startDrag);
+        }
+        node.addEventListener('click', toggleSelect);
+        
+        // 添加連接點
+        addConnectionPoints(node);
+        
+        canvas.appendChild(node);
+        concepts.push(node);
     });
+    
+    // 重新建立連接
+    connections = [];
+    previousState.connections.forEach(connData => {
+        createConnection(
+            concepts[connData.fromIndex],
+            concepts[connData.toIndex],
+            connData.text
+        ).type = connData.type;
+    });
+    
+    updateConnections();
 }
 
-// Draw.io 匯出功能
+// 匯出為 Draw.io 格式
 function exportToDrawIO() {
-    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    xmlContent += '<mxfile host="Electron" modified="2023-08-01T00:00:00.000Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/14.6.13 Chrome/89.0.4389.128 Electron/12.0.7 Safari/537.36" etag="your-etag" version="14.6.13" type="device">\n';
-    xmlContent += '<diagram id="your-diagram-id" name="Page-1">\n';
-    xmlContent += '<mxGraphModel dx="1422" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">\n';
-    xmlContent += '<root>\n';
-    xmlContent += '<mxCell id="0"/>\n';
-    xmlContent += '<mxCell id="1" parent="0"/>\n';
-
-    // 添加節點
-    concepts.forEach((node, index) => {
-        const rect = node.getBoundingClientRect();
-        xmlContent += `<mxCell id="node${index}" value="${node.textContent}" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">\n`;
-        xmlContent += `<mxGeometry x="${rect.left}" y="${rect.top}" width="${rect.width}" height="${rect.height}" as="geometry"/>\n`;
-        xmlContent += '</mxCell>\n';
-    });
-
-    // 添加連接線
-    connections.forEach((conn, index) => {
-        const fromIndex = concepts.indexOf(conn.from);
-        const toIndex = concepts.indexOf(conn.to);
-        xmlContent += `<mxCell id="edge${index}" value="${conn.textElement.textContent}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node${fromIndex}" target="node${toIndex}">\n`;
-        xmlContent += '<mxGeometry relative="1" as="geometry"/>\n';
-        xmlContent += '</mxCell>\n';
-    });
-
-    xmlContent += '</root>\n</mxGraphModel>\n</diagram>\n</mxfile>';
-
-    // 創建並下載檔案
-    const blob = new Blob([xmlContent], { type: 'application/xml' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = '概念圖.drawio';
-    link.click();
-    URL.revokeObjectURL(link.href);
+    try {
+        // 創建 Draw.io XML 結構
+        const xmlDoc = document.implementation.createDocument(null, 'mxfile', null);
+        const diagram = xmlDoc.createElement('diagram');
+        const graphModel = xmlDoc.createElement('mxGraphModel');
+        const root = xmlDoc.createElement('root');
+        
+        // 添加基本屬性
+        diagram.setAttribute('id', 'concept-map-' + Date.now());
+        diagram.setAttribute('name', '概念圖');
+        
+        // 創建節點
+        concepts.forEach((node, index) => {
+            const cell = xmlDoc.createElement('mxCell');
+            const geometry = xmlDoc.createElement('mxGeometry');
+            
+            cell.setAttribute('id', 'node-' + index);
+            cell.setAttribute('vertex', '1');
+            cell.setAttribute('value', node.textContent);
+            
+            const rect = node.getBoundingClientRect();
+            const canvasRect = document.querySelector('.canvas-container').getBoundingClientRect();
+            
+            geometry.setAttribute('x', parseInt(node.style.left));
+            geometry.setAttribute('y', parseInt(node.style.top));
+            geometry.setAttribute('width', rect.width);
+            geometry.setAttribute('height', rect.height);
+            
+            cell.appendChild(geometry);
+            root.appendChild(cell);
+        });
+        
+        // 創建連接線
+        connections.forEach((conn, index) => {
+            const cell = xmlDoc.createElement('mxCell');
+            const geometry = xmlDoc.createElement('mxGeometry');
+            
+            cell.setAttribute('id', 'edge-' + index);
+            cell.setAttribute('edge', '1');
+            cell.setAttribute('source', 'node-' + concepts.indexOf(conn.from));
+            cell.setAttribute('target', 'node-' + concepts.indexOf(conn.to));
+            cell.setAttribute('value', conn.textElement.textContent);
+            
+            // 設置箭頭樣式
+            let style = 'endArrow=';
+            switch(conn.type) {
+                case 'line':
+                    style += 'none';
+                    break;
+                case 'arrow':
+                    style += 'classic';
+                    break;
+                case 'double-arrow':
+                    style += 'classic;startArrow=classic';
+                    break;
+            }
+            cell.setAttribute('style', style);
+            
+            cell.appendChild(geometry);
+            root.appendChild(cell);
+        });
+        
+        // 組合 XML 結構
+        graphModel.appendChild(root);
+        diagram.appendChild(graphModel);
+        xmlDoc.documentElement.appendChild(diagram);
+        
+        // 轉換為字串並編碼
+        const xmlString = new XMLSerializer().serializeToString(xmlDoc);
+        const encoded = encodeURIComponent(xmlString);
+        
+        // 創建下載連結
+        const date = new Date();
+        const fileName = `概念圖_${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}.drawio`;
+        
+        const a = document.createElement('a');
+        a.href = 'data:application/vnd.jgraph.mxfile;charset=utf-8,' + encoded;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+    } catch (error) {
+        console.error('匯出 Draw.io 格式時發生錯誤:', error);
+        alert('匯出失敗，請稍後再試。');
+    }
 }
 
-        // 初始狀態
-        saveState();
-
-        // 視窗大小改變時更新連接線
-        window.addEventListener('resize', updateConnections);
+// 頁面載入時的初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化 SVG 定義
+    updateSVGDefs();
+    
+    // 綁定按鍵事件
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+Z 復原
+        if (e.ctrlKey && e.key === 'z') {
+            e.preventDefault();
+            undo();
+        }
+        // Delete 或 Backspace 刪除選取的節點
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                deleteSelected();
+            }
+        }
+    });
+    
+    // 初始化狀態
+    saveState();
+    
+    // 註冊視窗調整大小事件
+    window.addEventListener('resize', updateConnections);
+});
     </script>
 </body>
-</html>
+
