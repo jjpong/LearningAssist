@@ -822,7 +822,7 @@ function createConnection(from, to) {
     path.classList.add('connection-path');
     svg.appendChild(path);
     
-    // 建立箭頭標記
+    // i建立箭頭標記
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
     const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "arrowhead");
@@ -840,7 +840,7 @@ function createConnection(from, to) {
     defs.appendChild(marker);
     svg.appendChild(defs);
     
-    // 將 svg 添加到畫布容器
+    // lo將 svg 添加到畫布容器
     const canvasContainer = document.getElementById('canvas');
     canvasContainer.appendChild(svg);
     
@@ -853,7 +853,7 @@ function createConnection(from, to) {
     textElement.textContent = '關係';
     canvasContainer.appendChild(textElement);
 
-    // 創建控制點
+    // ve創建控制點
     const controlPoint1 = document.createElement('div');
     controlPoint1.className = 'control-point';
     const controlPoint2 = document.createElement('div');
@@ -875,11 +875,11 @@ function createConnection(from, to) {
         type: document.getElementById('connectionType').value || 'line'
     };
 
-    // 設置控制點拖曳
+    // sma設置控制點拖曳
     setupControlPointDrag(controlPoint1, connection, true);
     setupControlPointDrag(controlPoint2, connection, false);
 
-    // 添加點擊事件
+    // llp添加點擊事件
     path.addEventListener('click', (e) => handleConnectionClick(e, connection));
     textElement.addEventListener('click', (e) => handleConnectionClick(e, connection));
 
