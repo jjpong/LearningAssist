@@ -812,55 +812,37 @@ function toggleSelect(e) {
 
 // 創建連接
 // 修改 createConnection 函數中的箭頭設置部分
-function createConnection(from, to) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.id = 'svgContainer';
+function createConnection(from, to, connectionText = '關係') {
+    // 獲取 SVG 容器，如果不存在則創建
+    let svgContainer = document.getElementById('svgContainer');
+    if (!svgContainer) {
+        svgContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgContainer.setAttribute('width', '100%');
+        svgContainer.setAttribute('height', '100%');
+        svgContainer.id = 'svgContainer';
+        document.querySelector('.canvas-container').appendChild(svgContainer);
+    }
     
+    // 創建路徑元素
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.classList.add('connection-path');
-    svg.appendChild(path);
+    svgContainer.appendChild(path);
     
-    // i建立箭頭標記
-    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    marker.setAttribute("id", "arrowhead");
-    marker.setAttribute("markerWidth", "10");
-    marker.setAttribute("markerHeight", "7");
-    marker.setAttribute("refX", "9");
-    marker.setAttribute("refY", "3.5");
-    marker.setAttribute("orient", "auto");
-    
-    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
-    polygon.setAttribute("fill", "#000");
-    
-    marker.appendChild(polygon);
-    defs.appendChild(marker);
-    svg.appendChild(defs);
-    
-    // lo將 svg 添加到畫布容器
-    const canvasContainer = document.getElementById('canvas');
-    canvasContainer.appendChild(svg);
-    
-    path.setAttribute('marker-end', 'url(#arrowhead)');
-    
-    // 創建連接文字元素
+    // 創建文字元素
     const textElement = document.createElement('div');
     textElement.className = 'connector-text';
     textElement.contentEditable = 'true';
-    textElement.textContent = '關係';
-    canvasContainer.appendChild(textElement);
+    textElement.textContent = connectionText;
+    document.getElementById('canvas').appendChild(textElement);
 
-    // ve創建控制點
+    // 創建控制點
     const controlPoint1 = document.createElement('div');
     controlPoint1.className = 'control-point';
     const controlPoint2 = document.createElement('div');
     controlPoint2.className = 'control-point';
     
-    canvasContainer.appendChild(controlPoint1);
-    canvasContainer.appendChild(controlPoint2);
+    document.getElementById('canvas').appendChild(controlPoint1);
+    document.getElementById('canvas').appendChild(controlPoint2);
 
     const connection = {
         from: from,
@@ -871,25 +853,27 @@ function createConnection(from, to) {
         controlPoint2: controlPoint2,
         control1Offset: { x: 0, y: 0 },
         control2Offset: { x: 0, y: 0 },
-        // 添加類型屬性，預設為線段
         type: document.getElementById('connectionType').value || 'line'
     };
 
-    // sma設置控制點拖曳
+    // 設置控制點拖曳
     setupControlPointDrag(controlPoint1, connection, true);
     setupControlPointDrag(controlPoint2, connection, false);
 
-    // llp添加點擊事件
+    // 添加點擊事件
     path.addEventListener('click', (e) => handleConnectionClick(e, connection));
     textElement.addEventListener('click', (e) => handleConnectionClick(e, connection));
+    
+    // 添加右鍵選單事件
+    path.addEventListener('contextmenu', (e) => showConnectionContextMenu(e, connection));
+    textElement.addEventListener('contextmenu', (e) => showConnectionContextMenu(e, connection));
 
     connections.push(connection);
     updateConnections();
-        updateConnectionStyle(connection);
+    updateConnectionStyle(connection);
 
     return connection;
 }
-
 // 更新連接線樣式
 function updateConnectionStyle(connection) {
     switch(connection.type) {
@@ -1018,24 +1002,32 @@ function addConnection() {
         alert('請選擇或輸入關連詞彙');
         return;
     }
-    
+
+    let connectionText;
     if (connector === 'custom') {
-        const customConnector = prompt("請輸入自訂的關連詞彙:");
-        if (customConnector && customConnector.trim()) {
-            createConnection(selectedNodes[0], selectedNodes[1], customConnector);
-            selectedNodes.forEach(node => node.classList.remove('selected'));
-            selectedNodes = [];
-            saveState();
+        connectionText = prompt("請輸入自訂的關連詞彙:");
+        if (!connectionText || !connectionText.trim()) {
+            return;
         }
     } else {
-        createConnection(selectedNodes[0], selectedNodes[1], connector);
-        selectedNodes.forEach(node => node.classList.remove('selected'));
-        selectedNodes = [];
-        saveState();
+        connectionText = connector;
     }
+
+    // 創建連接
+    const connection = createConnection(selectedNodes[0], selectedNodes[1], connectionText);
+    
+    // 取消節點選取
+    selectedNodes.forEach(node => node.classList.remove('selected'));
+    selectedNodes = [];
+
+    // 保存狀態
+    saveState();
 
     // 清空連接詞彙選單的選擇
     document.getElementById('connectorList').value = '';
+    
+    // 更新連接
+    updateConnections();
 }
 
 // 更新連接線
