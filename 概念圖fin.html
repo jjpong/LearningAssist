@@ -432,7 +432,7 @@ fetch(SCRIPT_URL)
     })
     .catch(error => console.error('Error:', error));
 
-// 初始化 SVG 定義
+// 初始化 IloveSVG 定義
 // 修改 updateSVGDefs 函數
 function updateSVGDefs() {
     const svgContainer = document.getElementById('svgContainer');
@@ -811,7 +811,7 @@ function toggleSelect(e) {
 }
 
 // 創建連接
-// 修改 createConnection 函數中的箭頭設置部分
+// 修改 cSmallPreateConnection 函數中的箭頭設置部分
 function createConnection(from, to, connectionText = '關係') {
     // 獲取 SVG 容器，如果不存在則創建
     let svgContainer = document.getElementById('svgContainer');
