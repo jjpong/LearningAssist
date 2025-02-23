@@ -10,14 +10,13 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 20px 10px;
             display: flex;
             flex-direction: column;
-            height: 100vh;
             overscroll-behavior: none;
             touch-action: none;
             position: fixed;
-            width: 100%;
+            width: calc(100% - 25px);
             height: 100%;
         }
 
@@ -34,7 +33,7 @@
             margin-bottom: 10px;
             flex-wrap: wrap;
         }
-
+				
         .canvas-container {
             flex-grow: 1;
             border: 2px solid #ccc;
@@ -366,7 +365,7 @@
         <div class="toolbar">
             <button onclick="exportToPDF()">匯出 PDF</button>
             <button onclick="exportToPNG()">匯出 PNG</button>
-            <button onclick="exportToHTML()">匯出 HTML</button>
+            <button onclick="exportToHTML()" id="exportToHTML">匯出 HTML</button>
         </div>
     </div>
     <div class="canvas-container">
@@ -429,12 +428,36 @@ loadDataFromSpreadSheet();
  * 由試算表載入資料並進行初始程序
  */
 async function loadDataFromSpreadSheet() {
-  globalData = await spreadSheetToJson();
+  if(Object.keys(chapterData).length == 0) {
+    //非匯出者，由試算表載入資料
+    globalData = await spreadSheetToJson();
+  } else {  
+    //由匯出的資料重建
+	globalData = {};
+	globalData.chapters = [chapterData.chapter];
+	globalData.conceptDescriptions = chapterData.conceptDescriptions || {};
+	globalData.chapterData = {};
+	globalData.chapterData[chapterData.chapter.code] = {};
+    globalData.chapterData[chapterData.chapter.code].concepts = chapterData.concepts || [];
+	globalData.chapterData[chapterData.chapter.code].connectors = chapterData.connectors || {};
+	//隱藏匯出 HTML 的按鈕
+	const btnExportToHTML = document.querySelector('#exportToHTML');
+	if(btnExportToHTML) {
+		btnExportToHTML.style.display = 'none';
+	}
+    //試著還原已存在的節點滑鼠、觸控事件, 並重建連結線
+    restoreNodesListener();  
+  }
+  //console.log(globalData);
+  //如果章節不大於2個，就去掉選擇的提示字
+  if(globalData && typeof(globalData.chapters)!='undefined' && globalData.chapters!=null && globalData.chapters.length <= 1) {  
+    const chapterSelect = document.getElementById('chapter');
+	if(chapterSelect) {
+	  chapterSelect.innerHTML = '';
+	}
+  }
+  //初始化章節選單
   initializeChapterSelect(globalData.chapters);
-  console.log(globalData);
-
-  //試著還原已存在的節點滑鼠、觸控事件, 並重建連結線
-  restoreNodesListener();  
 }
 /**
  * 讀取試算表資料, 並轉為 JSON 格式
@@ -723,7 +746,12 @@ function initializeChapterSelect(chapters) {
         option.textContent = `${chapter.code} - ${chapter.name}`;		
         chapterSelect.appendChild(option);
     });
-    chapterSelect.addEventListener('change', updateConceptsAndConnectors);
+	if(chapters.length > 1) {
+		//超過一個就監聽章節是否更換而更新其它選項
+		chapterSelect.addEventListener('change', updateConceptsAndConnectors);
+	} else {
+		updateConceptsAndConnectors();
+	}
 }
 
 // 更新概念和關連詞彙選單
@@ -1694,9 +1722,13 @@ function exportToHTML() {
     }
 
     // 確保獲取完整的章節資料
+	const sel = document.querySelector('#chapter');
+	const chapter = sel.options[sel.selectedIndex].text.split(/\s*-\s*/);
     const chapterData = {
+		chapter: {code:chapter[0], name:chapter[1]},
         concepts: globalData.chapterData[selectedChapter].concepts || [],
-        connectors: globalData.chapterData[selectedChapter].connectors || []
+        connectors: globalData.chapterData[selectedChapter].connectors || [],
+		conceptDescriptions: globalData.conceptDescriptions || {}
     };
     
     // 獲取當前狀態
