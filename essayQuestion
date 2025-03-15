@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>申論題練習工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/html2pdf.js/dist/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Login Screen -->
+        <div id="login-screen" class="my-8">
+            <h1 class="text-3xl font-bold text-center text-primary mb-8">申論題練習工具</h1>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:p-8">
+                <div class="flex flex-col items-center space-y-4 w-full">
+                    <div class="text-xl font-semibold mb-4">請選擇登入方式</div>
+                    <div class="w-full max-w-md space-y-4">
+                        <div class="space-y-4">
+                            <input id="student-name" type="text" placeholder="輸入您的匿名暱稱" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <button id="student-login-btn" class="w-full py-2 px-4 bg-primary text-white rounded-md hover:bg-opacity-90 transition">學生登入</button>
+                        </div>
+                        <div class="relative flex items-center py-2">
+                            <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+                            <span class="flex-shrink mx-4 text-gray-500">或</span>
+                            <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <input id="admin-username" type="text" placeholder="管理員帳號" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <input id="admin-password" type="password" placeholder="管理員密碼" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <button id="admin-login-btn" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">管理員登入</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-primary">管理員控制台</h1>
+                <button id="admin-logout-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">登出</button>
+            </div>
+
+            <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">單元管理</h2>
+                <div class="space-y-4">
+                    <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                        <input id="new-unit-name" type="text" placeholder="新單元名稱" class="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                        <button id="add-unit-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">新增單元</button>
+                    </div>
+                    <div class="border dark:border-gray-700 rounded-md">
+                        <div class="p-4 font-medium bg-gray-100 dark:bg-gray-700 rounded-t-md">現有單元</div>
+                        <ul id="unit-list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Units will be added here dynamically -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">題目管理</h2>
+                <div class="space-y-4">
+                    <button id="add-topic-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">新增題目</button>
+                    <div class="border dark:border-gray-700 rounded-md">
+                        <div class="p-4 font-medium bg-gray-100 dark:bg-gray-700 rounded-t-md">現有題目</div>
+                        <ul id="topic-list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Topics will be added here dynamically -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">AI 提示詞設定</h2>
+                <div class="space-y-4">
+                    <textarea id="ai-prompt" rows="10" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700"></textarea>
+                    <div class="flex justify-end">
+                        <button id="save-prompt-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">儲存提示詞</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic Form Modal -->
+        <div id="topic-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <h2 id="topic-form-title" class="text-xl font-semibold mb-4">新增題目</h2>
+                <form id="topic-form" class="space-y-4">
+                    <input type="hidden" id="topic-id">
+                    <div>
+                        <label for="topic-title" class="block text-sm font-medium mb-1">題目標題</label>
+                        <input id="topic-title" type="text" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label for="topic-unit" class="block text-sm font-medium mb-1">所屬單元</label>
+                        <select id="topic-unit" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <!-- Units will be added here dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="topic-description" class="block text-sm font-medium mb-1">題目描述</label>
+                        <textarea id="topic-description" rows="4" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700"></textarea>
+                    </div>
+                    <div>
+                        <label for="topic-media-type" class="block text-sm font-medium mb-1">多媒體類型</label>
+                        <select id="topic-media-type" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <option value="none">無</option>
+                            <option value="image">圖片</option>
+                            <option value="video">影片</option>
+                        </select>
+                    </div>
+                    <div id="topic-media-url-container" class="hidden">
+                        <label for="topic-media-url" class="block text-sm font-medium mb-1">多媒體URL</label>
+                        <input id="topic-media-url" type="text" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label for="topic-word-limit" class="block text-sm font-medium mb-1">字數限制</label>
+                        <input id="topic-word-limit" type="number" min="0" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label for="topic-example" class="block text-sm font-medium mb-1">參考答案</label>
+                        <textarea id="topic-example" rows="4" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" id="cancel-topic-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">取消</button>
+                        <button type="submit" id="save-topic-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Student Dashboard -->
+        <div id="student-dashboard" class="hidden">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-primary">申論題練習</h1>
+                <div class="flex items-center">
+                    <span id="student-welcome" class="mr-4">歡迎，同學</span>
+                    <button id="student-logout-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">登出</button>
+                </div>
+            </div>
+
+            <div class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 mb-4">
+                    <div class="w-full md:w-1/2">
+                        <label for="unit-select" class="block text-sm font-medium mb-1">選擇單元</label>
+                        <select id="unit-select" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                            <option value="">請選擇單元</option>
+                            <!-- Units will be added here dynamically -->
+                        </select>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <label for="topic-select" class="block text-sm font-medium mb-1">選擇題目</label>
+                        <select id="topic-select" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" disabled>
+                            <option value="">請先選擇單元</option>
+                            <!-- Topics will be added here dynamically -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="topic-container" class="hidden mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 id="current-topic-title" class="text-xl font-semibold mb-4"></h2>
+                <div id="current-topic-description" class="mb-4 whitespace-pre-wrap"></div>
+                <div id="topic-media-container" class="mb-4 hidden">
+                    <div id="topic-image-container" class="hidden">
+                        <img id="topic-image" class="max-w-full max-h-96 object-contain mx-auto border dark:border-gray-700 rounded-md" src="" alt="題目相關圖片">
+                    </div>
+                    <div id="topic-video-container" class="hidden">
+                        <div class="aspect-w-16 aspect-h-9">
+                            <iframe id="topic-video" class="w-full max-h-96 border dark:border-gray-700 rounded-md" src="" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <button id="show-example-btn" class="text-primary hover:underline text-sm">顯示參考答案</button>
+                    <div id="example-answer-container" class="mt-2 p-4 bg-gray-100 dark:bg-gray-700 rounded-md hidden">
+                        <h3 class="font-medium mb-2">參考答案：</h3>
+                        <div id="example-answer" class="whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="answer-container" class="hidden mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="mb-4">
+                    <label for="student-answer" class="block text-sm font-medium mb-1">您的答案</label>
+                    <textarea id="student-answer" rows="8" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700"></textarea>
+                    <div class="flex justify-between mt-2">
+                        <div id="word-count" class="text-sm text-gray-600 dark:text-gray-400">字數：0</div>
+                        <div id="word-limit-display" class="text-sm text-gray-600 dark:text-gray-400">限制：未設定</div>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="save-draft-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">儲存草稿</button>
+                    <button id="submit-answer-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">提交答案</button>
+                </div>
+            </div>
+            
+            <div id="feedback-container" class="hidden mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">評分結果</h2>
+                <div class="mb-4">
+                    <div class="text-center mb-4">
+                        <span id="grade-display" class="inline-block text-5xl font-bold p-4 rounded-full w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700">-</span>
+                    </div>
+                    <div id="comment-container" class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+                        <h3 class="font-medium mb-2">總評：</h3>
+                        <div id="comment-display" class="whitespace-pre-wrap">等待評分...</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-md">
+                            <h3 class="font-medium mb-2 text-green-700 dark:text-green-400">優點：</h3>
+                            <ul id="strengths-list" class="list-disc pl-5 space-y-1">
+                                <li>等待評分...</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-md">
+                            <h3 class="font-medium mb-2 text-amber-700 dark:text-amber-400">改進建議：</h3>
+                            <ul id="improvements-list" class="list-disc pl-5 space-y-1">
+                                <li>等待評分...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="retry-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 transition">重新作答</button>
+                    <button id="export-pdf-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">匯出 PDF</button>
+                </div>
+            </div>
+
+            <div id="pdf-content" class="hidden">
+                <!-- Content for PDF export will be generated here -->
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <div id="loading-message">處理中，請稍候...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default data
+        const defaultUnits = [
+            { id: 'biology-basic', name: '生物學基礎' },
+            { id: 'chemistry-basic', name: '化學基礎' }
+        ];
+        
+        const defaultTopics = [
+            {
+                id: 'photosynthesis',
+                title: '光合作用描述',
+                unit: 'biology-basic',
+                description: '請用氧氣、二氧化碳、葡萄糖、水、光合作用、葉綠素、植物、陽光、養分、澱粉等詞彙，描述植物進行光合作用的過程。',
+                mediaType: 'none',
+                mediaUrl: '',
+                wordLimit: 300,
+                exampleAnswer: '植物透過光合作用將二氧化碳和水轉化為葡萄糖和氧氣。此過程主要發生在葉綠素所在的葉綠體中。當陽光照射植物時，葉綠素能夠吸收光能，並將其轉化為化學能。植物利用這些能量，將水分子分解並釋放出氧氣。同時，植物從空氣中吸收二氧化碳，與水分子結合形成葡萄糖。這些葡萄糖可以立即提供植物生長所需的養分，也可以轉化為澱粉儲存起來，作為植物的能量儲備。整個過程可以簡化為：二氧化碳 + 水 + 光能 → 葡萄糖 + 氧氣。'
+            },
+            {
+                id: 'water-temp',
+                title: '水溫與加熱時間關係',
+                unit: 'chemistry-basic',
+                description: '請觀看這一份水溫溫度與加熱時間的關係圖，以文字描述實驗結果並解釋其中的科學原理。',
+                mediaType: 'image',
+                mediaUrl: 'https://i.imgur.com/JYukTta.png',
+                wordLimit: 250,
+                exampleAnswer: '圖表展示了水在持續加熱過程中的溫度變化。從圖表可以觀察到，水溫在開始階段穩定上升，大約在4-5分鐘時達到100°C。之後，即使繼續加熱，水溫也維持在100°C不變，直到大約9-10分鐘時水完全蒸發。這表明了水的相變過程：當水達到沸點(100°C)時，額外的熱能不再用於提高溫度，而是轉化為氣化潛熱，使水分子從液態轉變為氣態。這就是為什麼在沸騰過程中水溫保持恆定的原因。此現象說明了能量守恆原理，加熱提供的能量在沸騰階段用於克服分子間的吸引力，而非提高分子的平均動能(即溫度)。'
+            }
+        ];
+        
+        const defaultPrompt = `你是一位科學申論題的評分專家。請依照以下標準評估學生的答案：
+1. 內容完整性：是否涵蓋了題目要求的所有關鍵概念
+2. 邏輯正確性：概念之間的因果關係是否合理
+3. 結構清晰度：論述是否有條理、易於理解
+4. 科學準確性：所述科學原理是否正確無誤
+
+請給予以下回饋：
+1. 優點：列出答案的3個優點
+2. 改進建議：列出可以改進的2-3個方向
+3. 等級評定：給予A、B、C、D或F的評級
+4. 評語：一段總結性評語
+
+題目是：{{question}}
+學生答案是：{{answer}}
+請以JSON格式回覆，包含strengths（優點陣列）、improvements（改進建議陣列）、grade（等級）和comment（評語）欄位。`;
+
+        // Application state
+        let appState = {
+            currentUser: null,
+            isAdmin: false,
+            units: [...defaultUnits],
+            topics: [...defaultTopics],
+            aiPrompt: defaultPrompt,
+            currentTopic: null,
+            currentAnswer: '',
+            feedback: null,
+            drafts: {}
+        };
+
+        // DOM Elements
+        const elements = {
+            // Login Elements
+            loginScreen: document.getElementById('login-screen'),
+            studentName: document.getElementById('student-name'),
+            studentLoginBtn: document.getElementById('student-login-btn'),
+            adminUsername: document.getElementById('admin-username'),
+            adminPassword: document.getElementById('admin-password'),
+            adminLoginBtn: document.getElementById('admin-login-btn'),
+            
+            // Admin Dashboard Elements
+            adminDashboard: document.getElementById('admin-dashboard'),
+            adminLogoutBtn: document.getElementById('admin-logout-btn'),
+            newUnitName: document.getElementById('new-unit-name'),
+            addUnitBtn: document.getElementById('add-unit-btn'),
+            unitList: document.getElementById('unit-list'),
+            addTopicBtn: document.getElementById('add-topic-btn'),
+            topicList: document.getElementById('topic-list'),
+            aiPromptTextarea: document.getElementById('ai-prompt'),
+            savePromptBtn: document.getElementById('save-prompt-btn'),
+            
+            // Topic Form Elements
+            topicModal: document.getElementById('topic-modal'),
+            topicFormTitle: document.getElementById('topic-form-title'),
+            topicForm: document.getElementById('topic-form'),
+            topicId: document.getElementById('topic-id'),
+            topicTitle: document.getElementById('topic-title'),
+            topicUnit: document.getElementById('topic-unit'),
+            topicDescription: document.getElementById('topic-description'),
+            topicMediaType: document.getElementById('topic-media-type'),
+            topicMediaUrlContainer: document.getElementById('topic-media-url-container'),
+            topicMediaUrl: document.getElementById('topic-media-url'),
+            topicWordLimit: document.getElementById('topic-word-limit'),
+            topicExample: document.getElementById('topic-example'),
+            saveTopicBtn: document.getElementById('save-topic-btn'),
+            cancelTopicBtn: document.getElementById('cancel-topic-btn'),
+            
+            // Student Dashboard Elements
+            studentDashboard: document.getElementById('student-dashboard'),
+            studentWelcome: document.getElementById('student-welcome'),
+            studentLogoutBtn: document.getElementById('student-logout-btn'),
+            unitSelect: document.getElementById('unit-select'),
+            topicSelect: document.getElementById('topic-select'),
+            topicContainer: document.getElementById('topic-container'),
+            currentTopicTitle: document.getElementById('current-topic-title'),
+            currentTopicDescription: document.getElementById('current-topic-description'),
+            topicMediaContainer: document.getElementById('topic-media-container'),
+            topicImageContainer: document.getElementById('topic-image-container'),
+            topicImage: document.getElementById('topic-image'),
+            topicVideoContainer: document.getElementById('topic-video-container'),
+            topicVideo: document.getElementById('topic-video'),
+            showExampleBtn: document.getElementById('show-example-btn'),
+            exampleAnswerContainer: document.getElementById('example-answer-container'),
+            exampleAnswer: document.getElementById('example-answer'),
+            answerContainer: document.getElementById('answer-container'),
+            studentAnswer: document.getElementById('student-answer'),
+            wordCount: document.getElementById('word-count'),
+            wordLimitDisplay: document.getElementById('word-limit-display'),
+            saveDraftBtn: document.getElementById('save-draft-btn'),
+            submitAnswerBtn: document.getElementById('submit-answer-btn'),
+            
+            // Feedback Elements
+            feedbackContainer: document.getElementById('feedback-container'),
+            gradeDisplay: document.getElementById('grade-display'),
+            commentDisplay: document.getElementById('comment-display'),
+            strengthsList: document.getElementById('strengths-list'),
+            improvementsList: document.getElementById('improvements-list'),
+            retryBtn: document.getElementById('retry-btn'),
+            exportPdfBtn: document.getElementById('export-pdf-btn'),
+            pdfContent: document.getElementById('pdf-content'),
+            
+            // Loading Elements
+            loadingOverlay: document.getElementById('loading-overlay'),
+            loadingMessage: document.getElementById('loading-message')
+        };
+
+        // Helper Functions
+        function generateId(str) {
+            return str.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        }
+
+        function countWords(str) {
+            return str.trim().length;
+        }
+
+        function showLoading(message = '處理中，請稍候...') {
+            elements.loadingMessage.textContent = message;
+            elements.loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            elements.loadingOverlay.classList.add('hidden');
+        }
+
+        function showScreen(screen) {
+            elements.loginScreen.classList.add('hidden');
+            elements.adminDashboard.classList.add('hidden');
+            elements.studentDashboard.classList.add('hidden');
+            
+            screen.classList.remove('hidden');
+        }
+
+        // Initialize Admin Dashboard
+        function initAdminDashboard() {
+            // Setup AI Prompt
+            elements.aiPromptTextarea.value = appState.aiPrompt;
+            
+            // Render Units
+            renderUnitList();
+            
+            // Render Topics
+            renderTopicList();
+            
+            // Show Admin Dashboard
+            showScreen(elements.adminDashboard);
+        }
+
+        function renderUnitList() {
+            elements.unitList.innerHTML = '';
+            appState.units.forEach(unit => {
+                const li = document.createElement('li');
+                li.className = 'p-4 flex justify-between items-center';
+                li.innerHTML = `
+                    <span>${unit.name}</span>
+                    <div>
+                        <button class="edit-unit-btn text-primary hover:underline mr-2" data-id="${unit.id}">編輯</button>
+                        <button class="delete-unit-btn text-red-500 hover:underline" data-id="${unit.id}">刪除</button>
+                    </div>
+                `;
+                elements.unitList.appendChild(li);
+            });
+
+            // Update topic unit dropdown
+            elements.topicUnit.innerHTML = '';
+            appState.units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.id;
+                option.textContent = unit.name;
+                elements.topicUnit.appendChild(option);
+            });
+        }
+
+        function renderTopicList() {
+            elements.topicList.innerHTML = '';
+            appState.topics.forEach(topic => {
+                const unitName = appState.units.find(u => u.id === topic.unit)?.name || '未分類';
+                const li = document.createElement('li');
+                li.className = 'p-4';
+                li.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium">${topic.title}</h3>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">單元：${unitName}</div>
+                        </div>
+                        <div>
+                            <button class="edit-topic-btn text-primary hover:underline mr-2" data-id="${topic.id}">編輯</button>
+                            <button class="delete-topic-btn text-red-500 hover:underline" data-id="${topic.id}">刪除</button>
+                        </div>
+                    </div>
+                `;
+                elements.topicList.appendChild(li);
+            });
+        }
+
+        // Initialize Student Dashboard
+        function initStudentDashboard() {
+            // Set welcome message
+            elements.studentWelcome.textContent = `歡迎，${appState.currentUser}`;
+            
+            // Populate unit dropdown
+            elements.unitSelect.innerHTML = '<option value="">請選擇單元</option>';
+            appState.units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.id;
+                option.textContent = unit.name;
+                elements.unitSelect.appendChild(option);
+            });
+            
+            // Reset topic selection
+            elements.topicSelect.innerHTML = '<option value="">請先選擇單元</option>';
+            elements.topicSelect.disabled = true;
+            
+            // Hide containers
+            elements.topicContainer.classList.add('hidden');
+            elements.answerContainer.classList.add('hidden');
+            elements.feedbackContainer.classList.add('hidden');
+            
+            // Show Student Dashboard
+            showScreen(elements.studentDashboard);
+        }
+
+        function loadTopicsByUnit(unitId) {
+            const unitTopics = appState.topics.filter(topic => topic.unit === unitId);
+            
+            elements.topicSelect.innerHTML = '<option value="">請選擇題目</option>';
+            unitTopics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic.id;
+                option.textContent = topic.title;
+                elements.topicSelect.appendChild(option);
+            });
+            
+            elements.topicSelect.disabled = false;
+        }
+
+        function loadTopic(topicId) {
+            const topic = appState.topics.find(t => t.id === topicId);
+            if (!topic) return;
+            
+            appState.currentTopic = topic;
+            
+            // Display topic details
+            elements.currentTopicTitle.textContent = topic.title;
+            elements.currentTopicDescription.textContent = topic.description;
+            
+            // Handle media
+            elements.topicMediaContainer.classList.add('hidden');
+            elements.topicImageContainer.classList.add('hidden');
+            elements.topicVideoContainer.classList.add('hidden');
+            
+            if (topic.mediaType === 'image' && topic.mediaUrl) {
+                elements.topicImage.src = topic.mediaUrl;
+                elements.topicImageContainer.classList.remove('hidden');
+                elements.topicMediaContainer.classList.remove('hidden');
+            } else if (topic.mediaType === 'video' && topic.mediaUrl) {
+                elements.topicVideo.src = topic.mediaUrl;
+                elements.topicVideoContainer.classList.remove('hidden');
+                elements.topicMediaContainer.classList.remove('hidden');
+            }
+            
+            // Set example answer
+            elements.exampleAnswer.textContent = topic.exampleAnswer || '無參考答案';
+            elements.exampleAnswerContainer.classList.add('hidden');
+            
+            // Set word limit
+            elements.wordLimitDisplay.textContent = topic.wordLimit ? `限制：${topic.wordLimit}字` : '限制：未設定';
+            
+            // Load draft if exists
+            if (appState.drafts[topicId]) {
+                elements.studentAnswer.value = appState.drafts[topicId];
+            } else {
+                elements.studentAnswer.value = '';
+            }
+            updateWordCount();
+            
+            // Show containers
+            elements.topicContainer.classList.remove('hidden');
+            elements.answerContainer.classList.remove('hidden');
+            elements.feedbackContainer.classList.add('hidden');
+        }
+
+        function updateWordCount() {
+            const count = countWords(elements.studentAnswer.value);
+            elements.wordCount.textContent = `字數：${count}`;
+            
+            const limit = appState.currentTopic?.wordLimit || 0;
+            if (limit && count > limit) {
+                elements.wordCount.classList.add('text-red-500');
+            } else {
+                elements.wordCount.classList.remove('text-red-500');
+            }
+        }
+
+        function saveDraft() {
+            if (!appState.currentTopic) return;
+            
+            appState.drafts[appState.currentTopic.id] = elements.studentAnswer.value;
+            alert('草稿已儲存！');
+        }
+
+        async function submitAnswer() {
+            if (!appState.currentTopic || !elements.studentAnswer.value.trim()) {
+                alert('請輸入您的答案');
+                return;
+            }
+            
+            const answer = elements.studentAnswer.value.trim();
+            appState.currentAnswer = answer;
+            
+            // Update draft
+            appState.drafts[appState.currentTopic.id] = answer;
+            
+            // Show loading
+            showLoading('正在評分，請稍候...');
+            
+            try {
+                await evaluateAnswer(appState.currentTopic, answer);
+            } catch (error) {
+                console.error('Evaluation error:', error);
+                alert('評分過程發生錯誤，請稍後再試');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Register the handler for Claude's response
+        window.Poe.registerHandler("evaluation-handler", (result, context) => {
+            if (result.status === "error") {
+                hideLoading();
+                alert("評分過程發生錯誤：" + (result.responses[0]?.statusText || "未知錯誤"));
+                return;
+            }
+            
+            if (result.status === "complete") {
+                const response = result.responses[0];
+                
+                try {
+                    // Extract the JSON from Claude's response
+                    let jsonString = response.content;
+                    
+                    // Handle if Claude wrapped the JSON in code blocks
+                    if (jsonString.includes("```json")) {
+                        jsonString = jsonString.split("```json")[1].split("```")[0].trim();
+                    } else if (jsonString.includes("```")) {
+                        jsonString = jsonString.split("```")[1].split("```")[0].trim();
+                    }
+                    
+                    const feedback = JSON.parse(jsonString);
+                    
+                    // Store feedback
+                    appState.feedback = feedback;
+                    
+                    // Display feedback
+                    displayFeedback(feedback);
+                    
+                    // Hide loading
+                    hideLoading();
+                } catch (error) {
+                    console.error("Failed to parse Claude's response:", error);
+                    console.log("Raw response:", response.content);
+                    hideLoading();
+                    alert("無法解析評分結果，請稍後再試");
+                }
+            }
+        });
+
+        async function evaluateAnswer(topic, answer) {
+            const prompt = appState.aiPrompt
+                .replace('{{question}}', topic.description)
+                .replace('{{answer}}', answer);
+                
+            try {
+                await window.Poe.sendUserMessage(
+                    "@Claude-3.7-Sonnet " + prompt,
+                    {
+                        handler: "evaluation-handler",
+                        stream: false,
+                        openChat: false
+                    }
+                );
+            } catch (error) {
+                console.error("Error sending message to Claude:", error);
+                throw error;
+            }
+        }
+
+        function displayFeedback(feedback) {
+            // Set grade
+            elements.gradeDisplay.textContent = feedback.grade || '-';
+            
+            // Set color based on grade
+            const gradeElement = elements.gradeDisplay;
+            gradeElement.className = 'inline-block text-5xl font-bold p-4 rounded-full w-16 h-16 flex items-center justify-center';
+            
+            switch (feedback.grade) {
+                case 'A':
+                    gradeElement.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200');
+                    break;
+                case 'B':
+                    gradeElement.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-900', 'dark:text-blue-200');
+                    break;
+                case 'C':
+                    gradeElement.classList.add('bg-yellow-100', 'text-yellow-800', 'dark:bg-yellow-900', 'dark:text-yellow-200');
+                    break;
+                case 'D':
+                    gradeElement.classList.add('bg-orange-100', 'text-orange-800', 'dark:bg-orange-900', 'dark:text-orange-200');
+                    break;
+                case 'F':
+                    gradeElement.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900', 'dark:text-red-200');
+                    break;
+                default:
+                    gradeElement.classList.add('bg-gray-100', 'text-gray-800', 'dark:bg-gray-700', 'dark:text-gray-200');
+            }
+            
+            // Set comment
+            elements.commentDisplay.textContent = feedback.comment || '無評語';
+            
+            // Set strengths
+            elements.strengthsList.innerHTML = '';
+            if (feedback.strengths && feedback.strengths.length > 0) {
+                feedback.strengths.forEach(strength => {
+                    const li = document.createElement('li');
+                    li.textContent = strength;
+                    elements.strengthsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = '未提供優點';
+                elements.strengthsList.appendChild(li);
+            }
+            
+            // Set improvements
+            elements.improvementsList.innerHTML = '';
+            if (feedback.improvements && feedback.improvements.length > 0) {
+                feedback.improvements.forEach(improvement => {
+                    const li = document.createElement('li');
+                    li.textContent = improvement;
+                    elements.improvementsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = '未提供改進建議';
+                elements.improvementsList.appendChild(li);
+            }
+            
+            // Show feedback container
+            elements.feedbackContainer.classList.remove('hidden');
+        }
+
+        function prepareExportPdf() {
+            if (!appState.currentTopic || !appState.feedback) return;
+            
+            const topic = appState.currentTopic;
+            const answer = appState.currentAnswer;
+            const feedback = appState.feedback;
+            
+            // Create content for PDF
+            elements.pdfContent.innerHTML = `
+                <div class="p-8">
+                    <h1 class="text-2xl font-bold mb-6">${topic.title}</h1>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-2">題目描述：</h2>
+                        <div class="p-4 bg-gray-100 rounded-md whitespace-pre-wrap">${topic.description}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-2">學生答案：</h2>
+                        <div class="p-4 bg-gray-100 rounded-md whitespace-pre-wrap">${answer}</div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-2">評分結果：</h2>
+                        <div class="flex items-center mb-4">
+                            <span class="mr-2">等級：</span>
+                            <span class="font-bold text-2xl">${feedback.grade}</span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-medium mb-2">總評：</h3>
+                            <div class="p-4 bg-gray-100 rounded-md whitespace-pre-wrap">${feedback.comment}</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-medium mb-2">優點：</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                ${feedback.strengths.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium mb-2">改進建議：</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                ${feedback.improvements.map(i => `<li>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Export to PDF
+            html2pdf()
+                .set({
+                    margin: 10,
+                    filename: `${topic.title}_評分結果.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                })
+                .from(elements.pdfContent)
+                .save();
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Login Event Listeners
+            elements.studentLoginBtn.addEventListener('click', () => {
+                const name = elements.studentName.value.trim();
+                if (!name) {
+                    alert('請輸入您的暱稱');
+                    return;
+                }
+                
+                appState.currentUser = name;
+                appState.isAdmin = false;
+                initStudentDashboard();
+            });
+            
+            elements.adminLoginBtn.addEventListener('click', () => {
+                const username = elements.adminUsername.value.trim();
+                const password = elements.adminPassword.value;
+                
+                if (username === 'admin' && password === '1234') {
+                    appState.currentUser = 'Admin';
+                    appState.isAdmin = true;
+                    initAdminDashboard();
+                } else {
+                    alert('管理員帳號或密碼錯誤');
+                }
+            });
+            
+            // Admin Dashboard Event Listeners
+            elements.adminLogoutBtn.addEventListener('click', () => {
+                appState.currentUser = null;
+                appState.isAdmin = false;
+                showScreen(elements.loginScreen);
+            });
+            
+            elements.addUnitBtn.addEventListener('click', () => {
+                const name = elements.newUnitName.value.trim();
+                if (!name) {
+                    alert('請輸入單元名稱');
+                    return;
+                }
+                
+                const unitId = generateId(name);
+                
+                // Check if unit already exists
+                if (appState.units.some(u => u.id === unitId)) {
+                    alert('此單元已存在');
+                    return;
+                }
+                
+                appState.units.push({ id: unitId, name });
+                elements.newUnitName.value = '';
+                renderUnitList();
+            });
+            
+            elements.unitList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-unit-btn')) {
+                    const unitId = e.target.dataset.id;
+                    const unit = appState.units.find(u => u.id === unitId);
+                    if (unit) {
+                        const newName = prompt('請輸入新的單元名稱', unit.name);
+                        if (newName && newName.trim()) {
+                            unit.name = newName.trim();
+                            renderUnitList();
+                        }
+                    }
+                } else if (e.target.classList.contains('delete-unit-btn')) {
+                    const unitId = e.target.dataset.id;
+                    
+                    // Check if unit has topics
+                    const hasTopics = appState.topics.some(t => t.unit === unitId);
+                    if (hasTopics) {
+                        alert('無法刪除含有題目的單元');
+                        return;
+                    }
+                    
+                    if (confirm('確定要刪除此單元嗎？')) {
+                        appState.units = appState.units.filter(u => u.id !== unitId);
+                        renderUnitList();
+                    }
+                }
+            });
+            
+            elements.addTopicBtn.addEventListener('click', () => {
+                // Reset form
+                elements.topicFormTitle.textContent = '新增題目';
+                elements.topicId.value = '';
+                elements.topicTitle.value = '';
+                elements.topicDescription.value = '';
+                elements.topicMediaType.value = 'none';
+                elements.topicMediaUrl.value = '';
+                elements.topicWordLimit.value = '';
+                elements.topicExample.value = '';
+                
+                // Show media URL field if needed
+                if (elements.topicMediaType.value !== 'none') {
+                    elements.topicMediaUrlContainer.classList.remove('hidden');
+                } else {
+                    elements.topicMediaUrlContainer.classList.add('hidden');
+                }
+                
+                // Show modal
+                elements.topicModal.classList.remove('hidden');
+            });
+            
+            elements.topicList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-topic-btn')) {
+                    const topicId = e.target.dataset.id;
+                    const topic = appState.topics.find(t => t.id === topicId);
+                    if (topic) {
+                        // Fill form
+                        elements.topicFormTitle.textContent = '編輯題目';
+                        elements.topicId.value = topic.id;
+                        elements.topicTitle.value = topic.title;
+                        elements.topicUnit.value = topic.unit;
+                        elements.topicDescription.value = topic.description;
+                        elements.topicMediaType.value = topic.mediaType;
+                        elements.topicMediaUrl.value = topic.mediaUrl || '';
+                        elements.topicWordLimit.value = topic.wordLimit || '';
+                        elements.topicExample.value = topic.exampleAnswer || '';
+                        
+                        // Show media URL field if needed
+                        if (elements.topicMediaType.value !== 'none') {
+                            elements.topicMediaUrlContainer.classList.remove('hidden');
+                        } else {
+                            elements.topicMediaUrlContainer.classList.add('hidden');
+                        }
+                        
+                        // Show modal
+                        elements.topicModal.classList.remove('hidden');
+                    }
+                } else if (e.target.classList.contains('delete-topic-btn')) {
+                    const topicId = e.target.dataset.id;
+                    if (confirm('確定要刪除此題目嗎？')) {
+                        appState.topics = appState.topics.filter(t => t.id !== topicId);
+                        renderTopicList();
+                    }
+                }
+            });
+            
+            elements.topicMediaType.addEventListener('change', () => {
+                if (elements.topicMediaType.value !== 'none') {
+                    elements.topicMediaUrlContainer.classList.remove('hidden');
+                } else {
+                    elements.topicMediaUrlContainer.classList.add('hidden');
+                }
+            });
+            
+            elements.cancelTopicBtn.addEventListener('click', () => {
+                elements.topicModal.classList.add('hidden');
+            });
+            
+            elements.topicForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Validate form
+                const title = elements.topicTitle.value.trim();
+                const unit = elements.topicUnit.value;
+                const description = elements.topicDescription.value.trim();
+                
+                if (!title || !unit || !description) {
+                    alert('請填寫必填欄位');
+                    return;
+                }
+                
+                const mediaType = elements.topicMediaType.value;
+                const mediaUrl = elements.topicMediaUrl.value.trim();
+                
+                // Validate media URL if media type is not none
+                if (mediaType !== 'none' && !mediaUrl) {
+                    alert('請輸入多媒體URL');
+                    return;
+                }
+                
+                // Check if editing or adding
+                const isEditing = !!elements.topicId.value;
+                
+                if (isEditing) {
+                    // Update existing topic
+                    const topicId = elements.topicId.value;
+                    const topicIndex = appState.topics.findIndex(t => t.id === topicId);
+                    
+                    if (topicIndex !== -1) {
+                        appState.topics[topicIndex] = {
+                            id: topicId,
+                            title,
+                            unit,
+                            description,
+                            mediaType,
+                            mediaUrl: mediaType !== 'none' ? mediaUrl : '',
+                            wordLimit: parseInt(elements.topicWordLimit.value) || 0,
+                            exampleAnswer: elements.topicExample.value.trim()
+                        };
+                    }
+                } else {
+                    // Add new topic
+                    const topicId = generateId(title);
+                    
+                    // Check if topic already exists
+                    if (appState.topics.some(t => t.id === topicId)) {
+                        alert('此題目ID已存在，請修改題目標題');
+                        return;
+                    }
+                    
+                    appState.topics.push({
+                        id: topicId,
+                        title,
+                        unit,
+                        description,
+                        mediaType,
+                        mediaUrl: mediaType !== 'none' ? mediaUrl : '',
+                        wordLimit: parseInt(elements.topicWordLimit.value) || 0,
+                        exampleAnswer: elements.topicExample.value.trim()
+                    });
+                }
+                
+                // Update topic list
+                renderTopicList();
+                
+                // Hide modal
+                elements.topicModal.classList.add('hidden');
+            });
+            
+            elements.savePromptBtn.addEventListener('click', () => {
+                const prompt = elements.aiPromptTextarea.value.trim();
+                if (!prompt) {
+                    alert('提示詞不能為空');
+                    return;
+                }
+                
+                appState.aiPrompt = prompt;
+                alert('提示詞已儲存');
+            });
+            
+            // Student Dashboard Event Listeners
+            elements.studentLogoutBtn.addEventListener('click', () => {
+                appState.currentUser = null;
+                appState.isAdmin = false;
+                showScreen(elements.loginScreen);
+            });
+            
+            elements.unitSelect.addEventListener('change', () => {
+                const unitId = elements.unitSelect.value;
+                if (unitId) {
+                    loadTopicsByUnit(unitId);
+                } else {
+                    elements.topicSelect.innerHTML = '<option value="">請先選擇單元</option>';
+                    elements.topicSelect.disabled = true;
+                    elements.topicContainer.classList.add('hidden');
+                    elements.answerContainer.classList.add('hidden');
+                    elements.feedbackContainer.classList.add('hidden');
+                }
+            });
+            
+            elements.topicSelect.addEventListener('change', () => {
+                const topicId = elements.topicSelect.value;
+                if (topicId) {
+                    loadTopic(topicId);
+                } else {
+                    elements.topicContainer.classList.add('hidden');
+                    elements.answerContainer.classList.add('hidden');
+                    elements.feedbackContainer.classList.add('hidden');
+                }
+            });
+            
+            elements.showExampleBtn.addEventListener('click', () => {
+                elements.exampleAnswerContainer.classList.toggle('hidden');
+                elements.showExampleBtn.textContent = 
+                    elements.exampleAnswerContainer.classList.contains('hidden') 
+                        ? '顯示參考答案' 
+                        : '隱藏參考答案';
+            });
+            
+            elements.studentAnswer.addEventListener('input', updateWordCount);
+            
+            elements.saveDraftBtn.addEventListener('click', saveDraft);
+            
+            elements.submitAnswerBtn.addEventListener('click', submitAnswer);
+            
+            elements.retryBtn.addEventListener('click', () => {
+                elements.feedbackContainer.classList.add('hidden');
+                window.scrollTo({
+                    top: elements.answerContainer.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            });
+            
+            elements.exportPdfBtn.addEventListener('click', prepareExportPdf);
+        }
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            showScreen(elements.loginScreen);
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
