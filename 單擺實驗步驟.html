@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件排序</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+     
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .drag-placeholder { background-color: #e5e7eb; border: 2px dashed #9ca3af; border-radius: 0.375rem; width: 160px; height: 130px; margin: 0.375rem; flex-shrink: 0; }
+    .event-card { cursor: grab; border: 1px solid #d1d5db; background-color: white; padding: 0.5rem; margin: 0.375rem; border-radius: 0.375rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); width: 160px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 0.85rem; flex-shrink: 0; transition: box-shadow 0.2s ease-in-out; }
+    .event-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    .event-card img.event-image { max-width: 90%; max-height: 65px; object-fit: contain; border-radius: 0.25rem; margin-bottom: 0.3rem; flex-shrink: 0; }
+    .event-card p.event-text { margin: 0; padding: 0 0.25rem; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word; line-height: 1.3; flex-grow: 1; min-height: 0; }
+    .event-card.dragging { opacity: 0.6; cursor: grabbing; border: 2px solid #6b7280; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+    #sequence-slots-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; min-height: 160px; padding: 0.75rem; background-color: #f9fafb; border-radius: 0.375rem; border: 1px solid #e5e7eb; }
+    .sequence-slot { border: 2px dashed #d1d5db; background-color: white; height: 150px; border-radius: 0.375rem; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-style: italic; font-size: 0.9rem; flex-shrink: 0; position: relative; padding: 0.25rem; transition: background-color 0.2s ease, border-color 0.2s ease, border-style 0.2s ease; }
+    .sequence-slot.correct { border-color: #10b981; border-style: solid; border-width: 2px; }
+    .sequence-slot.incorrect { border-color: #ef4444; border-style: solid; border-width: 2px; }
+    #sequence-slots-container .event-card { width: 100%; height: 100%; margin: 0; font-size: 0.8rem; color: #1e40af; border: 1px solid #d1d5db; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); background-color: white; justify-content: center; }
+    #sequence-slots-container .event-card:hover { box-shadow: 0 2px 4px -1px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.06); }
+    #sequence-slots-container .event-card img.event-image { max-height: 60%; }
+    #sequence-slots-container .event-card p.event-text { -webkit-line-clamp: 2; }
+    .slot-placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-style: italic; font-size: 0.9rem; pointer-events: none; z-index: 1; text-align: center; }
+    .sequence-slot:has(.event-card) .slot-placeholder-text { display: none; }
+    .sequence-slot.drag-over { background-color: #e0f2fe; border-color: #3b82f6; border-style: solid; }
+    #event-cards-container { display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem; background-color: #fefce8; border-radius: 0.375rem; border: 1px solid #fef08a; min-height: 150px; }
+    #event-cards-container.drag-over { background-color: #fef9c3; }
+    #description-area {   }
+    #main-theme-image { display: block; max-width: 60%; max-height: 250px; margin-left: auto; margin-right: auto; margin-bottom: 1rem; border-radius: 0.375rem; object-fit: contain; }
+    #theme-description {   }
+    #theme-description img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 0.375rem; margin-top: 0.5rem; display: block; margin-left: auto; margin-right: auto; }
+    #message-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #10b981; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; display: none; opacity: 0; transition: opacity 0.5s ease-in-out; }
+    #message-box.show { display: block; opacity: 1; }
+    #message-box.error { background-color: #ef4444; }
+    .action-button { background-color: #6366f1; color: white; font-weight: bold; padding: 0.5rem 1.5rem; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-left: 0.5rem; margin-right: 0.5rem; transition: background-color 0.15s ease-in-out; }
+    .action-button:hover { background-color: #4f46e5; }
+    .action-button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #complete-button { background-color: #3b82f6; }
+    #complete-button:hover { background-color: #2563eb; }
+    #reset-button { background-color: #6b7280; }
+    #reset-button:hover { background-color: #4b5563; }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <div class="container mx-auto max-w-full px-4 sm:px-6 lg:px-8 bg-white p-6 rounded-lg shadow-lg">
+    <h1 id="main-title" class="text-2xl font-bold mb-6 text-center text-gray-700">事件排序</h1>
+    <div id="main-content" class="space-y-6">
+      <div id="description-area" class="bg-blue-50 p-4 rounded-md border border-blue-200">
+        <h2 class="text-lg font-semibold mb-2 text-blue-800">主題說明</h2>
+        <div id="theme-description" class="text-gray-700 mt-2"></div>
+      </div>
+      <div id="events-area" class="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+        <h2 class="text-lg font-semibold mb-3 text-yellow-800">事件卡片 (請將下方需要的卡片拖曳到對應位置)</h2>
+        <div id="event-cards-container"></div>
+      </div>
+      <div id="sequence-area" class="bg-green-50 p-4 rounded-md border border-green-200">
+        <h2 class="text-lg font-semibold mb-3 text-green-800">排序區域 (請將上方卡片拖曳至此，並放置在對應位置)</h2>
+        <div id="sequence-slots-container"></div>
+      </div>
+    </div>
+    <div id="buttons-area" class="mt-8 text-center">
+       <button id="complete-button" class="action-button">完成排序</button>
+       <button id="reset-button" class="action-button">重新排序</button>
+    </div>
+    <div id="output-area" class="mt-6 p-4 bg-gray-100 rounded-md border border-gray-300 hidden">
+        <h3 class="text-md font-semibold mb-2 text-gray-800">排序結果:</h3>
+        <pre id="output-text" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
+    </div>
+     <div id="message-box"></div>
+  </div>
+
+  <script type="application/json" id="embedded-data">
+    {"theme":"單擺實驗步驟規劃","description":{"type":"text","content":"如果要進行「擺角是否影響單擺週期」的實驗，請將適合的實驗步驟和順序排列出來"},"mainImageUrl":null,"correctEventSequence":[{"id":"event_1744717147666_67ip8i2jn","text":"將擺錘和麻線綁好，固定在鐵架上","imageUrl":null,"originalIndex":3,"isCorrect":true},{"id":"event_1744717147695_hb47plkoo","text":"將擺長設定為1公尺，擺錘重量設定為10gw，擺角設定為10度","imageUrl":null,"originalIndex":4,"isCorrect":true},{"id":"event_1744717147719_xglcj7ol1","text":"開始測量擺動週期","imageUrl":null,"originalIndex":5,"isCorrect":true},{"id":"event_1744717147741_87kkdo44j","text":"將擺角改變為15, 30, 60, 80度","imageUrl":null,"originalIndex":6,"isCorrect":true},{"id":"event_1744717147763_o2bgtic2k","text":"重複測量單擺週期","imageUrl":null,"originalIndex":7,"isCorrect":true},{"id":"event_1744717147801_bsl06eec2","text":"記錄實驗數據並分析","imageUrl":null,"originalIndex":8,"isCorrect":true}],"allEvents":[{"id":"event_1744717147666_67ip8i2jn","text":"將擺錘和麻線綁好，固定在鐵架上","imageUrl":null,"originalIndex":3,"isCorrect":true},{"id":"event_1744717147695_hb47plkoo","text":"將擺長設定為1公尺，擺錘重量設定為10gw，擺角設定為10度","imageUrl":null,"originalIndex":4,"isCorrect":true},{"id":"event_1744717147719_xglcj7ol1","text":"開始測量擺動週期","imageUrl":null,"originalIndex":5,"isCorrect":true},{"id":"event_1744717147741_87kkdo44j","text":"將擺角改變為15, 30, 60, 80度","imageUrl":null,"originalIndex":6,"isCorrect":true},{"id":"event_1744717147763_o2bgtic2k","text":"重複測量單擺週期","imageUrl":null,"originalIndex":7,"isCorrect":true},{"id":"event_1744717147801_bsl06eec2","text":"記錄實驗數據並分析","imageUrl":null,"originalIndex":8,"isCorrect":true},{"id":"event_1744717147843_45pjtb3zf","text":"將擺錘重量改成20gw, 30gw, 40gw, 50gw","imageUrl":null,"originalIndex":-1,"isCorrect":false},{"id":"event_1744717147871_0at1gf5rr","text":"將擺長改為30, 40, 50, 60, 70, 80, 90公分","imageUrl":null,"originalIndex":-1,"isCorrect":false}],"shouldGrade":false}  </script>
+
+  <script>
+    let embeddedThemeData = null;
+
+    
+    const mainTitle = document.getElementById('main-title');
+    const descriptionArea = document.getElementById('description-area');
+    const themeDescription = document.getElementById('theme-description');
+    const eventsArea = document.getElementById('events-area');
+    const eventCardsContainer = document.getElementById('event-cards-container');
+    const sequenceArea = document.getElementById('sequence-area');
+    const sequenceSlotsContainer = document.getElementById('sequence-slots-container');
+    const completeButton = document.getElementById('complete-button');
+    const resetButton = document.getElementById('reset-button');
+    const outputArea = document.getElementById('output-area');
+    const outputText = document.getElementById('output-text');
+    const mainContent = document.getElementById('main-content');
+    const buttonsArea = document.getElementById('buttons-area');
+    const messageBox = document.getElementById('message-box');
+
+    
+    let currentTheme = '未知主題';
+    let correctEventSequence = [];
+    let allAvailableEvents = [];
+    let currentDescriptionObj = { type: 'text', content: '' };
+    let currentMainImageUrl = null;
+    let currentShouldGrade = true; 
+    let draggedItem = null;
+    let placeholder = null;
+
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const dataScriptElement = document.getElementById('embedded-data');
+      if (dataScriptElement) {
+          try {
+              embeddedThemeData = JSON.parse(dataScriptElement.textContent);
+              currentTheme = embeddedThemeData?.theme || '未知主題';
+              correctEventSequence = embeddedThemeData?.correctEventSequence || [];
+              allAvailableEvents = embeddedThemeData?.allEvents || [];
+              currentDescriptionObj = embeddedThemeData?.description || { type: 'text', content: '' };
+              currentMainImageUrl = embeddedThemeData?.mainImageUrl || null;
+              currentShouldGrade = typeof embeddedThemeData?.shouldGrade !== 'undefined' ? embeddedThemeData.shouldGrade : true;
+              console.log("嵌入資料解析成功:", embeddedThemeData);
+              console.log("是否批改 (shouldGrade):", currentShouldGrade);
+          } catch (e) { console.error("無法解析嵌入的 JSON 資料:", e, dataScriptElement.textContent); showError({ message: "無法解析嵌入的資料。" }); mainContent.innerHTML = '<p class="text-red-500 text-center">無法載入資料。</p>'; buttonsArea.style.display = 'none'; return; }
+      } else { console.error("找不到嵌入資料的元素 script#embedded-data"); showError({ message: "找不到嵌入的資料元素。" }); mainContent.innerHTML = '<p class="text-red-500 text-center">無法載入資料。</p>'; buttonsArea.style.display = 'none'; return; }
+
+      if(mainTitle && currentTheme !== '未知主題') { mainTitle.textContent = '事件排序 - ' + currentTheme; document.title = '事件排序 - ' + currentTheme; }
+
+      if (embeddedThemeData && embeddedThemeData.theme && Array.isArray(correctEventSequence) && Array.isArray(allAvailableEvents)) {
+          initializeBoard();
+      } else { showError({ message: "嵌入的主題資料無效或格式錯誤。" }); mainContent.innerHTML = '<p class="text-red-500 text-center">嵌入的資料無效。</p>'; buttonsArea.style.display = 'none'; }
+
+       
+       completeButton.addEventListener('click', handleComplete);
+       resetButton.addEventListener('click', handleReset);
+       document.body.addEventListener('dragstart', handleDragStart);
+       eventCardsContainer.addEventListener('dragover', handleDragOver);
+       eventCardsContainer.addEventListener('dragenter', handleDragEnter);
+       eventCardsContainer.addEventListener('dragleave', handleDragLeave);
+       eventCardsContainer.addEventListener('drop', handleDrop);
+       sequenceSlotsContainer.addEventListener('dragover', handleDragOver);
+       sequenceSlotsContainer.addEventListener('dragenter', handleDragEnter);
+       sequenceSlotsContainer.addEventListener('dragleave', handleDragLeave);
+       sequenceSlotsContainer.addEventListener('drop', handleDrop);
+       document.body.addEventListener('dragend', handleDragEnd);
+    });
+
+    
+    function showMessage(message, isError = false) { messageBox.textContent = message; messageBox.className = isError ? 'error' : ''; messageBox.classList.add('show'); setTimeout(() => { messageBox.classList.remove('show'); }, 3000); }
+    function showError(error) { console.error('JavaScript Error:', error); showMessage('發生錯誤: ' + (error.message || error), true); }
+
+    
+    function initializeBoard() {
+        outputArea.classList.add('hidden');
+        resetGradingStyles();
+
+        
+        themeDescription.innerHTML = ''; const existingMainImage = descriptionArea.querySelector('#main-theme-image'); if (existingMainImage) { existingMainImage.remove(); }
+        if (currentMainImageUrl) { const mainImg = document.createElement('img'); mainImg.id = 'main-theme-image'; mainImg.src = currentMainImageUrl; mainImg.alt = currentTheme + ' 主圖片'; mainImg.loading = 'lazy'; mainImg.onerror = () => { console.error("無法載入主題主圖片:", currentMainImageUrl); }; const heading = descriptionArea.querySelector('h2'); if (heading) { heading.insertAdjacentElement('afterend', mainImg); } else { descriptionArea.insertBefore(mainImg, themeDescription); } }
+        if (currentDescriptionObj.type === 'image') { const descImg = document.createElement('img'); descImg.src = currentDescriptionObj.content; descImg.alt = currentTheme + ' 說明圖片'; descImg.loading = 'lazy'; descImg.onerror = () => { themeDescription.textContent = '[說明圖片無法載入]'; console.error("無法載入說明圖片:", currentDescriptionObj.content.substring(0,100)+"..."); }; themeDescription.appendChild(descImg); }
+        else { const textContentWithBreaks = (currentDescriptionObj.content || '').replace(/\n/g, '<br>'); themeDescription.innerHTML = textContentWithBreaks; }
+
+        
+        eventCardsContainer.innerHTML = '';
+        sequenceSlotsContainer.innerHTML = '';
+
+        if (allAvailableEvents.length > 0) {
+            const shuffledEvents = [...allAvailableEvents].sort(() => Math.random() - 0.5);
+            console.log('打亂後顯示在事件區的順序 (應有 text/imageUrl):', shuffledEvents);
+            shuffledEvents.forEach(event => { const card = createEventCard(event); if (card) { eventCardsContainer.appendChild(card); } else { console.warn("無法為事件創建卡片:", event); } });
+        } else {
+             eventCardsContainer.innerHTML = '<p class="text-gray-500 italic">此主題沒有可顯示的事件卡片。</p>';
+        }
+
+        
+        const totalSlots = allAvailableEvents.length; 
+        const gridColsClass = `repeat(${Math.max(5, totalSlots)}, minmax(160px, 1fr))`;
+        sequenceSlotsContainer.style.gridTemplateColumns = gridColsClass;
+
+        if (totalSlots > 0) {
+            for (let i = 0; i < totalSlots; i++) { 
+                const slot = document.createElement('div');
+                slot.classList.add('sequence-slot');
+                slot.dataset.slotIndex = i;
+                const placeholderText = document.createElement('span');
+                placeholderText.classList.add('slot-placeholder-text');
+                placeholderText.textContent = `位置 ${i + 1}`;
+                slot.appendChild(placeholderText);
+                sequenceSlotsContainer.appendChild(slot);
+            }
+        } else {
+            sequenceSlotsContainer.innerHTML = `<p class="text-gray-500 italic text-center" style="grid-column: 1 / -1;">此主題沒有任何事件。</p>`;
+        }
+
+        updateButtonStates();
+    }
+
+    function createEventCard(event) {
+        if (!event || typeof event.id === 'undefined' || typeof event.isCorrect === 'undefined') { console.error("無效的事件資料傳入 createEventCard:", event); return null; }
+        const card = document.createElement('div'); card.classList.add('event-card'); card.draggable = true; card.dataset.eventId = event.id; card.dataset.originalIndex = event.originalIndex; card.dataset.isCorrect = event.isCorrect;
+        let hasContent = false;
+        if (event.imageUrl) { const img = document.createElement('img'); img.src = event.imageUrl; img.alt = '事件圖片'; img.classList.add('event-image'); img.loading = 'lazy'; img.onerror = () => { console.error("無法載入事件圖片:", event.imageUrl ? event.imageUrl.substring(0,100) + "..." : "[null URL]"); const errorSpan = document.createElement('span'); errorSpan.textContent = '[圖片載入失敗]'; errorSpan.style.color = 'red'; errorSpan.style.fontSize = '0.7rem'; const existingText = card.querySelector('p.event-text'); if (existingText) { card.insertBefore(errorSpan, existingText); } else { card.appendChild(errorSpan); } img.remove(); }; img.draggable = false; card.appendChild(img); hasContent = true; }
+        if (event.text && event.text.trim() !== '') { const textP = document.createElement('p'); textP.classList.add('event-text'); textP.textContent = event.text; card.appendChild(textP); hasContent = true; }
+        if (!hasContent) { const emptyText = document.createElement('p'); emptyText.classList.add('event-text'); emptyText.textContent = '[無內容]'; emptyText.style.fontStyle = 'italic'; card.appendChild(emptyText); }
+        return card;
+    }
+
+    // --- 拖放處理函數 ---
+    function handleDragStart(e) { if (e.target.classList.contains('event-card')) { draggedItem = e.target; setTimeout(() => { if (draggedItem) draggedItem.classList.add('dragging'); }, 0); e.dataTransfer.setData('text/plain', draggedItem.dataset.eventId); e.dataTransfer.effectAllowed = 'move'; } else { e.preventDefault(); } }
+    function handleDragEnd(e) { if (draggedItem) { draggedItem.classList.remove('dragging'); } if (placeholder && placeholder.parentNode) { placeholder.parentNode.removeChild(placeholder); } placeholder = null; draggedItem = null; document.querySelectorAll('.sequence-slot.drag-over').forEach(slot => { slot.classList.remove('drag-over'); }); eventCardsContainer.classList.remove('drag-over'); updateButtonStates(); }
+    function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; const targetContainer = getDropTargetContainer(e.target); if (!targetContainer || !draggedItem) return; if (targetContainer === sequenceSlotsContainer) { const targetSlot = e.target.closest('.sequence-slot'); document.querySelectorAll('.sequence-slot.drag-over').forEach(slot => { if (slot !== targetSlot) slot.classList.remove('drag-over'); }); if (targetSlot) { targetSlot.classList.add('drag-over'); } eventCardsContainer.classList.remove('drag-over'); } else if (targetContainer === eventCardsContainer) { eventCardsContainer.classList.add('drag-over'); document.querySelectorAll('.sequence-slot.drag-over').forEach(slot => { slot.classList.remove('drag-over'); }); } }
+    function handleDragEnter(e) { e.preventDefault(); const targetContainer = getDropTargetContainer(e.target); const targetSlot = e.target.closest('.sequence-slot'); if (targetSlot && targetContainer === sequenceSlotsContainer) { targetSlot.classList.add('drag-over'); } else if (targetContainer === eventCardsContainer) { eventCardsContainer.classList.add('drag-over'); } }
+    function handleDragLeave(e) { const targetSlot = e.target.closest('.sequence-slot'); const targetContainer = getDropTargetContainer(e.target); if (targetSlot && !targetSlot.contains(e.relatedTarget)) { targetSlot.classList.remove('drag-over'); } else if (targetContainer === eventCardsContainer && !eventCardsContainer.contains(e.relatedTarget)) { eventCardsContainer.classList.remove('drag-over'); } }
+    function handleDrop(e) { e.preventDefault(); if (!draggedItem) return; const targetContainer = getDropTargetContainer(e.target); const targetSlot = e.target.closest('.sequence-slot'); const sourceSlot = draggedItem.closest('.sequence-slot'); document.querySelectorAll('.sequence-slot.drag-over').forEach(slot => slot.classList.remove('drag-over')); eventCardsContainer.classList.remove('drag-over'); if (sourceSlot) { sourceSlot.classList.remove('correct', 'incorrect'); } if (targetContainer === sequenceSlotsContainer && targetSlot) { const existingCard = targetSlot.querySelector('.event-card'); if (existingCard && existingCard !== draggedItem) { eventCardsContainer.appendChild(existingCard); targetSlot.classList.remove('correct', 'incorrect'); } targetSlot.appendChild(draggedItem); targetSlot.classList.remove('correct', 'incorrect'); } else if (targetContainer === eventCardsContainer) { eventCardsContainer.appendChild(draggedItem); } else { console.log("無效放置目標"); } if (placeholder && placeholder.parentNode) { placeholder.parentNode.removeChild(placeholder); } placeholder = null; if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } resetGradingStyles(); outputArea.classList.add('hidden'); updateButtonStates(); }
+    function getDropTargetContainer(target) { if (target.closest('#events-area')) { if(target.id === 'event-cards-container' || target.closest('#event-cards-container')){ return eventCardsContainer; } } else if (target.closest('#sequence-area')) { if (target.closest('.sequence-slot') || target.id === 'sequence-slots-container') { return sequenceSlotsContainer; } } return null; }
+
+    
+    function handleComplete() {
+        const slots = sequenceSlotsContainer.querySelectorAll('.sequence-slot');
+        let outputString = `主題：【${currentTheme}】\n`;
+        let placedCount = 0;
+        let stepNumber = 1;
+
+        
+        slots.forEach((slot) => {
+            const card = slot.querySelector('.event-card');
+            if (card) {
+                placedCount++;
+                const textElement = card.querySelector('p.event-text');
+                const imageElement = card.querySelector('img.event-image');
+                let eventText = textElement ? textElement.textContent.trim() : '';
+                let hasImage = !!imageElement;
+                let displayContent = eventText;
+                if (hasImage) { displayContent += (displayContent ? ' ' : '') + '[圖片]'; }
+                if (!displayContent) { displayContent = '[無內容]'; }
+                const maxLen = 50;
+                if (displayContent.length > maxLen) { displayContent = displayContent.substring(0, maxLen) + '...'; }
+                outputString += `${stepNumber}. ${displayContent}\n`;
+                stepNumber++;
+            }
+        });
+         if (placedCount === 0 && correctEventSequence.length > 0) {
+             outputString += "\n(目前排序區沒有放置任何事件)";
+         }
+
+        
+        if (currentShouldGrade) {
+            
+            resetGradingStyles();
+            let correctCount = 0;
+            let incorrectPlacedCount = 0;
+            let correctButWrongPlaceCount = 0;
+            let placedCorrectNeededCount = correctEventSequence ? correctEventSequence.length : 0;
+            slots.forEach((slot, index) => {
+                const card = slot.querySelector('.event-card');
+                if (card) {
+                    const isCardCorrectType = card.dataset.isCorrect === 'true';
+                    const cardOriginalIndexStr = card.dataset.originalIndex;
+                    
+                    if (!isCardCorrectType) { slot.classList.add('incorrect'); incorrectPlacedCount++; }
+                    else { if (index < placedCorrectNeededCount) { const correctEvent = correctEventSequence[index]; if (cardOriginalIndexStr !== undefined && correctEvent !== undefined && correctEvent.originalIndex !== undefined) { const cardOriginalIndex = parseInt(cardOriginalIndexStr, 10); const correctOriginalIndex = correctEvent.originalIndex; if (cardOriginalIndex === correctOriginalIndex) { slot.classList.add('correct'); correctCount++; } else { slot.classList.add('incorrect'); correctButWrongPlaceCount++; } } else { slot.classList.add('incorrect'); console.warn(`無法比較索引: Slot ${index}`); correctButWrongPlaceCount++; } } else { slot.classList.add('incorrect'); correctButWrongPlaceCount++; } }
+                }
+             });
+            
+            let message = `批改完成！`; let isResultError = false;
+            if (placedCorrectNeededCount > 0) { message += ` 正確放置 ${correctCount} / ${placedCorrectNeededCount} 個事件。`; if (incorrectPlacedCount > 0) { message += ` ${incorrectPlacedCount} 個干擾項被放入排序區。`; isResultError = true; } if (correctButWrongPlaceCount > 0) { message += ` ${correctButWrongPlaceCount} 個正確事件放錯了位置。`; isResultError = true; } if (correctCount === placedCorrectNeededCount && incorrectPlacedCount === 0 && correctButWrongPlaceCount === 0) { message = `太棒了！排序完全正確！🎉`; isResultError = false; } else { isResultError = true; } }
+            else if (placedCount > 0) { message = `此主題無需排序，但你放置了 ${placedCount} 個卡片。結果已生成。`; isResultError = false; }
+            else { message = `此主題無需排序。`; isResultError = false; }
+            showMessage(message, isResultError);
+        } else {
+            // 不需要批改：只顯示結果和中性訊息
+            resetGradingStyles();
+            showMessage("排序結果已產生。");
+        }
+
+        
+        outputText.textContent = outputString;
+        outputArea.classList.remove('hidden');
+        updateButtonStates(true); 
+    }
+
+    function resetGradingStyles() {
+        sequenceSlotsContainer.querySelectorAll('.sequence-slot').forEach(slot => {
+            slot.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function handleReset() {
+        initializeBoard();
+        showMessage('已重新排序，請開始作答。');
+    }
+
+     function updateButtonStates(isCompleted = false) {
+         const requiresSorting = correctEventSequence && correctEventSequence.length > 0;
+         completeButton.disabled = !requiresSorting || isCompleted;
+         resetButton.disabled = !embeddedThemeData;
+         if (!requiresSorting) { completeButton.disabled = true; }
+     }
+
+  </script>
+</body>
+</html>
