@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實驗步驟排序</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f4f8; }
+        .card {
+            touch-action: none; transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 3px solid transparent;
+            width: 100%; /* 確保卡片填滿放置區 */
+        }
+        .card:hover:not(.card-preset) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card.dragging { opacity: 0.5; transform: scale(1.05); background-color: #c7d2fe; }
+        .card-preset { background-color: #eef2ff; border-color: #a5b4fc; color: #3730a3; cursor: default; }
+        .card.correct { border-color: #22c55e; /* green-500 */ }
+        .card.incorrect { border-color: #ef4444; /* red-500 */ }
+        .drop-zone { 
+            transition: background-color 0.2s ease, border-color 0.2s ease; 
+            border: 2px dashed #cbd5e1; 
+            min-height: 60px; /* 調整最小高度 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drop-zone.drag-over { background-color: #e0e7ff; border-color: #a5b4fc; }
+        .drop-zone.incorrect-empty { border-color: #ef4444; background-color: #fee2e2; }
+        #toast {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            transition: bottom 0.5s ease-in-out;
+            z-index: 1000;
+        }
+        #toast.show { bottom: 20px; }
+        #card-sidebar {
+            position: -webkit-sticky; /* For Safari */
+            position: sticky;
+            top: 1.5rem;
+            align-self: start;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <header class="text-center mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-slate-800">熱學</h1>
+            <p class="text-lg text-slate-600 mt-2">用相同的加熱條件加熱水和甘油，觀察溫度上升速度差異</p>
+        </header>
+
+        <!-- 【修改】將 lg 改為 md，讓兩欄佈局在更多設備上生效 -->
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <aside id="card-sidebar" class="md:col-span-1">
+                <div class="bg-slate-100 p-4 rounded-lg">
+                     <h2 class="text-xl font-semibold text-slate-700 mb-3">步驟卡片區</h2>
+                    <p class="text-sm text-slate-500 mb-4">請將卡片拖曳到右方工作區，排出正確順序。注意！可能包含無關的「干擾」步驟。</p>
+                    <!-- 【修改】讓卡片區的網格也具備響應式能力 -->
+                    <div id="source-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-4 min-h-[100px]"></div>
+                </div>
+            </aside>
+
+            <div class="md:col-span-2">
+                <h2 class="text-xl font-semibold text-slate-700 mb-3">工作區 (共 7 個步驟)</h2>
+                <p class="text-sm text-slate-500 mb-4">已鎖定的卡片為提示。將卡片拖曳到已佔用的位置可以交換順序。</p>
+                <div id="workspace" class="flex flex-col gap-4"></div>
+                
+                <div class="flex justify-center items-center gap-4 mt-8">
+                    <button id="clear-btn" class="bg-slate-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors text-lg">清空重來</button>
+                    <button id="complete-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors text-lg shadow-md">完成並複製</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast" class="bg-slate-800 text-white py-3 px-6 rounded-lg shadow-xl">
+        <p id="toast-message"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const correctSteps = [{"id":"step-1751526699257-0","text":"準備250ml燒杯、水、甘油、溫度計和酒精燈。","isPreset":true},{"id":"step-1751526699257-1","text":"將100g的水倒入250ml燒杯中。","isPreset":false},{"id":"step-1751526699257-2","text":"將燒杯放置在三角架上的陶瓷纖維網","isPreset":false},{"id":"step-1751526699257-3","text":"將溫度計適當放入水中，記錄起始溫度。","isPreset":false},{"id":"step-1751526699257-4","text":"點燃酒精燈，加熱5分鐘，每一分鐘紀錄一次溫度","isPreset":false},{"id":"step-1751526699257-5","text":"紀錄完畢後，將燒杯中的水清空擦乾，倒入100g的甘油，重複步驟3-5","isPreset":false},{"id":"step-1751526699257-6","text":"觀察並比較水和甘油溫度上升的速度。","isPreset":true}];
+            const presetSteps = [{"id":"step-1751526699257-0","text":"準備250ml燒杯、水、甘油、溫度計和酒精燈。","isPreset":true},{"id":"step-1751526699257-6","text":"觀察並比較水和甘油溫度上升的速度。","isPreset":true}];
+            const allDraggableCards = [{"id":"step-1751526699257-1","text":"將100g的水倒入250ml燒杯中。","isPreset":false},{"id":"distractor-1751526699257-1","text":"紀錄完畢後，將燒杯中的水清空擦乾，倒入200g的水，重複步驟3-5"},{"id":"distractor-1751526699257-2","text":"紀錄完畢後，將燒杯中的水清空擦乾，倒入100g的甘油，將酒精燈換成瓦斯燈，重複步驟3-5"},{"id":"step-1751526699257-4","text":"點燃酒精燈，加熱5分鐘，每一分鐘紀錄一次溫度","isPreset":false},{"id":"distractor-1751526699257-0","text":"紀錄完畢後，將燒杯中的水清空擦乾，倒入200g的甘油，重複步驟3-5"},{"id":"step-1751526699257-2","text":"將燒杯放置在三角架上的陶瓷纖維網","isPreset":false},{"id":"step-1751526699257-3","text":"將溫度計適當放入水中，記錄起始溫度。","isPreset":false},{"id":"step-1751526699257-5","text":"紀錄完畢後，將燒杯中的水清空擦乾，倒入100g的甘油，重複步驟3-5","isPreset":false}];
+            const correctOrderIds = ["step-1751526699257-0","step-1751526699257-1","step-1751526699257-2","step-1751526699257-3","step-1751526699257-4","step-1751526699257-5","step-1751526699257-6"];
+            const enableGrading = false;
+
+            const sourceContainer = document.getElementById('source-cards');
+            const workspaceContainer = document.getElementById('workspace');
+            const completeBtn = document.getElementById('complete-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            let draggedCardId = null;
+
+            function showToast(message, duration = 4000) {
+                toastMessage.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+            function createCard(step, isDraggable) {
+                const card = document.createElement('div');
+                card.id = step.id;
+                card.textContent = step.text;
+                card.className = 'card bg-white p-3 rounded-lg border select-none text-left';
+                if (isDraggable) {
+                    card.draggable = true;
+                    card.classList.add('cursor-grab');
+                    card.dataset.isDraggable = true;
+                    card.addEventListener('dragstart', e => { draggedCardId = e.target.id; setTimeout(() => e.target.classList.add('dragging'), 0); });
+                    card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+                } else {
+                    card.classList.add('card-preset');
+                }
+                return card;
+            }
+
+            function createDropZone() {
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone rounded-lg flex-grow';
+                zone.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+                zone.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+                zone.addEventListener('drop', handleDrop);
+                return zone;
+            }
+            
+            function removeGradingClasses() {
+                 workspaceContainer.querySelectorAll('.card').forEach(c => {
+                     c.classList.remove('correct', 'incorrect');
+                 });
+                 workspaceContainer.querySelectorAll('.drop-zone').forEach(z => {
+                     z.classList.remove('incorrect-empty');
+                 });
+            }
+
+            function initialize() {
+                if (!sourceContainer || !workspaceContainer) {
+                    console.error("無法找到卡片區或工作區容器！");
+                    return;
+                }
+                sourceContainer.innerHTML = '';
+                workspaceContainer.innerHTML = '';
+                allDraggableCards.forEach(step => sourceContainer.appendChild(createCard(step, true)));
+                
+                correctSteps.forEach((step, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3 w-full';
+
+                    const numberEl = document.createElement('span');
+                    numberEl.className = 'text-lg font-semibold text-slate-500 w-6 text-right';
+                    numberEl.textContent = `${index + 1}.`;
+
+                    const zone = createDropZone();
+                    const presetCard = presetSteps.find(ps => ps.id === step.id);
+                    if (presetCard) {
+                        zone.appendChild(createCard(presetCard, false));
+                    }
+                    
+                    row.appendChild(numberEl);
+                    row.appendChild(zone);
+                    workspaceContainer.appendChild(row);
+                });
+            }
+            
+            function handleClear() {
+                removeGradingClasses();
+                const workspaceDraggableCards = Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]'));
+                workspaceDraggableCards.forEach(card => sourceContainer.appendChild(card));
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                if (!draggedCardId) return;
+                const draggedCard = document.getElementById(draggedCardId);
+                if (!draggedCard) return;
+                const targetZone = e.currentTarget;
+                if (targetZone.children.length > 0) {
+                     const existingCard = targetZone.children[0];
+                     if (existingCard.dataset.isDraggable !== 'true') return;
+                     if (draggedCard.parentElement) {
+                        draggedCard.parentElement.appendChild(existingCard);
+                     }
+                }
+                targetZone.appendChild(draggedCard);
+            }
+            
+            sourceContainer.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+            sourceContainer.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+            sourceContainer.addEventListener('drop', e => {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                const draggedCard = document.getElementById(draggedCardId);
+                if(draggedCard) sourceContainer.appendChild(draggedCard);
+            });
+
+            function handleComplete() {
+                removeGradingClasses();
+                let studentSequenceText = '';
+                const workspaceRows = Array.from(workspaceContainer.children);
+
+                workspaceRows.forEach((row, index) => {
+                    const card = row.querySelector('.card');
+                    const slot = row.querySelector('.drop-zone');
+
+                    if (card) {
+                        studentSequenceText += `${index + 1}. ${card.textContent}\n`;
+                        
+                        if (enableGrading) {
+                            const correctIdForThisSlot = correctOrderIds[index];
+                            if (card.id === correctIdForThisSlot) {
+                                card.classList.add('correct');
+                            } else {
+                                card.classList.add('incorrect');
+                            }
+                        }
+                    } else {
+                        if (enableGrading && slot) {
+                            slot.classList.add('incorrect-empty');
+                        }
+                    }
+                });
+
+                navigator.clipboard.writeText(studentSequenceText.trim()).then(() => {
+                    const message = enableGrading ? '批改完成！紅色框線代表錯誤。你的作答已複製。' : '排序結果已複製到剪貼簿！';
+                    showToast(message);
+                }, () => {
+                    const message = enableGrading ? '批改完成！但複製失敗。' : '複製失敗，請手動複製。';
+                    showToast(message);
+                });
+            }
+
+            completeBtn.addEventListener('click', handleComplete);
+            clearBtn.addEventListener('click', handleClear);
+            
+            initialize();
+        });
+    </script>
+</body>
+</html>
