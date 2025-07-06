@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實驗步驟排序</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        :root {
+            --classic-blue: #0F4C81;
+            --classic-blue-dark: #0B3A65;
+            --background-light: #f8f9fa;
+            --surface: #ffffff;
+            --surface-secondary: #e9ecef;
+            --text-dark: #212529;
+            --text-medium: #495057;
+            --border-color: #dee2e6;
+            --success: #198754;
+            --danger: #dc3545;
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--background-light); 
+            color: var(--text-dark);
+        }
+
+        .bg-primary { background-color: var(--classic-blue); }
+        .hover\:bg-primary-dark:hover { background-color: var(--classic-blue-dark); }
+        .bg-secondary { background-color: #6c757d; }
+        .hover\:bg-secondary-dark:hover { background-color: #5c636a; }
+        .text-primary { color: var(--classic-blue); }
+
+        .card {
+            touch-action: none; transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 3px solid transparent;
+            background-color: var(--surface);
+            width: 100%;
+        }
+        .card:hover:not(.card-preset) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card.dragging { opacity: 0.5; transform: scale(1.05); background-color: #cfe2ff; }
+        .card-preset { background-color: #e0e7ff; border-color: #a5b4fc; color: #3730a3; cursor: default; }
+        .card.correct { border-color: var(--success); }
+        .card.incorrect { border-color: var(--danger); }
+        
+        .drop-zone { 
+            transition: background-color 0.2s ease, border-color 0.2s ease; 
+            border: 2px dashed var(--border-color); 
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drop-zone.drag-over { background-color: #e7f5ff; border-color: var(--classic-blue); }
+        .drop-zone.incorrect-empty { border-color: var(--danger); background-color: #f8d7da; }
+        
+        #card-sidebar {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 1.5rem;
+            align-self: start;
+        }
+
+        /* 【新增】結果彈出視窗的樣式 */
+        #result-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #result-modal.hidden {
+            pointer-events: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <header class="text-center mb-8 border-b pb-4 border-slate-200">
+            <h1 class="text-3xl font-bold text-primary">單擺週期</h1>
+            <p class="text-lg mt-2" style="color: var(--text-medium);">單擺的週期是否會受到擺角角度的影響</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <aside id="card-sidebar" class="md:col-span-1">
+                <div class="p-4 rounded-lg" style="background-color: var(--surface-secondary);">
+                     <h2 class="text-xl font-semibold mb-3" style="color: var(--text-dark);">步驟卡片區</h2>
+                    <p class="text-sm mb-4" style="color: var(--text-medium);">請將卡片拖曳到右方工作區，排出正確順序。注意！可能包含無關的「干擾」步驟。</p>
+                    <div id="source-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-4 min-h-[100px]"></div>
+                </div>
+            </aside>
+
+            <div class="md:col-span-2">
+                <h2 class="text-xl font-semibold mb-3" style="color: var(--text-dark);">工作區 (共 5 個步驟)</h2>
+                <p class="text-sm mb-4" style="color: var(--text-medium);">已鎖定的卡片為提示。將卡片拖曳到已佔用的位置可以交換順序。</p>
+                <div id="workspace" class="flex flex-col gap-4"></div>
+                
+                <div class="flex justify-center items-center gap-4 mt-8">
+                    <button id="clear-btn" class="bg-secondary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary-dark transition-colors text-lg">清空重來</button>
+                    <button id="complete-btn" class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors text-lg shadow-md">完成並複製</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 【新增】顯示結果與手動複製的彈出視窗 -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
+        <div class="bg-white p-6 md:p-8 rounded-lg shadow-2xl text-center w-full max-w-lg transform transition-all scale-100 opacity-100">
+            <h3 class="text-2xl font-bold mb-4 text-primary">你的作答結果</h3>
+            <p class="mb-4 text-slate-600">文字已自動選取，請按 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl+C</kbd> 或 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd+C</kbd> 複製。</p>
+            <textarea id="result-textarea" readonly class="w-full h-48 p-3 border border-slate-300 rounded-md bg-slate-50 text-sm focus:ring-2 focus:ring-offset-2 focus:ring-primary"></textarea>
+            <button id="close-modal-btn" class="mt-6 bg-secondary text-white font-bold py-2 px-8 rounded-lg hover:bg-secondary-dark transition-colors">關閉</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const correctSteps = [{"id":"step-1751787754780-0","text":"將擺錘用細繩懸掛在支架上。","isPreset":false},{"id":"step-1751787754780-1","text":"挑選50cm的擺長，使用10g的砝碼作為擺錘，並將擺錘拉開10度。","isPreset":false},{"id":"step-1751787754780-3","text":"釋放擺錘，同時啟動計時器。","isPreset":false},{"id":"step-1751787754780-4","text":"記錄單擺完整擺動1次所需時間。","isPreset":false},{"id":"step-1751787754780-6","text":"改變拉開的角度為20度, 30度, 40度, 50度, 60度，重複步驟3-4並記錄結果。","isPreset":false}];
+            const presetSteps = [];
+            const allDraggableCards = [{"id":"distractor-1751787754780-0","text":"改變擺錘重量為20g, 30g, 40g, 50g，重複步驟3-6並記錄結果。"},{"id":"step-1751787754780-4","text":"記錄單擺完整擺動1次所需時間。","isPreset":false},{"id":"step-1751787754780-3","text":"釋放擺錘，同時啟動計時器。","isPreset":false},{"id":"step-1751787754780-1","text":"挑選50cm的擺長，使用10g的砝碼作為擺錘，並將擺錘拉開10度。","isPreset":false},{"id":"step-1751787754780-6","text":"改變拉開的角度為20度, 30度, 40度, 50度, 60度，重複步驟3-4並記錄結果。","isPreset":false},{"id":"step-1751787754780-0","text":"將擺錘用細繩懸掛在支架上。","isPreset":false},{"id":"distractor-1751787754780-1","text":"改變擺長長度為60cm, 70cm, 80cm, 90cm, 100cm，重複步驟3-6並記錄結果"}];
+            const correctOrderIds = ["step-1751787754780-0","step-1751787754780-1","step-1751787754780-3","step-1751787754780-4","step-1751787754780-6"];
+            const enableGrading = false;
+
+            const sourceContainer = document.getElementById('source-cards');
+            const workspaceContainer = document.getElementById('workspace');
+            const completeBtn = document.getElementById('complete-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // 【新增】彈出視窗的元素
+            const resultModal = document.getElementById('result-modal');
+            const resultTextarea = document.getElementById('result-textarea');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            let draggedCardId = null;
+
+            // 【新增】顯示結果彈出視窗的函式
+            function showResultModal(text) {
+                resultTextarea.value = text;
+                resultModal.classList.remove('hidden');
+                // 自動選取所有文字
+                resultTextarea.focus();
+                resultTextarea.select();
+            }
+
+            // 【新增】關閉結果彈出視窗的函式
+            function hideResultModal() {
+                resultModal.classList.add('hidden');
+            }
+
+            function createCard(step, isDraggable) {
+                const card = document.createElement('div');
+                card.id = step.id;
+                card.textContent = step.text;
+                card.className = 'card p-3 rounded-lg border select-none text-left';
+                if (isDraggable) {
+                    card.draggable = true;
+                    card.classList.add('cursor-grab');
+                    card.dataset.isDraggable = true;
+                    card.addEventListener('dragstart', e => { draggedCardId = e.target.id; setTimeout(() => e.target.classList.add('dragging'), 0); });
+                    card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+                } else {
+                    card.classList.add('card-preset');
+                }
+                return card;
+            }
+
+            function createDropZone() {
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone rounded-lg flex-grow';
+                zone.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+                zone.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+                zone.addEventListener('drop', handleDrop);
+                return zone;
+            }
+            
+            function removeGradingClasses() {
+                 workspaceContainer.querySelectorAll('.card').forEach(c => {
+                     c.classList.remove('correct', 'incorrect');
+                 });
+                 workspaceContainer.querySelectorAll('.drop-zone').forEach(z => {
+                     z.classList.remove('incorrect-empty');
+                 });
+            }
+
+            function initialize() {
+                if (!sourceContainer || !workspaceContainer) {
+                    console.error("無法找到卡片區或工作區容器！");
+                    return;
+                }
+                sourceContainer.innerHTML = '';
+                workspaceContainer.innerHTML = '';
+                allDraggableCards.forEach(step => sourceContainer.appendChild(createCard(step, true)));
+                
+                correctSteps.forEach((step, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3 w-full';
+
+                    const numberEl = document.createElement('span');
+                    numberEl.className = 'text-lg font-semibold w-6 text-right';
+                    numberEl.style.color = 'var(--text-medium)';
+                    numberEl.textContent = `${index + 1}.`;
+
+                    const zone = createDropZone();
+                    const presetCard = presetSteps.find(ps => ps.id === step.id);
+                    if (presetCard) {
+                        zone.appendChild(createCard(presetCard, false));
+                    }
+                    
+                    row.appendChild(numberEl);
+                    row.appendChild(zone);
+                    workspaceContainer.appendChild(row);
+                });
+            }
+            
+            function handleClear() {
+                removeGradingClasses();
+                const workspaceDraggableCards = Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]'));
+                workspaceDraggableCards.forEach(card => sourceContainer.appendChild(card));
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                if (!draggedCardId) return;
+                const draggedCard = document.getElementById(draggedCardId);
+                if (!draggedCard) return;
+                const targetZone = e.currentTarget;
+                if (targetZone.children.length > 0) {
+                     const existingCard = targetZone.children[0];
+                     if (existingCard.dataset.isDraggable !== 'true') return;
+                     if (draggedCard.parentElement) {
+                        draggedCard.parentElement.appendChild(existingCard);
+                     }
+                }
+                targetZone.appendChild(draggedCard);
+            }
+            
+            sourceContainer.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+            sourceContainer.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+            sourceContainer.addEventListener('drop', e => {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                const draggedCard = document.getElementById(draggedCardId);
+                if(draggedCard) sourceContainer.appendChild(draggedCard);
+            });
+
+            // 【修改】完成按鈕的邏輯
+            function handleComplete() {
+                removeGradingClasses();
+                let studentSequenceText = '';
+                const workspaceRows = Array.from(workspaceContainer.children);
+
+                workspaceRows.forEach((row, index) => {
+                    const card = row.querySelector('.card');
+                    const slot = row.querySelector('.drop-zone');
+
+                    if (card) {
+                        studentSequenceText += `${index + 1}. ${card.textContent}\n`;
+                        
+                        if (enableGrading) {
+                            const correctIdForThisSlot = correctOrderIds[index];
+                            if (card.id === correctIdForThisSlot) {
+                                card.classList.add('correct');
+                            } else {
+                                card.classList.add('incorrect');
+                            }
+                        }
+                    } else {
+                        studentSequenceText += `${index + 1}. (空白)\n`;
+                        if (enableGrading && slot) {
+                            slot.classList.add('incorrect-empty');
+                        }
+                    }
+                });
+                
+                // 顯示結果彈出視窗，而不是直接嘗試複製
+                showResultModal(studentSequenceText.trim());
+            }
+
+            completeBtn.addEventListener('click', handleComplete);
+            clearBtn.addEventListener('click', handleClear);
+            // 【新增】關閉按鈕的事件監聽
+            closeModalBtn.addEventListener('click', hideResultModal);
+            
+            initialize();
+        });
+    </script>
+</body>
+</html>
