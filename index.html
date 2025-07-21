@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的程式與學習輔助工具列表</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 40px;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  h1 {
+    color: #0056b3;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.2em;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  li {
+    background-color: #e9f0f6;
+    margin-bottom: 12px;
+    padding: 15px 20px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  li:hover {
+    background-color: #dbe4ee;
+  }
+  a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-grow: 1; /* Make the link take up available space */
+  }
+  a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+  }
+  .no-files-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    margin-top: 30px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>我的程式與學習輔助工具列表</h1>
+
+  <ul id="file-list">
+    </ul>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const fileList = document.getElementById('file-list');
+
+  // **請在這裡手動列出所有你要顯示的 HTML 檔案名稱**
+
+  const htmlFiles = [
+    "PmindMapV10.html",
+    "classtools.html",
+    "cmap.html",
+    "cmapTesting.html", 
+    "conceptMap.html",
+    "conceptMap2.html",
+    "essayQuestion.html", 
+    "wordleTWJH.html",   
+    "wordleTWJH2.html",
+    "單擺實驗步驟.html",
+    "單擺擺幅與週期關係實驗步驟排序題.html",
+    "單擺週期_實驗排序.html",
+    "地質事件排序.html",
+    "熱學_實驗排序.html"
+  ];
+
+  if (htmlFiles.length === 0) {
+    fileList.innerHTML = '<li class="no-files-message">目前沒有其他 HTML 檔案被列出。請在 `index.html` 的 JavaScript 代碼中添加檔案名稱。</li>';
+    return;
+  }
+
+  // 排序檔案列表，讓它看起來更整齊 (可選)
+  htmlFiles.sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base' }));
+
+
+  htmlFiles.forEach(fileName => {
+    const listItem = document.createElement('li');
+    const anchor = document.createElement('a');
+    
+    // 連結的 href 值
+    let linkHref = fileName;
+    // 顯示的文字，預設為檔案名稱
+    let displayText = fileName;
+
+    // 您可以在這裡添加邏輯來處理沒有 .html 副檔名的檔案
+    // 例如，如果 'cmapTesting' 其實應該連結到 'cmapTesting.html'
+    // 並且你希望列表中顯示為 'cmapTesting.html'
+    // if (!fileName.endsWith('.html')) {
+    //     linkHref = fileName + '.html';
+    //     displayText = fileName + '.html'; // 或者只顯示原始名稱
+    // }
+
+    anchor.href = linkHref; 
+    anchor.textContent = displayText; 
+    listItem.appendChild(anchor);
+    fileList.appendChild(listItem);
+  });
+});
+</script>
+
+</body>
+</html>
