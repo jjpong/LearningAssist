@@ -33,7 +33,7 @@
         <!-- 應用程式標題 (固定高度) -->
         <header class="text-center flex-shrink-0">
             <h1 class="text-3xl lg:text-4xl font-bold text-gray-700">實驗數據統計圖繪製工具</h1>
-            <p class="text-md text-gray-500 mt-1">模擬手繪實驗數據，點擊圖表即可新增數據點</p>
+            <p class="text-md text-gray-500 mt-1">可拖曳、框選、刪除數據點</p>
         </header>
 
         <!-- 主內容區 (填滿剩餘空間) -->
@@ -53,19 +53,19 @@
             <div class="lg:col-span-3 space-y-6 overflow-y-auto custom-scrollbar pr-3">
                 <!-- 設定面板 -->
                 <div class="bg-white p-5 rounded-xl shadow-lg">
-                    <h2 class="text-xl font-bold mb-4 border-b pb-2">圖表設定</h2>
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2">一、設定圖表</h2>
                     
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label for="chart-title" class="block text-sm font-medium text-gray-600">圖表標題</label>
+                            <label for="chart-title" class="block text-sm font-medium text-gray-600">1.設定圖表標題</label>
                             <input type="text" id="chart-title" value="1.填入適當的圖表標題" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
                     </div>
 
                     <div class="space-y-4 mb-6">
-                        <h3 class="text-lg font-semibold text-gray-700">橫軸設定</h3>
+                        <h3 class="text-lg font-semibold text-gray-700">2.設定操縱變因(單位)，刻度範圍和每格單位</h3>
                         <div>
-                            <label for="x-axis-label" class="block text-sm font-medium text-gray-600">項目名稱</label>
+                            <label for="x-axis-label" class="block text-sm font-medium text-gray-600">操縱變因名稱(單位)</label>
                             <input type="text" id="x-axis-label" value="2.填入操作變因(單位)，設定範圍與刻度" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -85,9 +85,9 @@
                     </div>
 
                     <div class="space-y-4 mb-6">
-                        <h3 class="text-lg font-semibold text-gray-700">縱軸設定</h3>
+                        <h3 class="text-lg font-semibold text-gray-700">3.設定應變變因(單位)，刻度範圍和每格單位</h3>
                         <div>
-                            <label for="y-axis-label" class="block text-sm font-medium text-gray-600">項目名稱</label>
+                            <label for="y-axis-label" class="block text-sm font-medium text-gray-600">應變變因名稱(單位)</label>
                             <input type="text" id="y-axis-label" value="3.填入應變變因(單位)，設定範圍與刻度" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
                          <div class="grid grid-cols-2 gap-4">
@@ -109,11 +109,14 @@
                 </div>
 
                 <div class="bg-white p-5 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">點擊圖表區加入實驗數據點</h3>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">二、在圖表區正確位置點擊可新增數據</h3>
                     <div id="groups-container" class="space-y-3">
                         <!-- JavaScript 會在這裡動態生成 4 組設定 -->
                     </div>
-                    <button id="download-chart" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors mt-6">下載圖表 (PNG)</button>
+                    <div class="mt-6 space-y-3">
+                        <button id="download-chart" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">下載圖表 (PNG)</button>
+                        <button id="download-data" class="w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">下載數據 (CSV)</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -136,14 +139,15 @@
             const groupsContainer = document.getElementById('groups-container');
             const applyBtn = document.getElementById('apply-settings');
             const downloadBtn = document.getElementById('download-chart');
+            const downloadDataBtn = document.getElementById('download-data');
 
             // --- 初始設定與狀態 ---
             const MAX_GROUPS = 4;
             const defaultGroupSettings = [
-                { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, forceOrigin: false, showEquation: false } }
+                { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
+                { name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
+                { name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
+                { name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } }
             ];
 
             let chartState = {
@@ -157,6 +161,13 @@
             
             const padding = { top: 60, right: 150, bottom: 60, left: 70 };
 
+            // --- 互動狀態 ---
+            let interactionState = 'idle'; // 'idle', 'dragging', 'selecting'
+            let draggedPointIndex = -1;
+            let selectionBox = { startX: 0, startY: 0, endX: 0, endY: 0, visible: false };
+            let dragStartPos = { x: 0, y: 0 };
+            let mouseMoved = false;
+
             // --- 函數 ---
             function initializeGroupSettings() {
                 groupsContainer.innerHTML = '';
@@ -166,11 +177,11 @@
                     const groupDiv = document.createElement('div');
                     groupDiv.className = 'p-3 border rounded-lg flex flex-col space-y-3';
                     groupDiv.innerHTML = `
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
                             <input type="radio" name="active-group" class="form-radio h-5 w-5 text-blue-600 group-active-radio focus:ring-blue-500" data-index="${i}" ${i === chartState.activeGroupIndex ? 'checked' : ''}>
                             <input type="checkbox" class="form-checkbox h-5 w-5 rounded text-blue-600 focus:ring-blue-500" data-index="${i}" data-type="group-enabled" ${group.enabled ? 'checked' : ''}>
                             <input type="text" value="${group.name}" class="text-sm flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" data-index="${i}">
-                            <input type="color" value="${group.color}" class="w-8 h-8 rounded-full border-none cursor-pointer color-input" data-index="${i}">
+                            <input type="color" value="${group.color}" class="w-7 h-7 rounded-full border-none cursor-pointer color-input" data-index="${i}">
                             <select class="text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" data-index="${i}">
                                 <option value="circle" ${group.shape === 'circle' ? 'selected' : ''}>圓形</option>
                                 <option value="square" ${group.shape === 'square' ? 'selected' : ''}>方形</option>
@@ -248,6 +259,17 @@
                 
                 group.trendline.m = m;
                 group.trendline.b = b;
+
+                // Calculate R^2
+                const yMean = sumY / n;
+                let ssTot = 0;
+                let ssRes = 0;
+                points.forEach(p => {
+                    const yPred = m * p.x + b;
+                    ssTot += (p.y - yMean)**2;
+                    ssRes += (p.y - yPred)**2;
+                });
+                group.trendline.r2 = 1 - (ssRes / ssTot);
             }
 
 
@@ -298,9 +320,17 @@
                 return { x, y };
             }
             
-            function drawPoint(x, y, groupIndex) {
-                const group = chartState.groups[groupIndex];
-                const pos = dataToCanvas(x, y);
+            function drawPoint(p, index) {
+                const group = chartState.groups[p.groupIndex];
+                const pos = dataToCanvas(p.x, p.y);
+                
+                if (p.selected) {
+                    ctx.fillStyle = 'rgba(0, 120, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 10, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
                 ctx.fillStyle = group.color;
                 ctx.strokeStyle = group.color;
                 ctx.lineWidth = 2;
@@ -332,9 +362,9 @@
             }
 
             function drawAllPoints() {
-                chartState.dataPoints.forEach(p => {
+                chartState.dataPoints.forEach((p, index) => {
                     if (chartState.groups[p.groupIndex].enabled) {
-                        drawPoint(p.x, p.y, p.groupIndex);
+                        drawPoint(p, index);
                     }
                 });
             }
@@ -342,7 +372,7 @@
             function drawTrendlines() {
                 chartState.groups.forEach(group => {
                     if (group.enabled && group.trendline.visible) {
-                        const { m, b, showEquation } = group.trendline;
+                        const { m, b, r2, showEquation } = group.trendline;
                         const xAxis = chartState.xAxis;
                         const yAxis = chartState.yAxis;
 
@@ -393,13 +423,12 @@
                                 const operator = b >= 0 ? '+' : '-';
                                 equationText = `y = ${m.toFixed(2)}x ${operator} ${Math.abs(b).toFixed(2)}`;
                             }
+                            const r2Text = `R² = ${r2.toFixed(3)}`;
                             
-                            // *** FIX START ***
-                            // Position the text relative to the clipped endpoint of the line
                             const textX = endPoint.x - 10;
                             const textY = endPoint.y - 10;
-                            // *** FIX END ***
-                            ctx.fillText(equationText, textX, textY);
+                            ctx.fillText(equationText, textX, textY - 14); // Place R^2 below equation
+                            ctx.fillText(r2Text, textX, textY);
                         }
                     }
                 });
@@ -497,7 +526,6 @@
                     if (group.enabled) {
                         const legendX = canvasWidth - padding.right + 15;
                         
-                        // Draw symbol
                         ctx.fillStyle = group.color;
                         ctx.strokeStyle = group.color;
                         ctx.lineWidth = 2;
@@ -510,15 +538,28 @@
                             case 'cross': ctx.moveTo(legendX - 4, legendY - 4); ctx.lineTo(legendX + 4, legendY + 4); ctx.moveTo(legendX + 4, legendY - 4); ctx.lineTo(legendX - 4, legendY + 4); ctx.stroke(); break;
                         }
 
-                        // Draw text
                         ctx.textAlign = 'left';
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = '#333';
                         ctx.fillText(group.name, legendX + 15, legendY);
 
-                        legendY += 25; // spacing for next item
+                        legendY += 25;
                     }
                 });
+            }
+
+            function drawSelectionBox() {
+                if (selectionBox.visible) {
+                    ctx.fillStyle = 'rgba(0, 120, 255, 0.2)';
+                    ctx.strokeStyle = 'rgba(0, 120, 255, 0.8)';
+                    ctx.lineWidth = 1;
+                    const rectX = Math.min(selectionBox.startX, selectionBox.endX);
+                    const rectY = Math.min(selectionBox.startY, selectionBox.endY);
+                    const rectW = Math.abs(selectionBox.startX - selectionBox.endX);
+                    const rectH = Math.abs(selectionBox.startY - selectionBox.endY);
+                    ctx.fillRect(rectX, rectY, rectW, rectH);
+                    ctx.strokeRect(rectX, rectY, rectW, rectH);
+                }
             }
 
             function redrawCanvas() {
@@ -536,6 +577,19 @@
                 drawAllPoints();
                 drawTrendlines();
                 drawLegend();
+                drawSelectionBox();
+            }
+
+            function getPointAtMouse(mouseX, mouseY) {
+                for (let i = chartState.dataPoints.length - 1; i >= 0; i--) {
+                    const p = chartState.dataPoints[i];
+                    const pos = dataToCanvas(p.x, p.y);
+                    const dist = Math.sqrt((mouseX - pos.x)**2 + (mouseY - pos.y)**2);
+                    if (dist <= 10) { // 10px hit radius
+                        return i;
+                    }
+                }
+                return -1;
             }
 
             // --- 事件監聽 ---
@@ -572,38 +626,224 @@
 
             downloadBtn.addEventListener('click', () => {
                 const link = document.createElement('a');
-                const fileName = `${chartState.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+                const fileName = `${chartTitleInput.value}.png`;
                 link.download = fileName;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
 
-            canvas.addEventListener('click', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const canvasX = e.clientX - rect.left;
-                const canvasY = e.clientY - rect.top;
-                
-                const dataCoords = canvasToData(canvasX, canvasY);
+            downloadDataBtn.addEventListener('click', () => {
+                if (chartState.dataPoints.length === 0) {
+                    alert('沒有數據可以下載！');
+                    return;
+                }
 
-                if (dataCoords.x >= chartState.xAxis.min && dataCoords.x <= chartState.xAxis.max &&
-                    dataCoords.y >= chartState.yAxis.min && dataCoords.y <= chartState.yAxis.max) {
-                    
-                    if (!chartState.groups[chartState.activeGroupIndex].enabled) {
-                        alert(`數據組 "${chartState.groups[chartState.activeGroupIndex].name}" 尚未啟用，請先勾選啟用。`);
-                        return;
+                const enabledGroups = chartState.groups
+                    .map((g, i) => ({ ...g, originalIndex: i }))
+                    .filter(g => g.enabled);
+
+                const headers = [
+                    `"${xAxisLabelInput.value}"`,
+                    ...enabledGroups.map(g => `"${g.name}"`)
+                ];
+
+                let csvContent = "\uFEFF" + headers.join(',') + '\r\n';
+
+                const dataMap = {};
+                chartState.dataPoints.forEach(p => {
+                    if (!chartState.groups[p.groupIndex].enabled) return;
+                    const xKey = p.x.toFixed(1);
+                    if (!dataMap[xKey]) {
+                        dataMap[xKey] = {};
                     }
+                    dataMap[xKey][p.groupIndex] = p.y.toFixed(1);
+                });
 
-                    chartState.dataPoints.push({
-                        x: dataCoords.x,
-                        y: dataCoords.y,
-                        groupIndex: chartState.activeGroupIndex
+                const allXValues = Object.keys(dataMap).map(parseFloat).sort((a, b) => a - b);
+
+                allXValues.forEach(x => {
+                    const xKey = x.toFixed(1);
+                    const row = [xKey];
+                    enabledGroups.forEach(group => {
+                        const yValue = dataMap[xKey][group.originalIndex] || '';
+                        row.push(yValue);
+                    });
+                    csvContent += row.join(',') + '\r\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                const fileName = `${chartTitleInput.value}_data.csv`;
+                link.setAttribute('download', fileName);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                dragStartPos = { x: mouseX, y: mouseY };
+                mouseMoved = false;
+
+                const pointIndex = getPointAtMouse(mouseX, mouseY);
+
+                if (pointIndex !== -1) {
+                    interactionState = 'dragging';
+                    draggedPointIndex = pointIndex;
+                    if (!chartState.dataPoints[pointIndex].selected) {
+                        if (!e.shiftKey) {
+                            chartState.dataPoints.forEach(p => p.selected = false);
+                        }
+                        chartState.dataPoints[pointIndex].selected = true;
+                    }
+                    chartState.dataPoints.forEach(p => {
+                        if (p.selected) {
+                            p.dragStartX = p.x;
+                            p.dragStartY = p.y;
+                        }
                     });
 
-                    const activeGroup = chartState.groups[chartState.activeGroupIndex];
-                    if (activeGroup.trendline.visible) {
-                        recalculateTrendline(chartState.activeGroupIndex);
+                } else {
+                    interactionState = 'selecting';
+                    selectionBox.startX = mouseX;
+                    selectionBox.startY = mouseY;
+                    selectionBox.endX = mouseX;
+                    selectionBox.endY = mouseY;
+                    selectionBox.visible = true;
+                    if (!e.shiftKey) {
+                        chartState.dataPoints.forEach(p => p.selected = false);
                     }
+                }
+                redrawCanvas();
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                mouseMoved = true;
+
+                if (interactionState === 'dragging') {
+                    const startDataPos = canvasToData(dragStartPos.x, dragStartPos.y);
+                    const currentDataPos = canvasToData(mouseX, mouseY);
+                    const deltaX = currentDataPos.x - startDataPos.x;
+                    const deltaY = currentDataPos.y - startDataPos.y;
+
+                    const groupsToRecalculate = new Set();
+
+                    chartState.dataPoints.forEach(p => {
+                        if (p.selected) {
+                            const newX = p.dragStartX + deltaX;
+                            const newY = p.dragStartY + deltaY;
+                            p.x = Math.max(chartState.xAxis.min, Math.min(chartState.xAxis.max, newX));
+                            p.y = Math.max(chartState.yAxis.min, Math.min(chartState.yAxis.max, newY));
+                            groupsToRecalculate.add(p.groupIndex);
+                        }
+                    });
                     
+                    groupsToRecalculate.forEach(groupIndex => {
+                        if (chartState.groups[groupIndex].trendline.visible) {
+                            recalculateTrendline(groupIndex);
+                        }
+                    });
+
+                    redrawCanvas();
+                } else if (interactionState === 'selecting') {
+                    selectionBox.endX = mouseX;
+                    selectionBox.endY = mouseY;
+                    redrawCanvas();
+                } else {
+                    const pointIndex = getPointAtMouse(mouseX, mouseY);
+                    canvas.style.cursor = pointIndex !== -1 ? 'move' : 'crosshair';
+                }
+            });
+
+            canvas.addEventListener('mouseup', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                if (interactionState === 'selecting') {
+                    const rectX = Math.min(selectionBox.startX, selectionBox.endX);
+                    const rectY = Math.min(selectionBox.startY, selectionBox.endY);
+                    const rectW = Math.abs(selectionBox.startX - selectionBox.endX);
+                    const rectH = Math.abs(selectionBox.startY - selectionBox.endY);
+
+                    chartState.dataPoints.forEach((p, i) => {
+                        const pos = dataToCanvas(p.x, p.y);
+                        if (pos.x > rectX && pos.x < rectX + rectW && pos.y > rectY && pos.y < rectY + rectH) {
+                            p.selected = true;
+                        }
+                    });
+                }
+                
+                if (!mouseMoved) { // This was a click, not a drag
+                    const clickedPointIndex = getPointAtMouse(mouseX, mouseY);
+                    if (clickedPointIndex !== -1) { // Clicked on a point
+                         if (!e.shiftKey) {
+                            chartState.dataPoints.forEach((p, i) => p.selected = (i === clickedPointIndex));
+                        } else {
+                            chartState.dataPoints[clickedPointIndex].selected = !chartState.dataPoints[clickedPointIndex].selected;
+                        }
+                    } else { // Clicked on empty space
+                        if (!e.shiftKey) {
+                            chartState.dataPoints.forEach(p => p.selected = false);
+                        }
+                        const dataCoords = canvasToData(mouseX, mouseY);
+                        if (dataCoords.x >= chartState.xAxis.min && dataCoords.x <= chartState.xAxis.max &&
+                            dataCoords.y >= chartState.yAxis.min && dataCoords.y <= chartState.yAxis.max) {
+                            
+                            if (!chartState.groups[chartState.activeGroupIndex].enabled) {
+                                alert(`數據組 "${chartState.groups[chartState.activeGroupIndex].name}" 尚未啟用，請先勾選啟用。`);
+                            } else {
+                                chartState.dataPoints.push({
+                                    x: dataCoords.x,
+                                    y: dataCoords.y,
+                                    groupIndex: chartState.activeGroupIndex,
+                                    selected: false
+                                });
+
+                                const activeGroup = chartState.groups[chartState.activeGroupIndex];
+                                if (activeGroup.trendline.visible) {
+                                    recalculateTrendline(chartState.activeGroupIndex);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                chartState.dataPoints.forEach(p => {
+                    delete p.dragStartX;
+                    delete p.dragStartY;
+                });
+
+                interactionState = 'idle';
+                draggedPointIndex = -1;
+                selectionBox.visible = false;
+                redrawCanvas();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const groupsToRecalculate = new Set();
+                    chartState.dataPoints.forEach(p => {
+                        if (p.selected) {
+                            groupsToRecalculate.add(p.groupIndex);
+                        }
+                    });
+
+                    chartState.dataPoints = chartState.dataPoints.filter(p => !p.selected);
+
+                    groupsToRecalculate.forEach(groupIndex => {
+                        if (chartState.groups[groupIndex].trendline.visible) {
+                            recalculateTrendline(groupIndex);
+                        }
+                    });
                     redrawCanvas();
                 }
             });
