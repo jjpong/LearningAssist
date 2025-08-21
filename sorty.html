@@ -1,5 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Plus, Trash2, Wand2, Lock, Unlock, AlertTriangle, KeyRound, Eye, EyeOff, Code } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Plus, Trash2, Wand2, Lock, Unlock, AlertTriangle } from 'lucide-react';
+
+// --- Color Palette (Pantone 2020 - Classic Blue Theme) ---
+const colors = {
+    background: 'bg-slate-100', // Light gray-blue background
+    surface: 'bg-white',
+    primary: 'bg-[#0F4C81]', // Classic Blue
+    primaryHover: 'hover:bg-[#0B3A65]',
+    secondary: 'bg-slate-500',
+    secondaryHover: 'hover:bg-slate-600',
+    add: 'bg-teal-600',
+    addHover: 'hover:bg-teal-700',
+    distractor: 'bg-amber-100',
+    distractorText: 'text-amber-800',
+    distractorBorder: 'border-amber-300',
+    distractorFocus: 'focus:ring-amber-500',
+    distractorAdd: 'bg-orange-500',
+    distractorAddHover: 'hover:bg-orange-600',
+    textDark: 'text-slate-800',
+    textMedium: 'text-slate-600',
+    textLight: 'text-white',
+    accent: 'text-[#0F4C81]', // Classic Blue for text
+};
+
 
 // --- Modal Component for Alerts ---
 const AlertModal = ({ message, onClose }) => {
@@ -10,7 +33,7 @@ const AlertModal = ({ message, onClose }) => {
                 <p className="mb-6 text-lg text-slate-700 whitespace-pre-wrap">{message}</p>
                 <button
                     onClick={onClose}
-                    className="bg-indigo-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className={`${colors.primary} ${colors.textLight} font-bold py-2 px-8 rounded-lg ${colors.primaryHover} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C81]`}
                 >
                     確認
                 </button>
@@ -23,7 +46,9 @@ const AlertModal = ({ message, onClose }) => {
 const generateStudentHtml = (topic, purpose, steps, distractorSteps, includeGrading) => {
     const presetSteps = steps.filter(s => s.isPreset);
     const draggableCorrectSteps = steps.filter(s => !s.isPreset);
+    
     const allDraggableCards = [...draggableCorrectSteps, ...distractorSteps].sort(() => Math.random() - 0.5);
+    
     const correctOrderIds = steps.map(s => s.id);
 
     const htmlContent = `
@@ -36,56 +61,289 @@ const generateStudentHtml = (topic, purpose, steps, distractorSteps, includeGrad
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f4f8; }
-        .card { touch-action: none; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 3px solid transparent; }
+        
+        :root {
+            --classic-blue: #0F4C81;
+            --classic-blue-dark: #0B3A65;
+            --background-light: #f8f9fa;
+            --surface: #ffffff;
+            --surface-secondary: #e9ecef;
+            --text-dark: #212529;
+            --text-medium: #495057;
+            --border-color: #dee2e6;
+            --success: #198754;
+            --danger: #dc3545;
+        }
+
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--background-light); 
+            color: var(--text-dark);
+        }
+
+        .bg-primary { background-color: var(--classic-blue); }
+        .hover\\:bg-primary-dark:hover { background-color: var(--classic-blue-dark); }
+        .bg-secondary { background-color: #6c757d; }
+        .hover\\:bg-secondary-dark:hover { background-color: #5c636a; }
+        .text-primary { color: var(--classic-blue); }
+
+        .card {
+            touch-action: none; transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 3px solid transparent;
+            background-color: var(--surface);
+            width: 100%;
+        }
         .card:hover:not(.card-preset) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .card.dragging { opacity: 0.5; transform: scale(1.05); background-color: #c7d2fe; }
-        .card-preset { background-color: #eef2ff; border-color: #a5b4fc; color: #3730a3; cursor: default; }
-        .card.correct { border-color: #22c55e; } .card.incorrect { border-color: #ef4444; }
-        .drop-zone { transition: background-color 0.2s ease, border-color 0.2s ease; border: 2px dashed #cbd5e1; min-height: 80px; }
-        .drop-zone.drag-over { background-color: #e0e7ff; border-color: #a5b4fc; }
-        .drop-zone.incorrect-empty { border-color: #ef4444; background-color: #fee2e2; }
-        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); transition: bottom 0.5s ease-in-out; z-index: 1000; }
-        #toast.show { bottom: 20px; }
+        .card.dragging { opacity: 0.5; transform: scale(1.05); background-color: #cfe2ff; }
+        .card-preset { background-color: #e0e7ff; border-color: #a5b4fc; color: #3730a3; cursor: default; }
+        .card.correct { border-color: var(--success); }
+        .card.incorrect { border-color: var(--danger); }
+        
+        .drop-zone { 
+            transition: background-color 0.2s ease, border-color 0.2s ease; 
+            border: 2px dashed var(--border-color); 
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drop-zone.drag-over { background-color: #e7f5ff; border-color: var(--classic-blue); }
+        .drop-zone.incorrect-empty { border-color: var(--danger); background-color: #f8d7da; }
+        
+        #card-sidebar {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 1.5rem;
+            align-self: start;
+        }
+
+        /* 【新增】結果彈出視窗的樣式 */
+        #result-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #result-modal.hidden {
+            pointer-events: none;
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-        <header class="text-center mb-6 border-b pb-4"><h1 class="text-3xl font-bold text-slate-800">${topic}</h1><p class="text-lg text-slate-600 mt-2">${purpose}</p></header>
-        <main>
-            <h2 class="text-xl font-semibold text-slate-700 mb-3">步驟卡片區</h2>
-            <p class="text-sm text-slate-500 mb-4">請將下方的卡片拖曳到工作區，排出正確的實驗順序。注意！其中可能包含無關的「干擾」步驟。</p>
-            <div id="source-cards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-slate-100 rounded-lg min-h-[100px]"></div>
-            <h2 class="text-xl font-semibold text-slate-700 mt-8 mb-3">工作區 (共 ${correctOrderIds.length} 個步驟)</h2>
-            <p class="text-sm text-slate-500 mb-4">已鎖定的卡片為提示。將卡片拖曳到已佔用的位置可以交換順序。</p>
-            <div id="workspace" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 rounded-lg"></div>
-            <div class="flex justify-center items-center gap-4 mt-8">
-                <button id="clear-btn" class="bg-slate-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors text-lg">清空重來</button>
-                <button id="complete-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors text-lg shadow-md">${includeGrading ? '完成批改' : '完成並複製'}</button>
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <header class="text-center mb-8 border-b pb-4 border-slate-200">
+            <h1 class="text-3xl font-bold text-primary">${topic}</h1>
+            <p class="text-lg mt-2" style="color: var(--text-medium);">${purpose}</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <aside id="card-sidebar" class="md:col-span-1">
+                <div class="p-4 rounded-lg" style="background-color: var(--surface-secondary);">
+                     <h2 class="text-xl font-semibold mb-3" style="color: var(--text-dark);">步驟卡片區</h2>
+                    <p class="text-sm mb-4" style="color: var(--text-medium);">請將卡片拖曳到右方工作區，排出正確順序。注意！可能包含無關的「干擾」步驟。</p>
+                    <div id="source-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-4 min-h-[100px]"></div>
+                </div>
+            </aside>
+
+            <div class="md:col-span-2">
+                <h2 class="text-xl font-semibold mb-3" style="color: var(--text-dark);">工作區 (共 ${correctOrderIds.length} 個步驟)</h2>
+                <p class="text-sm mb-4" style="color: var(--text-medium);">已鎖定的卡片為提示。將卡片拖曳到已佔用的位置可以交換順序。</p>
+                <div id="workspace" class="flex flex-col gap-4"></div>
+                
+                <div class="flex justify-center items-center gap-4 mt-8">
+                    <button id="clear-btn" class="bg-secondary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary-dark transition-colors text-lg">清空重來</button>
+                    <button id="complete-btn" class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-primary-dark transition-colors text-lg shadow-md">${includeGrading ? '完成批改' : '完成並複製'}</button>
+                </div>
             </div>
+
         </main>
     </div>
-    <div id="toast" class="bg-slate-800 text-white py-3 px-6 rounded-lg shadow-xl"><p id="toast-message"></p></div>
+
+    <!-- 【新增】顯示結果與手動複製的彈出視窗 -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
+        <div class="bg-white p-6 md:p-8 rounded-lg shadow-2xl text-center w-full max-w-lg transform transition-all scale-100 opacity-100">
+            <h3 class="text-2xl font-bold mb-4 text-primary">你的作答結果</h3>
+            <p class="mb-4 text-slate-600">文字已自動選取，請按 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl+C</kbd> 或 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd+C</kbd> 複製。</p>
+            <textarea id="result-textarea" readonly class="w-full h-48 p-3 border border-slate-300 rounded-md bg-slate-50 text-sm focus:ring-2 focus:ring-offset-2 focus:ring-primary"></textarea>
+            <button id="close-modal-btn" class="mt-6 bg-secondary text-white font-bold py-2 px-8 rounded-lg hover:bg-secondary-dark transition-colors">關閉</button>
+        </div>
+    </div>
+
+
     <script>
-        const correctSteps = ${JSON.stringify(steps)};
-        const presetSteps = ${JSON.stringify(presetSteps)};
-        const allDraggableCards = ${JSON.stringify(allDraggableCards)};
-        const correctOrderIds = ${JSON.stringify(correctOrderIds)};
-        const enableGrading = ${includeGrading};
-        const sourceContainer = document.getElementById('source-cards'), workspaceContainer = document.getElementById('workspace'), completeBtn = document.getElementById('complete-btn'), clearBtn = document.getElementById('clear-btn'), toast = document.getElementById('toast'), toastMessage = document.getElementById('toast-message');
-        let draggedCardId = null;
-        function showToast(message, duration = 4000) { toastMessage.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), duration); }
-        function createCard(step, isDraggable) { const card = document.createElement('div'); card.id = step.id; card.textContent = step.text; card.className = 'card bg-white p-4 rounded-lg border select-none'; if (isDraggable) { card.draggable = true; card.classList.add('cursor-grab'); card.dataset.isDraggable = true; card.addEventListener('dragstart', e => { draggedCardId = e.target.id; setTimeout(() => e.target.classList.add('dragging'), 0); }); card.addEventListener('dragend', e => e.target.classList.remove('dragging')); } else { card.classList.add('card-preset'); } return card; }
-        function createDropZone() { const zone = document.createElement('div'); zone.className = 'drop-zone rounded-lg flex justify-center items-center'; zone.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }); zone.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over')); zone.addEventListener('drop', handleDrop); return zone; }
-        function removeGradingClasses() { workspaceContainer.querySelectorAll('.card').forEach(c => c.classList.remove('correct', 'incorrect')); workspaceContainer.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('incorrect-empty')); }
-        function initialize() { sourceContainer.innerHTML = ''; workspaceContainer.innerHTML = ''; allDraggableCards.forEach(step => sourceContainer.appendChild(createCard(step, true))); correctSteps.forEach(step => { const zone = createDropZone(); const presetCard = presetSteps.find(ps => ps.id === step.id); if (presetCard) { zone.appendChild(createCard(presetCard, false)); } workspaceContainer.appendChild(zone); }); }
-        function handleClear() { removeGradingClasses(); const workspaceDraggableCards = Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]')); workspaceDraggableCards.forEach(card => sourceContainer.appendChild(card)); }
-        function handleDrop(e) { e.preventDefault(); removeGradingClasses(); e.currentTarget.classList.remove('drag-over'); if (!draggedCardId) return; const draggedCard = document.getElementById(draggedCardId); const targetZone = e.currentTarget; if (targetZone.children.length > 0) { const existingCard = targetZone.children[0]; if (existingCard.dataset.isDraggable !== 'true') return; draggedCard.parentElement.appendChild(existingCard); } targetZone.appendChild(draggedCard); }
-        sourceContainer.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
-        sourceContainer.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
-        sourceContainer.addEventListener('drop', e => { e.preventDefault(); removeGradingClasses(); e.currentTarget.classList.remove('drag-over'); const draggedCard = document.getElementById(draggedCardId); if(draggedCard) sourceContainer.appendChild(draggedCard); });
-        function handleComplete() { removeGradingClasses(); let studentSequenceText = ''; const workspaceSlots = Array.from(workspaceContainer.children); workspaceSlots.forEach((slot, index) => { if (slot.children.length > 0) { const card = slot.children[0]; studentSequenceText += \`\${index + 1}. \${card.textContent}\\n\`; if (enableGrading) { const correctIdForThisSlot = correctOrderIds[index]; if (card.id === correctIdForThisSlot) { card.classList.add('correct'); } else { card.classList.add('incorrect'); } } } else { if (enableGrading) { slot.classList.add('incorrect-empty'); } } }); navigator.clipboard.writeText(studentSequenceText.trim()).then(() => { const message = enableGrading ? '批改完成！紅色框線代表錯誤。你的作答已複製。' : '排序結果已複製到剪貼簿！'; showToast(message); }, () => { const message = enableGrading ? '批改完成！但複製失敗。' : '複製失敗，請手動複製。'; showToast(message); }); }
-        completeBtn.addEventListener('click', handleComplete); clearBtn.addEventListener('click', handleClear); initialize();
+        document.addEventListener('DOMContentLoaded', function() {
+            const correctSteps = ${JSON.stringify(steps)};
+            const presetSteps = ${JSON.stringify(presetSteps)};
+            const allDraggableCards = ${JSON.stringify(allDraggableCards)};
+            const correctOrderIds = ${JSON.stringify(correctOrderIds)};
+            const enableGrading = ${includeGrading};
+
+            const sourceContainer = document.getElementById('source-cards');
+            const workspaceContainer = document.getElementById('workspace');
+            const completeBtn = document.getElementById('complete-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // 【新增】彈出視窗的元素
+            const resultModal = document.getElementById('result-modal');
+            const resultTextarea = document.getElementById('result-textarea');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            let draggedCardId = null;
+
+            // 【新增】顯示結果彈出視窗的函式
+            function showResultModal(text) {
+                resultTextarea.value = text;
+                resultModal.classList.remove('hidden');
+                // 自動選取所有文字
+                resultTextarea.focus();
+                resultTextarea.select();
+            }
+
+            // 【新增】關閉結果彈出視窗的函式
+            function hideResultModal() {
+                resultModal.classList.add('hidden');
+            }
+
+            function createCard(step, isDraggable) {
+                const card = document.createElement('div');
+                card.id = step.id;
+                card.textContent = step.text;
+                card.className = 'card p-3 rounded-lg border select-none text-left';
+                if (isDraggable) {
+                    card.draggable = true;
+                    card.classList.add('cursor-grab');
+                    card.dataset.isDraggable = true;
+                    card.addEventListener('dragstart', e => { draggedCardId = e.target.id; setTimeout(() => e.target.classList.add('dragging'), 0); });
+                    card.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+                } else {
+                    card.classList.add('card-preset');
+                }
+                return card;
+            }
+
+            function createDropZone() {
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone rounded-lg flex-grow';
+                zone.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+                zone.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+                zone.addEventListener('drop', handleDrop);
+                return zone;
+            }
+            
+            function removeGradingClasses() {
+                 workspaceContainer.querySelectorAll('.card').forEach(c => {
+                     c.classList.remove('correct', 'incorrect');
+                 });
+                 workspaceContainer.querySelectorAll('.drop-zone').forEach(z => {
+                     z.classList.remove('incorrect-empty');
+                 });
+            }
+
+            function initialize() {
+                if (!sourceContainer || !workspaceContainer) {
+                    console.error("無法找到卡片區或工作區容器！");
+                    return;
+                }
+                sourceContainer.innerHTML = '';
+                workspaceContainer.innerHTML = '';
+                allDraggableCards.forEach(step => sourceContainer.appendChild(createCard(step, true)));
+                
+                correctSteps.forEach((step, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3 w-full';
+
+                    const numberEl = document.createElement('span');
+                    numberEl.className = 'text-lg font-semibold w-6 text-right';
+                    numberEl.style.color = 'var(--text-medium)';
+                    numberEl.textContent = \`\${index + 1}.\`;
+
+                    const zone = createDropZone();
+                    const presetCard = presetSteps.find(ps => ps.id === step.id);
+                    if (presetCard) {
+                        zone.appendChild(createCard(presetCard, false));
+                    }
+                    
+                    row.appendChild(numberEl);
+                    row.appendChild(zone);
+                    workspaceContainer.appendChild(row);
+                });
+            }
+            
+            function handleClear() {
+                removeGradingClasses();
+                const workspaceDraggableCards = Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]'));
+                workspaceDraggableCards.forEach(card => sourceContainer.appendChild(card));
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                if (!draggedCardId) return;
+                const draggedCard = document.getElementById(draggedCardId);
+                if (!draggedCard) return;
+                const targetZone = e.currentTarget;
+                if (targetZone.children.length > 0) {
+                     const existingCard = targetZone.children[0];
+                     if (existingCard.dataset.isDraggable !== 'true') return;
+                     if (draggedCard.parentElement) {
+                        draggedCard.parentElement.appendChild(existingCard);
+                     }
+                }
+                targetZone.appendChild(draggedCard);
+            }
+            
+            sourceContainer.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
+            sourceContainer.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
+            sourceContainer.addEventListener('drop', e => {
+                e.preventDefault();
+                removeGradingClasses();
+                e.currentTarget.classList.remove('drag-over');
+                const draggedCard = document.getElementById(draggedCardId);
+                if(draggedCard) sourceContainer.appendChild(draggedCard);
+            });
+
+            // 【修改】完成按鈕的邏輯
+            function handleComplete() {
+                removeGradingClasses();
+                let studentSequenceText = '';
+                const workspaceRows = Array.from(workspaceContainer.children);
+
+                workspaceRows.forEach((row, index) => {
+                    const card = row.querySelector('.card');
+                    const slot = row.querySelector('.drop-zone');
+
+                    if (card) {
+                        studentSequenceText += \`\${index + 1}. \${card.textContent}\\n\`;
+                        
+                        if (enableGrading) {
+                            const correctIdForThisSlot = correctOrderIds[index];
+                            if (card.id === correctIdForThisSlot) {
+                                card.classList.add('correct');
+                            } else {
+                                card.classList.add('incorrect');
+                            }
+                        }
+                    } else {
+                        studentSequenceText += \`\${index + 1}. (空白)\\n\`;
+                        if (enableGrading && slot) {
+                            slot.classList.add('incorrect-empty');
+                        }
+                    }
+                });
+                
+                // 顯示結果彈出視窗，而不是直接嘗試複製
+                showResultModal(studentSequenceText.trim());
+            }
+
+            completeBtn.addEventListener('click', handleComplete);
+            clearBtn.addEventListener('click', handleClear);
+            // 【新增】關閉按鈕的事件監聽
+            closeModalBtn.addEventListener('click', hideResultModal);
+            
+            initialize();
+        });
     </script>
 </body>
 </html>`;
@@ -94,64 +352,83 @@ const generateStudentHtml = (topic, purpose, steps, distractorSteps, includeGrad
 
 
 // --- Main React App Component ---
-function LabGenerator() {
-    const [topic, setTopic] = useState('驗證歐姆定律');
-    const [purpose, setPurpose] = useState('探討電壓、電流與電阻之間的關係');
+export default function LabGenerator() {
+    const [topic, setTopic] = useState('驗證安培定律');
+    const [purpose, setPurpose] = useState('觀察電流大小與方向對磁場的影響');
     const [steps, setSteps] = useState([
         { id: `step-1`, text: '將電路元件（電源、電阻、伏特計、安培計、開關）依序連接。', isPreset: false },
-        { id: `step-2`, text: '設定電源供應器為2伏特，開啟開關。', isPreset: false },
-        { id: `step-3`, text: '記錄伏特計與安培計的讀數。', isPreset: false },
-        { id: `step-4`, text: '將電壓改為4伏特與6伏特，重複步驟3。', isPreset: false },
+        { id: `step-2`, text: '在紙板上均勻撒上鐵粉。', isPreset: false },
+        { id: `step-3`, text: '開啟電源，輕敲紙板，觀察鐵粉分佈。', isPreset: false },
+        { id: `step-4`, text: '使用指北針判斷導線周圍的磁場方向。', isPreset: false },
     ]);
     const [distractorSteps, setDistractorSteps] = useState([
-        { id: `distractor-1`, text: '測量導線的長度。' },
-        { id: `distractor-2`, text: '用三用電錶測量電阻的色碼。' },
+        { id: `distractor-1`, text: '將磁鐵靠近導線。' },
+        { id: `distractor-2`, text: '測量紙板的電阻。' },
     ]);
     const [includeGrading, setIncludeGrading] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
-    const [apiKey, setApiKey] = useState('');
-    const [showApiKey, setShowApiKey] = useState(false);
-
-    useEffect(() => {
-        const savedKey = localStorage.getItem('geminiApiKey');
-        if (savedKey) {
-            setApiKey(savedKey);
-        }
-    }, []);
-
-    const handleApiKeyChange = (e) => {
-        const newKey = e.target.value;
-        setApiKey(newKey);
-        localStorage.setItem('geminiApiKey', newKey);
-    };
 
     const handleGenerateSteps = async () => {
-        if (!apiKey) {
-            setAlertMessage("請先在下方的 API Key 輸入框中，貼上您的 Google Gemini API Key。");
-            return;
-        }
         if (!topic || !purpose) {
             setAlertMessage("請先輸入實驗主題和目的！");
             return;
         }
         setIsLoading(true);
-        const prompt = `請為一個國中理化實驗生成詳細的實驗步驟。實驗主題: "${topic}" 實驗目的: "${purpose}" 重要指示: 1. 生成 5 到 7 個最核心的正確步驟。2. 生成 2 到 3 個看起來合理但實際上是錯誤或無關的「干擾步驟」。3. 步驟文字需清晰，符合國中生理解程度，每項少於50字。請以 JSON 格式回傳，格式如下： { "correct_steps": [ "正確步驟一", ... ], "distractor_steps": [ "干擾步驟一", ... ] }`;
+
+        const prompt = `請為一個國中理化實驗生成詳細的實驗步驟。
+實驗主題: "${topic}"
+實驗目的: "${purpose}"
+重要指示：
+1. 生成 5 到 7 個最核心的正確步驟。
+2. 生成 2 到 3 個看起來合理但實際上是錯誤或無關的「干擾步驟」。
+3. 步驟文字需清晰，符合國中生理解程度，每項少於50字。
+請以 JSON 格式回傳，格式如下：
+{ "correct_steps": [ "正確步驟一", "正確步驟二", ... ], "distractor_steps": [ "干擾步驟一", "干擾步驟二", ... ] }`;
+
         try {
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { "correct_steps": { "type": "ARRAY", "items": { "type": "STRING" } }, "distractor_steps": { "type": "ARRAY", "items": { "type": "STRING" } } } } } };
+            const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { 
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: { 
+                            "correct_steps": { "type": "ARRAY", "items": { "type": "STRING" } },
+                            "distractor_steps": { "type": "ARRAY", "items": { "type": "STRING" } }
+                        }
+                    }
+                }
+            };
+            const apiKey = ""; // API Key is handled by the environment
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error(`API 呼叫失敗: ${response.status}. 請檢查您的 API Key 是否正確或有足夠額度。`);
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`API 呼叫失敗: ${response.status}`);
             const result = await response.json();
             const generatedText = result.candidates[0].content.parts[0].text;
             const parsedJson = JSON.parse(generatedText);
+            
             if (parsedJson.correct_steps && parsedJson.distractor_steps) {
-                setSteps(parsedJson.correct_steps.map((text, index) => ({ id: `step-${Date.now()}-${index}`, text: text, isPreset: false })));
-                setDistractorSteps(parsedJson.distractor_steps.map((text, index) => ({ id: `distractor-${Date.now()}-${index}`, text: text })));
-            } else { throw new Error("AI 回應的格式不正確。"); }
+                setSteps(parsedJson.correct_steps.map((text, index) => ({
+                    id: `step-${Date.now()}-${index}`,
+                    text: text,
+                    isPreset: false
+                })));
+                setDistractorSteps(parsedJson.distractor_steps.map((text, index) => ({
+                    id: `distractor-${Date.now()}-${index}`,
+                    text: text,
+                })));
+            } else {
+                 throw new Error("AI 回應的格式不正確。");
+            }
         } catch (error) {
             console.error("Error generating steps:", error);
-            setAlertMessage(`生成步驟時發生錯誤：${error.message}`);
+            setAlertMessage(`生成步驟時發生錯誤：${error.message}\n將使用預設步驟代替。`);
         } finally {
             setIsLoading(false);
         }
@@ -183,459 +460,89 @@ function LabGenerator() {
         URL.revokeObjectURL(url);
     };
 
-    const handleDownloadSource = () => {
-        // NOTE: This function now contains the entire component's code as a string
-        // to ensure it's self-contained and works when downloaded.
-        const fullComponentSource = `
-const { useState, useEffect } = React;
-const { Download, Plus, Trash2, Wand2, Lock, Unlock, AlertTriangle, KeyRound, Eye, EyeOff, Code } = lucide;
-
-// --- Modal Component for Alerts ---
-const AlertModal = ({ message, onClose }) => {
-    if (!message) return null;
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity duration-300">
-            <div className="bg-white p-8 rounded-lg shadow-xl text-center w-11/12 max-w-sm transform transition-all scale-100 opacity-100">
-                <p className="mb-6 text-lg text-slate-700 whitespace-pre-wrap">{message}</p>
-                <button
-                    onClick={onClose}
-                    className="bg-indigo-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    確認
-                </button>
-            </div>
-        </div>
-    );
-};
-
-// --- Helper Function to generate HTML for the student ---
-const generateStudentHtml = (topic, purpose, steps, distractorSteps, includeGrading) => {
-    const presetSteps = steps.filter(s => s.isPreset);
-    const draggableCorrectSteps = steps.filter(s => !s.isPreset);
-    const allDraggableCards = [...draggableCorrectSteps, ...distractorSteps].sort(() => Math.random() - 0.5);
-    const correctOrderIds = steps.map(s => s.id);
-
-    const htmlContent = \`
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>實驗步驟排序</title>
-    <script src="https://cdn.tailwindcss.com"><\\/script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f4f8; }
-        .card { touch-action: none; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 3px solid transparent; }
-        .card:hover:not(.card-preset) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .card.dragging { opacity: 0.5; transform: scale(1.05); background-color: #c7d2fe; }
-        .card-preset { background-color: #eef2ff; border-color: #a5b4fc; color: #3730a3; cursor: default; }
-        .card.correct { border-color: #22c55e; } .card.incorrect { border-color: #ef4444; }
-        .drop-zone { transition: background-color 0.2s ease, border-color 0.2s ease; border: 2px dashed #cbd5e1; min-height: 80px; }
-        .drop-zone.drag-over { background-color: #e0e7ff; border-color: #a5b4fc; }
-        .drop-zone.incorrect-empty { border-color: #ef4444; background-color: #fee2e2; }
-        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); transition: bottom 0.5s ease-in-out; z-index: 1000; }
-        #toast.show { bottom: 20px; }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-        <header class="text-center mb-6 border-b pb-4"><h1 class="text-3xl font-bold text-slate-800">\${topic}</h1><p class="text-lg text-slate-600 mt-2">\${purpose}</p></header>
-        <main>
-            <h2 class="text-xl font-semibold text-slate-700 mb-3">步驟卡片區</h2>
-            <p class="text-sm text-slate-500 mb-4">請將下方的卡片拖曳到工作區，排出正確的實驗順序。注意！其中可能包含無關的「干擾」步驟。</p>
-            <div id="source-cards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-slate-100 rounded-lg min-h-[100px]"></div>
-            <h2 class="text-xl font-semibold text-slate-700 mt-8 mb-3">工作區 (共 \${correctOrderIds.length} 個步驟)</h2>
-            <p class="text-sm text-slate-500 mb-4">已鎖定的卡片為提示。將卡片拖曳到已佔用的位置可以交換順序。</p>
-            <div id="workspace" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 rounded-lg"></div>
-            <div class="flex justify-center items-center gap-4 mt-8">
-                <button id="clear-btn" class="bg-slate-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors text-lg">清空重來</button>
-                <button id="complete-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors text-lg shadow-md">\${includeGrading ? '完成批改' : '完成並複製'}</button>
-            </div>
-        </main>
-    </div>
-    <div id="toast" class="bg-slate-800 text-white py-3 px-6 rounded-lg shadow-xl"><p id="toast-message"></p></div>
-    <script>
-        const correctSteps = \${JSON.stringify(steps)};
-        const presetSteps = \${JSON.stringify(presetSteps)};
-        const allDraggableCards = \${JSON.stringify(allDraggableCards)};
-        const correctOrderIds = \${JSON.stringify(correctOrderIds)};
-        const enableGrading = \${includeGrading};
-        const sourceContainer = document.getElementById('source-cards'), workspaceContainer = document.getElementById('workspace'), completeBtn = document.getElementById('complete-btn'), clearBtn = document.getElementById('clear-btn'), toast = document.getElementById('toast'), toastMessage = document.getElementById('toast-message');
-        let draggedCardId = null;
-        function showToast(message, duration = 4000) { toastMessage.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), duration); }
-        function createCard(step, isDraggable) { const card = document.createElement('div'); card.id = step.id; card.textContent = step.text; card.className = 'card bg-white p-4 rounded-lg border select-none'; if (isDraggable) { card.draggable = true; card.classList.add('cursor-grab'); card.dataset.isDraggable = true; card.addEventListener('dragstart', e => { draggedCardId = e.target.id; setTimeout(() => e.target.classList.add('dragging'), 0); }); card.addEventListener('dragend', e => e.target.classList.remove('dragging')); } else { card.classList.add('card-preset'); } return card; }
-        function createDropZone() { const zone = document.createElement('div'); zone.className = 'drop-zone rounded-lg flex justify-center items-center'; zone.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }); zone.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over')); zone.addEventListener('drop', handleDrop); return zone; }
-        function removeGradingClasses() { workspaceContainer.querySelectorAll('.card').forEach(c => c.classList.remove('correct', 'incorrect')); workspaceContainer.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('incorrect-empty')); }
-        function initialize() { sourceContainer.innerHTML = ''; workspaceContainer.innerHTML = ''; allDraggableCards.forEach(step => sourceContainer.appendChild(createCard(step, true))); correctSteps.forEach(step => { const zone = createDropZone(); const presetCard = presetSteps.find(ps => ps.id === step.id); if (presetCard) { zone.appendChild(createCard(presetCard, false)); } workspaceContainer.appendChild(zone); }); }
-        function handleClear() { removeGradingClasses(); const workspaceDraggableCards = Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]')); workspaceDraggableCards.forEach(card => sourceContainer.appendChild(card)); }
-        function handleDrop(e) { e.preventDefault(); removeGradingClasses(); e.currentTarget.classList.remove('drag-over'); if (!draggedCardId) return; const draggedCard = document.getElementById(draggedCardId); const targetZone = e.currentTarget; if (targetZone.children.length > 0) { const existingCard = targetZone.children[0]; if (existingCard.dataset.isDraggable !== 'true') return; draggedCard.parentElement.appendChild(existingCard); } targetZone.appendChild(draggedCard); }
-        sourceContainer.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); });
-        sourceContainer.addEventListener('dragleave', e => e.currentTarget.classList.remove('drag-over'));
-        sourceContainer.addEventListener('drop', e => { e.preventDefault(); removeGradingClasses(); e.currentTarget.classList.remove('drag-over'); const draggedCard = document.getElementById(draggedCardId); if(draggedCard) sourceContainer.appendChild(draggedCard); });
-        function handleComplete() { removeGradingClasses(); let studentSequenceText = ''; const workspaceSlots = Array.from(workspaceContainer.children); workspaceSlots.forEach((slot, index) => { if (slot.children.length > 0) { const card = slot.children[0]; studentSequenceText += \`\${index + 1}. \${card.textContent}\\n\`; if (enableGrading) { const correctIdForThisSlot = correctOrderIds[index]; if (card.id === correctIdForThisSlot) { card.classList.add('correct'); } else { card.classList.add('incorrect'); } } } else { if (enableGrading) { slot.classList.add('incorrect-empty'); } } }); navigator.clipboard.writeText(studentSequenceText.trim()).then(() => { const message = enableGrading ? '批改完成！紅色框線代表錯誤。你的作答已複製。' : '排序結果已複製到剪貼簿！'; showToast(message); }, () => { const message = enableGrading ? '批改完成！但複製失敗。' : '複製失敗，請手動複製。'; showToast(message); }); }
-        completeBtn.addEventListener('click', handleComplete); clearBtn.addEventListener('click', handleClear); initialize();
-    <\\/script>
-</body>
-</html>\`;
-    return htmlContent;
-};
-
-// --- Main React App Component ---
-function LabGenerator() {
-    const [topic, setTopic] = useState('驗證歐姆定律');
-    const [purpose, setPurpose] = useState('探討電壓、電流與電阻之間的關係');
-    const [steps, setSteps] = useState([
-        { id: \`step-1\`, text: '將電路元件（電源、電阻、伏特計、安培計、開關）依序連接。', isPreset: false },
-        { id: \`step-2\`, text: '設定電源供應器為2伏特，開啟開關。', isPreset: false },
-        { id: \`step-3\`, text: '記錄伏特計與安培計的讀數。', isPreset: false },
-        { id: \`step-4\`, text: '將電壓改為4伏特與6伏特，重複步驟3。', isPreset: false },
-    ]);
-    const [distractorSteps, setDistractorSteps] = useState([
-        { id: \`distractor-1\`, text: '測量導線的長度。' },
-        { id: \`distractor-2\`, text: '用三用電錶測量電阻的色碼。' },
-    ]);
-    const [includeGrading, setIncludeGrading] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
-    const [apiKey, setApiKey] = useState('');
-    const [showApiKey, setShowApiKey] = useState(false);
-
-    useEffect(() => {
-        const savedKey = localStorage.getItem('geminiApiKey');
-        if (savedKey) {
-            setApiKey(savedKey);
-        }
-    }, []);
-
-    const handleApiKeyChange = (e) => {
-        const newKey = e.target.value;
-        setApiKey(newKey);
-        localStorage.setItem('geminiApiKey', newKey);
-    };
-
-    const handleGenerateSteps = async () => {
-        if (!apiKey) {
-            setAlertMessage("請先在下方的 API Key 輸入框中，貼上您的 Google Gemini API Key。");
-            return;
-        }
-        if (!topic || !purpose) {
-            setAlertMessage("請先輸入實驗主題和目的！");
-            return;
-        }
-        setIsLoading(true);
-        const prompt = \`請為一個國中理化實驗生成詳細的實驗步驟。實驗主題: "\${topic}" 實驗目的: "\${purpose}" 重要指示: 1. 生成 5 到 7 個最核心的正確步驟。2. 生成 2 到 3 個看起來合理但實際上是錯誤或無關的「干擾步驟」。3. 步驟文字需清晰，符合國中生理解程度，每項少於50字。請以 JSON 格式回傳，格式如下： { "correct_steps": [ "正確步驟一", ... ], "distractor_steps": [ "干擾步驟一", ... ] }\`;
-        try {
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { "correct_steps": { "type": "ARRAY", "items": { "type": "STRING" } }, "distractor_steps": { "type": "ARRAY", "items": { "type": "STRING" } } } } } };
-            const apiUrl = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${apiKey}\`;
-            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error(\`API 呼叫失敗: \${response.status}. 請檢查您的 API Key 是否正確或有足夠額度。\`);
-            const result = await response.json();
-            const generatedText = result.candidates[0].content.parts[0].text;
-            const parsedJson = JSON.parse(generatedText);
-            if (parsedJson.correct_steps && parsedJson.distractor_steps) {
-                setSteps(parsedJson.correct_steps.map((text, index) => ({ id: \`step-\${Date.now()}-\${index}\`, text: text, isPreset: false })));
-                setDistractorSteps(parsedJson.distractor_steps.map((text, index) => ({ id: \`distractor-\${Date.now()}-\${index}\`, text: text })));
-            } else { throw new Error("AI 回應的格式不正確。"); }
-        } catch (error) {
-            console.error("Error generating steps:", error);
-            setAlertMessage(\`生成步驟時發生錯誤：\${error.message}\`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleStepChange = (id, newText) => setSteps(steps.map(step => step.id === id ? { ...step, text: newText } : step));
-    const handleTogglePreset = (id) => setSteps(steps.map(step => step.id === id ? { ...step, isPreset: !step.isPreset } : step));
-    const handleAddStep = () => setSteps([...steps, { id: \`step-\${Date.now()}-\${steps.length}\`, text: '', isPreset: false }]);
-    const handleDeleteStep = (id) => setSteps(steps.filter(step => step.id !== id));
-    const handleDistractorChange = (id, newText) => setDistractorSteps(distractorSteps.map(step => step.id === id ? { ...step, text: newText } : step));
-    const handleAddDistractor = () => setDistractorSteps([...distractorSteps, { id: \`distractor-\${Date.now()}-\${distractorSteps.length}\`, text: '' }]);
-    const handleDeleteDistractor = (id) => setDistractorSteps(distractorSteps.filter(step => step.id !== id));
-    
-    const handleDownloadHtml = () => {
-        if (steps.some(s => s.text.trim() === '') || distractorSteps.some(s => s.text.trim() === '')) {
-            setAlertMessage('有卡片是空白的，請填寫內容或將其刪除。');
-            return;
-        }
-        const htmlString = generateStudentHtml(topic, purpose, steps, distractorSteps, includeGrading);
-        const blob = new Blob([htmlString], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = \`\${topic}_實驗排序.html\`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleDownloadSource = () => {
-        const fullComponentSource = \`
-        const { useState, useEffect } = React;
-        const { Download, Plus, Trash2, Wand2, Lock, Unlock, AlertTriangle, KeyRound, Eye, EyeOff, Code } = lucide;
-
-        \${AlertModal.toString()}
-
-        \${generateStudentHtml.toString()}
-
-        \${LabGenerator.toString()}
-        \`;
-
-        const fullSourceHTML = \`
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8" />
-    <title>實驗步驟卡片產生器 (可攜版)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"><\\/script>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"><\\/script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"><\\/script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\\/script>
-    <script src="https://unpkg.com/lucide-react@0.378.0/dist/lucide-react.js"><\\/script>
-</head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel" data-presets="react">
-        \${fullComponentSource}
-        ReactDOM.render(React.createElement(LabGenerator), document.getElementById('root'));
-    <\\/script>
-</body>
-</html>
-\`;
-        const blob = new Blob([fullSourceHTML], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'lab_generator_source.html';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    return (
-        <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
+        <div className={`${colors.background} min-h-screen p-4 sm:p-6 lg:p-8 font-sans`}>
             <AlertModal message={alertMessage} onClose={() => setAlertMessage('')} />
             <div className="max-w-5xl mx-auto">
                 <header className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-slate-800">實驗步驟卡片產生器</h1>
-                    <p className="text-lg text-slate-600 mt-2">輸入主題與目的，AI 將為您生成實驗步驟與干擾選項，並匯出成互動式學習單。</p>
+                    <h1 className={`text-4xl font-bold ${colors.accent}`}>實驗步驟卡片產生器</h1>
+                    <p className={`text-lg ${colors.textMedium} mt-2`}>輸入主題與目的，AI 將為您生成實驗步驟與干擾選項，並匯出成互動式學習單。</p>
                 </header>
 
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">1. 輸入實驗資訊</h2>
+                {/* --- Section 1: Experiment Info --- */}
+                <div className={`${colors.surface} p-6 rounded-xl shadow-md mb-6`}>
+                    <h2 className={`text-2xl font-semibold ${colors.textDark} mb-4 border-b pb-3`}>1. 輸入實驗資訊</h2>
                     <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="topic" className="block text-sm font-medium text-slate-600 mb-1">實驗主題</label>
-                            <input type="text" id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
+                            <label htmlFor="topic" className={`block text-sm font-medium ${colors.textMedium} mb-1`}>實驗主題</label>
+                            <input type="text" id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#0F4C81]" />
                         </div>
                         <div>
-                            <label htmlFor="purpose" className="block text-sm font-medium text-slate-600 mb-1">實驗目的</label>
-                            <input type="text" id="purpose" value={purpose} onChange={(e) => setPurpose(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
-                        </div>
-                    </div>
-                    <div className="mt-6 p-4 bg-slate-100 rounded-lg">
-                        <label htmlFor="apiKey" className="flex items-center text-sm font-medium text-slate-600 mb-2">
-                            <KeyRound className="mr-2 h-5 w-5 text-slate-500"/>
-                            Google Gemini API Key (AI 功能需要)
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input 
-                                type={showApiKey ? 'text' : 'password'} 
-                                id="apiKey" 
-                                value={apiKey} 
-                                onChange={handleApiKeyChange} 
-                                className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                placeholder="在此貼上您的 API Key"
-                            />
-                            <button onClick={() => setShowApiKey(!showApiKey)} className="p-2 text-slate-500 hover:text-slate-700" title="顯示/隱藏 API Key">
-                                {showApiKey ? <EyeOff size={20}/> : <Eye size={20}/>}
-                            </button>
+                            <label htmlFor="purpose" className={`block text-sm font-medium ${colors.textMedium} mb-1`}>實驗目的</label>
+                            <input type="text" id="purpose" value={purpose} onChange={(e) => setPurpose(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#0F4C81]" />
                         </div>
                     </div>
                     <div className="mt-4 text-center">
-                         <button onClick={handleGenerateSteps} disabled={isLoading} className="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-all disabled:bg-slate-400 flex items-center justify-center mx-auto">
-                            {isLoading ? '生成中...' : <><Wand2 className="mr-2 h-5 w-5" />AI 自動生成 (含干擾項)</>}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">2. 編輯正確步驟</h2>
-                    <p className="text-sm text-slate-500 mb-4">點擊 <Lock size={14} className="inline-block mx-1"/> 可將此步驟預設在工作區作為提示。</p>
-                    <div className="space-y-4">
-                        {steps.map((step, index) => (
-                            <div key={step.id} className="flex items-center gap-2 sm:gap-4 bg-slate-50 p-3 rounded-lg">
-                                <span className="text-lg font-bold text-indigo-600">{index + 1}</span>
-                                <button onClick={() => handleTogglePreset(step.id)} className={\`p-2 rounded-full transition-colors \${step.isPreset ? 'bg-indigo-200 text-indigo-700' : 'text-slate-400 hover:bg-slate-200'}\`} title={step.isPreset ? '解鎖步驟' : '鎖定步驟'}>
-                                    {step.isPreset ? <Lock size={20} /> : <Unlock size={20} />}
-                                </button>
-                                <input type="text" value={step.text} onChange={(e) => handleStepChange(step.id, e.target.value)} className="flex-grow p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
-                                <button onClick={() => handleDeleteStep(step.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
-                                    <Trash2 size={20} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                    <button onClick={handleAddStep} className="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-all flex items-center">
-                        <Plus className="mr-2 h-5 w-5" /> 新增正確步驟
-                    </button>
-                </div>
-                
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3 flex items-center"><AlertTriangle className="mr-3 text-amber-500" />3. 新增干擾步驟 (選填)</h2>
-                     <p className="text-sm text-slate-500 mb-4">此處的卡片會和正確步驟混在一起，但學生工作區不會有對應的空格。</p>
-                    <div className="space-y-4">
-                        {distractorSteps.map((step, index) => (
-                            <div key={step.id} className="flex items-center gap-2 sm:gap-4 bg-amber-50 p-3 rounded-lg">
-                                <span className="text-lg font-bold text-amber-600">干擾 {index + 1}</span>
-                                <input type="text" value={step.text} onChange={(e) => handleDistractorChange(step.id, e.target.value)} className="flex-grow p-2 border border-amber-300 rounded-md focus:ring-2 focus:ring-amber-500" />
-                                <button onClick={() => handleDeleteDistractor(step.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
-                                    <Trash2 size={20} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                    <button onClick={handleAddDistractor} className="mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-all flex items-center">
-                        <Plus className="mr-2 h-5 w-5" /> 新增干擾步驟
-                    </button>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-md">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">4. 完成並匯出</h2>
-                    <div className="flex items-center space-x-3 mb-6 bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-md">
-                        <label htmlFor="includeGrading" className="font-medium">啟用【批改功能】?</label>
-                        <input type="checkbox" id="includeGrading" checked={includeGrading} onChange={(e) => setIncludeGrading(e.target.checked)} className="h-6 w-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                         <p className="text-sm">啟用後，學生端將出現「完成批改」按鈕，並以紅綠框線標示結果。</p>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4 text-center">
-                        <button onClick={handleDownloadHtml} className="w-full bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition-all text-lg shadow-md flex items-center justify-center">
-                            <Download className="mr-2 h-6 w-6" /> 下載學生學習單
-                        </button>
-                        <button onClick={handleDownloadSource} className="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-800 transition-all text-lg shadow-md flex items-center justify-center">
-                            <Code className="mr-2 h-6 w-6" /> 下載產生器源碼
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-`;
-        const blob = new Blob([fullSource], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'lab_generator_source.html';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-
-    return (
-        <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
-            <AlertModal message={alertMessage} onClose={() => setAlertMessage('')} />
-            <div className="max-w-5xl mx-auto">
-                <header className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-slate-800">實驗步驟卡片產生器</h1>
-                    <p className="text-lg text-slate-600 mt-2">輸入主題與目的，AI 將為您生成實驗步驟與干擾選項，並匯出成互動式學習單。</p>
-                </header>
-
-                {/* --- Section 1: Experiment Info & AI --- */}
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">1. 輸入實驗資訊</h2>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label htmlFor="topic" className="block text-sm font-medium text-slate-600 mb-1">實驗主題</label>
-                            <input type="text" id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
-                        </div>
-                        <div>
-                            <label htmlFor="purpose" className="block text-sm font-medium text-slate-600 mb-1">實驗目的</label>
-                            <input type="text" id="purpose" value={purpose} onChange={(e) => setPurpose(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
-                        </div>
-                    </div>
-                    <div className="mt-6 p-4 bg-slate-100 rounded-lg">
-                        <label htmlFor="apiKey" className="flex items-center text-sm font-medium text-slate-600 mb-2">
-                            <KeyRound className="mr-2 h-5 w-5 text-slate-500"/>
-                            Google Gemini API Key (AI 功能需要)
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input 
-                                type={showApiKey ? 'text' : 'password'} 
-                                id="apiKey" 
-                                value={apiKey} 
-                                onChange={handleApiKeyChange} 
-                                className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                placeholder="在此貼上您的 API Key"
-                            />
-                            <button onClick={() => setShowApiKey(!showApiKey)} className="p-2 text-slate-500 hover:text-slate-700" title="顯示/隱藏 API Key">
-                                {showApiKey ? <EyeOff size={20}/> : <Eye size={20}/>}
-                            </button>
-                        </div>
-                    </div>
-                    <div className="mt-4 text-center">
-                         <button onClick={handleGenerateSteps} disabled={isLoading} className="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-all disabled:bg-slate-400 flex items-center justify-center mx-auto">
+                         <button onClick={handleGenerateSteps} disabled={isLoading} className={`${colors.primary} ${colors.textLight} font-bold py-2 px-5 rounded-lg ${colors.primaryHover} transition-all disabled:bg-slate-400 flex items-center justify-center mx-auto`}>
                             {isLoading ? '生成中...' : <><Wand2 className="mr-2 h-5 w-5" />AI 自動生成 (含干擾項)</>}
                         </button>
                     </div>
                 </div>
 
                 {/* --- Section 2: Correct Steps --- */}
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">2. 編輯正確步驟</h2>
-                    <p className="text-sm text-slate-500 mb-4">點擊 <Lock size={14} className="inline-block mx-1"/> 可將此步驟預設在工作區作為提示。</p>
+                <div className={`${colors.surface} p-6 rounded-xl shadow-md mb-6`}>
+                    <h2 className={`text-2xl font-semibold ${colors.textDark} mb-4 border-b pb-3`}>2. 編輯正確步驟</h2>
+                    <p className={`text-sm ${colors.textMedium} mb-4`}>點擊 <Lock size={14} className="inline-block mx-1"/> 可將此步驟預設在工作區作為提示。</p>
                     <div className="space-y-4">
                         {steps.map((step, index) => (
                             <div key={step.id} className="flex items-center gap-2 sm:gap-4 bg-slate-50 p-3 rounded-lg">
-                                <span className="text-lg font-bold text-indigo-600">{index + 1}</span>
-                                <button onClick={() => handleTogglePreset(step.id)} className={`p-2 rounded-full transition-colors ${step.isPreset ? 'bg-indigo-200 text-indigo-700' : 'text-slate-400 hover:bg-slate-200'}`} title={step.isPreset ? '解鎖步驟' : '鎖定步驟'}>
+                                <span className={`text-lg font-bold ${colors.accent}`}>{index + 1}</span>
+                                <button onClick={() => handleTogglePreset(step.id)} className={`p-2 rounded-full transition-colors ${step.isPreset ? 'bg-blue-200 text-blue-800' : 'text-slate-400 hover:bg-slate-200'}`} title={step.isPreset ? '解鎖步驟' : '鎖定步驟'}>
                                     {step.isPreset ? <Lock size={20} /> : <Unlock size={20} />}
                                 </button>
-                                <input type="text" value={step.text} onChange={(e) => handleStepChange(step.id, e.target.value)} className="flex-grow p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500" />
+                                <input type="text" value={step.text} onChange={(e) => handleStepChange(step.id, e.target.value)} className="flex-grow p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#0F4C81]" />
                                 <button onClick={() => handleDeleteStep(step.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
                                     <Trash2 size={20} />
                                 </button>
                             </div>
                         ))}
                     </div>
-                    <button onClick={handleAddStep} className="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-all flex items-center">
+                    <button onClick={handleAddStep} className={`${colors.add} ${colors.textLight} font-bold py-2 px-4 rounded-lg ${colors.addHover} transition-all flex items-center`}>
                         <Plus className="mr-2 h-5 w-5" /> 新增正確步驟
                     </button>
                 </div>
                 
                 {/* --- Section 3: Distractor Steps --- */}
-                <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3 flex items-center"><AlertTriangle className="mr-3 text-amber-500" />3. 新增干擾步驟 (選填)</h2>
-                     <p className="text-sm text-slate-500 mb-4">此處的卡片會和正確步驟混在一起，但學生工作區不會有對應的空格。</p>
+                <div className={`${colors.surface} p-6 rounded-xl shadow-md mb-6`}>
+                    <h2 className={`text-2xl font-semibold ${colors.textDark} mb-4 border-b pb-3 flex items-center`}><AlertTriangle className="mr-3 text-amber-500" />3. 新增干擾步驟 (選填)</h2>
+                     <p className={`text-sm ${colors.textMedium} mb-4`}>此處的卡片會和正確步驟混在一起，但學生工作區不會有對應的空格。</p>
                     <div className="space-y-4">
                         {distractorSteps.map((step, index) => (
-                            <div key={step.id} className="flex items-center gap-2 sm:gap-4 bg-amber-50 p-3 rounded-lg">
-                                <span className="text-lg font-bold text-amber-600">干擾 {index + 1}</span>
-                                <input type="text" value={step.text} onChange={(e) => handleDistractorChange(step.id, e.target.value)} className="flex-grow p-2 border border-amber-300 rounded-md focus:ring-2 focus:ring-amber-500" />
+                            <div key={step.id} className={`flex items-center gap-2 sm:gap-4 ${colors.distractor} p-3 rounded-lg`}>
+                                <span className={`text-lg font-bold ${colors.distractorText}`}>干擾 {index + 1}</span>
+                                <input type="text" value={step.text} onChange={(e) => handleDistractorChange(step.id, e.target.value)} className={`flex-grow p-2 bg-white/50 border ${colors.distractorBorder} rounded-md focus:ring-2 ${colors.distractorFocus}`} />
                                 <button onClick={() => handleDeleteDistractor(step.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
                                     <Trash2 size={20} />
                                 </button>
                             </div>
                         ))}
                     </div>
-                    <button onClick={handleAddDistractor} className="mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-all flex items-center">
+                    <button onClick={handleAddDistractor} className={`${colors.distractorAdd} ${colors.textLight} font-bold py-2 px-4 rounded-lg ${colors.distractorAddHover} transition-all flex items-center`}>
                         <Plus className="mr-2 h-5 w-5" /> 新增干擾步驟
                     </button>
                 </div>
 
                 {/* --- Section 4: Export --- */}
-                <div className="bg-white p-6 rounded-xl shadow-md">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-3">4. 完成並匯出</h2>
-                    <div className="flex items-center space-x-3 mb-6 bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 rounded-md">
+                <div className={`${colors.surface} p-6 rounded-xl shadow-md`}>
+                    <h2 className={`text-2xl font-semibold ${colors.textDark} mb-4 border-b pb-3`}>4. 完成並匯出</h2>
+                    <div className="flex items-center space-x-3 mb-6 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md">
                         <label htmlFor="includeGrading" className="font-medium">啟用【批改功能】?</label>
-                        <input type="checkbox" id="includeGrading" checked={includeGrading} onChange={(e) => setIncludeGrading(e.target.checked)} className="h-6 w-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                        <input type="checkbox" id="includeGrading" checked={includeGrading} onChange={(e) => setIncludeGrading(e.target.checked)} className="h-6 w-6 rounded border-gray-300 text-[#0F4C81] focus:ring-[#0F4C81]" />
                          <p className="text-sm">啟用後，學生端將出現「完成批改」按鈕，並以紅綠框線標示結果。</p>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4 text-center">
-                        <button onClick={handleDownloadHtml} className="w-full bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition-all text-lg shadow-md flex items-center justify-center">
-                            <Download className="mr-2 h-6 w-6" /> 下載學生學習單
-                        </button>
-                        <button onClick={handleDownloadSource} className="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-800 transition-all text-lg shadow-md flex items-center justify-center">
-                            <Code className="mr-2 h-6 w-6" /> 下載產生器源碼
+                    <div className="text-center">
+                        <button onClick={handleDownloadHtml} className={`${colors.primary} ${colors.textLight} font-bold py-3 px-8 rounded-lg ${colors.primaryHover} transition-all text-lg shadow-md flex items-center justify-center mx-auto`}>
+                            <Download className="mr-2 h-6 w-6" /> 產生並下載 HTML 學習單
                         </button>
                     </div>
                 </div>
@@ -643,5 +550,3 @@ function LabGenerator() {
         </div>
     );
 }
-
-export default LabGenerator;
