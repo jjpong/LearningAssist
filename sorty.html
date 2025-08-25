@@ -367,17 +367,45 @@ document.body.addEventListener('click', (e) => {
             });
             
             // --- Initial Load & Dynamic UI Setup ---
-           const setupInitialUI = () => {
-                // Populate checkboxes from the misconceptionDetails object
+// Populate checkboxes
                 Object.keys(misconceptionDetails).forEach(key => {
                     const detail = misconceptionDetails[key];
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center';
-                    div.innerHTML = `
-                        <input type="checkbox" id="cb-${key}" value="${key}" class="form-checkbox mr-2">
-                        <label for="cb-${key}" class="cursor-pointer text-amber-900">${detail.label}</label>
-                    `;
-                    misconceptionCheckboxes.appendChild(div);
+                    const label = document.createElement('label');
+                    label.htmlFor = `cb-${key}`;
+                    label.className = 'flex items-center cursor-pointer';
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = `cb-${key}`;
+                    input.value = key;
+                    // 使用 'hidden' class 讓原始 checkbox 消失，但功能保留
+                    input.className = 'hidden'; 
+
+                    const customBox = document.createElement('div');
+                    customBox.className = 'w-5 h-5 border-2 border-slate-400 rounded-sm flex items-center justify-center transition-all';
+                    
+                    // SVG checkmark icon
+                    const svgIcon = `<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+
+                    input.addEventListener('change', (e) => {
+                        if (e.target.checked) {
+                            customBox.classList.add('bg-[#0F4C81]', 'border-[#0F4C81]');
+                            customBox.innerHTML = svgIcon;
+                        } else {
+                            customBox.classList.remove('bg-[#0F4C81]', 'border-[#0F4C81]');
+                            customBox.innerHTML = '';
+                        }
+                    });
+
+                    label.appendChild(input);
+                    label.appendChild(customBox);
+                    
+                    const labelText = document.createElement('span');
+                    labelText.className = 'ml-2 text-amber-900';
+                    labelText.textContent = detail.label;
+                    label.appendChild(labelText);
+
+                    misconceptionCheckboxes.appendChild(label);
                 });
 
                 // Add the "Other" option manually
