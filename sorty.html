@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>實驗步驟卡片產生器 (Pro-Checkbox)</title>
+    <title>實驗步驟卡片產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.292.0/lucide.min.css" />
     <style>
@@ -156,29 +156,30 @@
             const API_KEY_STORAGE_KEY = 'gemini-api-key';
             let storedApiKey = null;
             let resolveApiKeyPromise = null;
+            
+            const misconceptionDetails = {
+                variablesA: {
+                    label: "一次改變多個操縱變因",
+                    prompt: "模擬學生在設計實驗時「無法有效辨識與控制變因」的常見錯誤。例如：一次操縱多個變因、忽略應控制的環境因素、或混淆變因角色。"
+                },
+                variablesB: {
+                    label: "忽略重要的控制變因",
+                    prompt: "模擬學生「忽略重要的控制變因」的錯誤。例如，設計一個實驗，但明顯需要控制不變的變因，卻沒有注意到，或是使其改變了。"
+                },
+                logic: {
+                    label: "實驗設計的邏輯性與完整性不足",
+                    prompt: "模擬學生「實驗設計的邏輯性與完整性不足」的錯誤。例如：忘記設立對照組、或忽略重複實驗的重要性。"
+                },
+                operational: {
+                    label: "應變變因定義模糊",
+                    prompt: "模擬學生「缺乏可操作性的測量定義」的錯誤。例如：應變變因定義模糊，寫出「觀察反應快不快」而不是具體可測量的指標。"
+                },
+                hypothesis: {
+                    label: "假設或實驗目的與實驗設計的連結薄弱",
+                    prompt: "模擬學生「假設或實驗目的與實驗設計的連結薄弱」的錯誤。也就是設計出的步驟無法有效檢驗實驗假設。"
+                },
 
-const misconceptionDetails = {
-    variablesA: {
-        label: "一次改變多個操縱變因",
-        prompt: "模擬學生『一次操縱多個變因』的錯誤。請設計一個實驗步驟，在該步驟中，學生為了探討單一變因（例如：溫度），卻不當地同時改變了另一個變因（例如：濃度或體積）。這個錯誤步驟需要看起來像是刻意設計的，而不是隨機的，以反映學生『變因愈多效果愈好』的迷思。"
-    },
-    variablesB: {
-        label: "忽略重要的控制變因",
-        prompt: "模擬學生『忽略重要的控制變因』的錯誤。請設計一個實驗步驟，其中，一個對實驗結果有顯著影響的變因（例如：反應物的初始份量、反應總時間、環境光照等），被學生用模糊或不精確的方式處理（例如：使用『適量』、『約半杯』等詞語），或者完全沒有被提及，導致實驗缺乏公平比較的基礎。"
-    },
-    logic: {
-        label: "實驗設計的邏輯性與完整性不足",
-        prompt: "模擬學生『實驗設計的邏輯性與完整性不足』的錯誤。此類錯誤有兩種主要情境：(1) 實驗流程中完全遺漏了『對照組』的設計。(2) 整個實驗只進行了一次，完全沒有提及或規劃『重複測量』以確保數據的信度。請根據這兩種情境之一，設計出有瑕疵的實驗流程。"
-    },
-    operational: {
-        label: "應變變因定義模糊",
-        prompt: "模擬學生『缺乏可操作性的測量定義』的錯誤。請設計一個實驗步驟，其中描述應變變因的方式是定性的、主觀的或模糊的。例如，使用『觀察氣泡冒出的快慢』、『比較植物生長的好壞』等詞語，而不是具體、可量化的指標（例如：『記錄一分鐘內產生的氣泡數』、『測量植物莖的高度』）。"
-    },
-    hypothesis: {
-        label: "假設或實驗目的與實驗設計的連結薄弱",
-        prompt: "模擬學生『假設或實驗目的與實驗設計的連結薄弱』的錯誤。請設計一個實驗步驟，這個步驟本身操作是正確的，但測量的項目卻與宣稱的實驗目的或要驗證的假設完全不符。例如，實驗目的是探討『反應速率』，但步驟卻是去測量『反應後的溫度變化』或『沉澱物的顏色』。"
-    },
-};
+            };
 
             // --- API Key Management ---
             const getApiKey = () => {
@@ -367,6 +368,8 @@ document.body.addEventListener('click', (e) => {
             });
             
             // --- Initial Load & Dynamic UI Setup ---
+           const setupInitialUI = () => {
+                // Populate checkboxes from the misconceptionDetails object
 // Populate checkboxes
                 Object.keys(misconceptionDetails).forEach(key => {
                     const detail = misconceptionDetails[key];
