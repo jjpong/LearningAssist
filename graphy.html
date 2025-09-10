@@ -2,7 +2,7 @@
 <html lang="zh-Hant" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>實驗數據統計圖繪製工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,7 +17,7 @@
         .group-active-radio:checked { background-color: #2563eb; border-color: #2563eb; }
         .color-input::-webkit-color-swatch-wrapper { padding: 0; }
         .color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
-        canvas { cursor: crosshair; }
+        canvas { cursor: crosshair; touch-action: none; } /* touch-action: none 防止觸控時的滾動等預設行為 */
         .canvas-bg-white { background-color: white; }
         /* 美化滾動條 */
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
@@ -56,7 +56,7 @@
                     
                     <div class="space-y-4 mb-6">
                         <div>
-                             <h3 class="text-lg font-semibold text-gray-700">1.填入適當的圖表標題</h3>
+                              <h3 class="text-lg font-semibold text-gray-700">1.填入適當的圖表標題</h3>
                             <input type="text" id="chart-title" value="圖表標題" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
                     </div>
@@ -108,9 +108,19 @@
                 </div>
 
                 <div class="bg-white p-5 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">二、在圖表區正確位置點擊可新增數據</h3>
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2">二、數據操作</h2>
                     <div id="groups-container" class="space-y-3">
                         <!-- JavaScript 會在這裡動態生成 4 組設定 -->
+                    </div>
+                    <!-- 修正後的數據標籤開關 -->
+                    <div class="mt-4 bg-gray-50 p-3 rounded-lg">
+                        <label for="show-labels-toggle" class="flex items-center justify-between cursor-pointer">
+                            <span class="font-semibold text-gray-700">顯示數據標籤</span>
+                            <div class="relative inline-flex items-center">
+                                <input type="checkbox" id="show-labels-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </div>
+                        </label>
                     </div>
                     <div class="mt-6 space-y-3">
                         <button id="download-chart" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">下載圖表 (PNG)</button>
@@ -139,14 +149,15 @@
             const applyBtn = document.getElementById('apply-settings');
             const downloadBtn = document.getElementById('download-chart');
             const downloadDataBtn = document.getElementById('download-data');
+            const showLabelsToggle = document.getElementById('show-labels-toggle');
 
             // --- 初始設定與狀態 ---
             const MAX_GROUPS = 4;
             const defaultGroupSettings = [
-                { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } },
-                { name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false } }
+                { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
+                { name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
+                { name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
+                { name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } }
             ];
 
             let chartState = {
@@ -155,17 +166,20 @@
                 yAxis: { label: '應變變因', min: 0, max: 50, unit: 5 },
                 groups: JSON.parse(JSON.stringify(defaultGroupSettings)),
                 dataPoints: [],
-                activeGroupIndex: 0
+                activeGroupIndex: 0,
+                showDataLabels: false
             };
             
             const padding = { top: 60, right: 150, bottom: 60, left: 70 };
 
             // --- 互動狀態 ---
-            let interactionState = 'idle'; // 'idle', 'dragging', 'selecting'
+            let interactionState = 'idle'; // 'idle', 'draggingPoint', 'draggingEquation', 'selecting'
             let draggedPointIndex = -1;
+            let draggedEquationIndex = -1;
             let selectionBox = { startX: 0, startY: 0, endX: 0, endY: 0, visible: false };
             let dragStartPos = { x: 0, y: 0 };
-            let mouseMoved = false;
+            let dragStartOffset = { dx: 0, dy: 0 };
+            let interactionMoved = false;
 
             // --- 函數 ---
             function initializeGroupSettings() {
@@ -229,6 +243,9 @@
 
             function recalculateTrendline(index) {
                 const group = chartState.groups[index];
+                // Reset equation position when recalculating
+                group.trendline.equationPos = { x: null, y: null };
+
                 const points = chartState.dataPoints.filter(p => p.groupIndex === index);
 
                 if (points.length < 2) {
@@ -268,9 +285,8 @@
                     ssTot += (p.y - yMean)**2;
                     ssRes += (p.y - yPred)**2;
                 });
-                group.trendline.r2 = 1 - (ssRes / ssTot);
+                group.trendline.r2 = ssTot === 0 ? 1 : 1 - (ssRes / ssTot);
             }
-
 
             function updateGroupSettingsFromUI(event) {
                 const index = parseInt(event.target.dataset.index);
@@ -359,6 +375,23 @@
                         break;
                 }
             }
+            
+            function drawDataLabels() {
+                if (!chartState.showDataLabels) return;
+
+                ctx.font = '11px "Noto Sans TC"';
+                ctx.fillStyle = '#4b5563'; // gray-600
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+
+                chartState.dataPoints.forEach(p => {
+                    if (chartState.groups[p.groupIndex].enabled) {
+                        const pos = dataToCanvas(p.x, p.y);
+                        const label = `(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`;
+                        ctx.fillText(label, pos.x + 8, pos.y - 8);
+                    }
+                });
+            }
 
             function drawAllPoints() {
                 chartState.dataPoints.forEach((p, index) => {
@@ -371,7 +404,7 @@
             function drawTrendlines() {
                 chartState.groups.forEach(group => {
                     if (group.enabled && group.trendline.visible) {
-                        const { m, b, r2, showEquation } = group.trendline;
+                        const { m, b, r2, showEquation, equationPos } = group.trendline;
                         const xAxis = chartState.xAxis;
                         const yAxis = chartState.yAxis;
 
@@ -424,10 +457,26 @@
                             }
                             const r2Text = `R² = ${r2.toFixed(3)}`;
                             
-                            const textX = endPoint.x - 10;
-                            const textY = endPoint.y - 10;
-                            ctx.fillText(equationText, textX, textY - 14); // Place R^2 below equation
+                            // Determine text position
+                            const textX = equationPos.x !== null ? equationPos.x : endPoint.x - 10;
+                            const textY = equationPos.y !== null ? equationPos.y : endPoint.y - 10;
+                            
+                            ctx.fillText(equationText, textX, textY - 14);
                             ctx.fillText(r2Text, textX, textY);
+                            
+                            // Store bounding box for hit detection
+                            const eqWidth = ctx.measureText(equationText).width;
+                            const r2Width = ctx.measureText(r2Text).width;
+                            const maxWidth = Math.max(eqWidth, r2Width);
+                            const textHeight = 12 * 2.2; // Two lines of text with some padding
+                            group.trendline.equationBBox = {
+                                x: textX - maxWidth,
+                                y: textY - textHeight,
+                                width: maxWidth,
+                                height: textHeight
+                            };
+                        } else {
+                           group.trendline.equationBBox = null; 
                         }
                     }
                 });
@@ -575,130 +624,54 @@
                 drawGridAndAxes();
                 drawAllPoints();
                 drawTrendlines();
+                drawDataLabels(); 
                 drawLegend();
                 drawSelectionBox();
             }
 
-            function getPointAtMouse(mouseX, mouseY) {
+            function getPointAtPos(posX, posY) {
                 for (let i = chartState.dataPoints.length - 1; i >= 0; i--) {
                     const p = chartState.dataPoints[i];
+                    if (!chartState.groups[p.groupIndex].enabled) continue;
+                    
                     const pos = dataToCanvas(p.x, p.y);
-                    const dist = Math.sqrt((mouseX - pos.x)**2 + (mouseY - pos.y)**2);
-                    if (dist <= 10) { // 10px hit radius
+                    const dist = Math.sqrt((posX - pos.x)**2 + (posY - pos.y)**2);
+                    if (dist <= 10) { 
                         return i;
                     }
                 }
                 return -1;
             }
 
-            // --- 事件監聽 ---
-            applyBtn.addEventListener('click', () => {
-                const xMin = parseFloat(xAxisMinInput.value);
-                const xMax = parseFloat(xAxisMaxInput.value);
-                const yMin = parseFloat(yAxisMinInput.value);
-                const yMax = parseFloat(yAxisMaxInput.value);
-                const xUnit = parseFloat(xAxisUnitInput.value);
-                const yUnit = parseFloat(yAxisUnitInput.value);
-
-                if (xMin >= xMax || yMin >= yMax) {
-                    alert('最大值必須大於最小值！');
-                    return;
-                }
-                if (xUnit < 0.5 || yUnit < 0.5) {
-                    alert('每格單位至少需要 0.5！');
-                    return;
-                }
-                if ((xMax - xMin) / xUnit > 50 || (yMax - yMin) / yUnit > 50) {
-                    alert('設定的單位太小，會導致格線過於密集，請調整！');
-                    return;
-                }
-
-                chartState.title = chartTitleInput.value;
-                chartState.xAxis = { label: xAxisLabelInput.value, min: xMin, max: xMax, unit: xUnit };
-                chartState.yAxis = { label: yAxisLabelInput.value, min: yMin, max: yMax, unit: yUnit };
-                chartState.dataPoints = [];
-                chartState.groups.forEach(g => g.trendline.visible = false);
-                initializeGroupSettings();
-                
-                redrawCanvas();
-            });
-
-            downloadBtn.addEventListener('click', () => {
-                const link = document.createElement('a');
-                const fileName = `${chartTitleInput.value}.png`;
-                link.download = fileName;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-
-            downloadDataBtn.addEventListener('click', () => {
-                if (chartState.dataPoints.length === 0) {
-                    alert('沒有數據可以下載！');
-                    return;
-                }
-
-                const enabledGroups = chartState.groups
-                    .map((g, i) => ({ ...g, originalIndex: i }))
-                    .filter(g => g.enabled);
-
-                const headers = [
-                    `"${xAxisLabelInput.value}"`,
-                    ...enabledGroups.map(g => `"${g.name}"`)
-                ];
-
-                let csvContent = "\uFEFF" + headers.join(',') + '\r\n';
-
-                const dataMap = {};
-                chartState.dataPoints.forEach(p => {
-                    if (!chartState.groups[p.groupIndex].enabled) return;
-                    const xKey = p.x.toFixed(1);
-                    if (!dataMap[xKey]) {
-                        dataMap[xKey] = {};
-                    }
-                    dataMap[xKey][p.groupIndex] = p.y.toFixed(1);
-                });
-
-                const allXValues = Object.keys(dataMap).map(parseFloat).sort((a, b) => a - b);
-
-                allXValues.forEach(x => {
-                    const xKey = x.toFixed(1);
-                    const row = [xKey];
-                    enabledGroups.forEach(group => {
-                        const yValue = dataMap[xKey][group.originalIndex] || '';
-                        row.push(yValue);
-                    });
-                    csvContent += row.join(',') + '\r\n';
-                });
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                const fileName = `${chartTitleInput.value}_data.csv`;
-                link.setAttribute('download', fileName);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-
-            canvas.addEventListener('mousedown', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                dragStartPos = { x: mouseX, y: mouseY };
-                mouseMoved = false;
-
-                const pointIndex = getPointAtMouse(mouseX, mouseY);
-
-                if (pointIndex !== -1) {
-                    interactionState = 'dragging';
-                    draggedPointIndex = pointIndex;
-                    if (!chartState.dataPoints[pointIndex].selected) {
-                        if (!e.shiftKey) {
-                            chartState.dataPoints.forEach(p => p.selected = false);
+            function getEquationAtPos(posX, posY) {
+                for (let i = 0; i < chartState.groups.length; i++) {
+                    const group = chartState.groups[i];
+                    const trendline = group.trendline;
+                    if (group.enabled && trendline.visible && trendline.showEquation && trendline.equationBBox) {
+                        const bbox = trendline.equationBBox;
+                        if (posX >= bbox.x && posX <= bbox.x + bbox.width && posY >= bbox.y && posY <= bbox.y + bbox.height) {
+                            return i;
                         }
-                        chartState.dataPoints[pointIndex].selected = true;
+                    }
+                }
+                return -1;
+            }
+
+            // --- 事件處理核心邏輯 ---
+            function handleInteractionStart(x, y, event) {
+                event.preventDefault();
+                interactionMoved = false;
+                dragStartPos = { x, y };
+                
+                draggedPointIndex = getPointAtPos(x, y);
+                draggedEquationIndex = getEquationAtPos(x, y);
+
+                if (draggedPointIndex !== -1) {
+                    interactionState = 'draggingPoint';
+                    const point = chartState.dataPoints[draggedPointIndex];
+                    if (!event.shiftKey && !point.selected) {
+                        chartState.dataPoints.forEach(p => p.selected = false);
+                        point.selected = true;
                     }
                     chartState.dataPoints.forEach(p => {
                         if (p.selected) {
@@ -706,111 +679,122 @@
                             p.dragStartY = p.y;
                         }
                     });
+                } else if (draggedEquationIndex !== -1) {
+                    interactionState = 'draggingEquation';
+                    const group = chartState.groups[draggedEquationIndex];
+                    const bbox = group.trendline.equationBBox;
+                    const textX = group.trendline.equationPos.x !== null ? group.trendline.equationPos.x : bbox.x + bbox.width;
+                    const textY = group.trendline.equationPos.y !== null ? group.trendline.equationPos.y : bbox.y + bbox.height;
+                    dragStartOffset = { dx: x - textX, dy: y - textY };
 
                 } else {
                     interactionState = 'selecting';
-                    selectionBox.startX = mouseX;
-                    selectionBox.startY = mouseY;
-                    selectionBox.endX = mouseX;
-                    selectionBox.endY = mouseY;
-                    selectionBox.visible = true;
-                    if (!e.shiftKey) {
+                    if (!event.shiftKey) {
                         chartState.dataPoints.forEach(p => p.selected = false);
                     }
+                    selectionBox.startX = x;
+                    selectionBox.startY = y;
+                    selectionBox.endX = x;
+                    selectionBox.endY = y;
+                    selectionBox.visible = true;
                 }
                 redrawCanvas();
-            });
+            }
+            
+            function handleInteractionMove(x, y, event) {
+                if (interactionState === 'idle') {
+                    // Update cursor style on hover
+                    if (getEquationAtPos(x, y) !== -1) {
+                        canvas.style.cursor = 'move';
+                    } else if (getPointAtPos(x, y) !== -1) {
+                        canvas.style.cursor = 'pointer';
+                    } else {
+                        canvas.style.cursor = 'crosshair';
+                    }
+                    return;
+                }
 
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                mouseMoved = true;
-
-                if (interactionState === 'dragging') {
+                event.preventDefault();
+                interactionMoved = true;
+                
+                if (interactionState === 'draggingPoint') {
                     const startDataPos = canvasToData(dragStartPos.x, dragStartPos.y);
-                    const currentDataPos = canvasToData(mouseX, mouseY);
-                    const deltaX = currentDataPos.x - startDataPos.x;
-                    const deltaY = currentDataPos.y - startDataPos.y;
-
-                    const groupsToRecalculate = new Set();
+                    const currentDataPos = canvasToData(x, y);
+                    const dx = currentDataPos.x - startDataPos.x;
+                    const dy = currentDataPos.y - startDataPos.y;
 
                     chartState.dataPoints.forEach(p => {
                         if (p.selected) {
-                            const newX = p.dragStartX + deltaX;
-                            const newY = p.dragStartY + deltaY;
-                            p.x = Math.max(chartState.xAxis.min, Math.min(chartState.xAxis.max, newX));
-                            p.y = Math.max(chartState.yAxis.min, Math.min(chartState.yAxis.max, newY));
+                            p.x = p.dragStartX + dx;
+                            p.y = p.dragStartY + dy;
+                        }
+                    });
+                } else if (interactionState === 'draggingEquation') {
+                    const group = chartState.groups[draggedEquationIndex];
+                    group.trendline.equationPos = { x: x - dragStartOffset.dx, y: y - dragStartOffset.dy };
+                } else if (interactionState === 'selecting') {
+                    selectionBox.endX = x;
+                    selectionBox.endY = y;
+                }
+                redrawCanvas();
+            }
+            
+            function handleInteractionEnd(event) {
+                if (interactionState === 'idle') return;
+                event.preventDefault();
+                
+                if (interactionState === 'draggingPoint') {
+                    const groupsToRecalculate = new Set();
+                    chartState.dataPoints.forEach(p => {
+                        if (p.selected) {
                             groupsToRecalculate.add(p.groupIndex);
                         }
                     });
-                    
-                    groupsToRecalculate.forEach(groupIndex => {
-                        if (chartState.groups[groupIndex].trendline.visible) {
-                            recalculateTrendline(groupIndex);
+                    groupsToRecalculate.forEach(index => {
+                         if (chartState.groups[index].trendline.visible) {
+                            recalculateTrendline(index);
                         }
                     });
 
-                    redrawCanvas();
                 } else if (interactionState === 'selecting') {
-                    selectionBox.endX = mouseX;
-                    selectionBox.endY = mouseY;
-                    redrawCanvas();
-                } else {
-                    const pointIndex = getPointAtMouse(mouseX, mouseY);
-                    canvas.style.cursor = pointIndex !== -1 ? 'move' : 'crosshair';
-                }
-            });
+                    const rectX1 = Math.min(selectionBox.startX, selectionBox.endX);
+                    const rectY1 = Math.min(selectionBox.startY, selectionBox.endY);
+                    const rectX2 = Math.max(selectionBox.startX, selectionBox.endX);
+                    const rectY2 = Math.max(selectionBox.startY, selectionBox.endY);
 
-            canvas.addEventListener('mouseup', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-
-                if (interactionState === 'selecting') {
-                    const rectX = Math.min(selectionBox.startX, selectionBox.endX);
-                    const rectY = Math.min(selectionBox.startY, selectionBox.endY);
-                    const rectW = Math.abs(selectionBox.startX - selectionBox.endX);
-                    const rectH = Math.abs(selectionBox.startY - selectionBox.endY);
-
-                    chartState.dataPoints.forEach((p, i) => {
+                    chartState.dataPoints.forEach(p => {
                         const pos = dataToCanvas(p.x, p.y);
-                        if (pos.x > rectX && pos.x < rectX + rectW && pos.y > rectY && pos.y < rectY + rectH) {
+                        if (pos.x >= rectX1 && pos.x <= rectX2 && pos.y >= rectY1 && pos.y <= rectY2) {
                             p.selected = true;
                         }
                     });
                 }
-                
-                if (!mouseMoved) { // This was a click, not a drag
-                    const clickedPointIndex = getPointAtMouse(mouseX, mouseY);
-                    if (clickedPointIndex !== -1) { // Clicked on a point
-                         if (!e.shiftKey) {
-                            chartState.dataPoints.forEach((p, i) => p.selected = (i === clickedPointIndex));
-                        } else {
-                            chartState.dataPoints[clickedPointIndex].selected = !chartState.dataPoints[clickedPointIndex].selected;
-                        }
-                    } else { // Clicked on empty space
-                        if (!e.shiftKey) {
+
+                if (!interactionMoved) { // This was a click/tap
+                    if (draggedPointIndex !== -1) { // Click on an existing point
+                         const point = chartState.dataPoints[draggedPointIndex];
+                         if (event.shiftKey) {
+                            point.selected = !point.selected;
+                         } else {
+                            chartState.dataPoints.forEach(p => p.selected = false);
+                            point.selected = true;
+                         }
+                    } else if (draggedEquationIndex === -1) { // Click on empty space
+                        if (!event.shiftKey) {
                             chartState.dataPoints.forEach(p => p.selected = false);
                         }
-                        const dataCoords = canvasToData(mouseX, mouseY);
-                        if (dataCoords.x >= chartState.xAxis.min && dataCoords.x <= chartState.xAxis.max &&
-                            dataCoords.y >= chartState.yAxis.min && dataCoords.y <= chartState.yAxis.max) {
+                        const dataPos = canvasToData(dragStartPos.x, dragStartPos.y);
+                        if (dataPos.x >= chartState.xAxis.min && dataPos.x <= chartState.xAxis.max &&
+                            dataPos.y >= chartState.yAxis.min && dataPos.y <= chartState.yAxis.max) {
                             
-                            if (!chartState.groups[chartState.activeGroupIndex].enabled) {
-                                alert(`數據組 "${chartState.groups[chartState.activeGroupIndex].name}" 尚未啟用，請先勾選啟用。`);
-                            } else {
-                                chartState.dataPoints.push({
-                                    x: dataCoords.x,
-                                    y: dataCoords.y,
-                                    groupIndex: chartState.activeGroupIndex,
-                                    selected: false
-                                });
-
-                                const activeGroup = chartState.groups[chartState.activeGroupIndex];
-                                if (activeGroup.trendline.visible) {
-                                    recalculateTrendline(chartState.activeGroupIndex);
-                                }
+                            chartState.dataPoints.push({
+                                x: dataPos.x,
+                                y: dataPos.y,
+                                groupIndex: chartState.activeGroupIndex,
+                                selected: false
+                            });
+                             if (chartState.groups[chartState.activeGroupIndex].trendline.visible) {
+                                recalculateTrendline(chartState.activeGroupIndex);
                             }
                         }
                     }
@@ -823,9 +807,85 @@
 
                 interactionState = 'idle';
                 draggedPointIndex = -1;
+                draggedEquationIndex = -1;
                 selectionBox.visible = false;
                 redrawCanvas();
+            }
+
+            // --- 事件監聽 ---
+            applyBtn.addEventListener('click', () => {
+                const xMin = parseFloat(xAxisMinInput.value);
+                const xMax = parseFloat(xAxisMaxInput.value);
+                const yMin = parseFloat(yAxisMinInput.value);
+                const yMax = parseFloat(yAxisMaxInput.value);
+                const xUnit = parseFloat(xAxisUnitInput.value);
+                const yUnit = parseFloat(yAxisUnitInput.value);
+
+                if (xMin >= xMax || yMin >= yMax || xUnit <= 0 || yUnit <= 0) {
+                    alert('座標軸範圍或單位設定有誤！');
+                    return;
+                }
+                
+                chartState.title = chartTitleInput.value;
+                chartState.xAxis = { label: xAxisLabelInput.value, min: xMin, max: xMax, unit: xUnit };
+                chartState.yAxis = { label: yAxisLabelInput.value, min: yMin, max: yMax, unit: yUnit };
+                chartState.dataPoints = []; // Clear data on apply
+                chartState.groups.forEach(g => {
+                    g.trendline.visible = false;
+                });
+                initializeGroupSettings(); // Re-render buttons
+                redrawCanvas();
             });
+            
+            showLabelsToggle.addEventListener('change', (e) => {
+                chartState.showDataLabels = e.target.checked;
+                redrawCanvas();
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                chartState.dataPoints.forEach(p => p.selected = false);
+                redrawCanvas(); // Redraw without selection highlights
+
+                const link = document.createElement('a');
+                link.download = `${chartState.title.replace(/\s+/g, '_') || 'chart'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+
+            downloadDataBtn.addEventListener('click', () => {
+                let csvContent = "data:text/csv;charset=utf-8,組別,X軸數值,Y軸數值\n";
+                chartState.dataPoints.forEach(p => {
+                    const groupName = chartState.groups[p.groupIndex].name;
+                    csvContent += `${groupName},${p.x.toFixed(3)},${p.y.toFixed(3)}\n`;
+                });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', `${chartState.title.replace(/\s+/g, '_') || 'chart_data'}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            // 滑鼠事件
+            canvas.addEventListener('mousedown', (e) => handleInteractionStart(e.offsetX, e.offsetY, e));
+            canvas.addEventListener('mousemove', (e) => handleInteractionMove(e.offsetX, e.offsetY, e));
+            window.addEventListener('mouseup', (e) => handleInteractionEnd(e));
+
+            // 觸控事件
+            canvas.addEventListener('touchstart', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                handleInteractionStart(touch.clientX - rect.left, touch.clientY - rect.top, e);
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                handleInteractionMove(touch.clientX - rect.left, touch.clientY - rect.top, e);
+            });
+            canvas.addEventListener('touchend', (e) => handleInteractionEnd(e));
+            canvas.addEventListener('touchcancel', (e) => handleInteractionEnd(e));
+
 
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -859,3 +919,4 @@
 
 </body>
 </html>
+
