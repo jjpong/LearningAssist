@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>實驗數據統計圖繪製工具</title>
+    <title>實驗分析與發現練習工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 使用 Google Fonts 的 Noto Sans TC 字體 */
@@ -112,7 +112,6 @@
                     <div id="groups-container" class="space-y-3">
                         <!-- JavaScript 會在這裡動態生成 4 組設定 -->
                     </div>
-                    <!-- 修正後的數據標籤開關 -->
                     <div class="mt-4 bg-gray-50 p-3 rounded-lg">
                         <label for="show-labels-toggle" class="flex items-center justify-between cursor-pointer">
                             <span class="font-semibold text-gray-700">顯示數據標籤</span>
@@ -127,9 +126,48 @@
                         <button id="download-data" class="w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">下載數據 (CSV)</button>
                     </div>
                 </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2">三、撰寫實驗結果</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600">請根據上方的圖表，描述你觀察到的趨勢與結論。</p>
+                            <button id="show-hint-btn" title="寫作小提示" class="text-xl p-1 rounded-full hover:bg-gray-200 transition-colors">💡</button>
+                        </div>
+                        <textarea id="student-analysis" rows="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="例如：由圖可知，當...增加時，...也隨之增加..."></textarea>
+                        <button id="submit-for-feedback" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400">
+                            提交給 AI 老師分析
+                        </button>
+                        <div id="ai-feedback-container" class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-r-lg" style="display: none;">
+                            <h4 class="font-bold text-indigo-800">AI 老師的回饋：</h4>
+                            <p id="ai-feedback-text" class="text-indigo-700 mt-2 whitespace-pre-wrap"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
+
+    <!-- 新增：寫作提示 Modal -->
+    <div id="hint-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-xl p-6 lg:p-8 max-w-lg w-full relative transform transition-all duration-300 scale-95 opacity-0" id="hint-modal-content">
+            <button id="close-hint-modal" class="absolute top-3 right-3 text-2xl text-gray-400 hover:text-gray-800 transition-colors leading-none">&times;</button>
+            <div class="flex items-center mb-4">
+                <span class="text-3xl mr-3">💡</span>
+                <h3 class="text-2xl font-bold text-gray-800">寫作小提示</h3>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <p>一篇好的實驗結果分析，通常包含以下幾個部分，你可以試著回答看看：</p>
+                <ol class="list-decimal list-inside space-y-2 pl-2">
+                    <li><strong>描述關係</strong>：整體來看，當 X 軸的數值變大時，Y 軸的數值是跟著變大、變小，還是沒有明顯關係呢？</li>
+                    <li><strong>引用數據</strong>：你可以從圖表中舉一個實際的例子來支持你的說法嗎？（例如：當溫度從 20°C 上升到 60°C 時，溶解度從 15g 上升到了 45g。）</li>
+                    <li><strong>比較組別 (如果適用)</strong>：如果圖表中有不同組別，它們的數據趨勢有什麼相同或不同的地方？哪一組的變化比較快？</li>
+                    <li><strong>提出結論</strong>：綜合以上觀察，你可以得到什麼初步的結論？（例如：我認為 X 和 Y 之間可能存在正比關係。）</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -150,6 +188,15 @@
             const downloadBtn = document.getElementById('download-chart');
             const downloadDataBtn = document.getElementById('download-data');
             const showLabelsToggle = document.getElementById('show-labels-toggle');
+            // AI & Hint 功能相關 DOM
+            const studentAnalysisInput = document.getElementById('student-analysis');
+            const submitForFeedbackBtn = document.getElementById('submit-for-feedback');
+            const aiFeedbackContainer = document.getElementById('ai-feedback-container');
+            const aiFeedbackText = document.getElementById('ai-feedback-text');
+            const showHintBtn = document.getElementById('show-hint-btn');
+            const hintModal = document.getElementById('hint-modal');
+            const hintModalContent = document.getElementById('hint-modal-content');
+            const closeHintModalBtn = document.getElementById('close-hint-modal');
 
             // --- 初始設定與狀態 ---
             const MAX_GROUPS = 4;
@@ -181,7 +228,91 @@
             let dragStartOffset = { dx: 0, dy: 0 };
             let interactionMoved = false;
 
-            // --- 函數 ---
+            // --- AI 功能函數 ---
+            async function getAIFeedback() {
+                // 1. AI 前置檢查
+                const defaultTitle = "圖表標題";
+                const defaultXLabel = "操作變因(單位)";
+                const defaultYLabel = "應變變因(單位)";
+
+                if (chartTitleInput.value.trim() === defaultTitle) {
+                    aiFeedbackText.textContent = "老師發現圖表的標題還沒修改喔！一個好的標題可以讓讀者馬上了解這個實驗的主題。請先試著為圖表命名吧！";
+                    aiFeedbackContainer.style.display = 'block';
+                    return;
+                }
+                if (xAxisLabelInput.value.trim() === defaultXLabel) {
+                    aiFeedbackText.textContent = "請先設定好橫軸的名稱與單位，這對分析數據很重要喔！少了單位，數字就沒有意義了。";
+                    aiFeedbackContainer.style.display = 'block';
+                    return;
+                }
+                if (yAxisLabelInput.value.trim() === defaultYLabel) {
+                    aiFeedbackText.textContent = "別忘了設定縱軸的名稱與單位喔！這樣大家才能看懂數據代表什麼。";
+                    aiFeedbackContainer.style.display = 'block';
+                    return;
+                }
+
+                // 2. 學生文字檢查
+                const studentText = studentAnalysisInput.value;
+                if (!studentText.trim()) {
+                    alert('請先在上方輸入框撰寫你的分析喔！');
+                    return;
+                }
+
+                submitForFeedbackBtn.disabled = true;
+                submitForFeedbackBtn.textContent = 'AI 老師思考中...';
+                aiFeedbackContainer.style.display = 'none';
+
+                try {
+                    // 3. 準備給 AI 的資料
+                    let chartDataSummary = `圖表標題: ${chartState.title}\nX軸 (操縱變因): ${chartState.xAxis.label} (範圍 ${chartState.xAxis.min} 到 ${chartState.xAxis.max})\nY軸 (應變變因): ${chartState.yAxis.label} (範圍 ${chartState.yAxis.min} 到 ${chartState.yAxis.max})\n`;
+
+                    const enabledGroups = chartState.groups.filter(g => g.enabled);
+                    if (enabledGroups.length === 0 || chartState.dataPoints.length === 0) {
+                        alert('請至少啟用一個數據組並新增一些數據點！');
+                        throw new Error("No data to analyze");
+                    }
+
+                    chartDataSummary += "\n數據點分析:\n";
+                    enabledGroups.forEach(group => {
+                        const groupIndex = chartState.groups.indexOf(group);
+                        const points = chartState.dataPoints.filter(p => p.groupIndex === groupIndex);
+                        if (points.length > 0) {
+                            chartDataSummary += `\n- 組別: "${group.name}"\n`;
+                            chartDataSummary += "  數據點 (X, Y): " + points.map(p => `(${p.x.toFixed(2)}, ${p.y.toFixed(2)})`).join(', ') + '\n';
+                            if (group.trendline.visible && group.trendline.showEquation) {
+                                const { m, b, r2, forceOrigin } = group.trendline;
+                                let equationText = forceOrigin ? `y = ${m.toFixed(2)}x` : `y = ${m.toFixed(2)}x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(2)}`;
+                                chartDataSummary += `  趨勢線: ${equationText}, R² = ${r2.toFixed(3)}\n`;
+                            }
+                        }
+                    });
+
+                    const systemPrompt = `你是一位來自台灣、非常有耐心且善於引導的國中理化老師。你的目標不是給學生打分數或直接指出錯誤，而是透過提問來啟發他們對數據進行更深入的思考。請使用溫和鼓勵的語氣，並以正體中文生成 2 到 3 個引導性的問題作為回饋。絕對不要說「你寫錯了」或「你應該要...」，回饋的主要形式必須是問句。`;
+                    const userQuery = `這是圖表的客觀數據：\n---\n${chartDataSummary.trim()}\n---\n\n這是學生的分析文字：\n---\n${studentText}\n---\n\n請根據以上圖表數據和學生分析，提供引導性的問題回饋。`;
+                    
+                    const apiKey = ""; 
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                    const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                    if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
+                    const result = await response.json();
+                    const feedback = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (feedback) {
+                        aiFeedbackText.textContent = feedback;
+                        aiFeedbackContainer.style.display = 'block';
+                    } else { throw new Error('從 AI 收到的回覆格式不正確。'); }
+                } catch (error) {
+                    console.error("AI feedback error:", error);
+                    aiFeedbackText.textContent = '抱歉，AI 老師現在有點忙，請稍後再試一次。\n' + error.message;
+                    aiFeedbackContainer.style.display = 'block';
+                } finally {
+                    submitForFeedbackBtn.disabled = false;
+                    submitForFeedbackBtn.textContent = '提交給 AI 老師分析';
+                }
+            }
+
+            // --- 圖表繪製與互動函數 ---
             function initializeGroupSettings() {
                 groupsContainer.innerHTML = '';
                 for (let i = 0; i < MAX_GROUPS; i++) {
@@ -218,702 +349,154 @@
                     `;
                     groupsContainer.appendChild(groupDiv);
                 }
-
-                groupsContainer.querySelectorAll('input, select').forEach(el => {
-                    el.addEventListener('change', updateGroupSettingsFromUI);
-                });
-                groupsContainer.querySelectorAll('.trendline-btn').forEach(btn => {
-                    btn.addEventListener('click', handleTrendlineButtonClick);
-                });
+                groupsContainer.querySelectorAll('input, select').forEach(el => el.addEventListener('change', updateGroupSettingsFromUI));
+                groupsContainer.querySelectorAll('.trendline-btn').forEach(btn => btn.addEventListener('click', handleTrendlineButtonClick));
             }
 
             function handleTrendlineButtonClick(event) {
                 const index = parseInt(event.target.dataset.index);
                 const group = chartState.groups[index];
                 group.trendline.visible = !group.trendline.visible;
-
-                if (group.trendline.visible) {
-                    recalculateTrendline(index);
-                }
-                
-                const btn = groupsContainer.querySelector(`.trendline-btn[data-index="${index}"]`);
-                btn.textContent = group.trendline.visible ? '清除趨勢線' : '繪製趨勢線';
+                if (group.trendline.visible) recalculateTrendline(index);
+                event.target.textContent = group.trendline.visible ? '清除趨勢線' : '繪製趨勢線';
                 redrawCanvas();
             }
 
             function recalculateTrendline(index) {
                 const group = chartState.groups[index];
-                // Reset equation position when recalculating
                 group.trendline.equationPos = { x: null, y: null };
-
                 const points = chartState.dataPoints.filter(p => p.groupIndex === index);
-
                 if (points.length < 2) {
                     group.trendline.visible = false;
                     const btn = groupsContainer.querySelector(`.trendline-btn[data-index="${index}"]`);
                     if (btn) btn.textContent = '繪製趨勢線';
                     return;
                 }
-
                 let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
                 const n = points.length;
-                points.forEach(p => {
-                    sumX += p.x;
-                    sumY += p.y;
-                    sumXY += p.x * p.y;
-                    sumX2 += p.x * p.x;
-                });
-
+                points.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumX2 += p.x * p.x; });
                 let m, b;
-                if (group.trendline.forceOrigin) {
-                    m = sumXY / sumX2;
-                    b = 0;
-                } else {
-                    m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-                    b = (sumY - m * sumX) / n;
-                }
-                
-                group.trendline.m = m;
-                group.trendline.b = b;
-
-                // Calculate R^2
-                const yMean = sumY / n;
-                let ssTot = 0;
-                let ssRes = 0;
-                points.forEach(p => {
-                    const yPred = m * p.x + b;
-                    ssTot += (p.y - yMean)**2;
-                    ssRes += (p.y - yPred)**2;
-                });
+                if (group.trendline.forceOrigin) { m = sumXY / sumX2; b = 0; } 
+                else { m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX); b = (sumY - m * sumX) / n; }
+                group.trendline.m = m; group.trendline.b = b;
+                const yMean = sumY / n; let ssTot = 0, ssRes = 0;
+                points.forEach(p => { const yPred = m * p.x + b; ssTot += (p.y - yMean)**2; ssRes += (p.y - yPred)**2; });
                 group.trendline.r2 = ssTot === 0 ? 1 : 1 - (ssRes / ssTot);
             }
 
             function updateGroupSettingsFromUI(event) {
-                const index = parseInt(event.target.dataset.index);
-                const type = event.target.type;
-                const elType = event.target.dataset.type;
-
-                if (type === 'radio') {
-                    chartState.activeGroupIndex = index;
-                } else if (elType === 'group-enabled') {
-                    chartState.groups[index].enabled = event.target.checked;
-                } else if (type === 'text') {
-                    chartState.groups[index].name = event.target.value;
-                } else if (type === 'color') {
-                    chartState.groups[index].color = event.target.value;
-                } else if (event.target.tagName.toLowerCase() === 'select') {
-                    chartState.groups[index].shape = event.target.value;
-                } else if (elType === 'force-origin') {
-                    chartState.groups[index].trendline.forceOrigin = event.target.checked;
-                    if (chartState.groups[index].trendline.visible) recalculateTrendline(index);
-                } else if (elType === 'show-equation') {
-                    chartState.groups[index].trendline.showEquation = event.target.checked;
-                }
-                
+                const index = parseInt(event.target.dataset.index), type = event.target.type, elType = event.target.dataset.type;
+                if (type === 'radio') chartState.activeGroupIndex = index;
+                else if (elType === 'group-enabled') chartState.groups[index].enabled = event.target.checked;
+                else if (type === 'text') chartState.groups[index].name = event.target.value;
+                else if (type === 'color') chartState.groups[index].color = event.target.value;
+                else if (event.target.tagName.toLowerCase() === 'select') chartState.groups[index].shape = event.target.value;
+                else if (elType === 'force-origin') { chartState.groups[index].trendline.forceOrigin = event.target.checked; if (chartState.groups[index].trendline.visible) recalculateTrendline(index); } 
+                else if (elType === 'show-equation') chartState.groups[index].trendline.showEquation = event.target.checked;
                 redrawCanvas();
             }
 
             function dataToCanvas(x, y) {
-                const canvasWidth = canvas.parentElement.clientWidth;
-                const canvasHeight = canvas.parentElement.clientHeight;
-                const plotWidth = canvasWidth - padding.left - padding.right;
-                const plotHeight = canvasHeight - padding.top - padding.bottom;
-
+                const { clientWidth: canvasWidth, clientHeight: canvasHeight } = canvas.parentElement;
+                const plotWidth = canvasWidth - padding.left - padding.right, plotHeight = canvasHeight - padding.top - padding.bottom;
                 const canvasX = padding.left + (x - chartState.xAxis.min) / (chartState.xAxis.max - chartState.xAxis.min) * plotWidth;
                 const canvasY = padding.top + plotHeight - (y - chartState.yAxis.min) / (chartState.yAxis.max - chartState.yAxis.min) * plotHeight;
                 return { x: canvasX, y: canvasY };
             }
 
             function canvasToData(canvasX, canvasY) {
-                const canvasWidth = canvas.parentElement.clientWidth;
-                const canvasHeight = canvas.parentElement.clientHeight;
-                const plotWidth = canvasWidth - padding.left - padding.right;
-                const plotHeight = canvasHeight - padding.top - padding.bottom;
-
+                const { clientWidth: canvasWidth, clientHeight: canvasHeight } = canvas.parentElement;
+                const plotWidth = canvasWidth - padding.left - padding.right, plotHeight = canvasHeight - padding.top - padding.bottom;
                 const x = chartState.xAxis.min + (canvasX - padding.left) / plotWidth * (chartState.xAxis.max - chartState.xAxis.min);
                 const y = chartState.yAxis.min + (padding.top + plotHeight - canvasY) / plotHeight * (chartState.yAxis.max - chartState.yAxis.min);
                 return { x, y };
             }
             
-            function drawPoint(p, index) {
-                const group = chartState.groups[p.groupIndex];
-                const pos = dataToCanvas(p.x, p.y);
-                
-                if (p.selected) {
-                    ctx.fillStyle = 'rgba(0, 120, 255, 0.3)';
-                    ctx.beginPath();
-                    ctx.arc(pos.x, pos.y, 10, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-
-                ctx.fillStyle = group.color;
-                ctx.strokeStyle = group.color;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-
+            function drawPoint(p) {
+                const group = chartState.groups[p.groupIndex], pos = dataToCanvas(p.x, p.y);
+                if (p.selected) { ctx.fillStyle = 'rgba(0, 120, 255, 0.3)'; ctx.beginPath(); ctx.arc(pos.x, pos.y, 10, 0, 2 * Math.PI); ctx.fill(); }
+                ctx.fillStyle = group.color; ctx.strokeStyle = group.color; ctx.lineWidth = 2; ctx.beginPath();
                 switch (group.shape) {
-                    case 'circle':
-                        ctx.arc(pos.x, pos.y, 5, 0, 2 * Math.PI);
-                        ctx.fill();
-                        break;
-                    case 'square':
-                        ctx.fillRect(pos.x - 4, pos.y - 4, 8, 8);
-                        break;
-                    case 'triangle':
-                        ctx.moveTo(pos.x, pos.y - 5);
-                        ctx.lineTo(pos.x + 5, pos.y + 5);
-                        ctx.lineTo(pos.x - 5, pos.y + 5);
-                        ctx.closePath();
-                        ctx.fill();
-                        break;
-                    case 'cross':
-                        ctx.moveTo(pos.x - 4, pos.y - 4);
-                        ctx.lineTo(pos.x + 4, pos.y + 4);
-                        ctx.moveTo(pos.x + 4, pos.y - 4);
-                        ctx.lineTo(pos.x - 4, pos.y + 4);
-                        ctx.stroke();
-                        break;
+                    case 'circle': ctx.arc(pos.x, pos.y, 5, 0, 2 * Math.PI); ctx.fill(); break;
+                    case 'square': ctx.fillRect(pos.x - 4, pos.y - 4, 8, 8); break;
+                    case 'triangle': ctx.moveTo(pos.x, pos.y - 5); ctx.lineTo(pos.x + 5, pos.y + 5); ctx.lineTo(pos.x - 5, pos.y + 5); ctx.closePath(); ctx.fill(); break;
+                    case 'cross': ctx.moveTo(pos.x - 4, pos.y - 4); ctx.lineTo(pos.x + 4, pos.y + 4); ctx.moveTo(pos.x + 4, pos.y - 4); ctx.lineTo(pos.x - 4, pos.y + 4); ctx.stroke(); break;
                 }
             }
             
             function drawDataLabels() {
                 if (!chartState.showDataLabels) return;
-
-                ctx.font = '11px "Noto Sans TC"';
-                ctx.fillStyle = '#4b5563'; // gray-600
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'bottom';
-
-                chartState.dataPoints.forEach(p => {
-                    if (chartState.groups[p.groupIndex].enabled) {
-                        const pos = dataToCanvas(p.x, p.y);
-                        const label = `(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`;
-                        ctx.fillText(label, pos.x + 8, pos.y - 8);
-                    }
-                });
+                ctx.font = '11px "Noto Sans TC"'; ctx.fillStyle = '#4b5563'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+                chartState.dataPoints.forEach(p => { if (chartState.groups[p.groupIndex].enabled) { const pos = dataToCanvas(p.x, p.y); ctx.fillText(`(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`, pos.x + 8, pos.y - 8); } });
             }
 
-            function drawAllPoints() {
-                chartState.dataPoints.forEach((p, index) => {
-                    if (chartState.groups[p.groupIndex].enabled) {
-                        drawPoint(p, index);
-                    }
-                });
-            }
+            function drawAllPoints() { chartState.dataPoints.forEach(p => { if (chartState.groups[p.groupIndex].enabled) drawPoint(p); }); }
 
             function drawTrendlines() {
                 chartState.groups.forEach(group => {
                     if (group.enabled && group.trendline.visible) {
-                        const { m, b, r2, showEquation, equationPos } = group.trendline;
-                        const xAxis = chartState.xAxis;
-                        const yAxis = chartState.yAxis;
-
-                        let p1 = { x: xAxis.min, y: m * xAxis.min + b };
-                        let p2 = { x: xAxis.max, y: m * xAxis.max + b };
-
-                        const clipPoint = (p) => {
-                            if (p.y < yAxis.min) {
-                                if (m !== 0) p.x = (yAxis.min - b) / m;
-                                p.y = yAxis.min;
-                            } else if (p.y > yAxis.max) {
-                                if (m !== 0) p.x = (yAxis.max - b) / m;
-                                p.y = yAxis.max;
-                            }
-                            if (p.x < xAxis.min) {
-                                p.y = m * xAxis.min + b;
-                                p.x = xAxis.min;
-                            } else if (p.x > xAxis.max) {
-                                p.y = m * xAxis.max + b;
-                                p.x = xAxis.max;
-                            }
-                            return p;
-                        };
-                        
-                        p1 = clipPoint(p1);
-                        p2 = clipPoint(p2);
-
-                        const startPoint = dataToCanvas(p1.x, p1.y);
-                        const endPoint = dataToCanvas(p2.x, p2.y);
-
-                        ctx.beginPath();
-                        ctx.moveTo(startPoint.x, startPoint.y);
-                        ctx.lineTo(endPoint.x, endPoint.y);
-                        ctx.strokeStyle = group.color;
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-
+                        const { m, b, r2, showEquation, equationPos } = group.trendline; const { xAxis, yAxis } = chartState;
+                        let p1 = { x: xAxis.min, y: m * xAxis.min + b }, p2 = { x: xAxis.max, y: m * xAxis.max + b };
+                        const clip = p => { if (p.y < yAxis.min) p = { x: m !== 0 ? (yAxis.min - b) / m : p.x, y: yAxis.min }; if (p.y > yAxis.max) p = { x: m !== 0 ? (yAxis.max - b) / m : p.x, y: yAxis.max }; if (p.x < xAxis.min) p = { x: xAxis.min, y: m * xAxis.min + b }; if (p.x > xAxis.max) p = { x: xAxis.max, y: m * xAxis.max + b }; return p; };
+                        p1 = clip(p1); p2 = clip(p2);
+                        const start = dataToCanvas(p1.x, p1.y), end = dataToCanvas(p2.x, p2.y);
+                        ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y); ctx.strokeStyle = group.color; ctx.lineWidth = 2; ctx.stroke();
                         if (showEquation) {
-                            ctx.font = '12px "Noto Sans TC"';
-                            ctx.fillStyle = group.color;
-                            ctx.textAlign = 'right';
-                            ctx.textBaseline = 'bottom';
-
-                            let equationText;
-                            if (group.trendline.forceOrigin) {
-                                equationText = `y = ${m.toFixed(2)}x`;
-                            } else {
-                                const operator = b >= 0 ? '+' : '-';
-                                equationText = `y = ${m.toFixed(2)}x ${operator} ${Math.abs(b).toFixed(2)}`;
-                            }
-                            const r2Text = `R² = ${r2.toFixed(3)}`;
-                            
-                            // Determine text position
-                            const textX = equationPos.x !== null ? equationPos.x : endPoint.x - 10;
-                            const textY = equationPos.y !== null ? equationPos.y : endPoint.y - 10;
-                            
-                            ctx.fillText(equationText, textX, textY - 14);
-                            ctx.fillText(r2Text, textX, textY);
-                            
-                            // Store bounding box for hit detection
-                            const eqWidth = ctx.measureText(equationText).width;
-                            const r2Width = ctx.measureText(r2Text).width;
-                            const maxWidth = Math.max(eqWidth, r2Width);
-                            const textHeight = 12 * 2.2; // Two lines of text with some padding
-                            group.trendline.equationBBox = {
-                                x: textX - maxWidth,
-                                y: textY - textHeight,
-                                width: maxWidth,
-                                height: textHeight
-                            };
-                        } else {
-                           group.trendline.equationBBox = null; 
-                        }
+                            ctx.font = '12px "Noto Sans TC"'; ctx.fillStyle = group.color; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+                            let eq = group.trendline.forceOrigin ? `y = ${m.toFixed(2)}x` : `y = ${m.toFixed(2)}x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(2)}`;
+                            const r2Text = `R² = ${r2.toFixed(3)}`; const textX = equationPos.x ?? end.x - 10, textY = equationPos.y ?? end.y - 10;
+                            ctx.fillText(eq, textX, textY - 14); ctx.fillText(r2Text, textX, textY);
+                            const maxWidth = Math.max(ctx.measureText(eq).width, ctx.measureText(r2Text).width);
+                            group.trendline.equationBBox = { x: textX - maxWidth, y: textY - 28, width: maxWidth, height: 28 };
+                        } else { group.trendline.equationBBox = null; }
                     }
                 });
             }
 
             function drawGridAndAxes() {
-                const canvasWidth = canvas.width / (window.devicePixelRatio || 1);
-                const canvasHeight = canvas.height / (window.devicePixelRatio || 1);
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.strokeStyle = '#e0e0e0';
-                ctx.fillStyle = '#333';
-                ctx.lineWidth = 1;
-                ctx.font = '12px "Noto Sans TC"';
-
-                const xAxis = chartState.xAxis;
-                const yAxis = chartState.yAxis;
-
-                const xSteps = (xAxis.max - xAxis.min) / xAxis.unit;
-                for (let i = 0; i <= xSteps; i++) {
-                    const value = xAxis.min + i * xAxis.unit;
-                    const { x } = dataToCanvas(value, yAxis.min);
-                    if (x < padding.left -1 || x > canvasWidth - padding.right + 1) continue;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x, canvasHeight - padding.bottom);
-                    ctx.lineTo(x, canvasHeight - padding.bottom + 5);
-                    ctx.stroke();
-                    
-                    ctx.textAlign = 'center';
-                    ctx.fillText(Number.isInteger(value) ? value : value.toFixed(1), x, canvasHeight - padding.bottom + 20);
-
-                    if (i > 0) {
-                        ctx.beginPath();
-                        ctx.moveTo(x, canvasHeight - padding.bottom);
-                        ctx.lineTo(x, padding.top);
-                        ctx.stroke();
-                    }
-                }
-
-                const ySteps = (yAxis.max - yAxis.min) / yAxis.unit;
-                for (let i = 0; i <= ySteps; i++) {
-                    const value = yAxis.min + i * yAxis.unit;
-                    const { y } = dataToCanvas(xAxis.min, value);
-                    if (y < padding.top - 1 || y > canvasHeight - padding.bottom + 1) continue;
-
-                    ctx.beginPath();
-                    ctx.moveTo(padding.left, y);
-                    ctx.lineTo(padding.left - 5, y);
-                    ctx.stroke();
-
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(Number.isInteger(value) ? value : value.toFixed(1), padding.left - 10, y);
-
-                    if (i > 0) {
-                        ctx.beginPath();
-                        ctx.moveTo(padding.left, y);
-                        ctx.lineTo(canvasWidth - padding.right, y);
-                        ctx.stroke();
-                    }
-                }
-                
-                ctx.strokeStyle = '#333';
-                ctx.beginPath();
-                ctx.moveTo(padding.left, padding.top);
-                ctx.lineTo(padding.left, canvasHeight - padding.bottom);
-                ctx.lineTo(canvasWidth - padding.right, canvasHeight - padding.bottom);
-                ctx.stroke();
-
-                ctx.font = 'bold 20px "Noto Sans TC"';
-                ctx.textAlign = 'center';
-                ctx.fillText(chartState.title, canvasWidth / 2, padding.top / 2);
-
-                ctx.font = '16px "Noto Sans TC"';
-                ctx.fillText(xAxis.label, canvasWidth / 2, canvasHeight - 10);
-                
-                ctx.save();
-                ctx.translate(20, canvasHeight / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillText(yAxis.label, 0, 0);
-                ctx.restore();
+                const dpr = window.devicePixelRatio || 1, cw = canvas.width / dpr, ch = canvas.height / dpr;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#e0e0e0'; ctx.fillStyle = '#333'; ctx.lineWidth = 1; ctx.font = '12px "Noto Sans TC"';
+                const { xAxis, yAxis } = chartState; const xs = (xAxis.max - xAxis.min) / xAxis.unit, ys = (yAxis.max - yAxis.min) / yAxis.unit;
+                for (let i = 0; i <= xs; i++) { const v = xAxis.min + i * xAxis.unit, { x } = dataToCanvas(v, yAxis.min); if (x < padding.left - 1 || x > cw - padding.right + 1) continue; ctx.beginPath(); ctx.moveTo(x, ch - padding.bottom); ctx.lineTo(x, ch - padding.bottom + 5); ctx.stroke(); ctx.textAlign = 'center'; ctx.fillText(Number.isInteger(v) ? v : v.toFixed(1), x, ch - padding.bottom + 20); if (i > 0) { ctx.beginPath(); ctx.moveTo(x, ch - padding.bottom); ctx.lineTo(x, padding.top); ctx.stroke(); } }
+                for (let i = 0; i <= ys; i++) { const v = yAxis.min + i * yAxis.unit, { y } = dataToCanvas(xAxis.min, v); if (y < padding.top - 1 || y > ch - padding.bottom + 1) continue; ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(padding.left - 5, y); ctx.stroke(); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(Number.isInteger(v) ? v : v.toFixed(1), padding.left - 10, y); if (i > 0) { ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(cw - padding.right, y); ctx.stroke(); } }
+                ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(padding.left, padding.top); ctx.lineTo(padding.left, ch - padding.bottom); ctx.lineTo(cw - padding.right, ch - padding.bottom); ctx.stroke();
+                ctx.font = 'bold 20px "Noto Sans TC"'; ctx.textAlign = 'center'; ctx.fillText(chartState.title, cw / 2, padding.top / 2); ctx.font = '16px "Noto Sans TC"'; ctx.fillText(xAxis.label, cw / 2, ch - 10);
+                ctx.save(); ctx.translate(20, ch / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(yAxis.label, 0, 0); ctx.restore();
             }
 
             function drawLegend() {
-                const canvasWidth = canvas.width / (window.devicePixelRatio || 1);
-                let legendY = padding.top;
-                
+                const cw = canvas.width / (window.devicePixelRatio || 1); let y = padding.top;
                 ctx.font = '12px "Noto Sans TC"';
-                
-                chartState.groups.forEach(group => {
-                    if (group.enabled) {
-                        const legendX = canvasWidth - padding.right + 15;
-                        
-                        ctx.fillStyle = group.color;
-                        ctx.strokeStyle = group.color;
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-
-                        switch (group.shape) {
-                            case 'circle': ctx.arc(legendX, legendY, 5, 0, 2 * Math.PI); ctx.fill(); break;
-                            case 'square': ctx.fillRect(legendX - 4, legendY - 4, 8, 8); break;
-                            case 'triangle': ctx.moveTo(legendX, legendY - 5); ctx.lineTo(legendX + 5, legendY + 5); ctx.lineTo(legendX - 5, legendY + 5); ctx.closePath(); ctx.fill(); break;
-                            case 'cross': ctx.moveTo(legendX - 4, legendY - 4); ctx.lineTo(legendX + 4, legendY + 4); ctx.moveTo(legendX + 4, legendY - 4); ctx.lineTo(legendX - 4, legendY + 4); ctx.stroke(); break;
-                        }
-
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = '#333';
-                        ctx.fillText(group.name, legendX + 15, legendY);
-
-                        legendY += 25;
-                    }
-                });
+                chartState.groups.forEach(g => { if (g.enabled) { const x = cw - padding.right + 15; ctx.fillStyle = g.color; ctx.strokeStyle = g.color; ctx.lineWidth = 2; ctx.beginPath(); switch (g.shape) { case 'circle': ctx.arc(x, y, 5, 0, 2 * Math.PI); ctx.fill(); break; case 'square': ctx.fillRect(x - 4, y - 4, 8, 8); break; case 'triangle': ctx.moveTo(x, y - 5); ctx.lineTo(x + 5, y + 5); ctx.lineTo(x - 5, y + 5); ctx.closePath(); ctx.fill(); break; case 'cross': ctx.moveTo(x - 4, y - 4); ctx.lineTo(x + 4, y + 4); ctx.moveTo(x + 4, y - 4); ctx.lineTo(x - 4, y + 4); ctx.stroke(); break; } ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#333'; ctx.fillText(g.name, x + 15, y); y += 25; } });
             }
 
-            function drawSelectionBox() {
-                if (selectionBox.visible) {
-                    ctx.fillStyle = 'rgba(0, 120, 255, 0.2)';
-                    ctx.strokeStyle = 'rgba(0, 120, 255, 0.8)';
-                    ctx.lineWidth = 1;
-                    const rectX = Math.min(selectionBox.startX, selectionBox.endX);
-                    const rectY = Math.min(selectionBox.startY, selectionBox.endY);
-                    const rectW = Math.abs(selectionBox.startX - selectionBox.endX);
-                    const rectH = Math.abs(selectionBox.startY - selectionBox.endY);
-                    ctx.fillRect(rectX, rectY, rectW, rectH);
-                    ctx.strokeRect(rectX, rectY, rectW, rectH);
-                }
-            }
-
-            function redrawCanvas() {
-                const rect = canvas.parentElement.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
-                
-                if (rect.width === 0 || rect.height === 0) return;
-
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                
-                ctx.scale(dpr, dpr);
-
-                drawGridAndAxes();
-                drawAllPoints();
-                drawTrendlines();
-                drawDataLabels(); 
-                drawLegend();
-                drawSelectionBox();
-            }
-
-            function getPointAtPos(posX, posY) {
-                for (let i = chartState.dataPoints.length - 1; i >= 0; i--) {
-                    const p = chartState.dataPoints[i];
-                    if (!chartState.groups[p.groupIndex].enabled) continue;
-                    
-                    const pos = dataToCanvas(p.x, p.y);
-                    const dist = Math.sqrt((posX - pos.x)**2 + (posY - pos.y)**2);
-                    if (dist <= 10) { 
-                        return i;
-                    }
-                }
-                return -1;
-            }
-
-            function getEquationAtPos(posX, posY) {
-                for (let i = 0; i < chartState.groups.length; i++) {
-                    const group = chartState.groups[i];
-                    const trendline = group.trendline;
-                    if (group.enabled && trendline.visible && trendline.showEquation && trendline.equationBBox) {
-                        const bbox = trendline.equationBBox;
-                        if (posX >= bbox.x && posX <= bbox.x + bbox.width && posY >= bbox.y && posY <= bbox.y + bbox.height) {
-                            return i;
-                        }
-                    }
-                }
-                return -1;
-            }
-
-            // --- 事件處理核心邏輯 ---
-            function handleInteractionStart(x, y, event) {
-                event.preventDefault();
-                interactionMoved = false;
-                dragStartPos = { x, y };
-                
-                draggedPointIndex = getPointAtPos(x, y);
-                draggedEquationIndex = getEquationAtPos(x, y);
-
-                if (draggedPointIndex !== -1) {
-                    interactionState = 'draggingPoint';
-                    const point = chartState.dataPoints[draggedPointIndex];
-                    if (!event.shiftKey && !point.selected) {
-                        chartState.dataPoints.forEach(p => p.selected = false);
-                        point.selected = true;
-                    }
-                    chartState.dataPoints.forEach(p => {
-                        if (p.selected) {
-                            p.dragStartX = p.x;
-                            p.dragStartY = p.y;
-                        }
-                    });
-                } else if (draggedEquationIndex !== -1) {
-                    interactionState = 'draggingEquation';
-                    const group = chartState.groups[draggedEquationIndex];
-                    const bbox = group.trendline.equationBBox;
-                    const textX = group.trendline.equationPos.x !== null ? group.trendline.equationPos.x : bbox.x + bbox.width;
-                    const textY = group.trendline.equationPos.y !== null ? group.trendline.equationPos.y : bbox.y + bbox.height;
-                    dragStartOffset = { dx: x - textX, dy: y - textY };
-
-                } else {
-                    interactionState = 'selecting';
-                    if (!event.shiftKey) {
-                        chartState.dataPoints.forEach(p => p.selected = false);
-                    }
-                    selectionBox.startX = x;
-                    selectionBox.startY = y;
-                    selectionBox.endX = x;
-                    selectionBox.endY = y;
-                    selectionBox.visible = true;
-                }
-                redrawCanvas();
-            }
-            
-            function handleInteractionMove(x, y, event) {
-                if (interactionState === 'idle') {
-                    // Update cursor style on hover
-                    if (getEquationAtPos(x, y) !== -1) {
-                        canvas.style.cursor = 'move';
-                    } else if (getPointAtPos(x, y) !== -1) {
-                        canvas.style.cursor = 'pointer';
-                    } else {
-                        canvas.style.cursor = 'crosshair';
-                    }
-                    return;
-                }
-
-                event.preventDefault();
-                interactionMoved = true;
-                
-                if (interactionState === 'draggingPoint') {
-                    const startDataPos = canvasToData(dragStartPos.x, dragStartPos.y);
-                    const currentDataPos = canvasToData(x, y);
-                    const dx = currentDataPos.x - startDataPos.x;
-                    const dy = currentDataPos.y - startDataPos.y;
-
-                    chartState.dataPoints.forEach(p => {
-                        if (p.selected) {
-                            p.x = p.dragStartX + dx;
-                            p.y = p.dragStartY + dy;
-                        }
-                    });
-                } else if (interactionState === 'draggingEquation') {
-                    const group = chartState.groups[draggedEquationIndex];
-                    group.trendline.equationPos = { x: x - dragStartOffset.dx, y: y - dragStartOffset.dy };
-                } else if (interactionState === 'selecting') {
-                    selectionBox.endX = x;
-                    selectionBox.endY = y;
-                }
-                redrawCanvas();
-            }
-            
-            function handleInteractionEnd(event) {
-                if (interactionState === 'idle') return;
-                event.preventDefault();
-                
-                if (interactionState === 'draggingPoint') {
-                    const groupsToRecalculate = new Set();
-                    chartState.dataPoints.forEach(p => {
-                        if (p.selected) {
-                            groupsToRecalculate.add(p.groupIndex);
-                        }
-                    });
-                    groupsToRecalculate.forEach(index => {
-                         if (chartState.groups[index].trendline.visible) {
-                            recalculateTrendline(index);
-                        }
-                    });
-
-                } else if (interactionState === 'selecting') {
-                    const rectX1 = Math.min(selectionBox.startX, selectionBox.endX);
-                    const rectY1 = Math.min(selectionBox.startY, selectionBox.endY);
-                    const rectX2 = Math.max(selectionBox.startX, selectionBox.endX);
-                    const rectY2 = Math.max(selectionBox.startY, selectionBox.endY);
-
-                    chartState.dataPoints.forEach(p => {
-                        const pos = dataToCanvas(p.x, p.y);
-                        if (pos.x >= rectX1 && pos.x <= rectX2 && pos.y >= rectY1 && pos.y <= rectY2) {
-                            p.selected = true;
-                        }
-                    });
-                }
-
-                if (!interactionMoved) { // This was a click/tap
-                    if (draggedPointIndex !== -1) { // Click on an existing point
-                         const point = chartState.dataPoints[draggedPointIndex];
-                         if (event.shiftKey) {
-                            point.selected = !point.selected;
-                         } else {
-                            chartState.dataPoints.forEach(p => p.selected = false);
-                            point.selected = true;
-                         }
-                    } else if (draggedEquationIndex === -1) { // Click on empty space
-                        if (!event.shiftKey) {
-                            chartState.dataPoints.forEach(p => p.selected = false);
-                        }
-                        const dataPos = canvasToData(dragStartPos.x, dragStartPos.y);
-                        if (dataPos.x >= chartState.xAxis.min && dataPos.x <= chartState.xAxis.max &&
-                            dataPos.y >= chartState.yAxis.min && dataPos.y <= chartState.yAxis.max) {
-                            
-                            chartState.dataPoints.push({
-                                x: dataPos.x,
-                                y: dataPos.y,
-                                groupIndex: chartState.activeGroupIndex,
-                                selected: false
-                            });
-                             if (chartState.groups[chartState.activeGroupIndex].trendline.visible) {
-                                recalculateTrendline(chartState.activeGroupIndex);
-                            }
-                        }
-                    }
-                }
-
-                chartState.dataPoints.forEach(p => {
-                    delete p.dragStartX;
-                    delete p.dragStartY;
-                });
-
-                interactionState = 'idle';
-                draggedPointIndex = -1;
-                draggedEquationIndex = -1;
-                selectionBox.visible = false;
-                redrawCanvas();
-            }
+            function drawSelectionBox() { if (selectionBox.visible) { ctx.fillStyle = 'rgba(0, 120, 255, 0.2)'; ctx.strokeStyle = 'rgba(0, 120, 255, 0.8)'; ctx.lineWidth = 1; const x = Math.min(selectionBox.startX, selectionBox.endX), y = Math.min(selectionBox.startY, selectionBox.endY), w = Math.abs(selectionBox.startX - selectionBox.endX), h = Math.abs(selectionBox.startY - selectionBox.endY); ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h); } }
+            function redrawCanvas() { const rect = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (rect.width === 0 || rect.height === 0) return; canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr, dpr); drawGridAndAxes(); drawAllPoints(); drawTrendlines(); drawDataLabels(); drawLegend(); drawSelectionBox(); }
+            function getPointAtPos(x, y) { for (let i = chartState.dataPoints.length - 1; i >= 0; i--) { const p = chartState.dataPoints[i]; if (chartState.groups[p.groupIndex].enabled) { const pos = dataToCanvas(p.x, p.y); if (Math.hypot(x - pos.x, y - pos.y) <= 10) return i; } } return -1; }
+            function getEquationAtPos(x, y) { for (let i = 0; i < chartState.groups.length; i++) { const g = chartState.groups[i]; if (g.enabled && g.trendline.visible && g.trendline.showEquation && g.trendline.equationBBox) { const b = g.trendline.equationBBox; if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return i; } } return -1; }
+            function handleInteractionStart(x, y, e) { e.preventDefault(); interactionMoved = false; dragStartPos = { x, y }; draggedPointIndex = getPointAtPos(x, y); draggedEquationIndex = getEquationAtPos(x, y); if (draggedPointIndex !== -1) { interactionState = 'draggingPoint'; const p = chartState.dataPoints[draggedPointIndex]; if (!e.shiftKey && !p.selected) { chartState.dataPoints.forEach(pt => pt.selected = false); p.selected = true; } chartState.dataPoints.forEach(pt => { if (pt.selected) { pt.dragStartX = pt.x; pt.dragStartY = pt.y; } }); } else if (draggedEquationIndex !== -1) { interactionState = 'draggingEquation'; const g = chartState.groups[draggedEquationIndex].trendline; const b = g.equationBBox; const tx = g.equationPos.x ?? b.x + b.width, ty = g.equationPos.y ?? b.y + b.height; dragStartOffset = { dx: x - tx, dy: y - ty }; } else { interactionState = 'selecting'; if (!e.shiftKey) chartState.dataPoints.forEach(p => p.selected = false); selectionBox = { startX: x, startY: y, endX: x, endY: y, visible: true }; } redrawCanvas(); }
+            function handleInteractionMove(x, y, e) { if (interactionState === 'idle') { canvas.style.cursor = getEquationAtPos(x, y) !== -1 ? 'move' : getPointAtPos(x, y) !== -1 ? 'pointer' : 'crosshair'; return; } e.preventDefault(); interactionMoved = true; if (interactionState === 'draggingPoint') { const sd = canvasToData(dragStartPos.x, dragStartPos.y), cd = canvasToData(x, y); const dx = cd.x - sd.x, dy = cd.y - sd.y; chartState.dataPoints.forEach(p => { if (p.selected) { p.x = p.dragStartX + dx; p.y = p.dragStartY + dy; } }); } else if (interactionState === 'draggingEquation') { chartState.groups[draggedEquationIndex].trendline.equationPos = { x: x - dragStartOffset.dx, y: y - dragStartOffset.dy }; } else if (interactionState === 'selecting') { selectionBox.endX = x; selectionBox.endY = y; } redrawCanvas(); }
+            function handleInteractionEnd(e) { if (interactionState === 'idle') return; e.preventDefault(); if (interactionState === 'draggingPoint') { const groups = new Set(chartState.dataPoints.filter(p => p.selected).map(p => p.groupIndex)); groups.forEach(i => { if (chartState.groups[i].trendline.visible) recalculateTrendline(i); }); } else if (interactionState === 'selecting') { const x1 = Math.min(selectionBox.startX, selectionBox.endX), y1 = Math.min(selectionBox.startY, selectionBox.endY), x2 = Math.max(selectionBox.startX, selectionBox.endX), y2 = Math.max(selectionBox.startY, selectionBox.endY); chartState.dataPoints.forEach(p => { const pos = dataToCanvas(p.x, p.y); if (pos.x >= x1 && pos.x <= x2 && pos.y >= y1 && pos.y <= y2) p.selected = true; }); } if (!interactionMoved) { if (draggedPointIndex !== -1) { const p = chartState.dataPoints[draggedPointIndex]; if (e.shiftKey) p.selected = !p.selected; else { chartState.dataPoints.forEach(pt => pt.selected = false); p.selected = true; } } else if (draggedEquationIndex === -1) { if (!e.shiftKey) chartState.dataPoints.forEach(p => p.selected = false); const d = canvasToData(dragStartPos.x, dragStartPos.y); if (d.x >= chartState.xAxis.min && d.x <= chartState.xAxis.max && d.y >= chartState.yAxis.min && d.y <= chartState.yAxis.max) { chartState.dataPoints.push({ x: d.x, y: d.y, groupIndex: chartState.activeGroupIndex, selected: false }); if (chartState.groups[chartState.activeGroupIndex].trendline.visible) recalculateTrendline(chartState.activeGroupIndex); } } } chartState.dataPoints.forEach(p => { delete p.dragStartX; delete p.dragStartY; }); interactionState = 'idle'; draggedPointIndex = -1; draggedEquationIndex = -1; selectionBox.visible = false; redrawCanvas(); }
 
             // --- 事件監聽 ---
-            applyBtn.addEventListener('click', () => {
-                const xMin = parseFloat(xAxisMinInput.value);
-                const xMax = parseFloat(xAxisMaxInput.value);
-                const yMin = parseFloat(yAxisMinInput.value);
-                const yMax = parseFloat(yAxisMaxInput.value);
-                const xUnit = parseFloat(xAxisUnitInput.value);
-                const yUnit = parseFloat(yAxisUnitInput.value);
-
-                if (xMin >= xMax || yMin >= yMax || xUnit <= 0 || yUnit <= 0) {
-                    alert('座標軸範圍或單位設定有誤！');
-                    return;
-                }
-                
-                chartState.title = chartTitleInput.value;
-                chartState.xAxis = { label: xAxisLabelInput.value, min: xMin, max: xMax, unit: xUnit };
-                chartState.yAxis = { label: yAxisLabelInput.value, min: yMin, max: yMax, unit: yUnit };
-                chartState.dataPoints = []; // Clear data on apply
-                chartState.groups.forEach(g => {
-                    g.trendline.visible = false;
-                });
-                initializeGroupSettings(); // Re-render buttons
-                redrawCanvas();
-            });
-            
-            showLabelsToggle.addEventListener('change', (e) => {
-                chartState.showDataLabels = e.target.checked;
-                redrawCanvas();
-            });
-
-            downloadBtn.addEventListener('click', () => {
-                chartState.dataPoints.forEach(p => p.selected = false);
-                redrawCanvas(); // Redraw without selection highlights
-
-                const link = document.createElement('a');
-                link.download = `${chartState.title.replace(/\s+/g, '_') || 'chart'}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-
-            downloadDataBtn.addEventListener('click', () => {
-                let csvContent = "data:text/csv;charset=utf-8,組別,X軸數值,Y軸數值\n";
-                chartState.dataPoints.forEach(p => {
-                    const groupName = chartState.groups[p.groupIndex].name;
-                    csvContent += `${groupName},${p.x.toFixed(3)},${p.y.toFixed(3)}\n`;
-                });
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', `${chartState.title.replace(/\s+/g, '_') || 'chart_data'}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-            
-            // 滑鼠事件
-            canvas.addEventListener('mousedown', (e) => handleInteractionStart(e.offsetX, e.offsetY, e));
-            canvas.addEventListener('mousemove', (e) => handleInteractionMove(e.offsetX, e.offsetY, e));
-            window.addEventListener('mouseup', (e) => handleInteractionEnd(e));
-
-            // 觸控事件
-            canvas.addEventListener('touchstart', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const touch = e.touches[0];
-                handleInteractionStart(touch.clientX - rect.left, touch.clientY - rect.top, e);
-            });
-            canvas.addEventListener('touchmove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const touch = e.touches[0];
-                handleInteractionMove(touch.clientX - rect.left, touch.clientY - rect.top, e);
-            });
-            canvas.addEventListener('touchend', (e) => handleInteractionEnd(e));
-            canvas.addEventListener('touchcancel', (e) => handleInteractionEnd(e));
-
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                    const groupsToRecalculate = new Set();
-                    chartState.dataPoints.forEach(p => {
-                        if (p.selected) {
-                            groupsToRecalculate.add(p.groupIndex);
-                        }
-                    });
-
-                    chartState.dataPoints = chartState.dataPoints.filter(p => !p.selected);
-
-                    groupsToRecalculate.forEach(groupIndex => {
-                        if (chartState.groups[groupIndex].trendline.visible) {
-                            recalculateTrendline(groupIndex);
-                        }
-                    });
-                    redrawCanvas();
-                }
-            });
-            
+            applyBtn.addEventListener('click', () => { const xMin = parseFloat(xAxisMinInput.value), xMax = parseFloat(xAxisMaxInput.value), yMin = parseFloat(yAxisMinInput.value), yMax = parseFloat(yAxisMaxInput.value), xUnit = parseFloat(xAxisUnitInput.value), yUnit = parseFloat(yAxisUnitInput.value); if (xMin >= xMax || yMin >= yMax || xUnit <= 0 || yUnit <= 0) { alert('座標軸範圍或單位設定有誤！'); return; } chartState.title = chartTitleInput.value; chartState.xAxis = { label: xAxisLabelInput.value, min: xMin, max: xMax, unit: xUnit }; chartState.yAxis = { label: yAxisLabelInput.value, min: yMin, max: yMax, unit: yUnit }; chartState.dataPoints = []; chartState.groups.forEach(g => { g.trendline.visible = false; }); initializeGroupSettings(); redrawCanvas(); });
+            showLabelsToggle.addEventListener('change', (e) => { chartState.showDataLabels = e.target.checked; redrawCanvas(); });
+            submitForFeedbackBtn.addEventListener('click', getAIFeedback);
+            showHintBtn.addEventListener('click', () => { hintModal.style.display = 'flex'; setTimeout(() => hintModalContent.classList.add('scale-100', 'opacity-100'), 10); });
+            closeHintModalBtn.addEventListener('click', () => { hintModalContent.classList.remove('scale-100', 'opacity-100'); setTimeout(() => hintModal.style.display = 'none', 300); });
+            hintModal.addEventListener('click', (e) => { if (e.target === hintModal) closeHintModalBtn.click(); });
+            downloadBtn.addEventListener('click', () => { chartState.dataPoints.forEach(p => p.selected = false); redrawCanvas(); const link = document.createElement('a'); link.download = `${chartState.title.replace(/\s+/g, '_') || 'chart'}.png`; link.href = canvas.toDataURL('image/png'); link.click(); });
+            downloadDataBtn.addEventListener('click', () => { let csv = "data:text/csv;charset=utf-8,組別,X軸數值,Y軸數值\n"; chartState.dataPoints.forEach(p => { csv += `${chartState.groups[p.groupIndex].name},${p.x.toFixed(3)},${p.y.toFixed(3)}\n`; }); const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `${chartState.title.replace(/\s+/g, '_') || 'chart_data'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); });
+            canvas.addEventListener('mousedown', (e) => handleInteractionStart(e.offsetX, e.offsetY, e)); canvas.addEventListener('mousemove', (e) => handleInteractionMove(e.offsetX, e.offsetY, e)); window.addEventListener('mouseup', (e) => handleInteractionEnd(e));
+            canvas.addEventListener('touchstart', (e) => { const r = canvas.getBoundingClientRect(); handleInteractionStart(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top, e); });
+            canvas.addEventListener('touchmove', (e) => { const r = canvas.getBoundingClientRect(); handleInteractionMove(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top, e); });
+            canvas.addEventListener('touchend', (e) => handleInteractionEnd(e)); canvas.addEventListener('touchcancel', (e) => handleInteractionEnd(e));
+            document.addEventListener('keydown', (e) => { if (e.key === 'Delete' || e.key === 'Backspace') { const groups = new Set(chartState.dataPoints.filter(p => p.selected).map(p => p.groupIndex)); chartState.dataPoints = chartState.dataPoints.filter(p => !p.selected); groups.forEach(i => { if (chartState.groups[i].trendline.visible) recalculateTrendline(i); }); redrawCanvas(); } });
             window.addEventListener('resize', redrawCanvas);
 
             // --- 初始啟動 ---
-            initializeGroupSettings();
-            setTimeout(() => {
-                applyBtn.click();
-            }, 100);
+            initializeGroupSettings(); setTimeout(() => { applyBtn.click(); }, 100);
         });
     </script>
 
