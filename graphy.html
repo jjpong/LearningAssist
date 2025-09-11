@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>實驗數據統計圖繪製工具</title>
+    <title>分析與發現</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 使用 Google Fonts 的 Noto Sans TC 字體 */
@@ -32,7 +32,7 @@
     <div class="h-screen flex flex-col p-4 lg:p-6 gap-4">
         <!-- 應用程式標題 (固定高度) -->
         <header class="text-center flex-shrink-0">
-            <h1 class="text-3xl lg:text-4xl font-bold text-gray-700">實驗數據統計圖繪製工具</h1>
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-700">分析與發現</h1>
         </header>
 
         <!-- 主內容區 (填滿剩餘空間) -->
@@ -142,7 +142,6 @@
                             <h4 class="font-bold text-indigo-800">AI 老師的回饋：</h4>
                             <p id="ai-feedback-text" class="text-indigo-700 mt-2 whitespace-pre-wrap"></p>
                         </div>
-                        <!-- 新增：下載報告按鈕 -->
                         <button id="download-report-btn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
                             下載完整報告 (PDF)
                         </button>
@@ -156,226 +155,122 @@
     <div id="hint-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-white rounded-2xl shadow-xl p-6 lg:p-8 max-w-lg w-full relative transform transition-all duration-300 scale-95 opacity-0" id="hint-modal-content">
             <button id="close-hint-modal" class="absolute top-3 right-3 text-2xl text-gray-400 hover:text-gray-800 transition-colors leading-none">&times;</button>
-            <div class="flex items-center mb-4">
-                <span class="text-3xl mr-3">💡</span>
-                <h3 class="text-2xl font-bold text-gray-800">寫作小提示</h3>
-            </div>
-            <div class="space-y-3 text-gray-700">
-                <p>一篇好的實驗結果分析，通常包含以下幾個部分，你可以試著回答看看：</p>
-                <ol class="list-decimal list-inside space-y-2 pl-2">
-                    <li><strong>描述關係</strong>：整體來看，當 X 軸的數值變大時，Y 軸的數值是跟著變大、變小，還是沒有明顯關係呢？</li>
-                    <li><strong>引用數據</strong>：你可以從圖表中舉一個實際的例子來支持你的說法嗎？（例如：當溫度從 20°C 上升到 60°C 時，溶解度從 15g 上升到了 45g。）</li>
-                    <li><strong>比較組別 (如果適用)</strong>：如果圖表中有不同組別，它們的數據趨勢有什麼相同或不同的地方？哪一組的變化比較快？</li>
-                    <li><strong>提出結論</strong>：綜合以上觀察，你可以得到什麼初步的結論？（例如：我認為 X 和 Y 之間可能存在正比關係。）</li>
-                </ol>
+            <div class="flex items-center mb-4"><span class="text-3xl mr-3">💡</span><h3 class="text-2xl font-bold text-gray-800">寫作小提示</h3></div>
+            <div class="space-y-3 text-gray-700"><p>一篇好的實驗結果分析，通常包含以下幾個部分，你可以試著回答看看：</p><ol class="list-decimal list-inside space-y-2 pl-2"><li><strong>描述關係</strong>：整體來看，當 X 軸的數值變大時，Y 軸的數值是跟著變大、變小，還是沒有明顯關係呢？</li><li><strong>引用數據</strong>：你可以從圖表中舉一個實際的例子來支持你的說法嗎？（例如：當溫度從 20°C 上升到 60°C 時，溶解度從 15g 上升到了 45g。）</li><li><strong>比較組別 (如果適用)</strong>：如果圖表中有不同組別，它們的數據趨勢有什麼相同或不同的地方？哪一組的變化比較快？</li><li><strong>提出結論</strong>：綜合以上觀察，你可以得到什麼初步的結論？（例如：我認為 X 和 Y 之間可能存在正比關係。）</li></ol></div>
+        </div>
+    </div>
+    
+    <!-- API 金鑰輸入 Modal -->
+    <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-xl p-6 lg:p-8 max-w-md w-full relative transform transition-all duration-300 scale-95 opacity-0" id="api-key-modal-content">
+            <div class="flex items-center mb-4"><span class="text-3xl mr-3">🔑</span><h3 class="text-2xl font-bold text-gray-800">請輸入 API 金鑰</h3></div>
+            <div class="space-y-4 text-gray-700">
+                <p>AI 老師需要一組來自 Google AI Studio 的 API 金鑰才能運作。這個金鑰只會儲存在您目前的瀏覽器分頁中，關閉後即會自動清除。</p>
+                <div>
+                    <label for="api-key-input" class="block text-sm font-medium text-gray-600 mb-1">Google AI Studio API Key</label>
+                    <input type="password" id="api-key-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="請在此貼上您的金鑰">
+                </div>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sm text-blue-600 hover:underline">點此前往 Google AI Studio 取得免費金鑰 &rarr;</a>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button id="cancel-api-key" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+                    <button id="save-api-key" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">儲存並繼續</button>
+                </div>
             </div>
         </div>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM 元素 ---
-            const canvas = document.getElementById('chart-canvas');
-            const ctx = canvas.getContext('2d');
-            const chartTitleInput = document.getElementById('chart-title');
-            const xAxisLabelInput = document.getElementById('x-axis-label');
-            const xAxisMinInput = document.getElementById('x-axis-min');
-            const xAxisMaxInput = document.getElementById('x-axis-max');
-            const xAxisUnitInput = document.getElementById('x-axis-unit');
-            const yAxisLabelInput = document.getElementById('y-axis-label');
-            const yAxisMinInput = document.getElementById('y-axis-min');
-            const yAxisMaxInput = document.getElementById('y-axis-max');
-            const yAxisUnitInput = document.getElementById('y-axis-unit');
-            const groupsContainer = document.getElementById('groups-container');
-            const applyBtn = document.getElementById('apply-settings');
-            const downloadBtn = document.getElementById('download-chart');
-            const downloadDataBtn = document.getElementById('download-data');
-            const showLabelsToggle = document.getElementById('show-labels-toggle');
-            const studentAnalysisInput = document.getElementById('student-analysis');
-            const submitForFeedbackBtn = document.getElementById('submit-for-feedback');
-            const aiFeedbackContainer = document.getElementById('ai-feedback-container');
-            const aiFeedbackText = document.getElementById('ai-feedback-text');
-            const showHintBtn = document.getElementById('show-hint-btn');
-            const hintModal = document.getElementById('hint-modal');
-            const hintModalContent = document.getElementById('hint-modal-content');
-            const closeHintModalBtn = document.getElementById('close-hint-modal');
+            const canvas = document.getElementById('chart-canvas'); const ctx = canvas.getContext('2d');
+            const chartTitleInput = document.getElementById('chart-title'); const xAxisLabelInput = document.getElementById('x-axis-label');
+            const xAxisMinInput = document.getElementById('x-axis-min'); const xAxisMaxInput = document.getElementById('x-axis-max');
+            const xAxisUnitInput = document.getElementById('x-axis-unit'); const yAxisLabelInput = document.getElementById('y-axis-label');
+            const yAxisMinInput = document.getElementById('y-axis-min'); const yAxisMaxInput = document.getElementById('y-axis-max');
+            const yAxisUnitInput = document.getElementById('y-axis-unit'); const groupsContainer = document.getElementById('groups-container');
+            const applyBtn = document.getElementById('apply-settings'); const downloadBtn = document.getElementById('download-chart');
+            const downloadDataBtn = document.getElementById('download-data'); const showLabelsToggle = document.getElementById('show-labels-toggle');
+            const studentAnalysisInput = document.getElementById('student-analysis'); const submitForFeedbackBtn = document.getElementById('submit-for-feedback');
+            const aiFeedbackContainer = document.getElementById('ai-feedback-container'); const aiFeedbackText = document.getElementById('ai-feedback-text');
+            const showHintBtn = document.getElementById('show-hint-btn'); const hintModal = document.getElementById('hint-modal');
+            const hintModalContent = document.getElementById('hint-modal-content'); const closeHintModalBtn = document.getElementById('close-hint-modal');
             const downloadReportBtn = document.getElementById('download-report-btn');
+            const apiKeyModal = document.getElementById('api-key-modal'); const apiKeyModalContent = document.getElementById('api-key-modal-content');
+            const apiKeyInput = document.getElementById('api-key-input'); const saveApiKeyBtn = document.getElementById('save-api-key');
+            const cancelApiKeyBtn = document.getElementById('cancel-api-key');
 
             // --- 初始設定與狀態 ---
             const MAX_GROUPS = 4;
-            const defaultGroupSettings = [
-                { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
-                { name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
-                { name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },
-                { name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } }
-            ];
-
-            let chartState = {
-                title: '實驗數據關係圖',
-                xAxis: { label: '操作變因', min: 0, max: 100, unit: 10 },
-                yAxis: { label: '應變變因', min: 0, max: 50, unit: 5 },
-                groups: JSON.parse(JSON.stringify(defaultGroupSettings)),
-                dataPoints: [],
-                activeGroupIndex: 0,
-                showDataLabels: false
-            };
-            
+            const defaultGroupSettings = [ { name: '實驗 A', color: '#3b82f6', shape: 'circle', enabled: true, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },{ name: '實驗 B', color: '#ef4444', shape: 'square', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },{ name: '實驗 C', color: '#22c55e', shape: 'triangle', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } },{ name: '實驗 D', color: '#f97316', shape: 'cross', enabled: false, trendline: { visible: false, m: 0, b: 0, r2: 0, forceOrigin: false, showEquation: false, equationPos: { x: null, y: null }, equationBBox: null } }];
+            let chartState = { title: '實驗數據關係圖', xAxis: { label: '操作變因', min: 0, max: 100, unit: 10 }, yAxis: { label: '應變變因', min: 0, max: 50, unit: 5 }, groups: JSON.parse(JSON.stringify(defaultGroupSettings)), dataPoints: [], activeGroupIndex: 0, showDataLabels: false };
             const padding = { top: 60, right: 150, bottom: 60, left: 70 };
+            let interactionState = 'idle', draggedPointIndex = -1, draggedEquationIndex = -1, selectionBox = { startX: 0, startY: 0, endX: 0, endY: 0, visible: false }, dragStartPos = { x: 0, y: 0 }, dragStartOffset = { dx: 0, dy: 0 }, interactionMoved = false;
 
-            // --- 互動狀態 ---
-            let interactionState = 'idle'; // 'idle', 'draggingPoint', 'draggingEquation', 'selecting'
-            let draggedPointIndex = -1;
-            let draggedEquationIndex = -1;
-            let selectionBox = { startX: 0, startY: 0, endX: 0, endY: 0, visible: false };
-            let dragStartPos = { x: 0, y: 0 };
-            let dragStartOffset = { dx: 0, dy: 0 };
-            let interactionMoved = false;
+            // --- API 金鑰管理 (使用 sessionStorage) ---
+            const API_KEY_STORAGE_ITEM = 'gemini-api-key';
+            let resolveApiKeyPromise = null;
+
+            function showApiKeyModal() {
+                apiKeyModal.style.display = 'flex';
+                setTimeout(() => apiKeyModalContent.classList.add('scale-100', 'opacity-100'), 10);
+                return new Promise(resolve => { resolveApiKeyPromise = resolve; });
+            }
+            function hideApiKeyModal() {
+                apiKeyModalContent.classList.remove('scale-100', 'opacity-100');
+                setTimeout(() => apiKeyModal.style.display = 'none', 300);
+            }
+            saveApiKeyBtn.addEventListener('click', () => {
+                const key = apiKeyInput.value.trim();
+                if (key) {
+                    sessionStorage.setItem(API_KEY_STORAGE_ITEM, key); // 改用 sessionStorage
+                    hideApiKeyModal();
+                    if (resolveApiKeyPromise) resolveApiKeyPromise(key);
+                } else { alert('請輸入有效的 API 金鑰'); }
+            });
+            cancelApiKeyBtn.addEventListener('click', () => {
+                hideApiKeyModal();
+                if (resolveApiKeyPromise) resolveApiKeyPromise(null);
+            });
+            async function getApiKey() {
+                let apiKey = sessionStorage.getItem(API_KEY_STORAGE_ITEM); // 改用 sessionStorage
+                if (!apiKey) { apiKey = await showApiKeyModal(); }
+                return apiKey;
+            }
 
             // --- 報告下載功能 ---
-            function downloadReport() {
-                if (!studentAnalysisInput.value.trim()) {
-                    alert('請先撰寫實驗結果分析，才能下載完整報告喔！');
-                    return;
-                }
-
-                // 產生圖表的圖片
-                chartState.dataPoints.forEach(p => p.selected = false);
-                redrawCanvas(); // 清除選取框後重繪
-                const chartImage = canvas.toDataURL('image/png');
-
-                const reportHtml = `
-                    <!DOCTYPE html>
-                    <html lang="zh-Hant">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>實驗報告 - ${chartState.title}</title>
-                        <script src="https://cdn.tailwindcss.com"><\/script>
-                        <style>
-                            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-                            body { font-family: 'Noto Sans TC', sans-serif; }
-                            @media print {
-                                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                                .no-print { display: none; }
-                            }
-                        </style>
-                    </head>
-                    <body class="p-8 lg:p-12">
-                        <div class="max-w-4xl mx-auto">
-                            <header class="text-center mb-8">
-                                <h1 class="text-3xl font-bold">${chartState.title}</h1>
-                            </header>
-                            <main>
-                                <section class="mb-8">
-                                    <h2 class="text-2xl font-bold border-b pb-2 mb-4">一、數據關係圖</h2>
-                                    <img src="${chartImage}" alt="${chartState.title}" class="w-full h-auto border rounded-lg shadow-md">
-                                </section>
-                                <section>
-                                    <h2 class="text-2xl font-bold border-b pb-2 mb-4">二、實驗結果與分析</h2>
-                                    <div class="bg-gray-50 p-4 rounded-lg border">
-                                        <p class="text-gray-800 whitespace-pre-wrap">${studentAnalysisInput.value}<\/p>
-                                    </div>
-                                </section>
-                            </main>
-                            <footer class="text-center mt-12 no-print">
-                                <button onclick="window.print()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                                    列印或儲存為 PDF
-                                </button>
-                            </footer>
-                        </div>
-                    </body>
-                    </html>
-                `;
-                
-                const reportWindow = window.open('', '_blank');
-                reportWindow.document.write(reportHtml);
-                reportWindow.document.close();
-            }
+            function downloadReport() { if(!studentAnalysisInput.value.trim()){alert('請先撰寫實驗結果分析，才能下載完整報告喔！');return;}chartState.dataPoints.forEach(p=>p.selected=false);redrawCanvas();const chartImage=canvas.toDataURL('image/png');const reportHtml=`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><title>實驗報告 - ${chartState.title}<\/title><script src="https://cdn.tailwindcss.com"><\/script><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');body{font-family:'Noto Sans TC',sans-serif;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.no-print{display:none;}}<\/style><\/head><body class="p-8 lg:p-12"><div class="max-w-4xl mx-auto"><header class="text-center mb-8"><h1 class="text-3xl font-bold">${chartState.title}<\/h1><\/header><main><section class="mb-8"><h2 class="text-2xl font-bold border-b pb-2 mb-4">一、數據關係圖<\/h2><img src="${chartImage}" alt="${chartState.title}" class="w-full h-auto border rounded-lg shadow-md"><\/section><section><h2 class="text-2xl font-bold border-b pb-2 mb-4">二、實驗結果與分析<\/h2><div class="bg-gray-50 p-4 rounded-lg border"><p class="text-gray-800 whitespace-pre-wrap">${studentAnalysisInput.value}<\/p><\/div><\/section><\/main><footer class="text-center mt-12 no-print"><button onclick="window.print()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">列印或儲存為 PDF<\/button><\/footer><\/div><\/body><\/html>`;const reportWindow=window.open('','_blank');reportWindow.document.write(reportHtml);reportWindow.document.close();}
 
             // --- AI 功能函數 ---
             async function getAIFeedback() {
-                const defaultTitle = "圖表標題", defaultXLabel = "操作變因(單位)", defaultYLabel = "應變變因(單位)";
-                if (chartTitleInput.value.trim() === defaultTitle) { aiFeedbackText.textContent = "老師發現圖表的標題還沒修改喔！一個好的標題可以讓讀者馬上了解這個實驗的主題。請先試著為圖表命名吧！"; aiFeedbackContainer.style.display = 'block'; return; }
-                if (xAxisLabelInput.value.trim() === defaultXLabel) { aiFeedbackText.textContent = "請先設定好橫軸的名稱與單位，這對分析數據很重要喔！少了單位，數字就沒有意義了。"; aiFeedbackContainer.style.display = 'block'; return; }
-                if (yAxisLabelInput.value.trim() === defaultYLabel) { aiFeedbackText.textContent = "別忘了設定縱軸的名稱與單位喔！這樣大家才能看懂數據代表什麼。"; aiFeedbackContainer.style.display = 'block'; return; }
-                const studentText = studentAnalysisInput.value; if (!studentText.trim()) { alert('請先在上方輸入框撰寫你的分析喔！'); return; }
-                submitForFeedbackBtn.disabled = true; submitForFeedbackBtn.textContent = 'AI 老師思考中...'; aiFeedbackContainer.style.display = 'none';
+                const defaultTitle="圖表標題",defaultXLabel="操作變因(單位)",defaultYLabel="應變變因(單位)";if(chartTitleInput.value.trim()===defaultTitle){aiFeedbackText.textContent="老師發現圖表的標題還沒修改喔！一個好的標題可以讓讀者馬上了解這個實驗的主題。請先試著為圖表命名吧！";aiFeedbackContainer.style.display='block';return;}if(xAxisLabelInput.value.trim()===defaultXLabel){aiFeedbackText.textContent="請先設定好橫軸的名稱與單位，這對分析數據很重要喔！少了單位，數字就沒有意義了。";aiFeedbackContainer.style.display='block';return;}if(yAxisLabelInput.value.trim()===defaultYLabel){aiFeedbackText.textContent="別忘了設定縱軸的名稱與單位喔！這樣大家才能看懂數據代表什麼。";aiFeedbackContainer.style.display='block';return;}const studentText=studentAnalysisInput.value;if(!studentText.trim()){alert('請先在上方輸入框撰寫你的分析喔！');return;}
+                submitForFeedbackBtn.disabled=true;submitForFeedbackBtn.textContent='AI 老師思考中...';aiFeedbackContainer.style.display='none';
                 try {
-                    let chartDataSummary = `圖表標題: ${chartState.title}\nX軸: ${chartState.xAxis.label}\nY軸: ${chartState.yAxis.label}\n`;
-                    const enabledGroups = chartState.groups.filter(g => g.enabled);
-                    if (enabledGroups.length === 0 || chartState.dataPoints.length === 0) { throw new Error("沒有數據可供分析"); }
-                    chartDataSummary += "\n數據點分析:\n";
-                    enabledGroups.forEach(group => {
-                        const groupIndex = chartState.groups.indexOf(group);
-                        const points = chartState.dataPoints.filter(p => p.groupIndex === groupIndex);
-                        if (points.length > 0) {
-                            chartDataSummary += `- 組別: "${group.name}"\n  數據點 (X, Y): ${points.map(p => `(${p.x.toFixed(2)}, ${p.y.toFixed(2)})`).join(', ')}\n`;
-                            if (group.trendline.visible && group.trendline.showEquation) {
-                                const { m, b, r2, forceOrigin } = group.trendline;
-                                let eq = forceOrigin ? `y = ${m.toFixed(2)}x` : `y = ${m.toFixed(2)}x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(2)}`;
-                                chartDataSummary += `  趨勢線: ${eq}, R² = ${r2.toFixed(3)}\n`;
-                            }
-                        }
-                    });
-                    const systemPrompt = `你是一位來自台灣、非常有耐心且善於引導的國中理化老師。你的目標不是給學生打分數或直接指出錯誤，而是透過提問來啟發他們對數據進行更深入的思考。請使用溫和鼓勵的語氣，並以正體中文生成 2 到 3 個引導性的問題作為回饋。絕對不要說「你寫錯了」或「你應該要...」，回饋的主要形式必須是問句。`;
-                    const userQuery = `這是圖表的客觀數據：\n---\n${chartDataSummary.trim()}\n---\n\n這是學生的分析文字：\n---\n${studentText}\n---\n\n請根據以上圖表數據和學生分析，提供引導性的問題回饋。`;
-                    const apiKey = ""; const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                    const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
-                    const result = await response.json(); const feedback = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (feedback) { aiFeedbackText.textContent = feedback; aiFeedbackContainer.style.display = 'block'; } else { throw new Error('從 AI 收到的回覆格式不正確。'); }
-                } catch (error) { console.error("AI feedback error:", error); aiFeedbackText.textContent = `抱歉，AI 老師現在有點忙，請稍後再試一次。\n(${error.message})`; aiFeedbackContainer.style.display = 'block'; } finally { submitForFeedbackBtn.disabled = false; submitForFeedbackBtn.textContent = '提交給 AI 老師分析'; }
+                    const apiKey = await getApiKey(); if (!apiKey) throw new Error("使用者取消或未提供 API 金鑰。");
+                    let chartDataSummary=`圖表標題: ${chartState.title}\nX軸: ${chartState.xAxis.label}\nY軸: ${chartState.yAxis.label}\n`;const enabledGroups=chartState.groups.filter(g=>g.enabled);if(enabledGroups.length===0||chartState.dataPoints.length===0){throw new Error("沒有數據可供分析");}chartDataSummary+="\n數據點分析:\n";enabledGroups.forEach(group=>{const groupIndex=chartState.groups.indexOf(group);const points=chartState.dataPoints.filter(p=>p.groupIndex===groupIndex);if(points.length>0){chartDataSummary+=`- 組別: "${group.name}"\n  數據點 (X, Y): ${points.map(p=>`(${p.x.toFixed(2)}, ${p.y.toFixed(2)})`).join(', ')}\n`;if(group.trendline.visible&&group.trendline.showEquation){const{m,b,r2,forceOrigin}=group.trendline;let eq=forceOrigin?`y = ${m.toFixed(2)}x`:`y = ${m.toFixed(2)}x ${b>=0?'+':'-'} ${Math.abs(b).toFixed(2)}`;chartDataSummary+=`  趨勢線: ${eq}, R² = ${r2.toFixed(3)}\n`;}}});
+                    const systemPrompt="你是一位來自台灣、非常有耐心且善於引導的國中理化老師。你的目標不是給學生打分數或直接指出錯誤，而是透過提問來啟發他們對數據進行更深入的思考。請使用溫和鼓勵的語氣，並以正體中文生成 2 到 3 個引導性的問題作為回饋。絕對不要說「你寫錯了」或「你應該要...」，回饋的主要形式必須是問句。";const userQuery=`這是圖表的客觀數據：\n---\n${chartDataSummary.trim()}\n---\n\n這是學生的分析文字：\n---\n${studentText}\n---\n\n請根據以上圖表數據和學生分析，提供引導性的問題回饋。`;
+                    const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;const payload={contents:[{parts:[{text:userQuery}]}],systemInstruction:{parts:[{text:systemPrompt}]}};const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok)throw new Error(`API 請求失敗: ${response.status}`);const result=await response.json();const feedback=result.candidates?.[0]?.content?.parts?.[0]?.text;if(feedback){aiFeedbackText.textContent=feedback;aiFeedbackContainer.style.display='block';}else{throw new Error('從 AI 收到的回覆格式不正確。');}
+                }catch(error){console.error("AI feedback error:",error);aiFeedbackText.textContent=`抱歉，AI 老師現在有點忙，請稍後再試一次。\n(${error.message})`;aiFeedbackContainer.style.display='block';}finally{submitForFeedbackBtn.disabled=false;submitForFeedbackBtn.textContent='提交給 AI 老師分析';}
             }
 
-            // --- 圖表繪製與互動函數 (精簡化以符合長度) ---
-            function initializeGroupSettings() {
-                groupsContainer.innerHTML = '';
-                for (let i = 0; i < MAX_GROUPS; i++) {
-                    const group = chartState.groups[i];
-                    const trendline = group.trendline;
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'p-3 border rounded-lg flex flex-col space-y-3';
-                    groupDiv.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                            <input type="radio" name="active-group" class="form-radio h-5 w-5 text-blue-600 group-active-radio focus:ring-blue-500" data-index="${i}" ${i === chartState.activeGroupIndex ? 'checked' : ''}>
-                            <input type="checkbox" class="form-checkbox h-5 w-5 rounded text-blue-600 focus:ring-blue-500" data-index="${i}" data-type="group-enabled" ${group.enabled ? 'checked' : ''}>
-                            <input type="text" value="${group.name}" class="text-sm flex-grow rounded-md border-gray-300 shadow-sm" data-index="${i}">
-                            <input type="color" value="${group.color}" class="w-7 h-7 rounded-full border-none cursor-pointer color-input" data-index="${i}">
-                            <select class="text-sm rounded-md border-gray-300 shadow-sm" data-index="${i}">
-                                <option value="circle" ${group.shape === 'circle' ? 'selected' : ''}>圓形</option>
-                                <option value="square" ${group.shape === 'square' ? 'selected' : ''}>方形</option>
-                                <option value="triangle" ${group.shape === 'triangle' ? 'selected' : ''}>三角</option>
-                                <option value="cross" ${group.shape === 'cross' ? 'selected' : ''}>叉叉</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center space-x-3 text-sm">
-                            <button class="flex-1 py-1 px-2 rounded-md bg-gray-200 hover:bg-gray-300 trendline-btn" data-index="${i}">${trendline.visible ? '清除趨勢線' : '繪製趨勢線'}</button>
-                            <label class="flex items-center space-x-1"><input type="checkbox" class="form-checkbox h-4 w-4 rounded text-blue-600" data-index="${i}" data-type="force-origin" ${trendline.forceOrigin ? 'checked' : ''}><span>通過原點</span></label>
-                            <label class="flex items-center space-x-1"><input type="checkbox" class="form-checkbox h-4 w-4 rounded text-blue-600" data-index="${i}" data-type="show-equation" ${trendline.showEquation ? 'checked' : ''}><span>顯示方程式</span></label>
-                        </div>`;
-                    groupsContainer.appendChild(groupDiv);
-                }
-                groupsContainer.querySelectorAll('input, select').forEach(el => el.addEventListener('change', updateGroupSettingsFromUI));
-                groupsContainer.querySelectorAll('.trendline-btn').forEach(btn => btn.addEventListener('click', handleTrendlineButtonClick));
-            }
-            function handleTrendlineButtonClick(e) { const i = parseInt(e.target.dataset.index), g = chartState.groups[i]; g.trendline.visible = !g.trendline.visible; if (g.trendline.visible) recalculateTrendline(i); e.target.textContent = g.trendline.visible ? '清除趨勢線' : '繪製趨勢線'; redrawCanvas(); }
-            function recalculateTrendline(index) { const g = chartState.groups[index]; g.trendline.equationPos = { x: null, y: null }; const points = chartState.dataPoints.filter(p => p.groupIndex === index); if (points.length < 2) { g.trendline.visible = false; const btn = groupsContainer.querySelector(`.trendline-btn[data-index="${index}"]`); if (btn) btn.textContent = '繪製趨勢線'; return; } let sx = 0, sy = 0, sxy = 0, sx2 = 0, n = points.length; points.forEach(p => { sx += p.x; sy += p.y; sxy += p.x * p.y; sx2 += p.x * p.x; }); let m, b; if (g.trendline.forceOrigin) { m = sxy / sx2; b = 0; } else { m = (n * sxy - sx * sy) / (n * sx2 - sx * sx); b = (sy - m * sx) / n; } g.trendline.m = m; g.trendline.b = b; const ym = sy / n; let sst = 0, ssr = 0; points.forEach(p => { const yp = m * p.x + b; sst += (p.y - ym)**2; ssr += (p.y - yp)**2; }); g.trendline.r2 = sst === 0 ? 1 : 1 - (ssr / sst); }
-            function updateGroupSettingsFromUI(e) { const i = parseInt(e.target.dataset.index), t = e.target.type, dt = e.target.dataset.type; if (t === 'radio') chartState.activeGroupIndex = i; else if (dt === 'group-enabled') chartState.groups[i].enabled = e.target.checked; else if (t === 'text') chartState.groups[i].name = e.target.value; else if (t === 'color') chartState.groups[i].color = e.target.value; else if (e.target.tagName.toLowerCase() === 'select') chartState.groups[i].shape = e.target.value; else if (dt === 'force-origin') { chartState.groups[i].trendline.forceOrigin = e.target.checked; if (chartState.groups[i].trendline.visible) recalculateTrendline(i); } else if (dt === 'show-equation') chartState.groups[i].trendline.showEquation = e.target.checked; redrawCanvas(); }
-            function dataToCanvas(x, y) { const { clientWidth: cw, clientHeight: ch } = canvas.parentElement; const pw = cw - padding.left - padding.right, ph = ch - padding.top - padding.bottom; return { x: padding.left + (x - chartState.xAxis.min) / (chartState.xAxis.max - chartState.xAxis.min) * pw, y: padding.top + ph - (y - chartState.yAxis.min) / (chartState.yAxis.max - chartState.yAxis.min) * ph }; }
-            function canvasToData(x, y) { const { clientWidth: cw, clientHeight: ch } = canvas.parentElement; const pw = cw - padding.left - padding.right, ph = ch - padding.top - padding.bottom; return { x: chartState.xAxis.min + (x - padding.left) / pw * (chartState.xAxis.max - chartState.xAxis.min), y: chartState.yAxis.min + (padding.top + ph - y) / ph * (chartState.yAxis.max - chartState.yAxis.min) }; }
-            function drawPoint(p) { const g = chartState.groups[p.groupIndex], pos = dataToCanvas(p.x, p.y); if (p.selected) { ctx.fillStyle = 'rgba(0,120,255,0.3)'; ctx.beginPath(); ctx.arc(pos.x, pos.y, 10, 0, 2 * Math.PI); ctx.fill(); } ctx.fillStyle = g.color; ctx.strokeStyle = g.color; ctx.lineWidth = 2; ctx.beginPath(); switch (g.shape) { case 'circle': ctx.arc(pos.x, pos.y, 5, 0, 2*Math.PI); ctx.fill(); break; case 'square': ctx.fillRect(pos.x-4, pos.y-4, 8, 8); break; case 'triangle': ctx.moveTo(pos.x, pos.y-5); ctx.lineTo(pos.x+5, pos.y+5); ctx.lineTo(pos.x-5, pos.y+5); ctx.closePath(); ctx.fill(); break; case 'cross': ctx.moveTo(pos.x-4, pos.y-4); ctx.lineTo(pos.x+4, pos.y+4); ctx.moveTo(pos.x+4, pos.y-4); ctx.lineTo(pos.x-4, pos.y+4); ctx.stroke(); break; } }
-            function drawDataLabels() { if (!chartState.showDataLabels) return; ctx.font = '11px "Noto Sans TC"'; ctx.fillStyle = '#4b5563'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; chartState.dataPoints.forEach(p => { if (chartState.groups[p.groupIndex].enabled) { const pos = dataToCanvas(p.x, p.y); ctx.fillText(`(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`, pos.x + 8, pos.y - 8); } }); }
-            function drawAllPoints() { chartState.dataPoints.forEach(p => { if (chartState.groups[p.groupIndex].enabled) drawPoint(p); }); }
-            function drawTrendlines() { chartState.groups.forEach(g => { if (g.enabled && g.trendline.visible) { const { m, b, r2, showEquation, equationPos } = g.trendline; const { xAxis, yAxis } = chartState; let p1={x:xAxis.min, y:m*xAxis.min+b}, p2={x:xAxis.max, y:m*xAxis.max+b}; const clip=p=>{if(p.y<yAxis.min)p={x:m!==0?(yAxis.min-b)/m:p.x, y:yAxis.min}; if(p.y>yAxis.max)p={x:m!==0?(yAxis.max-b)/m:p.x, y:yAxis.max}; if(p.x<xAxis.min)p={x:xAxis.min, y:m*xAxis.min+b}; if(p.x>xAxis.max)p={x:xAxis.max, y:m*xAxis.max+b}; return p;}; p1=clip(p1); p2=clip(p2); const s=dataToCanvas(p1.x,p1.y), e=dataToCanvas(p2.x,p2.y); ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(e.x,e.y); ctx.strokeStyle=g.color; ctx.lineWidth=2; ctx.stroke(); if(showEquation){ctx.font='12px "Noto Sans TC"'; ctx.fillStyle=g.color; ctx.textAlign='right'; ctx.textBaseline='bottom'; let eq=g.trendline.forceOrigin?`y = ${m.toFixed(2)}x`:`y = ${m.toFixed(2)}x ${b>=0?'+':'-'} ${Math.abs(b).toFixed(2)}`; const r2t=`R² = ${r2.toFixed(3)}`; const tx=equationPos.x??e.x-10, ty=equationPos.y??e.y-10; ctx.fillText(eq,tx,ty-14); ctx.fillText(r2t,tx,ty); const mw=Math.max(ctx.measureText(eq).width, ctx.measureText(r2t).width); g.trendline.equationBBox={x:tx-mw, y:ty-28, width:mw, height:28};}else{g.trendline.equationBBox=null;}}}); }
-            function drawGridAndAxes() { const dpr=window.devicePixelRatio||1, cw=canvas.width/dpr, ch=canvas.height/dpr; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='#e0e0e0'; ctx.fillStyle='#333'; ctx.lineWidth=1; ctx.font='12px "Noto Sans TC"'; const {xAxis,yAxis}=chartState; const xs=(xAxis.max-xAxis.min)/xAxis.unit, ys=(yAxis.max-yAxis.min)/yAxis.unit; for(let i=0;i<=xs;i++){const v=xAxis.min+i*xAxis.unit,{x}=dataToCanvas(v,yAxis.min);if(x<padding.left-1||x>cw-padding.right+1)continue;ctx.beginPath();ctx.moveTo(x,ch-padding.bottom);ctx.lineTo(x,ch-padding.bottom+5);ctx.stroke();ctx.textAlign='center';ctx.fillText(Number.isInteger(v)?v:v.toFixed(1),x,ch-padding.bottom+20);if(i>0){ctx.beginPath();ctx.moveTo(x,ch-padding.bottom);ctx.lineTo(x,padding.top);ctx.stroke();}} for(let i=0;i<=ys;i++){const v=yAxis.min+i*yAxis.unit,{y}=dataToCanvas(xAxis.min,v);if(y<padding.top-1||y>ch-padding.bottom+1)continue;ctx.beginPath();ctx.moveTo(padding.left,y);ctx.lineTo(padding.left-5,y);ctx.stroke();ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(Number.isInteger(v)?v:v.toFixed(1),padding.left-10,y);if(i>0){ctx.beginPath();ctx.moveTo(padding.left,y);ctx.lineTo(cw-padding.right,y);ctx.stroke();}} ctx.strokeStyle='#333';ctx.beginPath();ctx.moveTo(padding.left,padding.top);ctx.lineTo(padding.left,ch-padding.bottom);ctx.lineTo(cw-padding.right,ch-padding.bottom);ctx.stroke(); ctx.font='bold 20px "Noto Sans TC"';ctx.textAlign='center';ctx.fillText(chartState.title,cw/2,padding.top/2); ctx.font='16px "Noto Sans TC"';ctx.fillText(xAxis.label,cw/2,ch-10); ctx.save();ctx.translate(20,ch/2);ctx.rotate(-Math.PI/2);ctx.fillText(yAxis.label,0,0);ctx.restore(); }
-            function drawLegend() { const cw=canvas.width/(window.devicePixelRatio||1); let y=padding.top; ctx.font='12px "Noto Sans TC"'; chartState.groups.forEach(g=>{if(g.enabled){const x=cw-padding.right+15; ctx.fillStyle=g.color; ctx.strokeStyle=g.color; ctx.lineWidth=2; ctx.beginPath(); switch(g.shape){case 'circle':ctx.arc(x,y,5,0,2*Math.PI);ctx.fill();break;case 'square':ctx.fillRect(x-4,y-4,8,8);break;case 'triangle':ctx.moveTo(x,y-5);ctx.lineTo(x+5,y+5);ctx.lineTo(x-5,y+5);ctx.closePath();ctx.fill();break;case 'cross':ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);ctx.moveTo(x+4,y-4);ctx.lineTo(x-4,y+4);ctx.stroke();break;} ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#333';ctx.fillText(g.name,x+15,y);y+=25;}}); }
-            function drawSelectionBox() { if(selectionBox.visible){ctx.fillStyle='rgba(0,120,255,0.2)';ctx.strokeStyle='rgba(0,120,255,0.8)';ctx.lineWidth=1;const x=Math.min(selectionBox.startX,selectionBox.endX),y=Math.min(selectionBox.startY,selectionBox.endY),w=Math.abs(selectionBox.startX-selectionBox.endX),h=Math.abs(selectionBox.startY-selectionBox.endY);ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);}}
-            function redrawCanvas() { const r=canvas.parentElement.getBoundingClientRect(),dpr=window.devicePixelRatio||1;if(r.width===0||r.height===0)return;canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.scale(dpr,dpr);drawGridAndAxes();drawAllPoints();drawTrendlines();drawDataLabels();drawLegend();drawSelectionBox();}
-            function getPointAtPos(x,y){for(let i=chartState.dataPoints.length-1;i>=0;i--){const p=chartState.dataPoints[i];if(chartState.groups[p.groupIndex].enabled){const pos=dataToCanvas(p.x,p.y);if(Math.hypot(x-pos.x,y-pos.y)<=10)return i;}}return -1;}
-            function getEquationAtPos(x,y){for(let i=0;i<chartState.groups.length;i++){const g=chartState.groups[i];if(g.enabled&&g.trendline.visible&&g.trendline.showEquation&&g.trendline.equationBBox){const b=g.trendline.equationBBox;if(x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height)return i;}}return -1;}
+            // --- 以下為圖表繪製與互動函數 (保持不變，為節省篇幅，已極度精簡) ---
+            function initializeGroupSettings(){groupsContainer.innerHTML='';for(let i=0;i<MAX_GROUPS;i++){const g=chartState.groups[i],t=g.trendline,d=document.createElement('div');d.className='p-3 border rounded-lg flex flex-col space-y-3';d.innerHTML=`<div class="flex items-center space-x-2"><input type="radio" name="active-group" class="form-radio h-5 w-5" data-index="${i}" ${i===chartState.activeGroupIndex?'checked':''}><input type="checkbox" class="form-checkbox h-5 w-5 rounded" data-index="${i}" data-type="group-enabled" ${g.enabled?'checked':''}><input type="text" value="${g.name}" class="text-sm flex-grow rounded-md border-gray-300 shadow-sm" data-index="${i}"><input type="color" value="${g.color}" class="w-7 h-7 rounded-full border-none cursor-pointer color-input" data-index="${i}"><select class="text-sm rounded-md border-gray-300 shadow-sm" data-index="${i}"><option value="circle" ${g.shape==='circle'?'selected':''}>圓形</option><option value="square" ${g.shape==='square'?'selected':''}>方形</option><option value="triangle" ${g.shape==='triangle'?'selected':''}>三角</option><option value="cross" ${g.shape==='cross'?'selected':''}>叉叉</option></select></div><div class="flex items-center space-x-3 text-sm"><button class="flex-1 py-1 px-2 rounded-md bg-gray-200 hover:bg-gray-300 trendline-btn" data-index="${i}">${t.visible?'清除趨勢線':'繪製趨勢線'}</button><label class="flex items-center space-x-1"><input type="checkbox" class="form-checkbox h-4 w-4 rounded" data-index="${i}" data-type="force-origin" ${t.forceOrigin?'checked':''}><span>通過原點</span></label><label class="flex items-center space-x-1"><input type="checkbox" class="form-checkbox h-4 w-4 rounded" data-index="${i}" data-type="show-equation" ${t.showEquation?'checked':''}><span>顯示方程式</span></label></div>`;groupsContainer.appendChild(d);}groupsContainer.querySelectorAll('input, select').forEach(el=>el.addEventListener('change',updateGroupSettingsFromUI));groupsContainer.querySelectorAll('.trendline-btn').forEach(btn=>btn.addEventListener('click',handleTrendlineButtonClick));}
+            function handleTrendlineButtonClick(e){const i=parseInt(e.target.dataset.index),g=chartState.groups[i];g.trendline.visible=!g.trendline.visible;if(g.trendline.visible)recalculateTrendline(i);e.target.textContent=g.trendline.visible?'清除趨勢線':'繪製趨勢線';redrawCanvas();}
+            function recalculateTrendline(index){const g=chartState.groups[index];g.trendline.equationPos={x:null,y:null};const points=chartState.dataPoints.filter(p=>p.groupIndex===index);if(points.length<2){g.trendline.visible=false;const btn=groupsContainer.querySelector(`.trendline-btn[data-index="${index}"]`);if(btn)btn.textContent='繪製趨勢線';return;}let sx=0,sy=0,sxy=0,sx2=0,n=points.length;points.forEach(p=>{sx+=p.x;sy+=p.y;sxy+=p.x*p.y;sx2+=p.x*p.x;});let m,b;if(g.trendline.forceOrigin){m=sxy/sx2;b=0;}else{m=(n*sxy-sx*sy)/(n*sx2-sx*sx);b=(sy-m*sx)/n;}g.trendline.m=m;g.trendline.b=b;const ym=sy/n;let sst=0,ssr=0;points.forEach(p=>{const yp=m*p.x+b;sst+=(p.y-ym)**2;ssr+=(p.y-yp)**2;});g.trendline.r2=sst===0?1:1-(ssr/sst);}
+            function updateGroupSettingsFromUI(e){const i=parseInt(e.target.dataset.index),t=e.target.type,dt=e.target.dataset.type;if(t==='radio')chartState.activeGroupIndex=i;else if(dt==='group-enabled')chartState.groups[i].enabled=e.target.checked;else if(t==='text')chartState.groups[i].name=e.target.value;else if(t==='color')chartState.groups[i].color=e.target.value;else if(e.target.tagName.toLowerCase()==='select')chartState.groups[i].shape=e.target.value;else if(dt==='force-origin'){chartState.groups[i].trendline.forceOrigin=e.target.checked;if(chartState.groups[i].trendline.visible)recalculateTrendline(i);}else if(dt==='show-equation')chartState.groups[i].trendline.showEquation=e.target.checked;redrawCanvas();}
+            function dataToCanvas(x,y){const{clientWidth:cw,clientHeight:ch}=canvas.parentElement;const pw=cw-padding.left-padding.right,ph=ch-padding.top-padding.bottom;return{x:padding.left+(x-chartState.xAxis.min)/(chartState.xAxis.max-chartState.xAxis.min)*pw,y:padding.top+ph-(y-chartState.yAxis.min)/(chartState.yAxis.max-chartState.yAxis.min)*ph};}
+            function canvasToData(x,y){const{clientWidth:cw,clientHeight:ch}=canvas.parentElement;const pw=cw-padding.left-padding.right,ph=ch-padding.top-padding.bottom;return{x:chartState.xAxis.min+(x-padding.left)/pw*(chartState.xAxis.max-chartState.xAxis.min),y:chartState.yAxis.min+(padding.top+ph-y)/ph*(chartState.yAxis.max-chartState.yAxis.min)};}
+            function drawPoint(p){const g=chartState.groups[p.groupIndex],pos=dataToCanvas(p.x,p.y);if(p.selected){ctx.fillStyle='rgba(0,120,255,0.3)';ctx.beginPath();ctx.arc(pos.x,pos.y,10,0,2*Math.PI);ctx.fill();}ctx.fillStyle=g.color;ctx.strokeStyle=g.color;ctx.lineWidth=2;ctx.beginPath();switch(g.shape){case'circle':ctx.arc(pos.x,pos.y,5,0,2*Math.PI);ctx.fill();break;case'square':ctx.fillRect(pos.x-4,pos.y-4,8,8);break;case'triangle':ctx.moveTo(pos.x,pos.y-5);ctx.lineTo(pos.x+5,pos.y+5);ctx.lineTo(pos.x-5,pos.y+5);ctx.closePath();ctx.fill();break;case'cross':ctx.moveTo(pos.x-4,pos.y-4);ctx.lineTo(pos.x+4,pos.y+4);ctx.moveTo(pos.x+4,pos.y-4);ctx.lineTo(pos.x-4,pos.y+4);ctx.stroke();break;}}
+            function drawDataLabels(){if(!chartState.showDataLabels)return;ctx.font='11px "Noto Sans TC"';ctx.fillStyle='#4b5563';ctx.textAlign='left';ctx.textBaseline='bottom';chartState.dataPoints.forEach(p=>{if(chartState.groups[p.groupIndex].enabled){const pos=dataToCanvas(p.x,p.y);ctx.fillText(`(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`,pos.x+8,pos.y-8);}});}
+            function drawAllPoints(){chartState.dataPoints.forEach(p=>{if(chartState.groups[p.groupIndex].enabled)drawPoint(p);});}
+            function drawTrendlines(){chartState.groups.forEach(g=>{if(g.enabled&&g.trendline.visible){const{m,b,r2,showEquation,equationPos}=g.trendline;const{xAxis,yAxis}=chartState;let p1={x:xAxis.min,y:m*xAxis.min+b},p2={x:xAxis.max,y:m*xAxis.max+b};const clip=p=>{if(p.y<yAxis.min)p={x:m!==0?(yAxis.min-b)/m:p.x,y:yAxis.min};if(p.y>yAxis.max)p={x:m!==0?(yAxis.max-b)/m:p.x,y:yAxis.max};if(p.x<xAxis.min)p={x:xAxis.min,y:m*xAxis.min+b};if(p.x>xAxis.max)p={x:xAxis.max,y:m*xAxis.max+b};return p;};p1=clip(p1);p2=clip(p2);const s=dataToCanvas(p1.x,p1.y),e=dataToCanvas(p2.x,p2.y);ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(e.x,e.y);ctx.strokeStyle=g.color;ctx.lineWidth=2;ctx.stroke();if(showEquation){ctx.font='12px "Noto Sans TC"';ctx.fillStyle=g.color;ctx.textAlign='right';ctx.textBaseline='bottom';let eq=g.trendline.forceOrigin?`y = ${m.toFixed(2)}x`:`y = ${m.toFixed(2)}x ${b>=0?'+':'-'} ${Math.abs(b).toFixed(2)}`;const r2t=`R² = ${r2.toFixed(3)}`;const tx=equationPos.x??e.x-10,ty=equationPos.y??e.y-10;ctx.fillText(eq,tx,ty-14);ctx.fillText(r2t,tx,ty);const mw=Math.max(ctx.measureText(eq).width,ctx.measureText(r2t).width);g.trendline.equationBBox={x:tx-mw,y:ty-28,width:mw,height:28};}else{g.trendline.equationBBox=null;}}});}
+            function drawGridAndAxes(){const dpr=window.devicePixelRatio||1,cw=canvas.width/dpr,ch=canvas.height/dpr;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#e0e0e0';ctx.fillStyle='#333';ctx.lineWidth=1;ctx.font='12px "Noto Sans TC"';const{xAxis,yAxis}=chartState;const xs=(xAxis.max-xAxis.min)/xAxis.unit,ys=(yAxis.max-yAxis.min)/yAxis.unit;for(let i=0;i<=xs;i++){const v=xAxis.min+i*xAxis.unit,{x}=dataToCanvas(v,yAxis.min);if(x<padding.left-1||x>cw-padding.right+1)continue;ctx.beginPath();ctx.moveTo(x,ch-padding.bottom);ctx.lineTo(x,ch-padding.bottom+5);ctx.stroke();ctx.textAlign='center';ctx.fillText(Number.isInteger(v)?v:v.toFixed(1),x,ch-padding.bottom+20);if(i>0){ctx.beginPath();ctx.moveTo(x,ch-padding.bottom);ctx.lineTo(x,padding.top);ctx.stroke();}}for(let i=0;i<=ys;i++){const v=yAxis.min+i*yAxis.unit,{y}=dataToCanvas(xAxis.min,v);if(y<padding.top-1||y>ch-padding.bottom+1)continue;ctx.beginPath();ctx.moveTo(padding.left,y);ctx.lineTo(padding.left-5,y);ctx.stroke();ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(Number.isInteger(v)?v:v.toFixed(1),padding.left-10,y);if(i>0){ctx.beginPath();ctx.moveTo(padding.left,y);ctx.lineTo(cw-padding.right,y);ctx.stroke();}}ctx.strokeStyle='#333';ctx.beginPath();ctx.moveTo(padding.left,padding.top);ctx.lineTo(padding.left,ch-padding.bottom);ctx.lineTo(cw-padding.right,ch-padding.bottom);ctx.stroke();ctx.font='bold 20px "Noto Sans TC"';ctx.textAlign='center';ctx.fillText(chartState.title,cw/2,padding.top/2);ctx.font='16px "Noto Sans TC"';ctx.fillText(xAxis.label,cw/2,ch-10);ctx.save();ctx.translate(20,ch/2);ctx.rotate(-Math.PI/2);ctx.fillText(yAxis.label,0,0);ctx.restore();}
+            function drawLegend(){const cw=canvas.width/(window.devicePixelRatio||1);let y=padding.top;ctx.font='12px "Noto Sans TC"';chartState.groups.forEach(g=>{if(g.enabled){const x=cw-padding.right+15;ctx.fillStyle=g.color;ctx.strokeStyle=g.color;ctx.lineWidth=2;ctx.beginPath();switch(g.shape){case'circle':ctx.arc(x,y,5,0,2*Math.PI);ctx.fill();break;case'square':ctx.fillRect(x-4,y-4,8,8);break;case'triangle':ctx.moveTo(x,y-5);ctx.lineTo(x+5,y+5);ctx.lineTo(x-5,y+5);ctx.closePath();ctx.fill();break;case'cross':ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);ctx.moveTo(x+4,y-4);ctx.lineTo(x-4,y+4);ctx.stroke();break;}ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#333';ctx.fillText(g.name,x+15,y);y+=25;}});}
+            function drawSelectionBox(){if(selectionBox.visible){ctx.fillStyle='rgba(0,120,255,0.2)';ctx.strokeStyle='rgba(0,120,255,0.8)';ctx.lineWidth=1;const x=Math.min(selectionBox.startX,selectionBox.endX),y=Math.min(selectionBox.startY,selectionBox.endY),w=Math.abs(selectionBox.startX-selectionBox.endX),h=Math.abs(selectionBox.startY-selectionBox.endY);ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);}}
+            function redrawCanvas(){const r=canvas.parentElement.getBoundingClientRect(),dpr=window.devicePixelRatio||1;if(r.width===0||r.height===0)return;canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.scale(dpr,dpr);drawGridAndAxes();drawAllPoints();drawTrendlines();drawDataLabels();drawLegend();drawSelectionBox();}
+            function getPointAtPos(x,y){for(let i=chartState.dataPoints.length-1;i>=0;i--){const p=chartState.dataPoints[i];if(chartState.groups[p.groupIndex].enabled){const pos=dataToCanvas(p.x,p.y);if(Math.hypot(x-pos.x,y-pos.y)<=10)return i;}}return-1;}
+            function getEquationAtPos(x,y){for(let i=0;i<chartState.groups.length;i++){const g=chartState.groups[i];if(g.enabled&&g.trendline.visible&&g.trendline.showEquation&&g.trendline.equationBBox){const b=g.trendline.equationBBox;if(x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height)return i;}}return-1;}
             function handleInteractionStart(x,y,e){e.preventDefault();interactionMoved=false;dragStartPos={x,y};draggedPointIndex=getPointAtPos(x,y);draggedEquationIndex=getEquationAtPos(x,y);if(draggedPointIndex!==-1){interactionState='draggingPoint';const p=chartState.dataPoints[draggedPointIndex];if(!e.shiftKey&&!p.selected){chartState.dataPoints.forEach(pt=>pt.selected=false);p.selected=true;}chartState.dataPoints.forEach(pt=>{if(pt.selected){pt.dragStartX=pt.x;pt.dragStartY=pt.y;}});}else if(draggedEquationIndex!==-1){interactionState='draggingEquation';const g=chartState.groups[draggedEquationIndex].trendline;const b=g.equationBBox;const tx=g.equationPos.x??b.x+b.width,ty=g.equationPos.y??b.y+b.height;dragStartOffset={dx:x-tx,dy:y-ty};}else{interactionState='selecting';if(!e.shiftKey)chartState.dataPoints.forEach(p=>p.selected=false);selectionBox={startX:x,startY:y,endX:x,endY:y,visible:true};}redrawCanvas();}
-            function handleInteractionMove(x,y,e){if(interactionState==='idle'){canvas.style.cursor=getEquationAtPos(x,y)!==-1?'move':getPointAtPos(x,y)!==-1?'pointer':'crosshair';return;}if(!dragStartPos) return; e.preventDefault(); const dist=Math.hypot(x-dragStartPos.x,y-dragStartPos.y); if(dist > 5) interactionMoved=true; if(interactionState==='draggingPoint'){const sd=canvasToData(dragStartPos.x,dragStartPos.y),cd=canvasToData(x,y);const dx=cd.x-sd.x,dy=cd.y-sd.y;chartState.dataPoints.forEach(p=>{if(p.selected){p.x=p.dragStartX+dx;p.y=p.dragStartY+dy;}});}else if(interactionState==='draggingEquation'){chartState.groups[draggedEquationIndex].trendline.equationPos={x:x-dragStartOffset.dx,y:y-dragStartOffset.dy};}else if(interactionState==='selecting'){selectionBox.endX=x;selectionBox.endY=y;}redrawCanvas();}
+            function handleInteractionMove(x,y,e){if(interactionState==='idle'){canvas.style.cursor=getEquationAtPos(x,y)!==-1?'move':getPointAtPos(x,y)!==-1?'pointer':'crosshair';return;}if(!dragStartPos)return;e.preventDefault();const dist=Math.hypot(x-dragStartPos.x,y-dragStartPos.y);if(dist>5)interactionMoved=true;if(interactionState==='draggingPoint'){const sd=canvasToData(dragStartPos.x,dragStartPos.y),cd=canvasToData(x,y);const dx=cd.x-sd.x,dy=cd.y-sd.y;chartState.dataPoints.forEach(p=>{if(p.selected){p.x=p.dragStartX+dx;p.y=p.dragStartY+dy;}});}else if(interactionState==='draggingEquation'){chartState.groups[draggedEquationIndex].trendline.equationPos={x:x-dragStartOffset.dx,y:y-dragStartOffset.dy};}else if(interactionState==='selecting'){selectionBox.endX=x;selectionBox.endY=y;}redrawCanvas();}
             function handleInteractionEnd(e){if(interactionState==='idle')return;e.preventDefault();if(!interactionMoved){if(draggedPointIndex!==-1){const p=chartState.dataPoints[draggedPointIndex];if(e.shiftKey)p.selected=!p.selected;else{chartState.dataPoints.forEach(pt=>pt.selected=false);p.selected=true;}}else if(draggedEquationIndex===-1){if(!e.shiftKey)chartState.dataPoints.forEach(p=>p.selected=false);const d=canvasToData(dragStartPos.x,dragStartPos.y);if(d.x>=chartState.xAxis.min&&d.x<=chartState.xAxis.max&&d.y>=chartState.yAxis.min&&d.y<=chartState.yAxis.max){chartState.dataPoints.push({x:d.x,y:d.y,groupIndex:chartState.activeGroupIndex,selected:false});if(chartState.groups[chartState.activeGroupIndex].trendline.visible)recalculateTrendline(chartState.activeGroupIndex);}}}else{if(interactionState==='draggingPoint'){const g=new Set(chartState.dataPoints.filter(p=>p.selected).map(p=>p.groupIndex));g.forEach(i=>{if(chartState.groups[i].trendline.visible)recalculateTrendline(i);});}else if(interactionState==='selecting'){const x1=Math.min(selectionBox.startX,selectionBox.endX),y1=Math.min(selectionBox.startY,selectionBox.endY),x2=Math.max(selectionBox.startX,selectionBox.endX),y2=Math.max(selectionBox.startY,selectionBox.endY);chartState.dataPoints.forEach(p=>{const pos=dataToCanvas(p.x,p.y);if(pos.x>=x1&&pos.x<=x2&&pos.y>=y1&&pos.y<=y2)p.selected=true;});}}chartState.dataPoints.forEach(p=>{delete p.dragStartX;delete p.dragStartY;});interactionState='idle';draggedPointIndex=-1;draggedEquationIndex=-1;selectionBox.visible=false;redrawCanvas();}
 
             // --- 事件監聽 ---
