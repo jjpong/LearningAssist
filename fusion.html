@@ -245,7 +245,7 @@
                         modulation: { type: 'sine' },
                         modulationEnvelope: { attack: 2, decay: 0.01, sustain: 1, release: 4 }
                     }).toDestination();
-                    this.synths.bgm.volume.value = -10;
+                    this.synths.bgm.volume.value = -4;
                     
                     this.bgmLoop = new Tone.Loop(time => {
                         this.synths.bgm.triggerAttackRelease('C2', '1m', time);
