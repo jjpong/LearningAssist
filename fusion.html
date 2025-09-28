@@ -140,7 +140,7 @@
                     <!-- 元素週期表 -->
                     <div class="bg-white p-2 sm:p-4 rounded-lg shadow">
                         <h2 class="text-base sm:text-lg font-bold text-center mb-2">元素發現紀錄 (點擊查詢)</h2>
-                        <div id="periodic-table" class="grid grid-cols-9 gap-1 text-xs cursor-pointer">
+                        <div id="periodic-table" class="grid grid-cols-18 gap-0.5 text-xs cursor-pointer">
                             <!-- JS 動態生成元素週期表 -->
                         </div>
                     </div>
@@ -162,7 +162,7 @@
             </aside>
         </div>
         <footer class="text-center text-gray-400 text-xs mt-4">
-            <p>&copy; 2025 由 小p老師製作，Gemini 協作設計</p>
+            <p>&copy; 2025 由 Gemini 協作設計</p>
         </footer>
     </div>
 
@@ -221,7 +221,6 @@
     </div>
 
     <script>
-        // All JavaScript logic remains the same
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM 元素獲取 ---
             const gameBoardContainer = document.getElementById('game-board-container');
@@ -264,7 +263,7 @@
                         oscillator: { type: "fatsine", spread: 40, count: 3 },
                         envelope: { attack: 2, decay: 1, sustain: 0.8, release: 5 }
                     }).toDestination();
-                    this.synths.bgm.volume.value = -15;
+                    this.synths.bgm.volume.value = -22;
                     
                     const bgmNotes = ["C3", "G3", "D4", "A3", "E4", "B3"];
                     let noteIndex = 0;
@@ -313,12 +312,13 @@
 
             // --- 遊戲設定 ---
             const GRID_SIZE = 4;
-            const PERIODIC_TABLE_LAYOUT = [
-                'H', null, null, null, null, null, null, null, 'He',
-                'Li', 'Be', null, null, null, 'B', 'C', 'N', 'O',
-                'F', 'Ne', null, null, null, 'Al', 'Si', 'P', 'S',
-                'Cl', 'Ar', null, 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe'
-            ];
+            const PERIODIC_TABLE_DATA = {
+                'H': { row: 1, col: 1 }, 'He': { row: 1, col: 18 },
+                'Li': { row: 2, col: 1 }, 'Be': { row: 2, col: 2 },
+                'B': { row: 2, col: 13 }, 'C': { row: 2, col: 14 }, 'N': { row: 2, col: 15 }, 'O': { row: 2, col: 16 }, 'F': { row: 2, col: 17 }, 'Ne': { row: 2, col: 18 },
+                'Mg': { row: 3, col: 2 }, 'Al': { row: 3, col: 13 }, 'Si': { row: 3, col: 14 }, 'P': { row: 3, col: 15 }, 'S': { row: 3, col: 16 }, 'Cl': { row: 3, col: 17 }, 'Ar': { row: 3, col: 18 },
+                'Ca': { row: 4, col: 2 }, 'Ti': { row: 4, col: 4 }, 'Cr': { row: 4, col: 6 }, 'Fe': { row: 4, col: 8 },
+            };
 
             // --- 元素資料庫 ---
             const ELEMENT_DATA = {
@@ -408,25 +408,34 @@
 
             function setupPeriodicTable() {
                 periodicTable.innerHTML = '';
-                PERIODIC_TABLE_LAYOUT.forEach(el => {
-                    const cell = document.createElement('div');
-                    if (el) {
-                        cell.className = `p-1 border rounded text-center font-bold transition-colors ${discoveredElements.has(el) ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-gray-200 text-gray-400 hover:bg-gray-300'}`;
+                for (const el in PERIODIC_TABLE_DATA) {
+                    if (Object.hasOwnProperty.call(PERIODIC_TABLE_DATA, el)) {
+                        const { row, col } = PERIODIC_TABLE_DATA[el];
+                        const cell = document.createElement('div');
+                        const baseClasses = 'border rounded text-center font-bold transition-colors text-[10px] sm:text-xs leading-tight aspect-square flex items-center justify-center';
+                        cell.className = baseClasses;
+                        cell.style.gridRowStart = row;
+                        cell.style.gridColumnStart = col;
+
+                        const stateClasses = discoveredElements.has(el) ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-gray-200 text-gray-400 hover:bg-gray-300';
+                        cell.classList.add(...stateClasses.split(' '));
                         cell.textContent = el;
                         cell.dataset.element = el;
+                        periodicTable.appendChild(cell);
                     }
-                    periodicTable.appendChild(cell);
-                });
+                }
             }
 
             function updatePeriodicTable() {
-                discoveredElements.forEach(el => {
+                 for (const el in PERIODIC_TABLE_DATA) {
                     const cell = periodicTable.querySelector(`[data-element="${el}"]`);
-                    if (cell && !cell.classList.contains('bg-green-200')) {
-                        cell.classList.remove('bg-gray-200', 'text-gray-400');
-                        cell.classList.add('bg-green-200', 'text-green-800');
+                    if (cell && discoveredElements.has(el) && !cell.classList.contains('bg-green-200')) {
+                        const oldClasses = 'bg-gray-200 text-gray-400 hover:bg-gray-300'.split(' ');
+                        const newClasses = 'bg-green-200 text-green-800 hover:bg-green-300'.split(' ');
+                        cell.classList.remove(...oldClasses);
+                        cell.classList.add(...newClasses);
                     }
-                });
+                }
             }
 
             // --- 渲染與更新 ---
