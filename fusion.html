@@ -98,7 +98,7 @@
     <div class="w-full max-w-5xl mx-auto">
         <header class="text-center mb-4">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-700">核融合 2048</h1>
-            <p class="text-gray-500 mt-1 text-sm sm:text-base">恆星內部的元素鍊金術</p>
+            <p class="text-gray-500 mt-1 text-sm sm:text-base">模擬恆星內部的元素鍊金術</p>
         </header>
 
         <div class="flex justify-center items-center mb-4 space-x-2 sm:space-x-4">
@@ -131,8 +131,8 @@
             </main>
 
             <!-- 側邊欄 -->
-<aside class="w-full lg:w-1/2 flex flex-col gap-4 min-w-0 overflow-hidden">
-    <div class="flex-shrink-0">
+            <aside class="w-full lg:w-1/2 flex flex-col gap-4 min-w-0">
+                <div class="flex-shrink-0">
                     <!-- 元素週期表 -->
                     <div class="bg-white p-2 sm:p-4 rounded-lg shadow">
                         <h2 class="text-base sm:text-lg font-bold text-center mb-2">元素發現紀錄 (點擊查詢)</h2>
@@ -151,7 +151,7 @@
                 <!-- 合成日誌 -->
                 <div class="bg-white p-2 sm:p-4 rounded-lg shadow flex flex-col flex-grow min-h-0">
                     <h2 class="text-base sm:text-lg font-bold text-center mb-2 flex-shrink-0">合成日誌</h2>
-                    <ul id="synthesis-log" class="overflow-y-auto text-sm space-y-1 pr-2 flex-grow overflow-hidden">
+                    <ul id="synthesis-log" class="overflow-y-auto text-sm space-y-1 pr-2 flex-grow">
                         <li class="text-gray-500">遊戲開始...</li>
                     </ul>
                 </div>
@@ -246,20 +246,20 @@
                 async init() {
                     if (this.isInitialized) return;
                     await Tone.start();
-                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -9, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -12, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
                     this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -6, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
-                    this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -10, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -14, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
                     this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -4, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
                     this.synths.discovery = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, volume: -4, envelope: { attack: 0.05, decay: 0.8, sustain: 0.2, release: 0.8 } }).toDestination();
                     this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -2, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
-                    this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -6, envelope: { attack: 0.05, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
+                    this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -9, envelope: { attack: 0.05, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
                     this.synths.bgm = new Tone.AMSynth({
                         harmonicity: 1.5,
                         envelope: { attack: 2, decay: 1, sustain: 0.5, release: 4 },
                         modulation: { type: 'sine' },
                         modulationEnvelope: { attack: 2, decay: 0.01, sustain: 1, release: 4 }
                     }).toDestination();
-                    this.synths.bgm.volume.value = -3;
+                    this.synths.bgm.volume.value = -19;
                     
                     this.bgmLoop = new Tone.Loop(time => {
                         this.synths.bgm.triggerAttackRelease('C2', '1m', time);
@@ -976,7 +976,7 @@
                 if (!instructionModal.classList.contains('hidden')) return;
                 const touchEndX = e.changedTouches[0].screenX;
                 const touchEndY = e.changedTouches[0].screenY;
-                handleSwipe(touchStartX, touchStartY, endX, endY);
+                handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
             });
             
             function handleSwipe(startX, startY, endX, endY) {
