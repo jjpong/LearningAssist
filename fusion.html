@@ -103,6 +103,9 @@
                 <div class="text-xs sm:text-sm text-gray-500">回合</div>
                 <div id="turn-counter" class="text-xl sm:text-2xl font-bold">0</div>
             </div>
+            <button id="open-instruction-button" class="p-2 sm:p-3 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </button>
             <button id="sound-toggle-button" class="p-2 sm:p-3 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
                 <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                 <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
@@ -144,6 +147,44 @@
         </div>
     </div>
 
+    <!-- 遊戲說明視窗 -->
+    <div id="instruction-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="close-instruction-button" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4">歡迎來到核融合 2048！</h2>
+            </div>
+            <div class="text-gray-600 space-y-4 text-sm sm:text-base">
+                <p>這不只是一款遊戲，更是一趟探索恆星核心秘密的旅程。您的目標是模擬恆星內部，從最基本的質子和中子開始，一步步融合出更重的元素。</p>
+                <div class="p-4 bg-gray-100 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2 text-gray-800">勝利目標</h3>
+                    <p>最終的勝利目標，是合成出恆星核融合的終點——<strong>鐵 (<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe)</strong>！</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-2 text-gray-800">遊戲玩法</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>使用<strong>方向鍵</strong>或<strong>滑動螢幕</strong>來移動所有粒子。</li>
+                        <li>相同的粒子碰撞會融合成更重的粒子。</li>
+                        <li><strong>注意！</strong>某些反應會產生<strong>不穩定同位素</strong> (帶有紅色光暈和倒數計時)，必須在時間內用中子穩定，否則會衰變！</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="font-bold text-lg mb-2 text-gray-800">特殊規則</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>遊戲限制</strong>: 為了遊戲性，某些反應（如衰變）可能不會完全遵守真實世界的質能守恆。</li>
+                        <li><strong>3α反應</strong>: 合成碳是關鍵！您需要將三個氦-4 (<sup>4</sup><sub>2</sub>He) 排列在一起（直線或L型）才能觸發。</li>
+                        <li><strong>稀有元素</strong>: 鋰(Li)、鈹(Be)、硼(B) 無法透過主要融合鏈產生，需要模擬「宇宙射線散裂」的特殊反應才能得到，它們也可以被質子摧毀。</li>
+                         <li><strong>提示</strong>: 點擊右側週期表上的元素符號可以查詢詳細的合成方式。</li>
+                    </ul>
+                </div>
+                 <p class="text-center font-bold pt-4">祝您在星辰的鍊金術中玩得愉快！</p>
+            </div>
+        </div>
+    </div>
+
+
     <!-- 遊戲結束/勝利/提示彈出視窗 -->
     <div id="game-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 text-center max-w-sm w-full">
@@ -178,6 +219,9 @@
             const soundToggleButton = document.getElementById('sound-toggle-button');
             const soundOnIcon = document.getElementById('sound-on-icon');
             const soundOffIcon = document.getElementById('sound-off-icon');
+            const instructionModal = document.getElementById('instruction-modal');
+            const closeInstructionButton = document.getElementById('close-instruction-button');
+            const openInstructionButton = document.getElementById('open-instruction-button');
 
             // --- 音效管理器 ---
             const audioManager = {
@@ -189,10 +233,10 @@
                 async init() {
                     if (this.isInitialized) return;
                     await Tone.start();
-                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -6, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                    this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -4, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -9, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -6, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
                     this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -10, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
-                    this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -2, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
+                    this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -4, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
                     this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -2, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
                     this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -6, envelope: { attack: 0.05, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
                     this.synths.bgm = new Tone.AMSynth({
@@ -326,6 +370,9 @@
                 spawnParticle();
                 spawnParticle();
                 renderBoard();
+
+                // Show instruction modal on first load/new game
+                instructionModal.classList.remove('hidden');
             }
             
             function setupBoardHTML() {
@@ -491,7 +538,7 @@
             }
             
             function handleInput(e) {
-                if (isMoving) return;
+                if (isMoving || !instructionModal.classList.contains('hidden')) return;
                 
                 let moved = false;
                 switch (e.key) {
@@ -849,11 +896,22 @@
             
             // --- 事件監聽 ---
             window.addEventListener('keydown', handleInput);
+            
             newGameButton.addEventListener('click', () => {
                 audioManager.init();
                 gameModal.classList.add('hidden');
                 setupGame();
             });
+
+            closeInstructionButton.addEventListener('click', () => {
+                audioManager.init();
+                instructionModal.classList.add('hidden');
+            });
+
+            openInstructionButton.addEventListener('click', () => {
+                instructionModal.classList.remove('hidden');
+            });
+
             modalRestartButton.addEventListener('click', () => {
                 gameModal.classList.add('hidden');
                 setupGame();
@@ -878,11 +936,13 @@
             let touchStartX = 0, touchStartY = 0;
             gameBoardContainer.addEventListener('touchstart', e => {
                 audioManager.init();
+                if (!instructionModal.classList.contains('hidden')) return;
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
             }, {passive: true});
 
             gameBoardContainer.addEventListener('touchend', e => {
+                if (!instructionModal.classList.contains('hidden')) return;
                 const touchEndX = e.changedTouches[0].screenX;
                 const touchEndY = e.changedTouches[0].screenY;
                 handleSwipe(touchStartX, touchStartY, endX, endY);
