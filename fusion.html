@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>核融合 2048 (Fusion 2048)</title>
+    <!-- 引入 Tone.js 音效庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Google Fonts 的 Inter 字體 -->
@@ -17,10 +19,21 @@
             touch-action: none; /* 防止在移動裝置上滑動時滾動頁面 */
         }
 
+        .tile {
+            /* 使用 CSS 變數來定位，解決動畫閃現問題 */
+            transform: translate(var(--x, 0), var(--y, 0));
+        }
+
         /* 遊戲方塊的生成動畫 */
         @keyframes spawn {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
+            from {
+                transform: translate(var(--x, 0), var(--y, 0)) scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: translate(var(--x, 0), var(--y, 0)) scale(1);
+                opacity: 1;
+            }
         }
         .tile-spawned {
             animation: spawn 0.2s ease-out;
@@ -28,9 +41,9 @@
 
         /* 遊戲方塊合併時的彈出動畫 */
         @keyframes merge-pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            0% { transform: translate(var(--x, 0), var(--y, 0)) scale(1); }
+            50% { transform: translate(var(--x, 0), var(--y, 0)) scale(1.2); }
+            100% { transform: translate(var(--x, 0), var(--y, 0)) scale(1); }
         }
         .tile-merged {
             animation: merge-pop 0.2s ease-in-out;
@@ -90,6 +103,10 @@
                 <div class="text-sm text-gray-500">回合</div>
                 <div id="turn-counter" class="text-2xl font-bold">0</div>
             </div>
+            <button id="sound-toggle-button" class="p-3 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
+                <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            </button>
         </div>
         
         <div class="flex flex-col lg:flex-row gap-4 items-stretch">
@@ -158,6 +175,65 @@
             const modalContent = document.getElementById('modal-content');
             const modalRestartButton = document.getElementById('modal-restart-button');
             const modalCloseButton = document.getElementById('modal-close-button');
+            const soundToggleButton = document.getElementById('sound-toggle-button');
+            const soundOnIcon = document.getElementById('sound-on-icon');
+            const soundOffIcon = document.getElementById('sound-off-icon');
+
+            // --- 音效管理器 ---
+            const audioManager = {
+                isInitialized: false,
+                isMuted: false,
+                synths: {},
+                bgmLoop: null,
+
+                async init() {
+                    if (this.isInitialized) return;
+                    await Tone.start();
+                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -18, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -12, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                    this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -20, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -10, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
+                    this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -8 }).toDestination();
+                    this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -15 }).toDestination();
+                    
+                    this.bgmLoop = new Tone.Loop(time => {
+                        this.synths.merge.triggerAttackRelease(['C2', 'G2'], '1n', time);
+                    }, '1m').start(0);
+
+                    this.isInitialized = true;
+                    console.log('Audio initialized.');
+                    this.toggleBgm(true);
+                },
+
+                play(sound, ...args) {
+                    if (!this.isInitialized || this.isMuted) return;
+                    if (this.synths[sound]) {
+                         // The 'now' can prevent sounds from being scheduled in the past if the game lags.
+                        const now = Tone.now();
+                        if (sound === 'decay') this.synths.decay.triggerAttackRelease("8n", now);
+                        else if (sound === 'win') this.synths.win.triggerAttackRelease('C5', '8n', now);
+                        else if (sound === 'lose') this.synths.lose.triggerAttackRelease('C3', '4n', now);
+                        else this.synths[sound].triggerAttackRelease(...args, now);
+                    }
+                },
+                
+                toggleMute() {
+                    this.isMuted = !this.isMuted;
+                    soundOnIcon.classList.toggle('hidden', this.isMuted);
+                    soundOffIcon.classList.toggle('hidden', !this.isMuted);
+                    this.toggleBgm(!this.isMuted);
+                },
+
+                toggleBgm(shouldPlay) {
+                    if (!this.isInitialized) return;
+                    if (shouldPlay && !this.isMuted) {
+                        Tone.Transport.start();
+                    } else {
+                        Tone.Transport.stop();
+                    }
+                }
+            };
+            
 
             // --- 遊戲設定 ---
             const GRID_SIZE = 4;
@@ -196,14 +272,13 @@
                 'Fe-56':{ name: '鐵',   symbol: 'Fe',displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
             };
             
-            // --- 提示資料庫 ---
             const SYNTHESIS_HINTS = {
                 'H': '氫是所有核融合的起點。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>1</sub>P &rarr; <sup>2</sup><sub>2</sub>He</strong><br>• <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>0</sub>n &rarr; <sup>2</sup><sub>1</sub>D</strong>',
                 'He': '氦是恆星能量的主要來源。<br>• <strong><sup>2</sup><sub>2</sub>He + <sup>1</sup><sub>0</sub>n &rarr; <sup>3</sup><sub>2</sub>He</strong> (穩定化)<br>• <strong><sup>3</sup><sub>2</sub>He + <sup>3</sup><sub>2</sub>He &rarr; <sup>4</sup><sub>2</sub>He</strong><br>• <strong><sup>3</sup><sub>1</sub>T + <sup>1</sup><sub>1</sub>P &rarr; <sup>4</sup><sub>2</sub>He</strong>',
                 'Li': '鋰主要來自宇宙射線散裂，或在特定條件下的核融合。<br>• <strong><sup>2</sup><sub>1</sub>D + <sup>4</sup><sub>2</sub>He &rarr; <sup>6</sup><sub>3</sub>Li</strong><br>• <span class="text-red-600">注意: 鋰會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>6</sup><sub>3</sub>Li &rarr; <sup>4</sup><sub>2</sub>He</strong></span>',
                 'Be': '鈹主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>12</sup><sub>6</sub>C &rarr; <sup>9</sup><sub>4</sub>Be</strong><br>• <span class="text-red-600">注意: 鈹會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>9</sup><sub>4</sub>Be &rarr; <sup>6</sup><sub>3</sub>Li</strong></span>',
                 'B': '硼主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>16</sup><sub>8</sub>O &rarr; <sup>11</sup><sub>5</sub>B</strong><br>• <span class="text-red-600">注意: 硼會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>11</sup><sub>5</sub>B &rarr; <sup>8</sup><sub>4</sub>Be</strong> (衰變)</span>',
-                'C': '碳的誕生是關鍵！讓三個 <strong><sup>4</sup><sub>2</sub>He</strong> 在同一直線上相鄰觸發「3α反應」。',
+                'C': '碳的誕生是關鍵！讓三個 <strong><sup>4</sup><sub>2</sub>He</strong> 在同一直線上或 L 型相鄰觸發「3α反應」。',
                 'O': '透過α捕獲來合成氧。<br>• <strong><sup>12</sup><sub>6</sub>C + <sup>4</sup><sub>2</sub>He &rarr; <sup>16</sup><sub>8</sub>O</strong>',
                 'N': '氮主要在CNO循環中作為催化劑出現，本遊戲簡化未加入其主要合成路徑。',
                 'F': '氟在恆星中不易大量產生。',
@@ -284,15 +359,16 @@
                     for (let c = 0; c < GRID_SIZE; c++) {
                         const cell = grid[r][c];
                         if (cell) {
-                            if (existingTiles.has(String(cell.id))) {
-                                // 更新現有方塊
-                                const tile = document.querySelector(`[data-id="${cell.id}"]`);
-                                tile.style.transform = `translate(${c * 100}%, ${r * 100}%)`;
+                            let tile = document.querySelector(`[data-id="${cell.id}"]`);
+                            const data = ELEMENT_DATA[cell.type] || {};
+
+                            if (tile) { // Update existing tile
+                                tile.style.setProperty('--x', `${c * 100}%`);
+                                tile.style.setProperty('--y', `${r * 100}%`);
                                 
                                 let needsStyleUpdate = tile.dataset.type !== cell.type;
 
                                 if (needsStyleUpdate) {
-                                    const data = ELEMENT_DATA[cell.type] || {};
                                     tile.className = `tile absolute w-1/4 h-1/4 p-1 flex items-center justify-center text-base md:text-xl font-bold rounded-md transition-transform duration-100 ease-in-out leading-none ${data.color} ${data.textColor}`;
                                     tile.innerHTML = data.displayName || '?';
                                     tile.dataset.type = cell.type;
@@ -313,15 +389,13 @@
                                      const countdownEl = tile.querySelector('.countdown');
                                      if(countdownEl) countdownEl.remove();
                                 }
-
                                 existingTiles.delete(String(cell.id));
-                            } else {
-                                // 創建新方塊
-                                const data = ELEMENT_DATA[cell.type] || {};
-                                const tile = document.createElement('div');
-                                tile.className = `tile absolute w-1/4 h-1/4 p-1 flex items-center justify-center text-base md:text-xl font-bold rounded-md transition-transform duration-100 ease-in-out leading-none ${data.color} ${data.textColor} tile-spawned`;
+                            } else { // Create new tile
+                                tile = document.createElement('div');
+                                tile.style.setProperty('--x', `${c * 100}%`);
+                                tile.style.setProperty('--y', `${r * 100}%`);
+                                tile.className = `tile absolute w-1/4 h-1/4 p-1 flex items-center justify-center text-base md:text-xl font-bold rounded-md leading-none ${data.color} ${data.textColor} tile-spawned`;
                                 tile.innerHTML = data.displayName || '?';
-                                tile.style.transform = `translate(${c * 100}%, ${r * 100}%)`;
                                 tile.dataset.id = cell.id;
                                 tile.dataset.type = cell.type;
                                 tile.addEventListener('animationend', () => tile.classList.remove('tile-spawned'), { once: true });
@@ -333,9 +407,7 @@
 
                 existingTiles.forEach(id => {
                     const tile = document.querySelector(`[data-id="${id}"]`);
-                    if (tile) {
-                        tile.remove();
-                    }
+                    if (tile) tile.remove();
                 });
             }
 
@@ -364,8 +436,8 @@
             }
 
             const HINT_CHAIN = [
-                { required: ['p'], text: `試著合併 <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>1</sub>P</strong> 來合成不穩定的 <sup>2</sup><sub>2</sub>He！` },
-                { required: ['He-2'], text: `快用 <strong><sup>1</sup><sub>0</sub>n</strong> 穩定 <sup>2</sup><sub>2</sub>He 來合成 <sup>3</sup><sub>2</sub>He！` },
+                { required: ['p'], text: `試著合併 <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>1</sub>P</strong> &rarr; 不穩定的 <sup>2</sup><sub>2</sub>He！` },
+                { required: ['He-2'], text: `快用 <strong><sup>1</sup><sub>0</sub>n</strong> 穩定 <sup>2</sup><sub>2</sub>He &rarr; <sup>3</sup><sub>2</sub>He！` },
                 { required: ['H-2'], text: `試著合成氚: <sup>2</sup><sub>1</sub>D + <strong><sup>1</sup><sub>0</sub>n</strong> &rarr; <sup>3</sup><sub>1</sub>T` },
                 { required: ['He-3'], text: `合成氦-4: <br><sup>3</sup><sub>2</sub>He + <sup>3</sup><sub>2</sub>He &rarr; <sup>4</sup><sub>2</sub>He` },
                 { required: ['He-4'], text: `關鍵一步！將三個 <strong><sup>4</sup><sub>2</sub>He</strong> 排在一起合成 <strong><sup>12</sup><sub>6</sub>C</strong>！` },
@@ -425,13 +497,14 @@
                     isMoving = true;
                     setTimeout(() => {
                         handleTurnEnd();
-                        isMoving = false;
-                    }, 150);
+                    }, 150); // Animation duration
                 }
             }
             
             function handleTurnEnd() {
                 updateTurn(turn + 1);
+                
+                renderBoard(); 
                 
                 const tripleAlphaHappened = checkForTripleAlpha();
                 if (tripleAlphaHappened) {
@@ -440,18 +513,33 @@
 
                 processDecay();
                 spawnParticle();
+                
+                clearMergeLocks();
                 renderBoard();
                 updatePeriodicTable();
                 updateHints();
                 
+                isMoving = false;
                 const gameState = checkGameState();
                 if (gameState === 'win') {
+                    audioManager.play('win');
                     showWinModal();
                 } else if (gameState === 'lose') {
+                    audioManager.play('lose');
                     showLoseModal();
                 }
             }
             
+            function clearMergeLocks() {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (grid[r][c]) {
+                            grid[r][c].mergedThisTurn = false;
+                        }
+                    }
+                }
+            }
+
             function move(direction) {
                 const traversals = buildTraversals(direction);
                 let moved = false;
@@ -464,13 +552,15 @@
                         if (cell) {
                             const { farthest, next } = findFarthestPosition(currentPos, direction);
 
-                            if (next && next.cell && canMerge(cell, next.cell)) {
+                            if (next && next.cell && !cell.mergedThisTurn && !next.cell.mergedThisTurn && canMerge(cell, next.cell)) {
                                 const mergeResult = merge(cell, next.cell);
                                 
                                 if (mergeResult) {
+                                    audioManager.play('merge', ['C4', 'E4', 'G4'], '8n');
                                     grid[next.r][next.c] = {
                                         ...mergeResult,
-                                        id: next.cell.id
+                                        id: next.cell.id,
+                                        mergedThisTurn: true
                                     };
                                     grid[currentPos.r][currentPos.c] = null;
                                     moved = true;
@@ -486,6 +576,7 @@
                 });
                 
                 if (moved) {
+                    audioManager.play('move', 'C5', '16n');
                     renderBoard();
                 }
                 return moved;
@@ -618,38 +709,55 @@
 
             function checkForTripleAlpha() {
                 let merged = false;
-                // Check for horizontal and vertical triples
+                const processTriple = (c1, c2, c3, cornerIndex) => {
+                    const cells = [c1, c2, c3];
+                    const cornerCell = cells[cornerIndex];
+                    cells.splice(cornerIndex, 1);
+                    
+                    grid[cells[0].r][cells[0].c] = null;
+                    grid[cells[1].r][cells[1].c] = null;
+
+                    const resultData = ELEMENT_DATA['C-12'];
+                    grid[cornerCell.r][cornerCell.c] = { id: cornerCell.id, type: 'C-12', ...resultData, mergedThisTurn: true };
+                    
+                    addLog(`<strong>3α反應!</strong> 3x ${ELEMENT_DATA['He-4'].displayName} &rarr; <strong>${ELEMENT_DATA['C-12'].displayName}</strong>`);
+                    updateScore(150);
+                    audioManager.play('specialMerge', ['C4', 'E4', 'G4', 'C5'], '2n');
+                    unlockedIsotopes.add('C-12');
+                    if (!discoveredElements.has('C')) discoveredElements.add('C');
+                    return true;
+                };
+
                 for (let i = 0; i < GRID_SIZE; i++) {
                     for (let j = 0; j < GRID_SIZE - 2; j++) {
-                        // Horizontal check
-                        const h1 = grid[i][j], h2 = grid[i][j+1], h3 = grid[i][j+2];
-                        if (h1?.type === 'He-4' && h2?.type === 'He-4' && h3?.type === 'He-4') {
-                            grid[i][j] = null;
-                            grid[i][j+2] = null;
-                            const resultData = ELEMENT_DATA['C-12'];
-                            grid[i][j+1] = { id: h2.id, type: 'C-12', ...resultData };
-                            addLog(`<strong>3α反應!</strong> 3x ${ELEMENT_DATA['He-4'].displayName} &rarr; <strong>${ELEMENT_DATA['C-12'].displayName}</strong>`);
-                            updateScore(150);
-                            unlockedIsotopes.add('C-12');
-                            if (!discoveredElements.has('C')) discoveredElements.add('C');
-                            merged = true;
+                        const h_cells = [grid[i][j], grid[i][j+1], grid[i][j+2]].map((cell, idx) => ({...cell, r: i, c: j+idx}));
+                        if (h_cells.every(c => c.type === 'He-4')) {
+                            return processTriple(h_cells[0], h_cells[1], h_cells[2], 1);
                         }
-
-                        // Vertical check
-                        const v1 = grid[j][i], v2 = grid[j+1][i], v3 = grid[j+2][i];
-                         if (v1?.type === 'He-4' && v2?.type === 'He-4' && v3?.type === 'He-4') {
-                            grid[j][i] = null;
-                            grid[j+2][i] = null;
-                            const resultData = ELEMENT_DATA['C-12'];
-                            grid[j+1][i] = { id: v2.id, type: 'C-12', ...resultData };
-                             addLog(`<strong>3α反應!</strong> 3x ${ELEMENT_DATA['He-4'].displayName} &rarr; <strong>${ELEMENT_DATA['C-12'].displayName}</strong>`);
-                            updateScore(150);
-                            unlockedIsotopes.add('C-12');
-                            if (!discoveredElements.has('C')) discoveredElements.add('C');
-                            merged = true;
+                        const v_cells = [grid[j][i], grid[j+1][i], grid[j+2][i]].map((cell, idx) => ({...cell, r: j+idx, c: i}));
+                        if (v_cells.every(c => c.type === 'He-4')) {
+                             return processTriple(v_cells[0], v_cells[1], v_cells[2], 1);
                         }
                     }
                 }
+                
+                for (let r = 0; r < GRID_SIZE - 1; r++) {
+                    for (let c = 0; c < GRID_SIZE - 1; c++) {
+                        const square = [
+                            {...grid[r][c], r, c}, {...grid[r][c+1], r, c: c+1},
+                            {...grid[r+1][c], r: r+1, c}, {...grid[r+1][c+1], r: r+1, c: c+1}
+                        ];
+                        const he4_cells = square.filter(cell => cell.type === 'He-4');
+
+                        if (he4_cells.length === 3) {
+                            const [c1, c2, c3] = he4_cells;
+                            if ((c1.r === c2.r && c1.c === c3.c) || (c1.c === c2.c && c1.r === c3.r)) return processTriple(c1,c2,c3,0);
+                            if ((c2.r === c1.r && c2.c === c3.c) || (c2.c === c1.c && c2.r === c3.r)) return processTriple(c1,c2,c3,1);
+                            if ((c3.r === c1.r && c3.c === c2.c) || (c3.c === c1.c && c3.r === c2.r)) return processTriple(c1,c2,c3,2);
+                        }
+                    }
+                }
+
                 return merged;
             }
             
@@ -660,6 +768,7 @@
                         if (cell && cell.unstable) {
                             cell.countdown--;
                             if (cell.countdown <= 0) {
+                                audioManager.play('decay');
                                 if (cell.type === 'He-2') {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變回 <strong>質子</strong>！`);
                                     const newData = ELEMENT_DATA['p'];
@@ -670,7 +779,7 @@
                                 } else {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變了！`);
                                     grid[r][c] = null;
-                                    updateScore(-50); // Decay penalty for other unstable elements
+                                    updateScore(-50); // Decay penalty
                                 }
                             }
                         }
@@ -679,31 +788,19 @@
             }
             
             function checkGameState() {
-                let hasWin = false;
-                let canMove = false;
-                
-                if (grid.flat().includes(null)) {
-                    canMove = true;
-                }
+                if (grid.flat().some(cell => cell?.isWin)) return 'win';
+                if (grid.flat().some(cell => cell === null)) return 'playing';
 
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
                         const cell = grid[r][c];
                         if (!cell) continue;
-                        
-                        if (cell.isWin) hasWin = true;
-                        
-                        if (r < GRID_SIZE - 1 && canMerge(cell, grid[r+1][c])) canMove = true;
-                        if (c < GRID_SIZE - 1 && canMerge(cell, grid[r][c+1])) canMove = true;
-
-                        if(canMove) break;
+                        if (r < GRID_SIZE - 1 && canMerge(cell, grid[r+1][c])) return 'playing';
+                        if (c < GRID_SIZE - 1 && canMerge(cell, grid[r][c+1])) return 'playing';
                     }
-                    if(canMove) break;
                 }
                 
-                if (hasWin) return 'win';
-                if (!canMove) return 'lose';
-                return 'playing';
+                return 'lose';
             }
 
             function showWinModal() {
@@ -742,6 +839,7 @@
             // --- 事件監聽 ---
             window.addEventListener('keydown', handleInput);
             newGameButton.addEventListener('click', () => {
+                audioManager.init();
                 gameModal.classList.add('hidden');
                 setupGame();
             });
@@ -753,38 +851,40 @@
                 gameModal.classList.add('hidden');
             });
             periodicTable.addEventListener('click', (e) => {
+                audioManager.init();
                 const target = e.target.closest('[data-element]');
                 if (target) {
                     const symbol = target.dataset.element;
                     showHintModal(symbol);
                 }
             });
+            soundToggleButton.addEventListener('click', () => {
+                audioManager.init();
+                audioManager.toggleMute();
+            });
             
             // --- 觸控滑動支援 ---
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchEndX = 0;
-            let touchEndY = 0;
-
+            let touchStartX = 0, touchStartY = 0;
             gameBoardContainer.addEventListener('touchstart', e => {
+                audioManager.init();
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
-            });
+            }, {passive: true});
 
             gameBoardContainer.addEventListener('touchend', e => {
-                touchEndX = e.changedTouches[0].screenX;
-                touchEndY = e.changedTouches[0].screenY;
-                handleSwipe();
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
             });
             
-            function handleSwipe() {
+            function handleSwipe(startX, startY, endX, endY) {
                  if (isMoving) return;
-                const dx = touchEndX - touchStartX;
-                const dy = touchEndY - touchStartY;
+                const dx = endX - startX;
+                const dy = endY - startY;
                 const absDx = Math.abs(dx);
                 const absDy = Math.abs(dy);
 
-                if (Math.max(absDx, absDy) > 30) { // 最小滑動距離
+                if (Math.max(absDx, absDy) > 30) {
                     let moved = false;
                     if (absDx > absDy) {
                         moved = dx > 0 ? move('right') : move('left');
@@ -793,14 +893,10 @@
                     }
                     if (moved) {
                         isMoving = true;
-                        setTimeout(() => {
-                           handleTurnEnd();
-                           isMoving = false;
-                        }, 150);
+                        setTimeout(() => handleTurnEnd(), 150);
                     }
                 }
             }
-
 
             // --- 啟動遊戲 ---
             setupGame();
