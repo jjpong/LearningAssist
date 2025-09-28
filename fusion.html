@@ -83,27 +83,27 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-2 sm:p-4">
 
     <div class="w-full max-w-5xl mx-auto">
         <header class="text-center mb-4">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-700">核融合 2048</h1>
-            <p class="text-gray-500 mt-1">模擬恆星內部的元素鍊金術</p>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-700">核融合 2048</h1>
+            <p class="text-gray-500 mt-1 text-sm sm:text-base">模擬恆星內部的元素鍊金術</p>
         </header>
 
-        <div class="flex justify-center items-center mb-4 space-x-4">
-            <div class="bg-gray-200 p-3 rounded-lg text-center">
-                <div class="text-sm text-gray-500">分數</div>
-                <div id="score" class="text-2xl font-bold">0</div>
+        <div class="flex justify-center items-center mb-4 space-x-2 sm:space-x-4">
+            <div class="bg-gray-200 p-2 sm:p-3 rounded-lg text-center">
+                <div class="text-xs sm:text-sm text-gray-500">分數</div>
+                <div id="score" class="text-xl sm:text-2xl font-bold">0</div>
             </div>
-            <button id="new-game-button" class="px-6 py-3 bg-orange-500 text-white font-bold rounded-lg shadow-md hover:bg-orange-600 transition-colors">
+            <button id="new-game-button" class="px-4 py-2 sm:px-6 sm:py-3 bg-orange-500 text-white font-bold rounded-lg shadow-md hover:bg-orange-600 transition-colors text-sm sm:text-base">
                 新遊戲
             </button>
-            <div class="bg-gray-200 p-3 rounded-lg text-center">
-                <div class="text-sm text-gray-500">回合</div>
-                <div id="turn-counter" class="text-2xl font-bold">0</div>
+            <div class="bg-gray-200 p-2 sm:p-3 rounded-lg text-center">
+                <div class="text-xs sm:text-sm text-gray-500">回合</div>
+                <div id="turn-counter" class="text-xl sm:text-2xl font-bold">0</div>
             </div>
-            <button id="sound-toggle-button" class="p-3 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
+            <button id="sound-toggle-button" class="p-2 sm:p-3 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
                 <svg id="sound-on-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                 <svg id="sound-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
             </button>
@@ -111,32 +111,32 @@
         
         <div class="flex flex-col lg:flex-row gap-4 items-stretch">
             <!-- 遊戲主區域 -->
-            <main class="w-full lg:w-1/2 flex-shrink-0">
+            <main class="w-full lg:w-1/2 flex-shrink-0 min-w-0">
                 <div id="game-board-container" class="relative w-full aspect-square bg-gray-400 rounded-lg p-2.5 grid grid-cols-4 grid-rows-4 gap-2.5">
                     <!-- JS 動態生成背景格子和遊戲方塊 -->
                 </div>
             </main>
 
             <!-- 側邊欄 -->
-            <aside class="w-full lg:w-1/2 flex flex-col gap-4">
+            <aside class="w-full lg:w-1/2 flex flex-col gap-4 min-w-0">
                 <!-- 元素週期表 -->
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-bold text-center mb-2">元素發現紀錄 (點擊查詢)</h2>
+                <div class="bg-white p-2 sm:p-4 rounded-lg shadow">
+                    <h2 class="text-base sm:text-lg font-bold text-center mb-2">元素發現紀錄 (點擊查詢)</h2>
                     <div id="periodic-table" class="grid grid-cols-9 gap-1 text-xs cursor-pointer">
                         <!-- JS 動態生成元素週期表 -->
                     </div>
                 </div>
                  <!-- 合成提示 -->
-                <div id="hint-container" class="bg-white p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-bold text-center mb-2">下一步提示</h2>
+                <div id="hint-container" class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                    <h2 class="text-base sm:text-lg font-bold text-center mb-2">下一步提示</h2>
                     <div id="hint-content" class="text-center text-gray-600 text-sm md:text-base">
                         <!-- JS will populate this -->
                     </div>
                 </div>
                 <!-- 合成日誌 -->
-                <div class="bg-white p-4 rounded-lg shadow flex flex-col flex-grow">
-                    <h2 class="text-lg font-bold text-center mb-2">合成日誌</h2>
-                    <ul id="synthesis-log" class="overflow-y-auto text-sm space-y-1 pr-2 flex-grow">
+                <div class="bg-white p-2 sm:p-4 rounded-lg shadow flex flex-col flex-grow">
+                    <h2 class="text-base sm:text-lg font-bold text-center mb-2">合成日誌</h2>
+                    <ul id="synthesis-log" class="overflow-y-auto text-sm space-y-1 pr-2 flex-grow min-h-0">
                         <li class="text-gray-500">遊戲開始...</li>
                     </ul>
                 </div>
@@ -146,8 +146,8 @@
 
     <!-- 遊戲結束/勝利/提示彈出視窗 -->
     <div id="game-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-2xl p-8 text-center max-w-sm w-full">
-            <h2 id="modal-title" class="text-3xl font-bold mb-4">遊戲標題</h2>
+        <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 text-center max-w-sm w-full">
+            <h2 id="modal-title" class="text-2xl sm:text-3xl font-bold mb-4">遊戲標題</h2>
             <div id="modal-content" class="mb-6 text-gray-600 text-left">
                 <!-- 動態內容 -->
             </div>
@@ -189,15 +189,22 @@
                 async init() {
                     if (this.isInitialized) return;
                     await Tone.start();
-                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -18, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                    this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -12, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
-                    this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -20, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
-                    this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -10, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
-                    this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -8 }).toDestination();
-                    this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -15 }).toDestination();
+                    this.synths.move = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -6, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.merge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, volume: -4, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                    this.synths.decay = new Tone.NoiseSynth({ noise: { type: 'pink' }, volume: -10, envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 } }).toDestination();
+                    this.synths.specialMerge = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, volume: -2, envelope: { attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination();
+                    this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -2, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
+                    this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -6, envelope: { attack: 0.05, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
+                    this.synths.bgm = new Tone.AMSynth({
+                        harmonicity: 1.5,
+                        envelope: { attack: 2, decay: 1, sustain: 0.5, release: 4 },
+                        modulation: { type: 'sine' },
+                        modulationEnvelope: { attack: 2, decay: 0.01, sustain: 1, release: 4 }
+                    }).toDestination();
+                    this.synths.bgm.volume.value = -10;
                     
                     this.bgmLoop = new Tone.Loop(time => {
-                        this.synths.merge.triggerAttackRelease(['C2', 'G2'], '1n', time);
+                        this.synths.bgm.triggerAttackRelease('C2', '1m', time);
                     }, '1m').start(0);
 
                     this.isInitialized = true;
@@ -208,9 +215,11 @@
                 play(sound, ...args) {
                     if (!this.isInitialized || this.isMuted) return;
                     if (this.synths[sound]) {
-                         // The 'now' can prevent sounds from being scheduled in the past if the game lags.
                         const now = Tone.now();
-                        if (sound === 'decay') this.synths.decay.triggerAttackRelease("8n", now);
+                        if (sound === 'decay') {
+                            const offset = args[0] || 0;
+                            this.synths.decay.triggerAttackRelease("8n", now + offset);
+                        }
                         else if (sound === 'win') this.synths.win.triggerAttackRelease('C5', '8n', now);
                         else if (sound === 'lose') this.synths.lose.triggerAttackRelease('C3', '4n', now);
                         else this.synths[sound].triggerAttackRelease(...args, now);
@@ -762,13 +771,15 @@
             }
             
             function processDecay() {
+                let decayOffset = 0;
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
                         const cell = grid[r][c];
                         if (cell && cell.unstable) {
                             cell.countdown--;
                             if (cell.countdown <= 0) {
-                                audioManager.play('decay');
+                                audioManager.play('decay', decayOffset);
+                                decayOffset += 0.05;
                                 if (cell.type === 'He-2') {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變回 <strong>質子</strong>！`);
                                     const newData = ELEMENT_DATA['p'];
@@ -874,7 +885,7 @@
             gameBoardContainer.addEventListener('touchend', e => {
                 const touchEndX = e.changedTouches[0].screenX;
                 const touchEndY = e.changedTouches[0].screenY;
-                handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+                handleSwipe(touchStartX, touchStartY, endX, endY);
             });
             
             function handleSwipe(startX, startY, endX, endY) {
