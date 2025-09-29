@@ -60,6 +60,16 @@
         .unstable-pulse {
             animation: pulse 1.5s infinite;
         }
+
+        /* 高能質子的脈動動畫 */
+        @keyframes high-energy-pulse {
+            0% { box-shadow: 0 0 8px 4px rgba(253, 224, 71, 0.7); }
+            50% { box-shadow: 0 0 12px 6px rgba(253, 224, 71, 1); }
+            100% { box-shadow: 0 0 8px 4px rgba(253, 224, 71, 0.7); }
+        }
+        .high-energy-pulse {
+            animation: high-energy-pulse 1.5s infinite;
+        }
         
         /* 隱藏滾動條 */
         #synthesis-log::-webkit-scrollbar {
@@ -105,7 +115,7 @@
         }
         .win-animation-card {
             opacity: 0;
-            animation: glow-and-fade 2.5s ease-in-out forwards;
+            animation: glow-and-fade 3s ease-in-out forwards;
         }
     </style>
 </head>
@@ -339,7 +349,7 @@
             const PERIODIC_TABLE_DATA = {
                 'H': { row: 1, col: 1 }, 'He': { row: 1, col: 18 },
                 'Li': { row: 2, col: 1 }, 'Be': { row: 2, col: 2 },
-                'B': { row: 2, col: 13 }, 'C': { row: 2, col: 14 }, 'O': { row: 2, col: 16 }, 'Ne': { row: 2, col: 18 },
+                'B': { row: 2, col: 13 }, 'C': { row: 2, col: 14 }, 'N': { row: 2, col: 15 }, 'O': { row: 2, col: 16 }, 'Ne': { row: 2, col: 18 },
                 'Mg': { row: 3, col: 2 }, 'Al': { row: 3, col: 13 }, 'Si': { row: 3, col: 14 }, 'P': { row: 3, col: 15 }, 'S': { row: 3, col: 16 }, 'Cl': { row: 3, col: 17 }, 'Ar': { row: 3, col: 18 },
                 'Ca': { row: 4, col: 2 }, 'Ti': { row: 4, col: 4 }, 'Cr': { row: 4, col: 6 }, 'Fe': { row: 4, col: 8 },
             };
@@ -348,6 +358,7 @@
             const ELEMENT_DATA = {
                 'p':    { name: '質子', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P', color: 'bg-red-200', textColor: 'text-red-800' },
                 'n':    { name: '中子', displayName: '<span class="iso-stack"><sup>1</sup><sub>0</sub></span>n', color: 'bg-gray-300', textColor: 'text-gray-800' },
+                'p_high': { name: '高能質子', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P<sup>+</sup>', color: 'bg-yellow-300', textColor: 'text-yellow-900', isHighEnergy: true },
                 'H-1':  { name: '氫',   symbol: 'H', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>H',  isElement: true, color: 'bg-red-300', textColor: 'text-red-900' },
                 'H-2':  { name: '氘',   symbol: 'H', displayName: '<span class="iso-stack"><sup>2</sup><sub>1</sub></span>D',  isElement: true, color: 'bg-purple-300', textColor: 'text-purple-900' },
                 'H-3':  { name: '氚',   symbol: 'H', displayName: '<span class="iso-stack"><sup>3</sup><sub>1</sub></span>T',  isElement: true, color: 'bg-indigo-300', textColor: 'text-indigo-900' },
@@ -359,6 +370,7 @@
                 'Be-9': { name: '鈹',   symbol: 'Be', displayName: '<span class="iso-stack"><sup>9</sup><sub>4</sub></span>Be', isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
                 'B-11': { name: '硼',   symbol: 'B', displayName: '<span class="iso-stack"><sup>11</sup><sub>5</sub></span>B', isElement: true, color: 'bg-teal-300', textColor: 'text-teal-900' },
                 'C-12': { name: '碳',   symbol: 'C', displayName: '<span class="iso-stack"><sup>12</sup><sub>6</sub></span>C', isElement: true, color: 'bg-gray-500', textColor: 'text-white' },
+                'N-13': { name: '氮-13', symbol: 'N', displayName: '<span class="iso-stack"><sup>13</sup><sub>7</sub></span>N', isElement: true, unstable: true, countdown: 4, color: 'bg-sky-200', textColor: 'text-sky-800' },
                 'O-16': { name: '氧',   symbol: 'O', displayName: '<span class="iso-stack"><sup>16</sup><sub>8</sub></span>O', isElement: true, color: 'bg-blue-400', textColor: 'text-blue-900' },
                 'Ne-20':{ name: '氖',   symbol: 'Ne',displayName: '<span class="iso-stack"><sup>20</sup><sub>10</sub></span>Ne',isElement: true, color: 'bg-indigo-400', textColor: 'text-indigo-900' },
                 'Mg-24':{ name: '鎂',   symbol: 'Mg',displayName: '<span class="iso-stack"><sup>24</sup><sub>12</sub></span>Mg',isElement: true, color: 'bg-pink-400', textColor: 'text-pink-900' },
@@ -369,9 +381,9 @@
                 'Cl-35':{ name: '氯',   symbol: 'Cl',displayName: '<span class="iso-stack"><sup>35</sup><sub>17</sub></span>Cl',isElement: true, color: 'bg-green-500', textColor: 'text-white' },
                 'Ar-36':{ name: '氬',   symbol: 'Ar',displayName: '<span class="iso-stack"><sup>36</sup><sub>18</sub></span>Ar',isElement: true, color: 'bg-cyan-400', textColor: 'text-cyan-900' },
                 'Ca-40':{ name: '鈣',   symbol: 'Ca',displayName: '<span class="iso-stack"><sup>40</sup><sub>20</sub></span>Ca',isElement: true, color: 'bg-lime-400', textColor: 'text-lime-900' },
-                'Ti-44':{ name: '鈦-44',symbol: 'Ti',displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 16, color: 'bg-gray-400', textColor: 'text-gray-900' },
-                'Cr-48':{ name: '鉻-48',symbol: 'Cr',displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 16, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
-                'Fe-52':{ name: '鐵-52',symbol: 'Fe',displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 16, color: 'bg-orange-400', textColor: 'text-orange-900' },
+                'Ti-44':{ name: '鈦-44',symbol: 'Ti',displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 6, color: 'bg-gray-400', textColor: 'text-gray-900' },
+                'Cr-48':{ name: '鉻-48',symbol: 'Cr',displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 5, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
+                'Fe-52':{ name: '鐵-52',symbol: 'Fe',displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 4, color: 'bg-orange-400', textColor: 'text-orange-900' },
                 'Fe-56':{ name: '鐵',   symbol: 'Fe',displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
                 'Ni-56': { name: '鎳-56', symbol: 'Ni', displayName: '<span class="iso-stack"><sup>56</sup><sub>28</sub></span>Ni', color: 'bg-green-600', textColor: 'text-white'},
                 'Co-56': { name: '鈷-56', symbol: 'Co', displayName: '<span class="iso-stack"><sup>56</sup><sub>27</sub></span>Co', color: 'bg-blue-600', textColor: 'text-white'},
@@ -381,10 +393,11 @@
                 'H': '氫是所有核融合的起點。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>1</sub>P &rarr; <sup>2</sup><sub>2</sub>He</strong><br>• <strong><sup>1</sup><sub>1</sub>P + <sup>1</sup><sub>0</sub>n &rarr; <sup>2</sup><sub>1</sub>D</strong>',
                 'He': '氦是恆星能量的主要來源。<br>• <strong><sup>2</sup><sub>2</sub>He + <sup>1</sup><sub>0</sub>n &rarr; <sup>3</sup><sub>2</sub>He</strong> (穩定化)<br>• <strong><sup>3</sup><sub>2</sub>He + <sup>3</sup><sub>2</sub>He &rarr; <sup>4</sup><sub>2</sub>He</strong><br>• <strong><sup>3</sup><sub>1</sub>T + <sup>1</sup><sub>1</sub>P &rarr; <sup>4</sup><sub>2</sub>He</strong>',
                 'Li': '鋰主要來自宇宙射線散裂，或在特定條件下的核融合。<br>• <strong><sup>2</sup><sub>1</sub>D + <sup>4</sup><sub>2</sub>He &rarr; <sup>6</sup><sub>3</sub>Li</strong><br>• <span class="text-red-600">注意: 鋰會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>6</sup><sub>3</sub>Li &rarr; <sup>4</sup><sub>2</sub>He</strong></span>',
-                'Be': '鈹主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>12</sup><sub>6</sub>C &rarr; <sup>9</sup><sub>4</sub>Be</strong><br>• <span class="text-red-600">注意: 鈹會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>9</sup><sub>4</sub>Be &rarr; <sup>6</sup><sub>3</sub>Li</strong></span>',
-                'B': '硼主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>16</sup><sub>8</sub>O &rarr; <sup>11</sup><sub>5</sub>B</strong><br>• <span class="text-red-600">注意: 硼會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>11</sup><sub>5</sub>B &rarr; <sup>8</sup><sub>4</sub>Be</strong> (衰變)</span>',
+                'Be': '鈹主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P⁺ + <sup>12</sup><sub>6</sub>C &rarr; <sup>9</sup><sub>4</sub>Be</strong>',
+                'B': '硼主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P⁺ + <sup>16</sup><sub>8</sub>O &rarr; <sup>11</sup><sub>5</sub>B</strong>',
                 'C': '碳的誕生是關鍵！讓三個 <strong><sup>4</sup><sub>2</sub>He</strong> 在同一直線上或 L 型相鄰觸發「3α反應」。',
                 'O': '透過α捕獲來合成氧。<br>• <strong><sup>12</sup><sub>6</sub>C + <sup>4</sup><sub>2</sub>He &rarr; <sup>16</sup><sub>8</sub>O</strong>',
+                'N': '氮是CNO催化循環的關鍵。<br>• <strong><sup>12</sup><sub>6</sub>C + <sup>1</sup><sub>1</sub>P⁺ &rarr; <sup>13</sup><sub>7</sub>N</strong> (啟動循環)<br>• <span class="text-blue-600">氮-13衰變時會變回碳並獎勵一個氦-4！</span>',
                 'Ne': '繼續α捕獲！<br>• <strong><sup>16</sup><sub>8</sub>O + <sup>4</sup><sub>2</sub>He &rarr; <sup>20</sup><sub>10</sub>Ne</strong>',
                 'Al': '鋁是質子捕獲的產物。<br>• <strong><sup>24</sup><sub>12</sub>Mg + <sup>1</sup><sub>1</sub>P &rarr; <sup>27</sup><sub>13</sub>Al</strong>',
                 'Si': '繼續α捕獲！<br>• <strong><sup>24</sup><sub>12</sub>Mg + <sup>4</sup><sub>2</sub>He &rarr; <sup>28</sup><sub>14</sub>Si</strong>',
@@ -501,6 +514,12 @@
                                     tile.addEventListener('animationend', () => tile.classList.remove('tile-merged'), { once: true });
                                 }
                                 
+                                if(cell.isHighEnergy) {
+                                    tile.classList.add('high-energy-pulse');
+                                } else {
+                                    tile.classList.remove('high-energy-pulse');
+                                }
+
                                 if(cell.unstable) {
                                     tile.classList.add('unstable-pulse');
                                     if(!tile.querySelector('.countdown')) {
@@ -520,6 +539,7 @@
                                 tile.style.setProperty('--x', `${c * 100}%`);
                                 tile.style.setProperty('--y', `${r * 100}%`);
                                 tile.className = `tile absolute w-1/4 h-1/4 p-1 flex items-center justify-center text-base md:text-xl font-bold rounded-md leading-none ${data.color} ${data.textColor} tile-spawned`;
+                                if (cell.isHighEnergy) tile.classList.add('high-energy-pulse');
                                 tile.innerHTML = data.displayName || '?';
                                 tile.dataset.id = cell.id;
                                 tile.dataset.type = cell.type;
@@ -588,7 +608,7 @@
             }
             
             // --- 遊戲邏輯 ---
-            function spawnParticle() {
+            function spawnParticle(forceHighEnergy = false) {
                 const emptyCells = [];
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
@@ -600,7 +620,12 @@
 
                 if (emptyCells.length > 0) {
                     const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    const type = Math.random() < 0.7 ? 'p' : 'n';
+                    let type;
+                    if (forceHighEnergy) {
+                        type = 'p_high';
+                    } else {
+                        type = Math.random() < 0.7 ? 'p' : 'n';
+                    }
                     grid[r][c] = {
                         id: tileIdCounter++,
                         type: type,
@@ -640,13 +665,6 @@
                 }
 
                 processDecay();
-                
-                const gameState = checkGameState();
-                if (gameState === 'win') {
-                    startWinAnimation();
-                    return; 
-                } 
-                
                 spawnParticle();
                 
                 clearMergeLocks();
@@ -655,7 +673,12 @@
                 updateHints();
                 
                 isMoving = false;
-
+                const gameState = checkGameState();
+                if (gameState === 'win') {
+                    startWinAnimation();
+                    return;
+                }
+                
                 if (gameState === 'lose') {
                     audioManager.play('lose');
                     showLoseModal();
@@ -789,12 +812,17 @@
                 'p+Li-6': { result: 'He-4', score: -10, note: ' (質子燃燒)' },
                 'p+Be-9': { result: 'Li-6', score: -10, note: ' (質子燃燒)' },
                 'p+B-11': { result: 'Be-8', score: -10, note: ' (質子燃燒)' },
-                // 宇宙射線散裂 (製造)
-                'p+C-12': { result: 'Be-9', score: 200, note: ' (宇宙射線散裂)'},
-                'p+O-16': { result: 'B-11', score: 250, note: ' (宇宙射線散裂)'},
+                // 質子捕獲 (製造奇數)
                 'p+Mg-24': { result: 'Al-27', score: 300 },
                 'p+Si-28': { result: 'P-31', score: 350 },
                 'p+S-32': { result: 'Cl-35', score: 400 },
+                'p+Al-27': { result: 'Si-28', score: -20, note: '(質子燃燒)'},
+                'p+P-31': { result: 'S-32', score: -20, note: '(質子燃燒)'},
+                'p+Cl-35': { result: 'Ar-36', score: -20, note: '(質子燃燒)'},
+                // 高能質子反應
+                'p_high+C-12': { result: 'Be-9', score: 200, note: ' (宇宙射線散裂)'},
+                'p_high+O-16': { result: 'B-11', score: 250, note: ' (宇宙射線散裂)'},
+                'p_high+C-12': { result: 'N-13', score: 220, note: ' (CNO循環啟動!)'},
                 // 主要融合鏈
                 'C-12+He-4': { result: 'O-16', score: 100 }, 
                 'O-16+He-4': { result: 'Ne-20', score: 150 },
@@ -806,7 +834,7 @@
                 'Ca-40+He-4': { result: 'Ti-44', score: 450 },
                 'Ti-44+He-4': { result: 'Cr-48', score: 500 }, 
                 'Cr-48+He-4': { result: 'Fe-52', score: 550 }, 
-                'Fe-52+He-4': { result: 'Fe-56', score: 1000 },
+                'Fe-52+He-4': { result: 'Fe-56', score: 1000, isWin: true },
                 'C-12+C-12': { result: 'Mg-24', score: 400 }, 
                 'O-16+O-16': { result: 'Si-28', score: 500 },
             };
@@ -844,6 +872,12 @@
                 unlockedIsotopes.add(resultType);
                 if (resultData.isElement) {
                     discoveredElements.add(resultData.symbol);
+                }
+
+                // Chance to spawn high energy proton
+                if(resultData.mass >= 16 && Math.random() < 0.1) { // 10% chance for O-16 or heavier
+                    setTimeout(() => spawnParticle(true), 200);
+                    addLog('<strong>高能質子</strong>在熔爐中產生了！');
                 }
 
                 return { type: resultType, ...resultData };
@@ -928,6 +962,11 @@
                                 } else if (cell.type === 'Be-8') {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 瞬間衰變了！`);
                                     grid[r][c] = null;
+                                } else if (cell.type === 'N-13') {
+                                    addLog(`<strong>CNO循環</strong>: <strong class="text-blue-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變回 <strong>${ELEMENT_DATA['C-12'].displayName}</strong> 並釋放 <strong>${ELEMENT_DATA['He-4'].displayName}</strong>！`);
+                                    const newData = ELEMENT_DATA['C-12'];
+                                    grid[r][c] = { id: cell.id, type: 'C-12', ...newData };
+                                    spawnParticleInEmptyNeighbor(r, c, 'He-4');
                                 } else {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變了！`);
                                     grid[r][c] = null;
@@ -938,6 +977,18 @@
                     }
                 }
             }
+
+             function spawnParticleInEmptyNeighbor(r, c, type) {
+                const neighbors = [ {r: r-1, c}, {r: r+1, c}, {r: r, c: c-1}, {r: r, c: c+1} ];
+                const emptyNeighbors = neighbors.filter(pos => isInBounds(pos) && grid[pos.r][pos.c] === null);
+                if (emptyNeighbors.length > 0) {
+                    const pos = emptyNeighbors[Math.floor(Math.random() * emptyNeighbors.length)];
+                    grid[pos.r][pos.c] = { id: tileIdCounter++, type: type, ...ELEMENT_DATA[type] };
+                } else {
+                    // if no empty neighbor, spawn randomly
+                    spawnParticle();
+                }
+             }
             
             function checkGameState() {
                 if (grid.flat().some(cell => cell?.isWin)) return 'win';
@@ -995,8 +1046,8 @@
 
                 const sequence = [
                     { delay: 0, type: 'Ni-56', sound: ['C4', 'G4', 'C5'], duration: '1n' },
-                    { delay: 2500, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
-                    { delay: 5000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
+                    { delay: 3000, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
+                    { delay: 6000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
                 ];
                 
                 sequence.forEach(step => {
@@ -1012,7 +1063,7 @@
                     winAnimationContainer.classList.add('hidden');
                     mainContainer.classList.remove('opacity-0');
                     showWinModal();
-                }, 7500);
+                }, 9000);
             }
             
             // --- 事件監聽 ---
