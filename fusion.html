@@ -16,7 +16,6 @@
         /* 自訂樣式和動畫 */
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            /* 移除 body 的 touch-action: none */
         }
 
         #game-board-container {
@@ -24,7 +23,6 @@
         }
 
         .tile {
-            /* 使用 CSS 變數來定位，解決動畫閃現問題 */
             transform: translate(var(--x, 0), var(--y, 0));
         }
 
@@ -95,11 +93,25 @@
             font-size: 0.5em; /* 調整上下標字體大小 */
             line-height: 1.1;
         }
+        #periodic-table {
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+        }
+
+        /* 勝利動畫樣式 */
+        @keyframes glow-and-fade {
+            0% { opacity: 0; transform: scale(0.8); box-shadow: 0 0 0px 0px rgba(255, 255, 150, 0); }
+            50% { opacity: 1; transform: scale(1); box-shadow: 0 0 40px 20px rgba(255, 255, 150, 0.7); }
+            100% { opacity: 0; transform: scale(1.2); box-shadow: 0 0 0px 0px rgba(255, 255, 150, 0); }
+        }
+        .win-animation-card {
+            opacity: 0;
+            animation: glow-and-fade 2.5s ease-in-out forwards;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-2 sm:p-4">
 
-    <div class="w-full max-w-5xl mx-auto">
+    <div id="main-container" class="w-full max-w-5xl mx-auto transition-opacity duration-500">
         <header class="text-center mb-4">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-700">核融合 2048</h1>
             <p class="text-gray-500 mt-1 text-sm sm:text-base">模擬恆星內部的元素鍊金術</p>
@@ -126,21 +138,21 @@
             </button>
         </div>
         
-        <div class="flex flex-col lg:flex-row gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- 遊戲主區域 -->
-            <main class="w-full lg:w-1/2 flex-shrink-0 min-w-0">
+            <main class="w-full flex-shrink-0 min-w-0">
                 <div id="game-board-container" class="relative w-full aspect-square bg-gray-400 rounded-lg p-2.5 grid grid-cols-4 grid-rows-4 gap-2.5">
                     <!-- JS 動態生成背景格子和遊戲方塊 -->
                 </div>
             </main>
 
             <!-- 側邊欄 -->
-            <aside class="w-full lg:w-1/2 flex flex-col gap-4 min-w-0">
+            <aside class="w-full flex flex-col gap-4 min-w-0">
                 <div class="flex-shrink-0">
                     <!-- 元素週期表 -->
                     <div class="bg-white p-2 sm:p-4 rounded-lg shadow">
                         <h2 class="text-base sm:text-lg font-bold text-center mb-2">元素發現紀錄 (點擊查詢)</h2>
-                        <div id="periodic-table" class="grid grid-cols-18 gap-0.5 text-xs cursor-pointer">
+                        <div id="periodic-table" class="grid gap-0.5 text-xs cursor-pointer">
                             <!-- JS 動態生成元素週期表 -->
                         </div>
                     </div>
@@ -162,9 +174,17 @@
             </aside>
         </div>
         <footer class="text-center text-gray-400 text-xs mt-4">
-            <p>&copy; 2025 由小P老師設計， Gemini 協作</p>
+            <p>&copy; 2025 由 Gemini 協作設計</p>
         </footer>
     </div>
+
+    <!-- 勝利動畫容器 -->
+    <div id="win-animation-container" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-40 hidden">
+        <div id="win-animation-card" class="w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg transition-all duration-500">
+            <!-- JS will populate this -->
+        </div>
+    </div>
+
 
     <!-- 遊戲說明視窗 -->
     <div id="instruction-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -223,6 +243,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM 元素獲取 ---
+            const mainContainer = document.getElementById('main-container');
             const gameBoardContainer = document.getElementById('game-board-container');
             const scoreElement = document.getElementById('score');
             const turnCounterElement = document.getElementById('turn-counter');
@@ -241,6 +262,8 @@
             const instructionModal = document.getElementById('instruction-modal');
             const closeInstructionButton = document.getElementById('close-instruction-button');
             const openInstructionButton = document.getElementById('open-instruction-button');
+            const winAnimationContainer = document.getElementById('win-animation-container');
+            const winAnimationCard = document.getElementById('win-animation-card');
 
             // --- 音效管理器 ---
             const audioManager = {
@@ -259,6 +282,7 @@
                     this.synths.discovery = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, volume: -4, envelope: { attack: 0.05, decay: 0.8, sustain: 0.2, release: 0.8 } }).toDestination();
                     this.synths.win = new Tone.Synth({ oscillator: { type: 'sine' }, volume: -2, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
                     this.synths.lose = new Tone.Synth({ oscillator: { type: 'fmsquare' }, volume: -9, envelope: { attack: 0.05, decay: 0.5, sustain: 0, release: 0.5 } }).toDestination();
+                    this.synths.winSequence = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle8' }, volume: -6 }).toDestination();
                     this.synths.bgm = new Tone.Synth({
                         oscillator: { type: "fatsine", spread: 40, count: 3 },
                         envelope: { attack: 2, decay: 1, sustain: 0.8, release: 5 }
@@ -315,7 +339,7 @@
             const PERIODIC_TABLE_DATA = {
                 'H': { row: 1, col: 1 }, 'He': { row: 1, col: 18 },
                 'Li': { row: 2, col: 1 }, 'Be': { row: 2, col: 2 },
-                'B': { row: 2, col: 13 }, 'C': { row: 2, col: 14 }, 'N': { row: 2, col: 15 }, 'O': { row: 2, col: 16 }, 'F': { row: 2, col: 17 }, 'Ne': { row: 2, col: 18 },
+                'B': { row: 2, col: 13 }, 'C': { row: 2, col: 14 }, 'O': { row: 2, col: 16 }, 'Ne': { row: 2, col: 18 },
                 'Mg': { row: 3, col: 2 }, 'Al': { row: 3, col: 13 }, 'Si': { row: 3, col: 14 }, 'P': { row: 3, col: 15 }, 'S': { row: 3, col: 16 }, 'Cl': { row: 3, col: 17 }, 'Ar': { row: 3, col: 18 },
                 'Ca': { row: 4, col: 2 }, 'Ti': { row: 4, col: 4 }, 'Cr': { row: 4, col: 6 }, 'Fe': { row: 4, col: 8 },
             };
@@ -338,14 +362,19 @@
                 'O-16': { name: '氧',   symbol: 'O', displayName: '<span class="iso-stack"><sup>16</sup><sub>8</sub></span>O', isElement: true, color: 'bg-blue-400', textColor: 'text-blue-900' },
                 'Ne-20':{ name: '氖',   symbol: 'Ne',displayName: '<span class="iso-stack"><sup>20</sup><sub>10</sub></span>Ne',isElement: true, color: 'bg-indigo-400', textColor: 'text-indigo-900' },
                 'Mg-24':{ name: '鎂',   symbol: 'Mg',displayName: '<span class="iso-stack"><sup>24</sup><sub>12</sub></span>Mg',isElement: true, color: 'bg-pink-400', textColor: 'text-pink-900' },
+                'Al-27':{ name: '鋁',   symbol: 'Al',displayName: '<span class="iso-stack"><sup>27</sup><sub>13</sub></span>Al',isElement: true, color: 'bg-gray-400', textColor: 'text-gray-800' },
                 'Si-28':{ name: '矽',   symbol: 'Si',displayName: '<span class="iso-stack"><sup>28</sup><sub>14</sub></span>Si',isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
+                'P-31': { name: '磷',   symbol: 'P', displayName: '<span class="iso-stack"><sup>31</sup><sub>15</sub></span>P', isElement: true, color: 'bg-red-400', textColor: 'text-red-900' },
                 'S-32': { name: '硫',   symbol: 'S', displayName: '<span class="iso-stack"><sup>32</sup><sub>16</sub></span>S', isElement: true, color: 'bg-yellow-500', textColor: 'text-yellow-900' },
+                'Cl-35':{ name: '氯',   symbol: 'Cl',displayName: '<span class="iso-stack"><sup>35</sup><sub>17</sub></span>Cl',isElement: true, color: 'bg-green-500', textColor: 'text-white' },
                 'Ar-36':{ name: '氬',   symbol: 'Ar',displayName: '<span class="iso-stack"><sup>36</sup><sub>18</sub></span>Ar',isElement: true, color: 'bg-cyan-400', textColor: 'text-cyan-900' },
                 'Ca-40':{ name: '鈣',   symbol: 'Ca',displayName: '<span class="iso-stack"><sup>40</sup><sub>20</sub></span>Ca',isElement: true, color: 'bg-lime-400', textColor: 'text-lime-900' },
-                'Ti-44':{ name: '鈦-44',symbol: 'Ti',displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 6, color: 'bg-gray-400', textColor: 'text-gray-900' },
-                'Cr-48':{ name: '鉻-48',symbol: 'Cr',displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 5, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
-                'Fe-52':{ name: '鐵-52',symbol: 'Fe',displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 4, color: 'bg-orange-400', textColor: 'text-orange-900' },
+                'Ti-44':{ name: '鈦-44',symbol: 'Ti',displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 16, color: 'bg-gray-400', textColor: 'text-gray-900' },
+                'Cr-48':{ name: '鉻-48',symbol: 'Cr',displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 16, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
+                'Fe-52':{ name: '鐵-52',symbol: 'Fe',displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 16, color: 'bg-orange-400', textColor: 'text-orange-900' },
                 'Fe-56':{ name: '鐵',   symbol: 'Fe',displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
+                'Ni-56': { name: '鎳-56', symbol: 'Ni', displayName: '<span class="iso-stack"><sup>56</sup><sub>28</sub></span>Ni', color: 'bg-green-600', textColor: 'text-white'},
+                'Co-56': { name: '鈷-56', symbol: 'Co', displayName: '<span class="iso-stack"><sup>56</sup><sub>27</sub></span>Co', color: 'bg-blue-600', textColor: 'text-white'},
             };
             
             const SYNTHESIS_HINTS = {
@@ -356,9 +385,12 @@
                 'B': '硼主要來自宇宙射線散裂。<br>• <strong><sup>1</sup><sub>1</sub>P + <sup>16</sup><sub>8</sub>O &rarr; <sup>11</sup><sub>5</sub>B</strong><br>• <span class="text-red-600">注意: 硼會被質子摧毀！<br>  <strong><sup>1</sup><sub>1</sub>P + <sup>11</sup><sub>5</sub>B &rarr; <sup>8</sup><sub>4</sub>Be</strong> (衰變)</span>',
                 'C': '碳的誕生是關鍵！讓三個 <strong><sup>4</sup><sub>2</sub>He</strong> 在同一直線上或 L 型相鄰觸發「3α反應」。',
                 'O': '透過α捕獲來合成氧。<br>• <strong><sup>12</sup><sub>6</sub>C + <sup>4</sup><sub>2</sub>He &rarr; <sup>16</sup><sub>8</sub>O</strong>',
-                'N': '氮主要在CNO循環中作為催化劑出現，本遊戲簡化未加入其主要合成路徑。',
-                'F': '氟在恆星中不易大量產生。',
                 'Ne': '繼續α捕獲！<br>• <strong><sup>16</sup><sub>8</sub>O + <sup>4</sup><sub>2</sub>He &rarr; <sup>20</sup><sub>10</sub>Ne</strong>',
+                'Al': '鋁是質子捕獲的產物。<br>• <strong><sup>24</sup><sub>12</sub>Mg + <sup>1</sup><sub>1</sub>P &rarr; <sup>27</sup><sub>13</sub>Al</strong>',
+                'Si': '繼續α捕獲！<br>• <strong><sup>24</sup><sub>12</sub>Mg + <sup>4</sup><sub>2</sub>He &rarr; <sup>28</sup><sub>14</sub>Si</strong>',
+                'P': '磷是質子捕獲的產物。<br>• <strong><sup>28</sup><sub>14</sub>Si + <sup>1</sup><sub>1</sub>P &rarr; <sup>31</sup><sub>15</sub>P</strong>',
+                'S': '繼續α捕獲！<br>• <strong><sup>28</sup><sub>14</sub>Si + <sup>4</sup><sub>2</sub>He &rarr; <sup>32</sup><sub>16</sub>S</strong>',
+                'Cl': '氯是質子捕獲的產物。<br>• <strong><sup>32</sup><sub>16</sub>S + <sup>1</sup><sub>1</sub>P &rarr; <sup>35</sup><sub>17</sub>Cl</strong>',
                 'default': '繼續用 <strong><sup>4</sup><sub>2</sub>He</strong> 進行α捕獲，或嘗試重元素之間的融合！'
             };
 
@@ -405,23 +437,29 @@
                     gameBoardContainer.appendChild(cell);
                 }
             }
-
+            
             function setupPeriodicTable() {
                 periodicTable.innerHTML = '';
+                 for (let i = 0; i < 4 * 18; i++) {
+                    const cell = document.createElement('div');
+                    periodicTable.appendChild(cell);
+                }
+
                 for (const el in PERIODIC_TABLE_DATA) {
                     if (Object.hasOwnProperty.call(PERIODIC_TABLE_DATA, el)) {
                         const { row, col } = PERIODIC_TABLE_DATA[el];
-                        const cell = document.createElement('div');
-                        const baseClasses = 'border rounded text-center font-bold transition-colors text-[10px] sm:text-xs leading-tight aspect-square flex items-center justify-center';
-                        cell.className = baseClasses;
-                        cell.style.gridRowStart = row;
-                        cell.style.gridColumnStart = col;
-
-                        const stateClasses = discoveredElements.has(el) ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-gray-200 text-gray-400 hover:bg-gray-300';
-                        cell.classList.add(...stateClasses.split(' '));
-                        cell.textContent = el;
-                        cell.dataset.element = el;
-                        periodicTable.appendChild(cell);
+                        const index = (row - 1) * 18 + (col - 1);
+                        if (index < periodicTable.children.length) {
+                            const cell = periodicTable.children[index];
+                            
+                            const baseClasses = 'border rounded text-center font-bold transition-colors text-[10px] sm:text-xs leading-tight aspect-square flex items-center justify-center';
+                            cell.className = baseClasses;
+                            
+                            const stateClasses = discoveredElements.has(el) ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-gray-200 text-gray-400 hover:bg-gray-300';
+                            cell.classList.add(...stateClasses.split(' '));
+                            cell.textContent = el;
+                            cell.dataset.element = el;
+                        }
                     }
                 }
             }
@@ -602,6 +640,13 @@
                 }
 
                 processDecay();
+                
+                const gameState = checkGameState();
+                if (gameState === 'win') {
+                    startWinAnimation();
+                    return; 
+                } 
+                
                 spawnParticle();
                 
                 clearMergeLocks();
@@ -610,11 +655,8 @@
                 updateHints();
                 
                 isMoving = false;
-                const gameState = checkGameState();
-                if (gameState === 'win') {
-                    audioManager.play('win');
-                    showWinModal();
-                } else if (gameState === 'lose') {
+
+                if (gameState === 'lose') {
                     audioManager.play('lose');
                     showLoseModal();
                 }
@@ -750,6 +792,9 @@
                 // 宇宙射線散裂 (製造)
                 'p+C-12': { result: 'Be-9', score: 200, note: ' (宇宙射線散裂)'},
                 'p+O-16': { result: 'B-11', score: 250, note: ' (宇宙射線散裂)'},
+                'p+Mg-24': { result: 'Al-27', score: 300 },
+                'p+Si-28': { result: 'P-31', score: 350 },
+                'p+S-32': { result: 'Cl-35', score: 400 },
                 // 主要融合鏈
                 'C-12+He-4': { result: 'O-16', score: 100 }, 
                 'O-16+He-4': { result: 'Ne-20', score: 150 },
@@ -941,6 +986,33 @@
                 modalRestartButton.classList.add('hidden');
                 modalCloseButton.classList.remove('hidden');
                 gameModal.classList.remove('hidden');
+            }
+            
+             function startWinAnimation() {
+                mainContainer.classList.add('opacity-0');
+                winAnimationContainer.classList.remove('hidden');
+                const now = Tone.now();
+
+                const sequence = [
+                    { delay: 0, type: 'Ni-56', sound: ['C4', 'G4', 'C5'], duration: '1n' },
+                    { delay: 2500, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
+                    { delay: 5000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
+                ];
+                
+                sequence.forEach(step => {
+                    setTimeout(() => {
+                        const data = ELEMENT_DATA[step.type];
+                        winAnimationCard.className = `win-animation-card w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg ${data.color} ${data.textColor}`;
+                        winAnimationCard.innerHTML = data.displayName;
+                        audioManager.play('winSequence', step.sound, step.duration);
+                    }, step.delay);
+                });
+
+                setTimeout(() => {
+                    winAnimationContainer.classList.add('hidden');
+                    mainContainer.classList.remove('opacity-0');
+                    showWinModal();
+                }, 7500);
             }
             
             // --- 事件監聽 ---
