@@ -123,8 +123,8 @@
 
     <div id="main-container" class="w-full max-w-5xl mx-auto transition-opacity duration-500">
         <header class="text-center mb-4">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-700">核融合 2048</h1>
-            <p class="text-gray-500 mt-1 text-sm sm:text-base">模擬恆星內部的元素鍊金術</p>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-700">FUSION 2048</h1>
+            <p class="text-gray-500 mt-1 text-sm sm:text-base">恆星元素鍊金術</p>
         </header>
 
         <div class="flex justify-center items-center mb-4 space-x-2 sm:space-x-4">
@@ -356,37 +356,37 @@
 
             // --- 元素資料庫 ---
             const ELEMENT_DATA = {
-                'p':    { name: '質子', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P', color: 'bg-red-200', textColor: 'text-red-800' },
-                'n':    { name: '中子', displayName: '<span class="iso-stack"><sup>1</sup><sub>0</sub></span>n', color: 'bg-gray-300', textColor: 'text-gray-800' },
-                'p_high': { name: '高能質子', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P<sup>+</sup>', color: 'bg-yellow-300', textColor: 'text-yellow-900', isHighEnergy: true },
-                'H-1':  { name: '氫',   symbol: 'H', displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>H',  isElement: true, color: 'bg-red-300', textColor: 'text-red-900' },
-                'H-2':  { name: '氘',   symbol: 'H', displayName: '<span class="iso-stack"><sup>2</sup><sub>1</sub></span>D',  isElement: true, color: 'bg-purple-300', textColor: 'text-purple-900' },
-                'H-3':  { name: '氚',   symbol: 'H', displayName: '<span class="iso-stack"><sup>3</sup><sub>1</sub></span>T',  isElement: true, color: 'bg-indigo-300', textColor: 'text-indigo-900' },
-                'Li-6': { name: '鋰',   symbol: 'Li', displayName: '<span class="iso-stack"><sup>6</sup><sub>3</sub></span>Li',  isElement: true, color: 'bg-pink-300', textColor: 'text-pink-900' },
-                'He-2': { name: '氦-2', symbol: 'He', displayName: '<span class="iso-stack"><sup>2</sup><sub>2</sub></span>He', isElement: true, unstable: true, countdown: 2, color: 'bg-purple-200', textColor: 'text-purple-800' },
-                'He-3': { name: '氦-3', symbol: 'He', displayName: '<span class="iso-stack"><sup>3</sup><sub>2</sub></span>He', isElement: true, color: 'bg-green-300', textColor: 'text-green-900' },
-                'He-4': { name: '氦',   symbol: 'He', displayName: '<span class="iso-stack"><sup>4</sup><sub>2</sub></span>He', isElement: true, color: 'bg-green-400', textColor: 'text-green-900' },
-                'Be-8': { name: '鈹-8', symbol: 'Be', displayName: '<span class="iso-stack"><sup>8</sup><sub>4</sub></span>Be', unstable: true, countdown: 0, color: 'bg-yellow-200', textColor: 'text-yellow-800' },
-                'Be-9': { name: '鈹',   symbol: 'Be', displayName: '<span class="iso-stack"><sup>9</sup><sub>4</sub></span>Be', isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
-                'B-11': { name: '硼',   symbol: 'B', displayName: '<span class="iso-stack"><sup>11</sup><sub>5</sub></span>B', isElement: true, color: 'bg-teal-300', textColor: 'text-teal-900' },
-                'C-12': { name: '碳',   symbol: 'C', displayName: '<span class="iso-stack"><sup>12</sup><sub>6</sub></span>C', isElement: true, color: 'bg-gray-500', textColor: 'text-white' },
-                'N-13': { name: '氮-13', symbol: 'N', displayName: '<span class="iso-stack"><sup>13</sup><sub>7</sub></span>N', isElement: true, unstable: true, countdown: 4, color: 'bg-sky-200', textColor: 'text-sky-800' },
-                'O-16': { name: '氧',   symbol: 'O', displayName: '<span class="iso-stack"><sup>16</sup><sub>8</sub></span>O', isElement: true, color: 'bg-blue-400', textColor: 'text-blue-900' },
-                'Ne-20':{ name: '氖',   symbol: 'Ne',displayName: '<span class="iso-stack"><sup>20</sup><sub>10</sub></span>Ne',isElement: true, color: 'bg-indigo-400', textColor: 'text-indigo-900' },
-                'Mg-24':{ name: '鎂',   symbol: 'Mg',displayName: '<span class="iso-stack"><sup>24</sup><sub>12</sub></span>Mg',isElement: true, color: 'bg-pink-400', textColor: 'text-pink-900' },
-                'Al-27':{ name: '鋁',   symbol: 'Al',displayName: '<span class="iso-stack"><sup>27</sup><sub>13</sub></span>Al',isElement: true, color: 'bg-gray-400', textColor: 'text-gray-800' },
-                'Si-28':{ name: '矽',   symbol: 'Si',displayName: '<span class="iso-stack"><sup>28</sup><sub>14</sub></span>Si',isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
-                'P-31': { name: '磷',   symbol: 'P', displayName: '<span class="iso-stack"><sup>31</sup><sub>15</sub></span>P', isElement: true, color: 'bg-red-400', textColor: 'text-red-900' },
-                'S-32': { name: '硫',   symbol: 'S', displayName: '<span class="iso-stack"><sup>32</sup><sub>16</sub></span>S', isElement: true, color: 'bg-yellow-500', textColor: 'text-yellow-900' },
-                'Cl-35':{ name: '氯',   symbol: 'Cl',displayName: '<span class="iso-stack"><sup>35</sup><sub>17</sub></span>Cl',isElement: true, color: 'bg-green-500', textColor: 'text-white' },
-                'Ar-36':{ name: '氬',   symbol: 'Ar',displayName: '<span class="iso-stack"><sup>36</sup><sub>18</sub></span>Ar',isElement: true, color: 'bg-cyan-400', textColor: 'text-cyan-900' },
-                'Ca-40':{ name: '鈣',   symbol: 'Ca',displayName: '<span class="iso-stack"><sup>40</sup><sub>20</sub></span>Ca',isElement: true, color: 'bg-lime-400', textColor: 'text-lime-900' },
-                'Ti-44':{ name: '鈦-44',symbol: 'Ti',displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 56, color: 'bg-gray-400', textColor: 'text-gray-900' },
-                'Cr-48':{ name: '鉻-48',symbol: 'Cr',displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 55, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
-                'Fe-52':{ name: '鐵-52',symbol: 'Fe',displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 54, color: 'bg-orange-400', textColor: 'text-orange-900' },
-                'Fe-56':{ name: '鐵',   symbol: 'Fe',displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
-                'Ni-56': { name: '鎳-56', symbol: 'Ni', displayName: '<span class="iso-stack"><sup>56</sup><sub>28</sub></span>Ni', color: 'bg-green-600', textColor: 'text-white'},
-                'Co-56': { name: '鈷-56', symbol: 'Co', displayName: '<span class="iso-stack"><sup>56</sup><sub>27</sub></span>Co', color: 'bg-blue-600', textColor: 'text-white'},
+                'p':    { name: '質子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P', color: 'bg-red-200', textColor: 'text-red-800' },
+                'n':    { name: '中子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>0</sub></span>n', color: 'bg-gray-300', textColor: 'text-gray-800' },
+                'p_high': { name: '高能質子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P<sup>+</sup>', color: 'bg-yellow-300', textColor: 'text-yellow-900', isHighEnergy: true },
+                'H-1':  { name: '氫',   symbol: 'H', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>H',  isElement: true, color: 'bg-red-300', textColor: 'text-red-900' },
+                'H-2':  { name: '氘',   symbol: 'H', mass: 2, displayName: '<span class="iso-stack"><sup>2</sup><sub>1</sub></span>D',  isElement: true, color: 'bg-purple-300', textColor: 'text-purple-900' },
+                'H-3':  { name: '氚',   symbol: 'H', mass: 3, displayName: '<span class="iso-stack"><sup>3</sup><sub>1</sub></span>T',  isElement: true, color: 'bg-indigo-300', textColor: 'text-indigo-900' },
+                'Li-6': { name: '鋰',   symbol: 'Li', mass: 6, displayName: '<span class="iso-stack"><sup>6</sup><sub>3</sub></span>Li',  isElement: true, color: 'bg-pink-300', textColor: 'text-pink-900' },
+                'He-2': { name: '氦-2', symbol: 'He', mass: 2, displayName: '<span class="iso-stack"><sup>2</sup><sub>2</sub></span>He', isElement: true, unstable: true, countdown: 2, color: 'bg-purple-200', textColor: 'text-purple-800' },
+                'He-3': { name: '氦-3', symbol: 'He', mass: 3, displayName: '<span class="iso-stack"><sup>3</sup><sub>2</sub></span>He', isElement: true, color: 'bg-green-300', textColor: 'text-green-900' },
+                'He-4': { name: '氦',   symbol: 'He', mass: 4, displayName: '<span class="iso-stack"><sup>4</sup><sub>2</sub></span>He', isElement: true, color: 'bg-green-400', textColor: 'text-green-900' },
+                'Be-8': { name: '鈹-8', symbol: 'Be', mass: 8, displayName: '<span class="iso-stack"><sup>8</sup><sub>4</sub></span>Be', unstable: true, countdown: 0, color: 'bg-yellow-200', textColor: 'text-yellow-800' },
+                'Be-9': { name: '鈹',   symbol: 'Be', mass: 9, displayName: '<span class="iso-stack"><sup>9</sup><sub>4</sub></span>Be', isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
+                'B-11': { name: '硼',   symbol: 'B', mass: 11, displayName: '<span class="iso-stack"><sup>11</sup><sub>5</sub></span>B', isElement: true, color: 'bg-teal-300', textColor: 'text-teal-900' },
+                'C-12': { name: '碳',   symbol: 'C', mass: 12, displayName: '<span class="iso-stack"><sup>12</sup><sub>6</sub></span>C', isElement: true, color: 'bg-gray-500', textColor: 'text-white' },
+                'N-13': { name: '氮-13', symbol: 'N', mass: 13, displayName: '<span class="iso-stack"><sup>13</sup><sub>7</sub></span>N', isElement: true, unstable: true, countdown: 4, color: 'bg-sky-200', textColor: 'text-sky-800' },
+                'O-16': { name: '氧',   symbol: 'O', mass: 16, displayName: '<span class="iso-stack"><sup>16</sup><sub>8</sub></span>O', isElement: true, color: 'bg-blue-400', textColor: 'text-blue-900' },
+                'Ne-20':{ name: '氖',   symbol: 'Ne', mass: 20, displayName: '<span class="iso-stack"><sup>20</sup><sub>10</sub></span>Ne',isElement: true, color: 'bg-indigo-400', textColor: 'text-indigo-900' },
+                'Mg-24':{ name: '鎂',   symbol: 'Mg', mass: 24, displayName: '<span class="iso-stack"><sup>24</sup><sub>12</sub></span>Mg',isElement: true, color: 'bg-pink-400', textColor: 'text-pink-900' },
+                'Al-27':{ name: '鋁',   symbol: 'Al', mass: 27, displayName: '<span class="iso-stack"><sup>27</sup><sub>13</sub></span>Al',isElement: true, color: 'bg-gray-400', textColor: 'text-gray-800' },
+                'Si-28':{ name: '矽',   symbol: 'Si', mass: 28, displayName: '<span class="iso-stack"><sup>28</sup><sub>14</sub></span>Si',isElement: true, color: 'bg-yellow-400', textColor: 'text-yellow-900' },
+                'P-31': { name: '磷',   symbol: 'P', mass: 31, displayName: '<span class="iso-stack"><sup>31</sup><sub>15</sub></span>P', isElement: true, color: 'bg-red-400', textColor: 'text-red-900' },
+                'S-32': { name: '硫',   symbol: 'S', mass: 32, displayName: '<span class="iso-stack"><sup>32</sup><sub>16</sub></span>S', isElement: true, color: 'bg-yellow-500', textColor: 'text-yellow-900' },
+                'Cl-35':{ name: '氯',   symbol: 'Cl', mass: 35, displayName: '<span class="iso-stack"><sup>35</sup><sub>17</sub></span>Cl',isElement: true, color: 'bg-green-500', textColor: 'text-white' },
+                'Ar-36':{ name: '氬',   symbol: 'Ar', mass: 36, displayName: '<span class="iso-stack"><sup>36</sup><sub>18</sub></span>Ar',isElement: true, color: 'bg-cyan-400', textColor: 'text-cyan-900' },
+                'Ca-40':{ name: '鈣',   symbol: 'Ca', mass: 40, displayName: '<span class="iso-stack"><sup>40</sup><sub>20</sub></span>Ca',isElement: true, color: 'bg-lime-400', textColor: 'text-lime-900' },
+                'Ti-44':{ name: '鈦-44',symbol: 'Ti', mass: 44, displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 60, color: 'bg-gray-400', textColor: 'text-gray-900' },
+                'Cr-48':{ name: '鉻-48',symbol: 'Cr', mass: 48, displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 50, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
+                'Fe-52':{ name: '鐵-52',symbol: 'Fe', mass: 52, displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 40, color: 'bg-orange-400', textColor: 'text-orange-900' },
+                'Fe-56':{ name: '鐵',   symbol: 'Fe', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
+                'Ni-56': { name: '鎳-56', symbol: 'Ni', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>28</sub></span>Ni', color: 'bg-green-600', textColor: 'text-white'},
+                'Co-56': { name: '鈷-56', symbol: 'Co', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>27</sub></span>Co', color: 'bg-blue-600', textColor: 'text-white'},
             };
             
             const SYNTHESIS_HINTS = {
@@ -822,7 +822,7 @@
                 'p_high+P-31': { result: 'S-32', score: -20, note: '(質子燃燒)'},
                 'p_high+Cl-35': { result: 'Ar-36', score: -20, note: '(質子燃燒)'},
                 // 高能質子破碎 (製造稀有)
-                'p_high+C-12': { result: 'Be-9', score: 200, note: ' (宇宙射線散裂)'},
+                'p_high+C-12': { result: 'N-13', score: 220, note: ' (CNO循環啟動!)'},
                 'p_high+O-16': { result: 'B-11', score: 250, note: ' (宇宙射線散裂)'},
                 'p_high+Li-6': { result: 'He-4', score: -10, note: ' (質子燃燒)' },
                 'p_high+Be-9': { result: 'Li-6', score: -10, note: ' (質子燃燒)' },
@@ -878,7 +878,7 @@
                     discoveredElements.add(resultData.symbol);
                 }
 
-                if(resultData.mass >= 16 && Math.random() < 0.1) { // 10% chance for O-16 or heavier
+                if(resultData.mass >= 16 && Math.random() < 0.9) { 
                     specialSpawnQueue = 'p_high';
                     addLog('<strong>高能質子</strong>在熔爐中產生了！');
                 }
