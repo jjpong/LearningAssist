@@ -1065,42 +1065,47 @@
     mainContainer.classList.add('opacity-0');
     winAnimationContainer.classList.remove('hidden');
     
-    // 2. 定義動畫的每一個步驟，包含延遲時間、粒子類型和音效
+    // 2. 定義動畫的每一個步驟
     const sequence = [
-        // 步驟一：立刻 (延遲 0ms) 顯示 Ni-56
         { delay: 0, type: 'Ni-56', sound: ['C4', 'G4', 'C5'], duration: '1n' },
-        // 步驟二：在動畫開始 3.5 秒後，顯示 Co-56
         { delay: 3500, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
-        // 步驟三：在動畫開始 7 秒後，顯示 Fe-56
         { delay: 7000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
     ];
     
-    // 3. 遍歷序列，使用 setTimeout 來依序執行每一個動畫步驟
+    // 3. 遍歷序列，依序執行每一個動畫步驟
     sequence.forEach(step => {
         setTimeout(() => {
             const data = ELEMENT_DATA[step.type];
             
-            // 關鍵修正：強制瀏覽器重新觸發CSS動畫
-            winAnimationCard.classList.remove('win-animation-card-animate');
-            void winAnimationCard.offsetWidth; // 強制 reflow
-            winAnimationCard.classList.add('win-animation-card-animate');
+            // --- 以下是關鍵修正 ---
 
-            // 更新卡片的樣式和內容
-            winAnimationCard.className = `win-animation-card w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg ${data.color} ${data.textColor} win-animation-card-animate`;
+            // 步驟 A: 先移除動畫 class，讓元素恢復初始狀態 (opacity: 0)
+            winAnimationCard.classList.remove('win-animation-card');
+
+            // 步驟 B: 更新卡片的基礎樣式 (顏色) 和內容。
+            // 注意：這裡不再使用 winAnimationCard.className = `...` 來避免覆蓋所有 class。
+            // 我們先設定一個乾淨的基礎 class 列表。
+            winAnimationCard.className = `w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg ${data.color} ${data.textColor}`;
             winAnimationCard.innerHTML = data.displayName;
+
+            // 步驟 C: 強制瀏覽器重新計算樣式 (reflow)。這是重啟動畫的關鍵技巧。
+            void winAnimationCard.offsetWidth; 
+
+            // 步驟 D: 重新加上動畫 class，觸發動畫從頭播放。
+            winAnimationCard.classList.add('win-animation-card');
+            
             // 播放對應的音效
             audioManager.play('winSequence', step.sound, step.duration);
         }, step.delay);
     });
 
-    // 4. 在所有動畫步驟結束後 (10.5秒後)，顯示最終的勝利視窗
+    // 4. 在所有動畫步驟結束後，顯示最終的勝利視窗
     setTimeout(() => {
         winAnimationContainer.classList.add('hidden');
         mainContainer.classList.remove('opacity-0');
         showWinModal();
     }, 10500); // 總時長
 }
-
             
             // --- 事件監聽 ---
             window.addEventListener('keydown', handleInput);
@@ -1184,4 +1189,3 @@
 
 </body>
 </html>
-
