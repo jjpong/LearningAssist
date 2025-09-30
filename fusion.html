@@ -631,7 +631,7 @@
             // 1. 先決定基礎粒子是質子還是中子
             if (Math.random() < 0.7) { // 70% 機率是質子類
                 // 2. 如果是質子，再檢查是否要升級為高能質子
-                if (highEnergyProtonUnlocked && Math.random() < 0.25) { // 如果已解鎖，則有 50% 機率升級
+                if (highEnergyProtonUnlocked && Math.random() < 0.1) { // 如果已解鎖，則有 50% 機率升級
                     type = 'p_high';
                     // 為了讓玩家知道，可以加個日誌
                     addLog('一個<strong>高能質子</strong>隨機出現在熔爐中！');
