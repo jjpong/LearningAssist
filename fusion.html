@@ -638,7 +638,10 @@
             
             function handleInput(e) {
                 if (isMoving || !instructionModal.classList.contains('hidden')) return;
-                
+                    if (e.key === 'w') { // 按下 'w' 鍵來觸發勝利動畫
+        startWinAnimation();
+        return;
+    }
                 let moved = false;
                 switch (e.key) {
                     case 'ArrowUp':    moved = move('up'); break;
