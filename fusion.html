@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>核融合 2048 (Fusion 2048)</title>
+    <title>恆星核融合 2048 (Fusion 2048)</title>
     <!-- 引入 Tone.js 音效庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- 引入 Tailwind CSS -->
@@ -222,9 +222,9 @@
                  <div>
                     <h3 class="font-bold text-lg mb-2 text-gray-800">特殊規則</h3>
                     <ul class="list-disc list-inside space-y-1">
-                        <li><strong>遊戲限制</strong>: 為了遊戲性，某些反應（如衰變）可能不會完全遵守真實世界的質能守恆。</li>
+                        <li><strong>高能質子 (P⁺)</strong>: 合成氧(O)或更重的元素後，即有機會產生。它是所有進階質子反應的唯一鑰匙！但它會在2回合後降級為普通質子。</li>
                         <li><strong>3α反應</strong>: 合成碳是關鍵！您需要將三個氦-4 (<sup>4</sup><sub>2</sub>He) 排列在一起（直線或L型）才能觸發。</li>
-                        <li><strong>稀有元素</strong>: 鋰(Li)、鈹(Be)、硼(B) 無法透過主要融合鏈產生，需要模擬「宇宙射線散裂」的特殊反應才能得到，它們也可以被質子摧毀。</li>
+                        <li><strong>稀有元素</strong>: 鋰(Li)、鈹(Be)、硼(B) 等元素無法透過主要融合鏈產生，需要使用高能質子來觸發特殊反應才能得到。</li>
                          <li><strong>提示</strong>: 點擊右側週期表上的元素符號可以查詢詳細的合成方式。</li>
                     </ul>
                 </div>
@@ -358,7 +358,7 @@
             const ELEMENT_DATA = {
                 'p':    { name: '質子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P', color: 'bg-red-200', textColor: 'text-red-800' },
                 'n':    { name: '中子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>0</sub></span>n', color: 'bg-gray-300', textColor: 'text-gray-800' },
-                'p_high': { name: '高能質子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P<sup>+</sup>', color: 'bg-yellow-300', textColor: 'text-yellow-900', isHighEnergy: true },
+                'p_high': { name: '高能質子', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>P<sup>+</sup>', color: 'bg-yellow-300', textColor: 'text-yellow-900', isHighEnergy: true, unstable: true, countdown: 2 },
                 'H-1':  { name: '氫',   symbol: 'H', mass: 1, displayName: '<span class="iso-stack"><sup>1</sup><sub>1</sub></span>H',  isElement: true, color: 'bg-red-300', textColor: 'text-red-900' },
                 'H-2':  { name: '氘',   symbol: 'H', mass: 2, displayName: '<span class="iso-stack"><sup>2</sup><sub>1</sub></span>D',  isElement: true, color: 'bg-purple-300', textColor: 'text-purple-900' },
                 'H-3':  { name: '氚',   symbol: 'H', mass: 3, displayName: '<span class="iso-stack"><sup>3</sup><sub>1</sub></span>T',  isElement: true, color: 'bg-indigo-300', textColor: 'text-indigo-900' },
@@ -381,9 +381,9 @@
                 'Cl-35':{ name: '氯',   symbol: 'Cl', mass: 35, displayName: '<span class="iso-stack"><sup>35</sup><sub>17</sub></span>Cl',isElement: true, color: 'bg-green-500', textColor: 'text-white' },
                 'Ar-36':{ name: '氬',   symbol: 'Ar', mass: 36, displayName: '<span class="iso-stack"><sup>36</sup><sub>18</sub></span>Ar',isElement: true, color: 'bg-cyan-400', textColor: 'text-cyan-900' },
                 'Ca-40':{ name: '鈣',   symbol: 'Ca', mass: 40, displayName: '<span class="iso-stack"><sup>40</sup><sub>20</sub></span>Ca',isElement: true, color: 'bg-lime-400', textColor: 'text-lime-900' },
-                'Ti-44':{ name: '鈦-44',symbol: 'Ti', mass: 44, displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 6, color: 'bg-gray-400', textColor: 'text-gray-900' },
-                'Cr-48':{ name: '鉻-48',symbol: 'Cr', mass: 48, displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 5, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
-                'Fe-52':{ name: '鐵-52',symbol: 'Fe', mass: 52, displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 4, color: 'bg-orange-400', textColor: 'text-orange-900' },
+                'Ti-44':{ name: '鈦-44',symbol: 'Ti', mass: 44, displayName: '<span class="iso-stack"><sup>44</sup><sub>22</sub></span>Ti',isElement: true, unstable: true, countdown: 60, color: 'bg-gray-400', textColor: 'text-gray-900' },
+                'Cr-48':{ name: '鉻-48',symbol: 'Cr', mass: 48, displayName: '<span class="iso-stack"><sup>48</sup><sub>24</sub></span>Cr',isElement: true, unstable: true, countdown: 50, color: 'bg-blue-gray-400', textColor: 'text-blue-gray-900' },
+                'Fe-52':{ name: '鐵-52',symbol: 'Fe', mass: 52, displayName: '<span class="iso-stack"><sup>52</sup><sub>26</sub></span>Fe',isElement: true, unstable: true, countdown: 400, color: 'bg-orange-400', textColor: 'text-orange-900' },
                 'Fe-56':{ name: '鐵',   symbol: 'Fe', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>26</sub></span>Fe',isElement: true, isWin: true, color: 'bg-orange-600', textColor: 'text-white' },
                 'Ni-56': { name: '鎳-56', symbol: 'Ni', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>28</sub></span>Ni', color: 'bg-green-600', textColor: 'text-white'},
                 'Co-56': { name: '鈷-56', symbol: 'Co', mass: 56, displayName: '<span class="iso-stack"><sup>56</sup><sub>27</sub></span>Co', color: 'bg-blue-600', textColor: 'text-white'},
@@ -417,6 +417,7 @@
             let isMoving = false;
             let tileIdCounter;
             let specialSpawnQueue = null;
+            let highEnergyProtonUnlocked = false;
 
             // --- 初始化遊戲 ---
             function setupGame() {
@@ -428,6 +429,7 @@
                 unlockedIsotopes = new Set(['p', 'n']);
                 isMoving = false;
                 specialSpawnQueue = null;
+                highEnergyProtonUnlocked = false;
                 
                 updateScore(0);
                 updateTurn(0);
@@ -878,9 +880,19 @@
                     discoveredElements.add(resultData.symbol);
                 }
 
-                if(resultData.mass >= 16 && Math.random() < 0.9) { 
-                    specialSpawnQueue = 'p_high';
-                    addLog('<strong>高能質子</strong>在熔爐中產生了！');
+                // Chance to spawn high energy proton
+                if (resultData.mass >= 16) {
+                    if (!highEnergyProtonUnlocked) {
+                        highEnergyProtonUnlocked = true;
+                        addLog('<strong>熔爐溫度提升！</strong>現在有機會產生高能質子了！', true);
+                    }
+                    if (isFirstDiscovery) {
+                        specialSpawnQueue = 'p_high';
+                        addLog('<strong>重大發現！</strong>一個高能質子被激發了！', true);
+                    } else if (highEnergyProtonUnlocked && Math.random() < 0.05) { // 5% chance
+                        specialSpawnQueue = 'p_high';
+                        addLog('<strong>高能質子</strong>在熔爐中產生了！');
+                    }
                 }
 
                 return { type: resultType, ...resultData };
@@ -958,7 +970,11 @@
                             if (cell.countdown <= 0) {
                                 audioManager.play('decay', decayOffset);
                                 decayOffset += 0.05;
-                                if (cell.type === 'He-2') {
+                                if (cell.type === 'p_high') {
+                                    addLog(`<strong class="text-yellow-500">${ELEMENT_DATA[cell.type].displayName}</strong> 能量耗盡，變回 <strong>普通質子</strong>！`);
+                                    const newData = ELEMENT_DATA['p'];
+                                    grid[r][c] = { id: cell.id, type: 'p', ...newData };
+                                } else if (cell.type === 'He-2') {
                                     addLog(`<strong class="text-red-500">${ELEMENT_DATA[cell.type].displayName}</strong> 衰變回 <strong>質子</strong>！`);
                                     const newData = ELEMENT_DATA['p'];
                                     grid[r][c] = { id: cell.id, type: 'p', ...newData };
@@ -988,7 +1004,6 @@
                     const pos = emptyNeighbors[Math.floor(Math.random() * emptyNeighbors.length)];
                     grid[pos.r][pos.c] = { id: tileIdCounter++, type: type, ...ELEMENT_DATA[type] };
                 } else {
-                    // if no empty neighbor, spawn randomly
                     spawnParticle();
                 }
              }
