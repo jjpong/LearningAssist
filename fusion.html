@@ -1058,31 +1058,46 @@
             }
             
              function startWinAnimation() {
-                mainContainer.classList.add('opacity-0');
-                winAnimationContainer.classList.remove('hidden');
-                const now = Tone.now();
+    // 1. 隱藏主遊戲畫面，顯示動畫專用的容器
+    mainContainer.classList.add('opacity-0');
+    winAnimationContainer.classList.remove('hidden');
+    
+    // 2. 定義動畫的每一個步驟，包含延遲時間、粒子類型和音效
+    const sequence = [
+        // 步驟一：立刻 (延遲 0ms) 顯示 Ni-56
+        { delay: 0, type: 'Ni-56', sound: ['C4', 'G4', 'C5'], duration: '1n' },
+        // 步驟二：在動畫開始 3.5 秒後，顯示 Co-56
+        { delay: 3500, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
+        // 步驟三：在動畫開始 7 秒後，顯示 Fe-56
+        { delay: 7000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
+    ];
+    
+    // 3. 遍歷序列，使用 setTimeout 來依序執行每一個動畫步驟
+    sequence.forEach(step => {
+        setTimeout(() => {
+            const data = ELEMENT_DATA[step.type];
+            
+            // 關鍵修正：強制瀏覽器重新觸發CSS動畫
+            winAnimationCard.classList.remove('win-animation-card-animate');
+            void winAnimationCard.offsetWidth; // 強制 reflow
+            winAnimationCard.classList.add('win-animation-card-animate');
 
-                const sequence = [
-                    { delay: 0, type: 'Ni-56', sound: ['C4', 'G4', 'C5'], duration: '1n' },
-                    { delay: 3000, type: 'Co-56', sound: ['D4', 'A4', 'D5'], duration: '1n' },
-                    { delay: 6000, type: 'Fe-56', sound: ['E4', 'B4', 'E5', 'G#5'], duration: '0.5n' }
-                ];
-                
-                sequence.forEach(step => {
-                    setTimeout(() => {
-                        const data = ELEMENT_DATA[step.type];
-                        winAnimationCard.className = `win-animation-card w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg ${data.color} ${data.textColor}`;
-                        winAnimationCard.innerHTML = data.displayName;
-                        audioManager.play('winSequence', step.sound, step.duration);
-                    }, step.delay);
-                });
+            // 更新卡片的樣式和內容
+            winAnimationCard.className = `win-animation-card w-48 h-48 sm:w-64 sm:h-64 p-2 flex items-center justify-center text-5xl sm:text-7xl font-bold rounded-lg ${data.color} ${data.textColor} win-animation-card-animate`;
+            winAnimationCard.innerHTML = data.displayName;
+            // 播放對應的音效
+            audioManager.play('winSequence', step.sound, step.duration);
+        }, step.delay);
+    });
 
-                setTimeout(() => {
-                    winAnimationContainer.classList.add('hidden');
-                    mainContainer.classList.remove('opacity-0');
-                    showWinModal();
-                }, 9000);
-            }
+    // 4. 在所有動畫步驟結束後 (10.5秒後)，顯示最終的勝利視窗
+    setTimeout(() => {
+        winAnimationContainer.classList.add('hidden');
+        mainContainer.classList.remove('opacity-0');
+        showWinModal();
+    }, 10500); // 總時長
+}
+
             
             // --- 事件監聽 ---
             window.addEventListener('keydown', handleInput);
