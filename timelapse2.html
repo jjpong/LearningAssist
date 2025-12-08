@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>延時攝影製作器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #141937;
+            --bg-card: #1a1f3a;
+            --accent-1: #00d9ff;
+            --accent-2: #7b2cbf;
+            --accent-gradient: linear-gradient(135deg, #00d9ff 0%, #7b2cbf 100%);
+            --text-primary: #e8e9f3;
+            --text-secondary: #a0a3bd;
+            --success: #06ffa5;
+            --warning: #ffbd39;
+            --error: #ff4757;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(123, 44, 191, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .mode-switcher {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.1s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mode-btn {
+            padding: 0.75rem 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--accent-1);
+            color: var(--accent-1);
+        }
+
+        .mode-btn.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        .main-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        /* Upload Mode Styles */
+        .upload-zone {
+            border: 3px dashed var(--accent-1);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 217, 255, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(0, 217, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .upload-zone:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-2);
+            background: rgba(123, 44, 191, 0.05);
+            transform: scale(1.01);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--success);
+            background: rgba(6, 255, 165, 0.05);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Camera Mode Styles */
+        .camera-settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .camera-preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        #cameraPreview {
+            width: 100%;
+            display: block;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .recording-indicator {
+            background: rgba(255, 71, 87, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .frame-counter {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent-1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+        }
+
+        .timer-display {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--warning);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            display: none;
+        }
+
+        .timer-display.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757 0%, #ff1744 100%);
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 71, 87, 0.3);
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .image-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-secondary);
+            animation: scaleIn 0.3s ease-out backwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .image-item .remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--error);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .image-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .image-item .remove-btn:hover {
+            transform: scale(1.2);
+            background: #ff1744;
+        }
+
+        .image-item .index {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent-1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .status {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .status.processing {
+            background: rgba(255, 189, 57, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status.success {
+            background: rgba(6, 255, 165, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status.error {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+            white-space: pre-line;
+            text-align: left;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .video-preview {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .video-preview.show {
+            display: block;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .video-preview video {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 16px;
+            margin: 1rem auto;
+            display: block;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.05);
+            border-left: 4px solid var(--accent-1);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .main-card {
+                padding: 1.5rem;
+            }
+
+            .controls, .camera-settings {
+                flex-direction: column;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .mode-switcher {
+                flex-direction: column;
+            }
+
+            .camera-overlay {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            html {
+                color-scheme: dark;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⏱️ 延時攝影製作器</h1>
+            <p class="subtitle">即時拍攝或上傳圖片，輕鬆製作延時影片</p>
+        </header>
+
+        <div class="mode-switcher">
+            <button class="mode-btn active" data-mode="camera">📹 即時拍攝</button>
+            <button class="mode-btn" data-mode="upload">📦 上傳 ZIP</button>
+        </div>
+
+        <div class="main-card">
+            <!-- Camera Mode -->
+            <div id="cameraMode" class="mode-content active">
+                <div class="camera-settings">
+                    <div class="control-group">
+                        <label for="cameraSelect">選擇攝影機</label>
+                        <select id="cameraSelect">
+                            <option value="">載入中...</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="resolution">解析度</label>
+                        <select id="resolution">
+                            <option value="640x480">480p (640×480)</option>
+                            <option value="1280x720" selected>720p HD (1280×720)</option>
+                            <option value="1920x1080">1080p Full HD (1920×1080)</option>
+                            <option value="2560x1440">1440p 2K (2560×1440)</option>
+                            <option value="3840x2160">2160p 4K (3840×2160)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="captureInterval">拍攝間隔（秒）</label>
+                        <input type="number" id="captureInterval" min="0.1" max="60" step="0.1" value="1">
+                    </div>
+                    <div class="control-group">
+                        <label for="totalDuration">總拍攝時長（秒）</label>
+                        <input type="number" id="totalDuration" min="1" max="7200" step="1" value="60" placeholder="0 = 不限制">
+                    </div>
+                    <div class="control-group">
+                        <label for="videoFps">輸出幀率 (FPS)</label>
+                        <input type="number" id="videoFps" min="1" max="60" value="24">
+                    </div>
+                </div>
+
+                <div class="info-box" id="cameraFrameCount" style="display: none;">
+                    已捕獲 <strong id="cameraCountNumber">0</strong> 幀 • 預計影片長度：<strong id="estimatedDuration">0</strong> 秒
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="startCaptureBtn">
+                        <span>🎬 開始拍攝</span>
+                    </button>
+                    <button class="btn btn-danger" id="stopCaptureBtn" style="display: none;">
+                        <span>⏹ 停止拍攝</span>
+                    </button>
+                </div>
+
+                <div class="status" id="cameraStatus"></div>
+
+                <div class="camera-preview-container">
+                    <video id="cameraPreview" autoplay playsinline muted></video>
+                    <div class="camera-overlay">
+                        <div class="recording-indicator" id="recordingIndicator">
+                            <div class="recording-dot"></div>
+                            <span>錄製中</span>
+                        </div>
+                        <div class="timer-display" id="timerDisplay">00:00</div>
+                        <div class="frame-counter" id="frameCounter">0 幀</div>
+                    </div>
+                </div>
+
+                <div class="video-preview" id="cameraVideoPreview">
+                    <h3 style="text-align: center; margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">✅ 生成影片</h3>
+                    <video id="cameraVideoPlayer" controls></video>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button class="btn btn-primary" id="cameraDownloadBtn">
+                            <span>💾 下載影片</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="image-grid" id="cameraImageGrid"></div>
+            </div>
+
+            <!-- Upload Mode -->
+            <div id="uploadMode" class="mode-content">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📦</div>
+                    <div class="upload-text">點擊或拖放 ZIP 檔案到此處</div>
+                    <div class="upload-hint">ZIP 檔案內需包含圖片（JPG、PNG、WebP）</div>
+                    <input type="file" id="fileInput" accept=".zip,application/zip">
+                </div>
+
+                <div class="info-box" id="imageCount" style="display: none;">
+                    已上傳 <strong id="countNumber">0</strong> 張圖片
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="fps">幀率 (FPS)</label>
+                        <input type="number" id="fps" min="1" max="60" value="24">
+                    </div>
+                    <div class="control-group">
+                        <label for="quality">視訊品質</label>
+                        <select id="quality">
+                            <option value="0.6">標準 (較小檔案)</option>
+                            <option value="0.8" selected>高品質 (推薦)</option>
+                            <option value="1.0">最高品質 (較大檔案)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="generateBtn" disabled>
+                        <span>🎬 生成影片</span>
+                    </button>
+                </div>
+
+                <div class="status" id="status"></div>
+
+                <div class="image-grid" id="imageGrid"></div>
+
+                <div class="video-preview" id="uploadVideoPreview">
+                    <h3 style="text-align: center; margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">✅ 生成影片</h3>
+                    <video id="uploadVideoPlayer" controls></video>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button class="btn btn-primary" id="uploadDownloadBtn">
+                            <span>💾 下載影片</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Mode switching
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const cameraMode = document.getElementById('cameraMode');
+        const uploadMode = document.getElementById('uploadMode');
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (mode === 'camera') {
+                    cameraMode.classList.add('active');
+                    uploadMode.classList.remove('active');
+                    initCamera();
+                } else {
+                    uploadMode.classList.add('active');
+                    cameraMode.classList.remove('active');
+                    stopCamera();
+                }
+            });
+        });
+
+        // Camera Mode Variables
+        const cameraPreview = document.getElementById('cameraPreview');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const resolution = document.getElementById('resolution');
+        const captureInterval = document.getElementById('captureInterval');
+        const totalDuration = document.getElementById('totalDuration');
+        const videoFps = document.getElementById('videoFps');
+        const startCaptureBtn = document.getElementById('startCaptureBtn');
+        const stopCaptureBtn = document.getElementById('stopCaptureBtn');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const frameCounter = document.getElementById('frameCounter');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const cameraFrameCount = document.getElementById('cameraFrameCount');
+        const cameraCountNumber = document.getElementById('cameraCountNumber');
+        const estimatedDuration = document.getElementById('estimatedDuration');
+        const cameraImageGrid = document.getElementById('cameraImageGrid');
+        const cameraStatus = document.getElementById('cameraStatus');
+
+        let currentStream = null;
+        let capturedFrames = [];
+        let captureIntervalId = null;
+        let captureTimerId = null;
+        let isCapturing = false;
+        let captureStartTime = 0;
+        let elapsedSeconds = 0;
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                console.log('Step 1: Requesting camera permission...');
+
+                // First, get basic device list (labels will be empty without permission)
+                let devices = await navigator.mediaDevices.enumerateDevices();
+                let cameras = devices.filter(device => device.kind === 'videoinput');
+                console.log('Initial device list (before permission):', cameras.map(c => ({
+                    id: c.deviceId.substring(0, 20),
+                    label: c.label || '(no label yet)'
+                })));
+
+                // Request permission by getting a stream
+                console.log('Step 2: Getting media stream to trigger permission...');
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                });
+
+                console.log('Step 3: Permission granted! Stream obtained.');
+
+                // IMPORTANT: Keep the stream alive while we get device labels
+                // Don't stop it yet!
+
+                // Wait a moment for browser to update device info
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Now enumerate devices again - labels should be available
+                console.log('Step 4: Re-enumerating devices with labels...');
+                devices = await navigator.mediaDevices.enumerateDevices();
+                cameras = devices.filter(device => device.kind === 'videoinput');
+
+                console.log('Updated device list (after permission):', cameras.map(c => ({
+                    id: c.deviceId.substring(0, 20),
+                    label: c.label || '(still no label!)'
+                })));
+
+                // Now we can stop the temporary stream
+                stream.getTracks().forEach(track => track.stop());
+                console.log('Step 5: Temporary stream stopped.');
+
+                // Populate the camera select
+                await populateCameraSelect(cameras);
+
+                // Start the actual camera preview
+                await startCamera();
+
+            } catch (error) {
+                console.error('Error initializing camera:', error);
+                let errorMsg = '❌ 無法訪問攝影機\n\n';
+
+                if (error.name === 'NotAllowedError') {
+                    errorMsg += '原因：您拒絕了攝影機權限請求\n';
+                    errorMsg += '解決方法：請重新整理頁面並允許攝影機權限。';
+                } else if (error.name === 'NotFoundError') {
+                    errorMsg += '原因：未找到攝影機設備\n';
+                    errorMsg += '解決方法：請確認您的設備有攝影機。';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMsg += '原因：瀏覽器不支援\n';
+                    errorMsg += '解決方法：請使用 Chrome、Edge 或 Firefox 瀏覽器。';
+                } else {
+                    errorMsg += '原因：' + error.message;
+                }
+
+                showCameraStatus(errorMsg, 'error');
+                startCaptureBtn.disabled = true;
+            }
+        }
+
+        // Populate camera select dropdown
+        async function populateCameraSelect(cameras) {
+            try {
+                cameraSelect.innerHTML = '';
+
+                if (cameras.length === 0) {
+                    cameraSelect.innerHTML = '<option value="">未找到攝影機</option>';
+                    return;
+                }
+
+                cameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+
+                    // Use device label if available
+                    if (camera.label && camera.label.trim() !== '') {
+                        option.textContent = camera.label;
+                        console.log(`Camera ${index + 1}: ${camera.label}`);
+                    } else {
+                        // Fallback when label is not available
+                        option.textContent = `攝影機 ${index + 1}`;
+                        console.log(`Camera ${index + 1}: (no label, using fallback)`);
+                    }
+
+                    cameraSelect.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error populating camera select:', error);
+                cameraSelect.innerHTML = '<option value="">載入攝影機失敗</option>';
+            }
+        }
+
+        // Start camera preview
+        async function startCamera() {
+            try {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                const [width, height] = resolution.value.split('x').map(Number);
+                const deviceId = cameraSelect.value;
+
+                const constraints = {
+                    video: {
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: width },
+                        height: { ideal: height }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraPreview.srcObject = currentStream;
+            } catch (error) {
+                console.error('Error starting camera:', error);
+                showCameraStatus('❌ 無法啟動攝影機：' + error.message, 'error');
+            }
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            if (isCapturing) {
+                stopCapture();
+            }
+        }
+
+        // Change camera or resolution
+        cameraSelect.addEventListener('change', startCamera);
+        resolution.addEventListener('change', startCamera);
+
+        // Start capturing frames
+        startCaptureBtn.addEventListener('click', () => {
+            capturedFrames = [];
+            isCapturing = true;
+            captureStartTime = Date.now();
+            elapsedSeconds = 0;
+
+            startCaptureBtn.style.display = 'none';
+            stopCaptureBtn.style.display = 'block';
+            recordingIndicator.classList.add('active');
+            timerDisplay.classList.add('active');
+            cameraFrameCount.style.display = 'block';
+
+            updateCameraFrameCounter();
+            updateCameraImageGrid();
+
+            const intervalMs = parseFloat(captureInterval.value) * 1000;
+            captureIntervalId = setInterval(captureFrame, intervalMs);
+
+            // Timer update
+            captureTimerId = setInterval(() => {
+                elapsedSeconds = Math.floor((Date.now() - captureStartTime) / 1000);
+                const minutes = Math.floor(elapsedSeconds / 60);
+                const seconds = elapsedSeconds % 60;
+                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                // Auto stop if total duration is set
+                const maxDuration = parseInt(totalDuration.value) || 0;
+                if (maxDuration > 0 && elapsedSeconds >= maxDuration) {
+                    stopCapture();
+                }
+            }, 1000);
+        });
+
+        // Stop capturing frames
+        stopCaptureBtn.addEventListener('click', stopCapture);
+
+        function stopCapture() {
+            if (captureIntervalId) {
+                clearInterval(captureIntervalId);
+                captureIntervalId = null;
+            }
+
+            if (captureTimerId) {
+                clearInterval(captureTimerId);
+                captureTimerId = null;
+            }
+
+            isCapturing = false;
+            startCaptureBtn.style.display = 'block';
+            stopCaptureBtn.style.display = 'none';
+            recordingIndicator.classList.remove('active');
+            timerDisplay.classList.remove('active');
+
+            if (capturedFrames.length > 0) {
+                showCameraStatus('✅ 拍攝完成，正在生成影片...', 'processing');
+                setTimeout(() => {
+                    generateVideoFromFrames();
+                }, 500);
+            }
+        }
+
+        // Capture single frame
+        function captureFrame() {
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraPreview.videoWidth;
+            canvas.height = cameraPreview.videoHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraPreview, 0, 0);
+
+            canvas.toBlob(blob => {
+                const dataUrl = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    capturedFrames.push({
+                        src: dataUrl,
+                        img: img
+                    });
+                    updateCameraFrameCounter();
+                    updateCameraImageGrid();
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        function updateCameraFrameCounter() {
+            const count = capturedFrames.length;
+            const fps = parseInt(videoFps.value) || 24;
+            const estimatedSec = (count / fps).toFixed(1);
+
+            frameCounter.textContent = `${count} 幀`;
+            cameraCountNumber.textContent = count;
+            estimatedDuration.textContent = estimatedSec;
+        }
+
+        function updateCameraImageGrid() {
+            // Only show last 20 frames to avoid performance issues
+            const framesToShow = capturedFrames.slice(-20);
+            cameraImageGrid.innerHTML = '';
+
+            framesToShow.forEach((frame, index) => {
+                const actualIndex = capturedFrames.length - framesToShow.length + index;
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.style.animationDelay = `${index * 0.02}s`;
+                div.innerHTML = `
+                    <img src="${frame.src}" alt="Frame ${actualIndex + 1}">
+                    <div class="index">${actualIndex + 1}</div>
+                `;
+                cameraImageGrid.appendChild(div);
+            });
+        }
+
+        function showCameraStatus(message, type) {
+            cameraStatus.textContent = message;
+            cameraStatus.className = `status ${type} show`;
+        }
+
+        function hideCameraStatus() {
+            cameraStatus.className = 'status';
+        }
+
+        // Generate video from captured frames
+        async function generateVideoFromFrames() {
+            if (capturedFrames.length === 0) return;
+
+            const cameraVideoPreview = document.getElementById('cameraVideoPreview');
+            const cameraVideoPlayer = document.getElementById('cameraVideoPlayer');
+
+            try {
+                const fps = parseInt(videoFps.value) || 24;
+                const quality = 0.8;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = capturedFrames[0].img.width;
+                canvas.height = capturedFrames[0].img.height;
+                const ctx = canvas.getContext('2d');
+
+                const stream = canvas.captureStream(fps);
+                const mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 5000000 * quality
+                });
+
+                const chunks = [];
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const videoBlob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(videoBlob);
+                    cameraVideoPlayer.src = url;
+                    cameraVideoPreview.classList.add('show');
+                    showCameraStatus('✅ 影片生成成功！', 'success');
+
+                    window.currentCameraVideoBlob = videoBlob;
+                };
+
+                mediaRecorder.start();
+
+                const frameDuration = 1000 / fps;
+                for (let i = 0; i < capturedFrames.length; i++) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(capturedFrames[i].img, 0, 0, canvas.width, canvas.height);
+                    await new Promise(resolve => setTimeout(resolve, frameDuration));
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+                mediaRecorder.stop();
+
+            } catch (error) {
+                console.error('Error generating video:', error);
+                showCameraStatus('❌ 生成影片時發生錯誤：' + error.message, 'error');
+            }
+        }
+
+        // Camera download button
+        const cameraDownloadBtn = document.getElementById('cameraDownloadBtn');
+        cameraDownloadBtn.addEventListener('click', () => {
+            const blob = window.currentCameraVideoBlob;
+            if (!blob) return;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `timelapse_camera_${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Upload Mode Variables
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const imageGrid = document.getElementById('imageGrid');
+        const imageCount = document.getElementById('imageCount');
+        const countNumber = document.getElementById('countNumber');
+        const generateBtn = document.getElementById('generateBtn');
+        const status = document.getElementById('status');
+        const uploadVideoPreview = document.getElementById('uploadVideoPreview');
+        const uploadVideoPlayer = document.getElementById('uploadVideoPlayer');
+        const uploadDownloadBtn = document.getElementById('uploadDownloadBtn');
+        const fpsInput = document.getElementById('fps');
+        const qualityInput = document.getElementById('quality');
+
+        let images = [];
+        let uploadVideoBlob = null;
+
+        // Upload zone click
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0 && files[0].name.endsWith('.zip')) {
+                handleZipFile(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleZipFile(file);
+            }
+        });
+
+        async function handleZipFile(file) {
+            showStatus('🔄 正在解壓縮 ZIP 檔案...', 'processing');
+
+            try {
+                const zip = new JSZip();
+                const contents = await zip.loadAsync(file);
+
+                let imageCount = 0;
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
+
+                const imageFiles = [];
+                contents.forEach((relativePath, zipEntry) => {
+                    const lowerPath = relativePath.toLowerCase();
+                    if (!zipEntry.dir && imageExtensions.some(ext => lowerPath.endsWith(ext))) {
+                        imageFiles.push({ path: relativePath, entry: zipEntry });
+                    }
+                });
+
+                imageFiles.sort((a, b) => a.path.localeCompare(b.path));
+
+                if (imageFiles.length === 0) {
+                    showStatus('❌ ZIP 檔案中沒有找到圖片', 'error');
+                    return;
+                }
+
+                images = [];
+
+                for (const {path, entry} of imageFiles) {
+                    try {
+                        const blob = await entry.async('blob');
+                        const dataUrl = await blobToDataURL(blob);
+
+                        await new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                images.push({
+                                    src: dataUrl,
+                                    file: new File([blob], path),
+                                    img: img,
+                                    name: path
+                                });
+                                imageCount++;
+                                resolve();
+                            };
+                            img.onerror = reject;
+                            img.src = dataUrl;
+                        });
+                    } catch (err) {
+                        console.error(`Error processing image ${path}:`, err);
+                    }
+                }
+
+                updateImageGrid();
+                updateUI();
+                hideStatus();
+
+                if (imageCount > 0) {
+                    showStatus(`✅ 成功載入 ${imageCount} 張圖片`, 'success');
+                    setTimeout(hideStatus, 3000);
+                }
+
+            } catch (error) {
+                console.error('Error processing ZIP file:', error);
+                showStatus('❌ 解壓縮 ZIP 檔案時發生錯誤', 'error');
+            }
+        }
+
+        function blobToDataURL(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function updateImageGrid() {
+            imageGrid.innerHTML = '';
+            images.forEach((image, index) => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.style.animationDelay = `${index * 0.05}s`;
+                div.innerHTML = `
+                    <img src="${image.src}" alt="Image ${index + 1}">
+                    <button class="remove-btn" onclick="removeImage(${index})">×</button>
+                    <div class="index">${index + 1}</div>
+                `;
+                imageGrid.appendChild(div);
+            });
+        }
+
+        function removeImage(index) {
+            images.splice(index, 1);
+            updateImageGrid();
+            updateUI();
+        }
+
+        function updateUI() {
+            const count = images.length;
+            countNumber.textContent = count;
+
+            if (count > 0) {
+                imageCount.style.display = 'block';
+                generateBtn.disabled = false;
+            } else {
+                imageCount.style.display = 'none';
+                generateBtn.disabled = true;
+            }
+        }
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type} show`;
+        }
+
+        function hideStatus() {
+            status.className = 'status';
+        }
+
+        generateBtn.addEventListener('click', generateVideo);
+
+        async function generateVideo() {
+            if (images.length === 0) return;
+
+            hideStatus();
+            uploadVideoPreview.classList.remove('show');
+            generateBtn.disabled = true;
+
+            showStatus('正在生成影片，請稍候...', 'processing');
+            status.innerHTML += '<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>';
+
+            try {
+                const fps = parseInt(fpsInput.value) || 24;
+                const quality = parseFloat(qualityInput.value) || 0.8;
+
+                const firstImg = images[0].img;
+                const canvas = document.createElement('canvas');
+                canvas.width = firstImg.width;
+                canvas.height = firstImg.height;
+                const ctx = canvas.getContext('2d');
+
+                const stream = canvas.captureStream(fps);
+                const mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 5000000 * quality
+                });
+
+                const chunks = [];
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    uploadVideoBlob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(uploadVideoBlob);
+                    uploadVideoPlayer.src = url;
+                    uploadVideoPreview.classList.add('show');
+                    showStatus('✅ 影片生成成功！', 'success');
+                    generateBtn.disabled = false;
+
+                    window.currentUploadVideoBlob = uploadVideoBlob;
+                };
+
+                mediaRecorder.start();
+
+                const frameDuration = 1000 / fps;
+                for (let i = 0; i < images.length; i++) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(images[i].img, 0, 0, canvas.width, canvas.height);
+
+                    const progress = ((i + 1) / images.length) * 100;
+                    const progressFill = document.getElementById('progressFill');
+                    if (progressFill) {
+                        progressFill.style.width = progress + '%';
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, frameDuration));
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+                mediaRecorder.stop();
+
+            } catch (error) {
+                console.error('Error generating video:', error);
+                showStatus('❌ 生成影片時發生錯誤：' + error.message, 'error');
+                generateBtn.disabled = false;
+            }
+        }
+
+        uploadDownloadBtn.addEventListener('click', () => {
+            const blob = window.currentUploadVideoBlob;
+            if (!blob) return;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `timelapse_upload_${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        window.removeImage = removeImage;
+
+        // Initialize camera on page load
+        initCamera();
+    </script>
+</body>
+</html>
