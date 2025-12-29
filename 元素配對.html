@@ -153,8 +153,6 @@
                 <p id="stage-desc" class="text-sm text-slate-500">第一階段：請將卡片拖曳到下方收集盒進行配對。</p>
             </div>
             <div class="flex gap-3">
-                <!-- 移除了原本的設定按鈕 -->
-
                 <button id="btn-check" onclick="checkAnswers()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-2">
                     <span>✅</span> 檢查答案
                 </button>
@@ -170,15 +168,30 @@
         
         <!-- 第一階段介面 -->
         <div id="stage-1" class="flex-1 flex flex-col gap-4 overflow-hidden h-full w-full">
-            <!-- 待選卡片區 -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-1/3 shrink-0 transition-all duration-500" id="source-section">
-                <div class="p-2 bg-slate-50 border-b border-slate-200 font-bold text-slate-600 flex justify-between items-center px-4">
-                    <span>🗂️ 待選卡片堆</span>
-                    <span class="text-xs font-normal bg-blue-100 text-blue-800 px-2 py-1 rounded">提示：藍=名稱 / 綠=符號 / 紅=性質</span>
+            
+            <!-- 卡片庫分區：左右兩欄 -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex h-1/3 shrink-0 transition-all duration-500 overflow-hidden divide-x divide-slate-200" id="source-section">
+                
+                <!-- 左側：元素/符號 暫存區 (30%) -->
+                <div class="w-1/3 flex flex-col bg-slate-50/50">
+                    <div id="label-left" class="p-2 border-b text-xs font-bold text-slate-500 text-center bg-slate-100">
+                        名稱 / 符號
+                    </div>
+                    <div id="source-left" class="flex-1 overflow-y-auto custom-scroll p-3 flex flex-wrap gap-2 content-start justify-center">
+                        <!-- JS 生成內容 -->
+                    </div>
                 </div>
-                <div id="source-container" class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll p-4 flex flex-wrap gap-3 content-start items-start">
-                    <!-- 卡片生成區 -->
+
+                <!-- 右側：性質 暫存區 (70%) -->
+                <div class="w-2/3 flex flex-col bg-white">
+                    <div class="p-2 border-b text-xs font-bold text-slate-500 text-center bg-white">
+                        性質描述
+                    </div>
+                    <div id="source-right" class="flex-1 overflow-y-auto custom-scroll p-3 flex flex-wrap gap-2 content-start">
+                        <!-- JS 生成內容 -->
+                    </div>
                 </div>
+
             </section>
 
             <!-- 配對收集盒區 -->
@@ -237,6 +250,9 @@
         </div>
     </div>
 
+    <!-- 隱藏的臨時容器，用於生成和暫存卡片 -->
+    <div id="temp-storage" class="hidden"></div>
+
     <script>
         const elementsData = [
             { id: 1, name: "金", symbol: "Au", prop: "黃色固體，延展性極佳，不氧化", group: "金屬", conduct: "good" },
@@ -253,8 +269,6 @@
             { id: 12, name: "氧", symbol: "O", prop: "無色氣體，助燃，供生物呼吸", group: "非金屬", conduct: "poor" }
         ];
 
-        let cards = [];
-        let draggedItem = null;
         let currentStage = 1;
 
         // --- 初始化與遊戲控制 ---
@@ -266,25 +280,25 @@
             // 顯示開始畫面
             document.getElementById('start-screen').classList.remove('hidden');
 
-            const sourceContainer = document.getElementById('source-container');
-            const targetGrid = document.getElementById('target-grid');
-            
-            sourceContainer.innerHTML = '';
-            targetGrid.innerHTML = '';
-            cards = [];
+            // 清空所有容器
+            document.getElementById('source-left').innerHTML = '';
+            document.getElementById('source-right').innerHTML = '';
+            document.getElementById('target-grid').innerHTML = '';
+            document.getElementById('temp-storage').innerHTML = '';
 
+            // 生成所有卡片到暫存區
             elementsData.forEach(el => {
-                cards.push({ id: `name-${el.id}`, elId: el.id, type: 'name', content: el.name, group: el.group });
-                cards.push({ id: `sym-${el.id}`, elId: el.id, type: 'symbol', content: el.symbol, group: el.group });
-                cards.push({ id: `prop-${el.id}`, elId: el.id, type: 'prop', content: el.prop, group: el.group });
+                const cardName = createCardElement({ id: `name-${el.id}`, elId: el.id, type: 'name', content: el.name, group: el.group });
+                const cardSymbol = createCardElement({ id: `sym-${el.id}`, elId: el.id, type: 'symbol', content: el.symbol, group: el.group });
+                const cardProp = createCardElement({ id: `prop-${el.id}`, elId: el.id, type: 'prop', content: el.prop, group: el.group });
+                
+                document.getElementById('temp-storage').appendChild(cardName);
+                document.getElementById('temp-storage').appendChild(cardSymbol);
+                document.getElementById('temp-storage').appendChild(cardProp);
             });
 
-            cards.sort(() => Math.random() - 0.5);
-
-            cards.forEach(card => {
-                sourceContainer.appendChild(createCardElement(card));
-            });
-
+            // 生成配對格子
+            const targetGrid = document.getElementById('target-grid');
             for (let i = 1; i <= 12; i++) {
                 const box = document.createElement('div');
                 box.className = 'drop-zone bg-white rounded-xl border-2 border-dashed border-slate-300 p-3 relative transition-all';
@@ -297,15 +311,22 @@
                 targetGrid.appendChild(box);
             }
 
-            sourceContainer.addEventListener('dragover', handleDragOver);
-            sourceContainer.addEventListener('drop', handleDropToSource);
+            // 設定來源區的拖放監聽
+            document.getElementById('source-left').addEventListener('dragover', handleDragOver);
+            document.getElementById('source-left').addEventListener('drop', handleDropToSource);
+            document.getElementById('source-right').addEventListener('dragover', handleDragOver);
+            document.getElementById('source-right').addEventListener('drop', handleDropToSource);
         }
 
         function startGame(type) {
             // 隱藏開始畫面
             document.getElementById('start-screen').classList.add('hidden');
-            // 直接執行自動填入
+            
+            // 1. 自動填入選擇的類型
             autoFill(type);
+            
+            // 2. 整理剩下的卡片到左右兩邊
+            organizeRemainingCards(type);
         }
 
         function updateUIForStage(stage) {
@@ -383,20 +404,12 @@
             card.classList.remove('pos-symbol', 'pos-name', 'pos-prop');
         }
 
-        // --- 功能 1：隨機自動填入 (無警示版) ---
-        
+        // --- 邏輯：自動填入與分類 ---
+
         function autoFill(type) {
             const zones = document.querySelectorAll('.drop-zone');
-            const sourceContainer = document.getElementById('source-container');
             
-            // 先確保所有卡片歸位（以防萬一，雖然初始狀態應該都在 Source）
-            const allCards = document.querySelectorAll('.draggable-card');
-            allCards.forEach(c => {
-                sourceContainer.appendChild(c);
-                resetCardStyleForSource(c);
-            });
-            
-            // 隨機分配
+            // 隨機分配 Zone
             let zoneIndices = Array.from({length: 12}, (_, i) => i);
             zoneIndices.sort(() => Math.random() - 0.5);
             
@@ -405,20 +418,55 @@
                 elementToZoneMap[el.id] = zones[zoneIndices[index]];
             });
 
-            const targetClass = type === 'symbol' ? '.card-symbol' : '.card-name';
-            const targetCards = Array.from(document.querySelectorAll(targetClass));
+            // 抓取指定類型的卡片 (目前在 temp-storage)
+            const targetType = type; // 'name' or 'symbol'
+            const allCards = Array.from(document.querySelectorAll('#temp-storage .draggable-card'));
             
-            targetCards.forEach(card => {
-                const elId = parseInt(card.dataset.elId);
-                const targetZone = elementToZoneMap[elId];
-                if (targetZone) {
-                    targetZone.appendChild(card);
-                    setCardStyleForZone(card);
+            allCards.forEach(card => {
+                if (card.dataset.type === targetType) {
+                    const elId = parseInt(card.dataset.elId);
+                    const targetZone = elementToZoneMap[elId];
+                    if (targetZone) {
+                        targetZone.appendChild(card);
+                        setCardStyleForZone(card);
+                    }
                 }
             });
         }
 
+        function organizeRemainingCards(filledType) {
+            const leftContainer = document.getElementById('source-left');
+            const rightContainer = document.getElementById('source-right');
+            const labelLeft = document.getElementById('label-left');
+
+            // 剩下的卡片還在 temp-storage
+            const remainingCards = Array.from(document.querySelectorAll('#temp-storage .draggable-card'));
+            
+            // 洗牌
+            remainingCards.sort(() => Math.random() - 0.5);
+
+            // 分類
+            // 如果填入的是名稱，左邊剩下的是符號；反之亦然
+            const leftType = filledType === 'name' ? 'symbol' : 'name';
+            
+            // 更新左側標題
+            labelLeft.innerText = filledType === 'name' ? "元素符號" : "元素名稱";
+
+            remainingCards.forEach(card => {
+                resetCardStyleForSource(card); // 確保樣式重置
+
+                if (card.dataset.type === 'prop') {
+                    rightContainer.appendChild(card);
+                } else if (card.dataset.type === leftType) {
+                    leftContainer.appendChild(card);
+                }
+                // 理論上不會有其他卡片，因為第一類已經填入格子了
+            });
+        }
+
         // --- 拖曳事件處理 (第一階段) ---
+
+        let draggedItem = null;
 
         function handleDragStart(e) {
             if (currentStage !== 1) return;
@@ -461,9 +509,7 @@
                 const existingCard = this.querySelector(`.draggable-card[data-type="${type}"]`);
                 
                 if (existingCard && existingCard.id !== card.id) {
-                    const sourceContainer = document.getElementById('source-container');
-                    sourceContainer.appendChild(existingCard);
-                    resetCardStyleForSource(existingCard); 
+                    returnCardToSource(existingCard);
                 }
 
                 this.appendChild(card);
@@ -478,8 +524,23 @@
             const cardId = e.dataTransfer.getData('text/plain');
             const card = document.getElementById(cardId);
             if (card) {
-                this.appendChild(card);
-                resetCardStyleForSource(card);
+                returnCardToSource(card);
+            }
+        }
+
+        // 輔助：將卡片歸位到正確的 Source 容器
+        function returnCardToSource(card) {
+            const leftContainer = document.getElementById('source-left');
+            const rightContainer = document.getElementById('source-right');
+            
+            resetCardStyleForSource(card);
+
+            if (card.dataset.type === 'prop') {
+                rightContainer.appendChild(card);
+            } else {
+                // 不論是 Name 還是 Symbol，只要不是 prop 就去左邊
+                // (因為場上只會剩下一種 Identity 卡)
+                leftContainer.appendChild(card);
             }
         }
 
