@@ -2,18 +2,26 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>元素特性配對 - 數位互動版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             user-select: none;
             overscroll-behavior: none;
+            /* 防止手機下拉重整干擾 */
         }
+        
+        /* --- 響應式卡片基礎樣式 --- */
+        /* 手機預設 (小尺寸) -> 平板 (中尺寸) -> 桌機 (大尺寸) */
         .draggable-card {
             cursor: grab;
             transition: all 0.2s;
             touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 預設寬度 (Mobile): w-20 (5rem/80px) */
         }
         .draggable-card:active {
             cursor: grabbing;
@@ -28,36 +36,53 @@
         .card-symbol { border-left: 4px solid #059669; }
         .card-prop { border-left: 4px solid #e11d48; }
 
-        /* --- Drop Zone 的 Grid 佈局 --- */
+        /* --- Drop Zone 的響應式 Grid 佈局 --- */
         .drop-zone {
             transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
-            min-height: 160px;
+            min-height: 140px; /* Mobile height */
             display: grid;
-            grid-template-columns: 7rem 1fr; 
+            
+            /* Mobile Grid: 左欄 5.5rem */
+            grid-template-columns: 5.5rem 1fr; 
             grid-template-rows: 1fr 1fr;
             grid-template-areas:
                 "symbol prop"
                 "name prop";
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
+        
+        /* Tablet & Desktop Grid 調整 */
+        @media (min-width: 768px) {
+            .drop-zone {
+                min-height: 150px;
+                grid-template-columns: 6rem 1fr;
+                gap: 0.5rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .drop-zone {
+                min-height: 160px;
+                grid-template-columns: 7rem 1fr;
+            }
+        }
+
         .drop-zone.drag-over {
             background-color: #e0f2fe;
             border-style: dashed;
             transform: scale(1.02);
         }
 
-        /* --- 卡片自動定位 --- */
+        /* --- 卡片自動定位與填充 --- */
         .pos-symbol { grid-area: symbol; }
         .pos-name { grid-area: name; }
         .pos-prop { grid-area: prop; }
 
+        /* 當卡片在格子內時，強制填滿並重置樣式 */
         .drop-zone .draggable-card {
             width: 100% !important;
             height: 100% !important;
             margin: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 0.375rem; /* rounded-md */
         }
         .drop-zone .draggable-card[data-type="prop"] {
             align-items: flex-start;
@@ -71,7 +96,13 @@
             cursor: grab;
             transition: transform 0.2s;
             margin-bottom: 0.5rem;
+            width: 100%; /* 在容器內自適應 */
+            max-width: 12rem; /* Mobile max width */
         }
+        @media (min-width: 1024px) {
+            .element-block { max-width: 14rem; }
+        }
+
         .element-block:active {
             cursor: grabbing;
             transform: scale(1.02) rotate(2deg);
@@ -79,8 +110,9 @@
         .element-block .draggable-card {
             cursor: inherit;
             pointer-events: none;
-            width: 100%; 
-            height: auto;
+            width: 100% !important; 
+            height: auto !important;
+            min-height: 2rem;
         }
         
         /* 分類籃樣式 */
@@ -97,11 +129,11 @@
         }
 
         .custom-scroll::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
+            height: 6px;
+            width: 6px;
         }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
         
         @keyframes popIn {
@@ -110,7 +142,6 @@
         }
         .animate-pop { animation: popIn 0.3s ease-out; }
 
-        /* 開始畫面動畫 */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -118,76 +149,82 @@
         .fade-in { animation: fadeIn 0.5s ease-out; }
     </style>
 </head>
-<body class="bg-slate-100 h-screen flex flex-col overflow-hidden">
+<body class="bg-slate-100 h-screen flex flex-col overflow-hidden text-slate-800">
 
     <!-- 強制開始選擇畫面 -->
-    <div id="start-screen" class="fixed inset-0 bg-slate-900/95 z-[100] flex flex-col items-center justify-center text-white fade-in">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl font-bold mb-4 tracking-wider">🧪 元素配對大挑戰</h1>
-            <p class="text-xl text-slate-300">請選擇一種挑戰模式開始遊戲</p>
+    <div id="start-screen" class="fixed inset-0 bg-slate-900/95 z-[100] flex flex-col items-center justify-center text-white fade-in p-4">
+        <div class="text-center mb-6 md:mb-10">
+            <h1 class="text-3xl md:text-5xl font-bold mb-4 tracking-wider">🧪 元素配對大挑戰</h1>
+            <p class="text-base md:text-xl text-slate-300">請選擇一種挑戰模式開始遊戲</p>
         </div>
         
-        <div class="flex flex-col md:flex-row gap-8">
-            <button onclick="startGame('name')" class="group relative w-64 p-8 bg-blue-600 hover:bg-blue-500 rounded-3xl transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/30 border-b-8 border-blue-800 active:border-b-0 active:translate-y-1 flex flex-col items-center">
-                <span class="text-7xl mb-6 group-hover:scale-110 transition-transform">📝</span>
-                <h3 class="text-2xl font-bold mb-2">填入名稱</h3>
-                <p class="text-sm text-blue-100 text-center">場上會先幫你填好<br>對應的「名稱卡」</p>
+        <div class="flex flex-col md:flex-row gap-4 md:gap-8 w-full max-w-2xl justify-center">
+            <button onclick="startGame('name')" class="group relative flex-1 p-6 md:p-8 bg-blue-600 hover:bg-blue-500 rounded-3xl transition-all hover:-translate-y-2 hover:shadow-2xl border-b-8 border-blue-800 active:border-b-0 active:translate-y-1 flex flex-row md:flex-col items-center justify-center gap-4">
+                <span class="text-4xl md:text-7xl md:mb-6 group-hover:scale-110 transition-transform">📝</span>
+                <div class="text-left md:text-center">
+                    <h3 class="text-xl md:text-2xl font-bold mb-1">填入名稱</h3>
+                    <p class="text-xs md:text-sm text-blue-100">場上先填好「名稱卡」<br>你需要配對符號與性質</p>
+                </div>
             </button>
 
-            <button onclick="startGame('symbol')" class="group relative w-64 p-8 bg-emerald-600 hover:bg-emerald-500 rounded-3xl transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/30 border-b-8 border-emerald-800 active:border-b-0 active:translate-y-1 flex flex-col items-center">
-                <span class="text-7xl mb-6 group-hover:scale-110 transition-transform">🔠</span>
-                <h3 class="text-2xl font-bold mb-2">填入符號</h3>
-                <p class="text-sm text-emerald-100 text-center">場上會先幫你填好<br>對應的「符號卡」</p>
+            <button onclick="startGame('symbol')" class="group relative flex-1 p-6 md:p-8 bg-emerald-600 hover:bg-emerald-500 rounded-3xl transition-all hover:-translate-y-2 hover:shadow-2xl border-b-8 border-emerald-800 active:border-b-0 active:translate-y-1 flex flex-row md:flex-col items-center justify-center gap-4">
+                <span class="text-4xl md:text-7xl md:mb-6 group-hover:scale-110 transition-transform">🔠</span>
+                <div class="text-left md:text-center">
+                    <h3 class="text-xl md:text-2xl font-bold mb-1">填入符號</h3>
+                    <p class="text-xs md:text-sm text-emerald-100">場上先填好「符號卡」<br>你需要配對名稱與性質</p>
+                </div>
             </button>
         </div>
     </div>
 
     <!-- 頂部控制列 -->
-    <header class="bg-white shadow-md p-4 z-10 shrink-0">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <span id="stage-icon">🧪</span> 
-                    <span id="stage-title">元素配對大挑戰</span>
-                </h1>
-                <p id="stage-desc" class="text-sm text-slate-500">第一階段：請將卡片拖曳到下方收集盒進行配對。</p>
+    <header class="bg-white shadow-md p-2 md:p-4 z-10 shrink-0">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <div class="flex items-center justify-center w-full md:w-auto">
+                <div class="text-center md:text-left">
+                    <h1 class="text-lg md:text-2xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                        <span id="stage-icon">🧪</span> 
+                        <span id="stage-title">元素配對大挑戰</span>
+                    </h1>
+                    <p id="stage-desc" class="text-xs md:text-sm text-slate-500 hidden md:block">請將卡片拖曳到下方收集盒進行配對。</p>
+                </div>
             </div>
-            <div class="flex gap-3">
-                <button id="btn-check" onclick="checkAnswers()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-2">
-                    <span>✅</span> 檢查答案
+            <div class="flex gap-2 w-full md:w-auto justify-center">
+                <button id="btn-check" onclick="checkAnswers()" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition flex items-center justify-center gap-2 text-sm md:text-base">
+                    <span>✅</span> 檢查
                 </button>
-                <button onclick="resetGame()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold transition">
-                    🔄 重置遊戲
+                <button onclick="resetGame()" class="flex-1 md:flex-none bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold transition text-sm md:text-base">
+                    🔄 重置
                 </button>
             </div>
         </div>
     </header>
 
     <!-- 主遊戲區域 -->
-    <main class="flex-1 flex flex-col overflow-hidden max-w-7xl mx-auto w-full p-4 gap-4 relative">
+    <main class="flex-1 flex flex-col overflow-hidden max-w-7xl mx-auto w-full p-2 md:p-4 gap-2 md:gap-4 relative">
         
         <!-- 第一階段介面 -->
-        <div id="stage-1" class="flex-1 flex flex-col gap-4 overflow-hidden h-full w-full">
+        <div id="stage-1" class="flex-1 flex flex-col gap-2 md:gap-4 overflow-hidden h-full w-full">
             
-            <!-- 卡片庫分區：左右兩欄 -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex h-1/3 shrink-0 transition-all duration-500 overflow-hidden divide-x divide-slate-200" id="source-section">
+            <!-- 卡片庫分區：左右兩欄 (高度調整為 35%) -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex h-[35%] shrink-0 transition-all duration-500 overflow-hidden divide-x divide-slate-200" id="source-section">
                 
-                <!-- 左側：元素/符號 暫存區 (30%) -->
-                <div class="w-1/3 flex flex-col bg-slate-50/50">
-                    <div id="label-left" class="p-2 border-b text-xs font-bold text-slate-500 text-center bg-slate-100">
+                <!-- 左側：元素/符號 暫存區 (30% -> Mobile 35%) -->
+                <div class="w-[35%] md:w-1/3 flex flex-col bg-slate-50/50">
+                    <div id="label-left" class="p-1 md:p-2 border-b text-[10px] md:text-xs font-bold text-slate-500 text-center bg-slate-100 truncate">
                         名稱 / 符號
                     </div>
-                    <div id="source-left" class="flex-1 overflow-y-auto custom-scroll p-3 flex flex-wrap gap-2 content-start justify-center">
+                    <div id="source-left" class="flex-1 overflow-y-auto custom-scroll p-2 flex flex-wrap gap-2 content-start justify-center">
                         <!-- JS 生成內容 -->
                     </div>
                 </div>
 
-                <!-- 右側：性質 暫存區 (70%) -->
-                <div class="w-2/3 flex flex-col bg-white">
-                    <div class="p-2 border-b text-xs font-bold text-slate-500 text-center bg-white">
-                        性質描述
+                <!-- 右側：性質 暫存區 (70% -> Mobile 65%) -->
+                <div class="w-[65%] md:w-2/3 flex flex-col bg-white">
+                    <div class="p-1 md:p-2 border-b text-[10px] md:text-xs font-bold text-slate-500 text-center bg-white">
+                        性質描述 (請拖曳)
                     </div>
-                    <div id="source-right" class="flex-1 overflow-y-auto custom-scroll p-3 flex flex-wrap gap-2 content-start">
+                    <div id="source-right" class="flex-1 overflow-y-auto custom-scroll p-2 flex flex-wrap gap-2 content-start">
                         <!-- JS 生成內容 -->
                     </div>
                 </div>
@@ -196,42 +233,43 @@
 
             <!-- 配對收集盒區 -->
             <section class="flex-1 overflow-y-auto custom-scroll" id="target-section">
-                <div id="target-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
+                <!-- Mobile: 1 col, Tablet: 2 cols, Desktop: 3/4 cols -->
+                <div id="target-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-10">
                     <!-- 收集盒生成區 -->
                 </div>
             </section>
         </div>
 
         <!-- 第二階段介面 -->
-        <div id="stage-2" class="hidden flex-1 flex-col gap-4 overflow-hidden w-full h-full">
-            <div class="flex-1 min-h-0 grid grid-cols-2 gap-8">
+        <div id="stage-2" class="hidden flex-1 flex-col gap-2 md:gap-4 overflow-hidden w-full h-full">
+            <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <!-- 分類箱：導電 -->
                 <div id="bin-conductor" 
-                     class="class-bin bg-white border-4 border-dashed border-amber-300 rounded-2xl p-4 relative"
+                     class="class-bin bg-white border-4 border-dashed border-amber-300 rounded-2xl p-2 md:p-4 relative"
                      data-accept="good">
-                    <div class="absolute top-0 left-0 w-full bg-amber-100 py-2 text-center font-bold text-amber-800 z-10 shadow-sm">
-                        ⚡ 容易導電 (Good Conductor)
+                    <div class="absolute top-0 left-0 w-full bg-amber-100 py-2 text-center font-bold text-amber-800 z-10 shadow-sm text-sm md:text-base">
+                        ⚡ 容易導電 (Good)
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scroll pt-12 content-area flex flex-col gap-2">
+                    <div class="flex-1 overflow-y-auto custom-scroll pt-10 md:pt-12 content-area flex flex-row flex-wrap md:flex-col gap-2 content-start">
                         <!-- 拖曳進來的元素塊 -->
                     </div>
                 </div>
 
                 <!-- 分類箱：不易導電 -->
                 <div id="bin-insulator" 
-                     class="class-bin bg-white border-4 border-dashed border-slate-300 rounded-2xl p-4 relative"
+                     class="class-bin bg-white border-4 border-dashed border-slate-300 rounded-2xl p-2 md:p-4 relative"
                      data-accept="poor">
-                    <div class="absolute top-0 left-0 w-full bg-slate-100 py-2 text-center font-bold text-slate-700 z-10 shadow-sm">
-                        🚫 不易導電 (Poor Conductor)
+                    <div class="absolute top-0 left-0 w-full bg-slate-100 py-2 text-center font-bold text-slate-700 z-10 shadow-sm text-sm md:text-base">
+                        🚫 不易導電 (Poor)
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scroll pt-12 content-area flex flex-col gap-2">
+                    <div class="flex-1 overflow-y-auto custom-scroll pt-10 md:pt-12 content-area flex flex-row flex-wrap md:flex-col gap-2 content-start">
                         <!-- 拖曳進來的元素塊 -->
                     </div>
                 </div>
             </div>
 
             <!-- 待分類元素區 -->
-            <div id="classification-source" class="h-48 shrink-0 bg-white rounded-xl shadow-inner border p-4 overflow-x-auto flex gap-4 items-center">
+            <div id="classification-source" class="h-36 md:h-48 shrink-0 bg-white rounded-xl shadow-inner border p-2 md:p-4 overflow-x-auto flex gap-2 md:gap-4 items-center">
                 <!-- 這裡會放入第一階段完成的整組卡片 -->
             </div>
         </div>
@@ -239,18 +277,18 @@
     </main>
 
     <!-- 通用彈窗 -->
-    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md text-center transform scale-100 animate-pop">
-            <div id="modal-icon" class="text-6xl mb-4">🎉</div>
-            <h2 id="modal-title" class="text-2xl font-bold mb-2">標題</h2>
-            <p id="modal-message" class="text-gray-600 mb-6">內容</p>
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md text-center transform scale-100 animate-pop">
+            <div id="modal-icon" class="text-5xl md:text-6xl mb-4">🎉</div>
+            <h2 id="modal-title" class="text-xl md:text-2xl font-bold mb-2">標題</h2>
+            <p id="modal-message" class="text-sm md:text-base text-gray-600 mb-6 whitespace-pre-line">內容</p>
             <button id="modal-btn" onclick="closeModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-bold w-full">
                 確定
             </button>
         </div>
     </div>
 
-    <!-- 隱藏的臨時容器，用於生成和暫存卡片 -->
+    <!-- 隱藏的臨時容器 -->
     <div id="temp-storage" class="hidden"></div>
 
     <script>
@@ -277,16 +315,14 @@
             currentStage = 1;
             updateUIForStage(1);
             
-            // 顯示開始畫面
             document.getElementById('start-screen').classList.remove('hidden');
 
-            // 清空所有容器
             document.getElementById('source-left').innerHTML = '';
             document.getElementById('source-right').innerHTML = '';
             document.getElementById('target-grid').innerHTML = '';
             document.getElementById('temp-storage').innerHTML = '';
 
-            // 生成所有卡片到暫存區
+            // 生成卡片
             elementsData.forEach(el => {
                 const cardName = createCardElement({ id: `name-${el.id}`, elId: el.id, type: 'name', content: el.name, group: el.group });
                 const cardSymbol = createCardElement({ id: `sym-${el.id}`, elId: el.id, type: 'symbol', content: el.symbol, group: el.group });
@@ -297,13 +333,13 @@
                 document.getElementById('temp-storage').appendChild(cardProp);
             });
 
-            // 生成配對格子
+            // 生成格子
             const targetGrid = document.getElementById('target-grid');
             for (let i = 1; i <= 12; i++) {
                 const box = document.createElement('div');
-                box.className = 'drop-zone bg-white rounded-xl border-2 border-dashed border-slate-300 p-3 relative transition-all';
+                box.className = 'drop-zone bg-white rounded-xl border-2 border-dashed border-slate-300 p-2 md:p-3 relative transition-all';
                 box.dataset.zoneId = i;
-                box.innerHTML = `<div class="text-xs text-slate-300 font-bold absolute bottom-1 right-2 z-0">組合 ${i}</div>`;
+                box.innerHTML = `<div class="text-[10px] md:text-xs text-slate-300 font-bold absolute bottom-1 right-2 z-0">組合 ${i}</div>`;
                 
                 box.addEventListener('dragover', handleDragOver);
                 box.addEventListener('dragleave', handleDragLeave);
@@ -311,21 +347,17 @@
                 targetGrid.appendChild(box);
             }
 
-            // 設定來源區的拖放監聽
-            document.getElementById('source-left').addEventListener('dragover', handleDragOver);
-            document.getElementById('source-left').addEventListener('drop', handleDropToSource);
-            document.getElementById('source-right').addEventListener('dragover', handleDragOver);
-            document.getElementById('source-right').addEventListener('drop', handleDropToSource);
+            const srcLeft = document.getElementById('source-left');
+            const srcRight = document.getElementById('source-right');
+            srcLeft.addEventListener('dragover', handleDragOver);
+            srcLeft.addEventListener('drop', handleDropToSource);
+            srcRight.addEventListener('dragover', handleDragOver);
+            srcRight.addEventListener('drop', handleDropToSource);
         }
 
         function startGame(type) {
-            // 隱藏開始畫面
             document.getElementById('start-screen').classList.add('hidden');
-            
-            // 1. 自動填入選擇的類型
             autoFill(type);
-            
-            // 2. 整理剩下的卡片到左右兩邊
             organizeRemainingCards(type);
         }
 
@@ -337,19 +369,18 @@
             const btnCheck = document.getElementById('btn-check');
 
             if (stage === 1) {
-                title.innerText = "元素配對大挑戰";
-                desc.innerText = "第一階段：請將卡片拖曳到下方收集盒進行配對。";
+                // title.innerText 保持不變
+                if(desc) desc.innerText = "第一階段：請將卡片拖曳到下方收集盒進行配對。";
                 stage1Div.classList.remove('hidden');
                 stage2Div.classList.add('hidden');
-                btnCheck.innerText = "✅ 檢查答案";
+                btnCheck.innerText = "✅ 檢查";
                 btnCheck.onclick = checkAnswers;
             } else {
-                title.innerText = "性質分類挑戰";
-                desc.innerText = "第二階段：拖曳整組卡片，將它們依「導電性」分類。";
+                if(desc) desc.innerText = "第二階段：拖曳整組卡片，將它們依「導電性」分類。";
                 stage1Div.classList.add('hidden');
                 stage2Div.classList.remove('hidden');
                 stage2Div.classList.add('flex');
-                btnCheck.innerText = "🏆 完成分類";
+                btnCheck.innerText = "🏆 完成";
                 btnCheck.onclick = checkClassification;
                 
                 ['bin-conductor', 'bin-insulator'].forEach(id => {
@@ -361,7 +392,7 @@
             }
         }
 
-        // --- DOM 生成 ---
+        // --- DOM 生成 (響應式 Class) ---
 
         function createCardElement(card) {
             const div = document.createElement('div');
@@ -370,18 +401,21 @@
             div.dataset.elId = card.elId;
             div.dataset.type = card.type;
             
-            let baseClass = "draggable-card bg-white shadow-sm rounded-md p-2 w-28 text-center border cursor-grab text-sm relative select-none shrink-0 z-10";
+            // 響應式基礎樣式
+            // w-20 (Mobile) -> md:w-24 -> lg:w-28
+            let baseClass = "draggable-card bg-white shadow-sm rounded-md p-1 md:p-2 w-20 md:w-24 lg:w-28 text-center border cursor-grab text-xs md:text-sm relative select-none shrink-0 z-10 min-h-[3rem]";
             let contentHtml = '';
             
             if (card.type === 'name') {
                 div.className = `${baseClass} card-name border-blue-200 hover:border-blue-400`;
-                contentHtml = `<div class="font-bold text-lg text-slate-800">${card.content}</div>`;
+                contentHtml = `<div class="font-bold text-base md:text-lg text-slate-800">${card.content}</div>`;
             } else if (card.type === 'symbol') {
                 div.className = `${baseClass} card-symbol border-green-200 hover:border-green-400`;
-                contentHtml = `<div class="font-serif font-bold text-2xl text-green-700">${card.content}</div>`;
+                contentHtml = `<div class="font-serif font-bold text-xl md:text-2xl text-green-700">${card.content}</div>`;
             } else {
+                // 性質卡
                 div.className = `${baseClass} card-prop border-rose-200 hover:border-rose-400 text-left`;
-                contentHtml = `<div class="text-xs text-slate-600 leading-tight">${card.content}</div>`;
+                contentHtml = `<div class="text-[10px] md:text-xs text-slate-600 leading-tight line-clamp-3">${card.content}</div>`;
             }
 
             div.innerHTML = contentHtml;
@@ -390,17 +424,20 @@
             return div;
         }
 
-        // --- 樣式控制輔助函式 ---
+        // --- 樣式控制輔助函式 (響應式 Class 恢復) ---
 
         function setCardStyleForZone(card) {
-            card.classList.remove('w-28');
+            // 移除固定寬度，讓 Grid 控制
+            card.classList.remove('w-20', 'md:w-24', 'lg:w-28');
+            
             if (card.dataset.type === 'symbol') card.classList.add('pos-symbol');
             if (card.dataset.type === 'name') card.classList.add('pos-name');
             if (card.dataset.type === 'prop') card.classList.add('pos-prop');
         }
 
         function resetCardStyleForSource(card) {
-            card.classList.add('w-28');
+            // 恢復響應式固定寬度
+            card.classList.add('w-20', 'md:w-24', 'lg:w-28');
             card.classList.remove('pos-symbol', 'pos-name', 'pos-prop');
         }
 
@@ -409,7 +446,6 @@
         function autoFill(type) {
             const zones = document.querySelectorAll('.drop-zone');
             
-            // 隨機分配 Zone
             let zoneIndices = Array.from({length: 12}, (_, i) => i);
             zoneIndices.sort(() => Math.random() - 0.5);
             
@@ -418,8 +454,7 @@
                 elementToZoneMap[el.id] = zones[zoneIndices[index]];
             });
 
-            // 抓取指定類型的卡片 (目前在 temp-storage)
-            const targetType = type; // 'name' or 'symbol'
+            const targetType = type;
             const allCards = Array.from(document.querySelectorAll('#temp-storage .draggable-card'));
             
             allCards.forEach(card => {
@@ -439,28 +474,19 @@
             const rightContainer = document.getElementById('source-right');
             const labelLeft = document.getElementById('label-left');
 
-            // 剩下的卡片還在 temp-storage
             const remainingCards = Array.from(document.querySelectorAll('#temp-storage .draggable-card'));
-            
-            // 洗牌
             remainingCards.sort(() => Math.random() - 0.5);
 
-            // 分類
-            // 如果填入的是名稱，左邊剩下的是符號；反之亦然
             const leftType = filledType === 'name' ? 'symbol' : 'name';
-            
-            // 更新左側標題
             labelLeft.innerText = filledType === 'name' ? "元素符號" : "元素名稱";
 
             remainingCards.forEach(card => {
-                resetCardStyleForSource(card); // 確保樣式重置
-
+                resetCardStyleForSource(card);
                 if (card.dataset.type === 'prop') {
                     rightContainer.appendChild(card);
                 } else if (card.dataset.type === leftType) {
                     leftContainer.appendChild(card);
                 }
-                // 理論上不會有其他卡片，因為第一類已經填入格子了
             });
         }
 
@@ -511,7 +537,6 @@
                 if (existingCard && existingCard.id !== card.id) {
                     returnCardToSource(existingCard);
                 }
-
                 this.appendChild(card);
                 setCardStyleForZone(card); 
             }
@@ -528,18 +553,14 @@
             }
         }
 
-        // 輔助：將卡片歸位到正確的 Source 容器
         function returnCardToSource(card) {
             const leftContainer = document.getElementById('source-left');
             const rightContainer = document.getElementById('source-right');
-            
             resetCardStyleForSource(card);
 
             if (card.dataset.type === 'prop') {
                 rightContainer.appendChild(card);
             } else {
-                // 不論是 Name 還是 Symbol，只要不是 prop 就去左邊
-                // (因為場上只會剩下一種 Identity 卡)
                 leftContainer.appendChild(card);
             }
         }
@@ -564,13 +585,13 @@
                 const isCompleteSet = hasName && hasSymbol && hasProp && cardsInZone.length === 3;
                 const allSameId = ids.every(id => id === ids[0]);
 
-                zone.className = 'drop-zone bg-white rounded-xl border-2 border-dashed border-slate-300 p-3 relative transition-all';
+                zone.className = 'drop-zone bg-white rounded-xl border-2 border-dashed border-slate-300 p-2 md:p-3 relative transition-all';
                 zone.querySelector('.status-icon')?.remove();
 
                 if (isCompleteSet && allSameId) {
                     zone.classList.remove('border-slate-300', 'bg-white');
                     zone.classList.add('border-green-500', 'bg-green-50');
-                    zone.innerHTML += '<div class="status-icon absolute bottom-2 right-2 text-green-500 text-xl z-20">✅</div>';
+                    zone.innerHTML += '<div class="status-icon absolute bottom-1 right-1 text-green-500 text-lg md:text-xl z-20">✅</div>';
                     correctCount++;
                 } else if (cardsInZone.length > 0 && (!allSameId)) {
                     zone.classList.remove('border-slate-300', 'bg-white');
@@ -583,7 +604,7 @@
             });
 
             if (correctCount === 12) {
-                showModal('🎉 第一階段完成！', '太棒了！所有配對都正確。\n接下來進入第二階段：分類挑戰！\n請將整組卡片拖曳到正確的導電性分類中。', 'success', startStage2);
+                showModal('🎉 第一階段完成！', '太棒了！所有配對都正確。\n接下來進入第二階段：分類挑戰！', 'success', startStage2);
             } else {
                 let msg = `目前有 ${correctCount} 組正確。`;
                 if (errorCount > 0) msg += `\n發現 ${errorCount} 組配對錯誤 (紅色)。`;
@@ -614,7 +635,8 @@
                 const elementInfo = elementsData.find(e => e.id == elId);
 
                 const block = document.createElement('div');
-                block.className = 'element-block bg-white border border-slate-300 shadow-md rounded-lg p-2 w-48 shrink-0 flex flex-col gap-1 select-none hover:shadow-lg hover:border-indigo-400';
+                // 響應式 Block 寬度
+                block.className = 'element-block bg-white border border-slate-300 shadow-md rounded-lg p-2 shrink-0 flex flex-col gap-1 select-none hover:shadow-lg hover:border-indigo-400';
                 block.draggable = true;
                 block.id = `block-${elId}`;
                 block.dataset.elId = elId;
@@ -623,7 +645,8 @@
                 cardsInZone.forEach(c => {
                     const clone = c.cloneNode(true);
                     clone.classList.remove('pos-symbol', 'pos-name', 'pos-prop');
-                    clone.classList.remove('w-28'); 
+                    // Block 內部不使用 Grid，所以重置寬度為 100%
+                    clone.classList.remove('w-20', 'md:w-24', 'lg:w-28'); 
                     clone.classList.add('w-full', 'text-xs'); 
                     clone.style.height = 'auto'; 
                     block.appendChild(clone);
@@ -654,8 +677,9 @@
                 const contentArea = this.querySelector('.content-area');
                 if(contentArea) {
                     contentArea.appendChild(block);
-                    block.classList.remove('w-48');
+                    // 在籃子裡寬度 100%
                     block.classList.add('w-full');
+                    block.classList.remove('max-w-[12rem]', 'lg:max-w-[14rem]'); // 移除最大寬度限制，讓它自適應籃子
                 }
             }
         }
