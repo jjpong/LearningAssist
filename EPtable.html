@@ -4,8 +4,8 @@
     <meta name="x-poe-datastore-behavior" content="local_only">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動週期表</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>互動週期表 - 響應式版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -44,6 +44,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
         }
 
         body {
@@ -54,12 +55,13 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            touch-action: none; /* Prevent browser handling of gestures */
         }
 
-        /* --- Compact Header Area --- */
+        /* --- Header Area --- */
         .app-header {
             background: var(--bg-secondary);
-            padding: 10px 20px;
+            padding: 10px 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             z-index: 10;
             flex-shrink: 0;
@@ -69,19 +71,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+            margin-bottom: 8px;
             gap: 10px;
         }
 
         .brand {
             display: flex;
             align-items: baseline;
-            gap: 10px;
+            gap: 8px;
+            min-width: 0; /* Allow shrinking */
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--accent), #00ff88);
             -webkit-background-clip: text;
@@ -94,18 +96,17 @@
         .subtitle {
             color: var(--text-secondary);
             font-size: 0.8rem;
-            display: none;
+            display: inline;
         }
-
-        @media(min-width: 768px) { .subtitle { display: inline; } }
 
         .view-controls {
             display: flex;
-            gap: 5px;
+            gap: 4px;
+            flex-shrink: 0;
         }
 
         .view-btn {
-            padding: 6px 12px;
+            padding: 6px 10px;
             font-size: 13px;
             font-family: 'Noto Sans TC', sans-serif;
             font-weight: 600;
@@ -130,18 +131,29 @@
             gap: 10px;
         }
 
+        /* Make property bar scrollable on mobile */
         .property-bar {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--bg-tertiary);
             padding: 4px 8px;
             border-radius: 8px;
+            overflow-x: auto; /* Horizontal scroll on mobile */
+            white-space: nowrap;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        .property-bar::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
         }
 
         .property-label {
             font-size: 12px;
             color: var(--text-secondary);
+            flex-shrink: 0;
         }
 
         .property-btn {
@@ -153,6 +165,7 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .property-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -161,13 +174,14 @@
         .action-bar {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
+            flex-shrink: 0;
         }
 
         .zoom-group {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .zoom-btn {
@@ -190,18 +204,18 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
             color: var(--accent);
-            width: 40px;
+            width: 36px;
             text-align: center;
         }
 
         .speed-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .speed-slider {
-            width: 80px;
+            width: 60px;
             height: 4px;
             background: var(--bg-tertiary);
             border-radius: 2px;
@@ -223,7 +237,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             color: var(--accent);
-            width: 30px;
+            width: 24px;
             text-align: right;
         }
 
@@ -231,11 +245,11 @@
         .table-container {
             flex: 1;
             position: relative;
-            overflow: hidden; /* Canvas style: no scrollbars */
+            overflow: hidden;
             background: var(--bg-primary);
             cursor: grab;
             user-select: none;
-            /* No flex display here, we manage positions absolutely */
+            touch-action: none; /* Crucial for custom touch handling */
         }
 
         .table-container.grabbing {
@@ -246,10 +260,9 @@
             position: absolute;
             top: 0;
             left: 0;
-            /* Crucial: transform origin at 0,0 allows easy math for pan/zoom */
             transform-origin: 0 0;
-            /* We will control transform via JS directly for pan/zoom */
-            /* Transition mostly for color changes and layout shifts inside, not the pan itself for responsiveness */
+            /* Will use will-change for performance on mobile */
+            will-change: transform;
         }
 
         .element {
@@ -263,7 +276,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            /* Layout animations */
             transition: left var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1),
                         top var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1),
                         transform 0.2s ease,
@@ -286,10 +298,13 @@
 
         .element.property-mode::before { opacity: 0.3; }
 
-        .element:hover {
-            transform: scale(1.15);
-            z-index: 100;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--category-color);
+        /* Disable hover on touch devices to prevent sticky hover states */
+        @media (hover: hover) {
+            .element:hover {
+                transform: scale(1.15);
+                z-index: 100;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--category-color);
+            }
         }
 
         .element .number {
@@ -333,7 +348,6 @@
             color: var(--text-primary); text-shadow: 0 0 3px rgba(0,0,0,0.8);
         }
 
-        /* Light bg adjustments */
         .element.light-bg .number, .element.light-bg .symbol, .element.light-bg .name, .element.light-bg .mass, .element.light-bg .property-value {
             color: #1a1a2e; text-shadow: none;
         }
@@ -354,7 +368,7 @@
         /* --- Footer Legend --- */
         .app-footer {
             background: var(--bg-secondary);
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-top: 1px solid var(--bg-tertiary);
             flex-shrink: 0;
             z-index: 10;
@@ -364,41 +378,41 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 5px;
+            gap: 10px;
+            margin-bottom: 4px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 11px;
+            gap: 4px;
+            font-size: 10px;
             color: var(--text-secondary);
         }
 
         .legend-color {
-            width: 10px; height: 10px; border-radius: 2px;
+            width: 8px; height: 8px; border-radius: 2px;
         }
 
         .view-info {
             text-align: center;
-            font-size: 11px; color: var(--text-secondary);
-            margin-top: 5px;
+            font-size: 10px; color: var(--text-secondary);
+            margin-top: 2px;
         }
 
         /* Color Scale */
         .color-scale {
-            display: none; align-items: center; gap: 8px;
+            display: none; align-items: center; gap: 6px;
             margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--text-secondary);
         }
         .color-scale.visible { display: flex; }
         .scale-bar {
-            width: 80px; height: 8px; border-radius: 4px;
+            width: 60px; height: 6px; border-radius: 3px;
             background: linear-gradient(to right, #1a1a2e, #ffd93d);
         }
-        .scale-info { display: flex; flex-direction: column; gap: 1px; }
+        .scale-info { display: flex; flex-direction: column; gap: 0px; }
         .scale-title { font-size: 10px; color: var(--accent); }
-        .scale-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-secondary); }
+        .scale-labels { display: flex; justify-content: space-between; font-size: 8px; color: var(--text-secondary); }
 
         /* Tooltip */
         .tooltip {
@@ -413,17 +427,55 @@
             transition: opacity 0.2s;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             max-width: 250px;
+            /* Improved positioning on mobile */
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%); /* Centered by default for small screens */
         }
-        .tooltip.visible { opacity: 1; }
+        
+        .tooltip.visible { opacity: 1; pointer-events: auto; } /* Allow clicking inside if needed */
+        
         .tooltip h3 { font-size: 1.1rem; margin-bottom: 4px; color: var(--accent); }
         .tooltip p { font-size: 0.8rem; color: var(--text-secondary); margin: 2px 0; }
         .tooltip .prop-highlight { color: var(--accent); font-weight: 600; }
 
+        /* --- Responsive Queries --- */
         @media (max-width: 768px) {
-            .header-top-row { flex-direction: column; align-items: flex-start; }
-            .header-bottom-row { justify-content: center; }
-            .legend { gap: 8px; }
-            .legend-item { font-size: 10px; }
+            .app-header { padding: 8px 12px; }
+            h1 { font-size: 1.2rem; }
+            .subtitle { display: none; }
+            
+            .header-top-row { flex-wrap: wrap; gap: 5px; }
+            .header-bottom-row { gap: 8px; }
+            
+            .view-btn { padding: 5px 8px; font-size: 11px; }
+            
+            .property-bar {
+                flex: 1 1 100%; /* Take full width on mobile */
+                order: 2; /* Move below zoom/speed controls on very small screens if needed */
+            }
+            
+            .action-bar {
+                flex: 1 1 auto;
+                justify-content: space-between;
+                order: 1;
+                width: 100%;
+            }
+            
+            /* Make tooltip modal-like on mobile */
+            .tooltip {
+                width: 80%;
+                max-width: 300px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            /* Desktop tooltip follows cursor (reset logic handled in JS) */
+            .tooltip {
+                transform: none;
+                left: auto;
+                top: auto;
+            }
         }
     </style>
 </head>
@@ -432,7 +484,7 @@
         <div class="header-top-row">
             <div class="brand">
                 <h1>互動週期表</h1>
-                <span class="subtitle"></span>
+                <span class="subtitle">無限畫布</span>
             </div>
             <div class="view-controls">
                 <button class="view-btn" data-view="linear">序列</button>
@@ -442,8 +494,24 @@
         </div>
 
         <div class="header-bottom-row">
+            <!-- Action bar moved up visually on mobile via flex order or keeps logic simple -->
+            <div class="action-bar">
+                <div class="zoom-group">
+                    <button class="zoom-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
+                    <div class="zoom-display" id="zoomDisplay">100%</div>
+                    <button class="zoom-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
+                    <button class="zoom-btn" id="zoomReset"><i class="fas fa-compress"></i></button>
+                </div>
+                
+                <div class="speed-group">
+                    <span class="property-label"><i class="fas fa-clock"></i></span>
+                    <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" step="1" value="2">
+                    <span class="speed-display" id="speedDisplay">1s</span>
+                </div>
+            </div>
+
             <div class="property-bar">
-                <span class="property-label"><i class="fas fa-layer-group"></i> 性質</span>
+                <span class="property-label"><i class="fas fa-layer-group"></i></span>
                 <button class="property-btn active" data-property="none">無</button>
                 <button class="property-btn" data-property="ionization">游離能</button>
                 <button class="property-btn" data-property="electronegativity">電負度</button>
@@ -457,21 +525,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="action-bar">
-                <div class="zoom-group">
-                    <button class="zoom-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
-                    <div class="zoom-display" id="zoomDisplay">100%</div>
-                    <button class="zoom-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
-                    <button class="zoom-btn" id="zoomReset"><i class="fas fa-expand"></i></button>
-                </div>
-                
-                <div class="speed-group">
-                    <span class="property-label"><i class="fas fa-clock"></i></span>
-                    <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" step="1" value="2">
-                    <span class="speed-display" id="speedDisplay">1s</span>
-                </div>
-            </div>
         </div>
     </header>
 
@@ -482,19 +535,19 @@
     <footer class="app-footer">
         <div class="legend" id="categoryLegend">
             <div class="legend-item"><div class="legend-color" style="background: var(--alkali)"></div>鹼金屬</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--alkaline)"></div>鹼土金屬</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--transition)"></div>過渡金屬</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--post-transition)"></div>後過渡金屬</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--alkaline)"></div>鹼土</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--transition)"></div>過渡</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--post-transition)"></div>後過渡</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--metalloid)"></div>類金屬</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--nonmetal)"></div>非金屬</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--halogen)"></div>鹵素</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--noble)"></div>稀有氣體</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--lanthanide)"></div>鑭系元素</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--actinide)"></div>錒系元素</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--noble)"></div>稀有</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--lanthanide)"></div>鑭系</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--actinide)"></div>錒系</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--unknown)"></div>未知</div>
         </div>
         <div class="view-info" id="viewInfo">
-            目前視圖：按原子序排列
+            目前視圖：標準週期表
         </div>
     </footer>
 
@@ -721,6 +774,11 @@
         let startTranslateX = 0;
         let startTranslateY = 0;
 
+        // Touch handling state
+        let initialPinchDistance = 0;
+        let initialZoomLevel = 1;
+        let isPinching = false;
+
         const minZoom = 0.1;
         const maxZoom = 5;
         const zoomStep = 0.2;
@@ -886,15 +944,22 @@
             const viewportWidth = tableContainer.clientWidth;
             const viewportHeight = tableContainer.clientHeight;
 
-            // Center calculation: (Viewport Center) - (Content Center * scale)
-            // But elements start at (0, 0) inside table, so we shift origin.
-            
+            // Auto-adjust zoom level for mobile to fit better initially
+            if (viewportWidth < 600) {
+                // Heuristic for mobile zoom
+                zoomLevel = Math.max(minZoom, Math.min(1, viewportWidth / contentWidth * 1.5));
+                zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+            }
+
             translateX = (viewportWidth - contentWidth * zoomLevel) / 2;
             translateY = (viewportHeight - contentHeight * zoomLevel) / 2;
             
-            // Adjust Y slightly down if it's too high up due to topPadding logic
+            // Mobile vertical centering adjustment
             if (translateY < 0 && contentHeight * zoomLevel < viewportHeight) {
                  translateY = 50; 
+            } else if (viewportHeight < 600) {
+                // On small screens, ensure top isn't cut off too much if possible
+                translateY = Math.max(translateY, 20);
             }
 
             applyTransform();
@@ -906,9 +971,6 @@
             
             if (newZoom === oldZoom) return;
 
-            // Calculate mouse position relative to the table (unscaled)
-            // mouseX = translateX + localX * scale
-            // localX = (mouseX - translateX) / scale
             const rect = tableContainer.getBoundingClientRect();
             const mouseX = startX - rect.left;
             const mouseY = startY - rect.top;
@@ -916,12 +978,9 @@
             const localX = (mouseX - translateX) / oldZoom;
             const localY = (mouseY - translateY) / oldZoom;
 
-            // Update zoom
             zoomLevel = newZoom;
             zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
 
-            // Calculate new translate to keep point stable
-            // newTranslateX = mouseX - localX * newScale
             translateX = mouseX - localX * newZoom;
             translateY = mouseY - localY * newZoom;
 
@@ -955,8 +1014,6 @@
                 maxRow = Math.max(maxRow, pos.row);
             });
 
-            // Need to set a minimal width/height for table div just in case, though absolutely positioned elements float.
-            // Actually with transform translate, the div dimensions matter less for positioning but good for debugging.
             const contentWidth = (maxCol + 1) * (cellWidth + gap);
             const contentHeight = (maxRow + 1) * (cellHeight + gap) + topPadding;
             
@@ -965,7 +1022,6 @@
 
             viewInfo.textContent = viewDescriptions[view];
             
-            // Re-center after layout update
             setTimeout(centerTable, 50);
         }
 
@@ -1013,12 +1069,12 @@
         }
 
         function moveTooltip(e) {
+            // Mobile positioning handled by CSS (center)
+            if (window.innerWidth <= 768) return;
+
             let x = e.clientX + 15;
             let y = e.clientY + 15;
             
-            // Check boundaries
-            // We need to know width/height before showing to clamp correctly
-            // Force temporary display to measure
             const wasVisible = tooltip.classList.contains('visible');
             if (!wasVisible) {
                 tooltip.style.visibility = 'hidden';
@@ -1043,9 +1099,9 @@
             tooltip.classList.remove('visible');
         }
 
-        // --- Infinite Canvas Drag Logic ---
+        // --- Mouse Interaction ---
         tableContainer.addEventListener('mousedown', (e) => {
-            if(e.button !== 0) return; // Only left click
+            if(e.button !== 0) return;
             isDragging = true;
             hasDragged = false;
             tableContainer.classList.add('grabbing');
@@ -1082,6 +1138,88 @@
             applyTransform();
         });
 
+        // --- Touch Interaction (Mobile) ---
+        function getDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function getMidpoint(touches) {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2
+            };
+        }
+
+        tableContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                // Single finger pan
+                isDragging = true;
+                hasDragged = false;
+                isPinching = false;
+                
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                startTranslateX = translateX;
+                startTranslateY = translateY;
+                hideTooltip(); // Hide tooltip on touch
+            } else if (e.touches.length === 2) {
+                // Two finger pinch
+                isDragging = false;
+                isPinching = true;
+                initialPinchDistance = getDistance(e.touches);
+                initialZoomLevel = zoomLevel;
+                // Don't hide tooltip immediately for pinch, maybe? Or yes to be clean.
+                hideTooltip();
+            }
+        }, { passive: false });
+
+        tableContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent default scrolling behavior
+
+            if (isDragging && e.touches.length === 1) {
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged = true;
+
+                translateX = startTranslateX + dx;
+                translateY = startTranslateY + dy;
+                applyTransform();
+            } 
+            else if (isPinching && e.touches.length === 2) {
+                const currentDistance = getDistance(e.touches);
+                const mid = getMidpoint(e.touches);
+                
+                // Calculate new zoom
+                const scale = currentDistance / initialPinchDistance;
+                const newZoom = Math.max(minZoom, Math.min(maxZoom, initialZoomLevel * scale));
+                
+                // Use zoomAtPoint logic manually to center on midpoint
+                // Similar to zoomAtPoint but using continuous update
+                // Re-calculating origin on every move is jittery, simple scaling at center is easier
+                // But for proper pinch zoom we need center-based scaling.
+                
+                // Let's implement simple "zoom to center of screen" for stability or 
+                // re-use the concept: newZoom/currentZoom * ...
+                // To keep it smooth, we update zoomAtPoint-like logic:
+                
+                const factor = newZoom / zoomLevel;
+                zoomAtPoint(factor, mid.x, mid.y);
+                
+                // Update tracking for next frame (optional, but smoother if we treat each move as delta)
+                // Here we used absolute ratio from start, so we just update the visual
+            }
+        }, { passive: false });
+
+        tableContainer.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                isDragging = false;
+                isPinching = false;
+            }
+        });
+
         // Event Listeners
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1101,7 +1239,6 @@
         });
 
         document.getElementById('zoomIn').addEventListener('click', () => {
-            // Zoom to center
             const rect = tableContainer.getBoundingClientRect();
             zoomAtPoint(1.2, rect.width/2 + rect.left, rect.height/2 + rect.top);
         });
@@ -1124,6 +1261,13 @@
             const factor = e.deltaY > 0 ? 0.9 : 1.1;
             zoomAtPoint(factor, e.clientX, e.clientY);
         }, { passive: false });
+
+        // Tooltip dismissal on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.element') && !e.target.closest('.tooltip')) {
+                hideTooltip();
+            }
+        });
 
         // Dark mode init
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
