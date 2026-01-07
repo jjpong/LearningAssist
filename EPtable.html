@@ -134,14 +134,25 @@
         .property-bar {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--bg-tertiary);
             padding: 4px 8px;
             border-radius: 8px;
-            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
             max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
         
+        .property-bar::-webkit-scrollbar { display: none; }
+
+        .property-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
         .property-select {
             background: var(--bg-primary);
             color: var(--text-primary);
@@ -711,7 +722,7 @@
                 name: '比熱',
                 unit: 'J/(g·K)',
                 min: 0.09,
-                max: 14.3, // Hydrogen is huge, might skew, but let's keep linear or log later. Linear for now.
+                max: 1.5,
                 colorStops: ['#1a1a2e', '#2d4a6f', '#4a90a4', '#7dd3c0', '#b5f5ec']
             },
             thermal_conductivity: {
@@ -832,9 +843,22 @@
 
         function isLightColor(color) {
             if (!color) return false;
-            const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-            if (!match) return false;
-            const luminance = (0.299 * parseInt(match[1]) + 0.587 * parseInt(match[2]) + 0.114 * parseInt(match[3])) / 255;
+            let r, g, b;
+            
+            // Handle Hex colors
+            if (color.startsWith('#')) {
+                const rgb = hexToRgb(color);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            } else {
+                // Handle rgb() strings
+                const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (!match) return false;
+                r = parseInt(match[1]);
+                g = parseInt(match[2]);
+                b = parseInt(match[3]);
+            }
+            
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
             return luminance > 0.6;
         }
 
