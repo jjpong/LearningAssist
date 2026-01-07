@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>互動週期表 - 響應式版</title>
+    <title>互動週期表</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -134,39 +134,30 @@
         .property-bar {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background: var(--bg-tertiary);
             padding: 4px 8px;
             border-radius: 8px;
-            overflow-x: auto;
-            white-space: nowrap;
+            flex-wrap: nowrap;
             max-width: 100%;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
         }
         
-        .property-bar::-webkit-scrollbar { display: none; }
-
-        .property-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-        }
-
-        .property-btn {
-            padding: 4px 10px;
-            font-size: 12px;
+        .property-select {
+            background: var(--bg-primary);
+            color: var(--text-primary);
             border: 1px solid var(--text-secondary);
-            background: transparent;
-            color: var(--text-secondary);
+            padding: 4px 8px;
             border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            font-family: 'Noto Sans TC', sans-serif;
             cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
+            min-width: 120px;
         }
 
-        .property-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .property-btn.active { border-color: var(--accent); background: var(--accent); color: var(--bg-primary); }
+        .property-select:hover {
+            border-color: var(--accent);
+        }
 
         .action-bar {
             display: flex;
@@ -475,7 +466,7 @@
         <div class="header-top-row">
             <div class="brand">
                 <h1>互動週期表</h1>
-                <span class="subtitle">無限畫布</span>
+                <span class="subtitle"></span>
             </div>
             <div class="view-controls">
                 <button class="view-btn" data-view="linear">序列</button>
@@ -502,11 +493,16 @@
 
             <div class="property-bar">
                 <span class="property-label"><i class="fas fa-layer-group"></i></span>
-                <button class="property-btn active" data-property="none">無</button>
-                <button class="property-btn" data-property="ionization">游離能</button>
-                <button class="property-btn" data-property="electronegativity">電負度</button>
-                <button class="property-btn" data-property="density">密度</button>
-                <button class="property-btn" data-property="radius">半徑</button>
+                <select id="propertySelect" class="property-select">
+                    <option value="none">顯示性質：無</option>
+                    <option value="ionization">第一游離能</option>
+                    <option value="electronegativity">電負度</option>
+                    <option value="density">密度</option>
+                    <option value="radius">原子半徑</option>
+                    <option value="specific_heat">比熱 (J/g·K)</option>
+                    <option value="thermal_conductivity">導熱率 (W/m·K)</option>
+                    <option value="electrical_conductivity">導電率 (MS/m)</option>
+                </select>
                 
                 <div class="color-scale" id="colorScale">
                     <div class="scale-info">
@@ -559,126 +555,126 @@
             'unknown': '#868e96'
         };
 
-        // Data
+        // Data with new properties added
         const elements = [
-            { z: 1, symbol: "H", name: "氫", category: "nonmetal", mass: "1.008", ionization: 1312, electronegativity: 2.20, density: 0.00009, radius: 53 },
-            { z: 2, symbol: "He", name: "氦", category: "noble", mass: "4.003", ionization: 2372, electronegativity: null, density: 0.00018, radius: 31 },
-            { z: 3, symbol: "Li", name: "鋰", category: "alkali", mass: "6.94", ionization: 520, electronegativity: 0.98, density: 0.534, radius: 167 },
-            { z: 4, symbol: "Be", name: "鈹", category: "alkaline", mass: "9.012", ionization: 900, electronegativity: 1.57, density: 1.85, radius: 112 },
-            { z: 5, symbol: "B", name: "硼", category: "metalloid", mass: "10.81", ionization: 801, electronegativity: 2.04, density: 2.34, radius: 87 },
-            { z: 6, symbol: "C", name: "碳", category: "nonmetal", mass: "12.01", ionization: 1086, electronegativity: 2.55, density: 2.267, radius: 67 },
-            { z: 7, symbol: "N", name: "氮", category: "nonmetal", mass: "14.01", ionization: 1402, electronegativity: 3.04, density: 0.00125, radius: 56 },
-            { z: 8, symbol: "O", name: "氧", category: "nonmetal", mass: "16.00", ionization: 1314, electronegativity: 3.44, density: 0.00143, radius: 48 },
-            { z: 9, symbol: "F", name: "氟", category: "halogen", mass: "19.00", ionization: 1681, electronegativity: 3.98, density: 0.0017, radius: 42 },
-            { z: 10, symbol: "Ne", name: "氖", category: "noble", mass: "20.18", ionization: 2081, electronegativity: null, density: 0.0009, radius: 38 },
-            { z: 11, symbol: "Na", name: "鈉", category: "alkali", mass: "22.99", ionization: 496, electronegativity: 0.93, density: 0.971, radius: 190 },
-            { z: 12, symbol: "Mg", name: "鎂", category: "alkaline", mass: "24.31", ionization: 738, electronegativity: 1.31, density: 1.738, radius: 145 },
-            { z: 13, symbol: "Al", name: "鋁", category: "post-transition", mass: "26.98", ionization: 578, electronegativity: 1.61, density: 2.698, radius: 118 },
-            { z: 14, symbol: "Si", name: "矽", category: "metalloid", mass: "28.09", ionization: 786, electronegativity: 1.90, density: 2.3296, radius: 111 },
-            { z: 15, symbol: "P", name: "磷", category: "nonmetal", mass: "30.97", ionization: 1012, electronegativity: 2.19, density: 1.82, radius: 98 },
-            { z: 16, symbol: "S", name: "硫", category: "nonmetal", mass: "32.06", ionization: 1000, electronegativity: 2.58, density: 2.067, radius: 88 },
-            { z: 17, symbol: "Cl", name: "氯", category: "halogen", mass: "35.45", ionization: 1251, electronegativity: 3.16, density: 0.00321, radius: 79 },
-            { z: 18, symbol: "Ar", name: "氬", category: "noble", mass: "39.95", ionization: 1521, electronegativity: null, density: 0.0018, radius: 71 },
-            { z: 19, symbol: "K", name: "鉀", category: "alkali", mass: "39.10", ionization: 419, electronegativity: 0.82, density: 0.862, radius: 243 },
-            { z: 20, symbol: "Ca", name: "鈣", category: "alkaline", mass: "40.08", ionization: 590, electronegativity: 1.00, density: 1.54, radius: 194 },
-            { z: 21, symbol: "Sc", name: "鈧", category: "transition", mass: "44.96", ionization: 633, electronegativity: 1.36, density: 2.989, radius: 184 },
-            { z: 22, symbol: "Ti", name: "鈦", category: "transition", mass: "47.87", ionization: 659, electronegativity: 1.54, density: 4.54, radius: 176 },
-            { z: 23, symbol: "V", name: "釩", category: "transition", mass: "50.94", ionization: 651, electronegativity: 1.63, density: 6.11, radius: 171 },
-            { z: 24, symbol: "Cr", name: "鉻", category: "transition", mass: "52.00", ionization: 653, electronegativity: 1.66, density: 7.15, radius: 166 },
-            { z: 25, symbol: "Mn", name: "錳", category: "transition", mass: "54.94", ionization: 717, electronegativity: 1.55, density: 7.44, radius: 161 },
-            { z: 26, symbol: "Fe", name: "鐵", category: "transition", mass: "55.85", ionization: 762, electronegativity: 1.83, density: 7.874, radius: 156 },
-            { z: 27, symbol: "Co", name: "鈷", category: "transition", mass: "58.93", ionization: 760, electronegativity: 1.88, density: 8.86, radius: 152 },
-            { z: 28, symbol: "Ni", name: "鎳", category: "transition", mass: "58.69", ionization: 737, electronegativity: 1.91, density: 8.912, radius: 149 },
-            { z: 29, symbol: "Cu", name: "銅", category: "transition", mass: "63.55", ionization: 745, electronegativity: 1.90, density: 8.96, radius: 145 },
-            { z: 30, symbol: "Zn", name: "鋅", category: "transition", mass: "65.38", ionization: 906, electronegativity: 1.65, density: 7.134, radius: 142 },
-            { z: 31, symbol: "Ga", name: "鎵", category: "post-transition", mass: "69.72", ionization: 579, electronegativity: 1.81, density: 5.907, radius: 136 },
-            { z: 32, symbol: "Ge", name: "鍺", category: "metalloid", mass: "72.63", ionization: 762, electronegativity: 2.01, density: 5.323, radius: 125 },
-            { z: 33, symbol: "As", name: "砷", category: "metalloid", mass: "74.92", ionization: 947, electronegativity: 2.18, density: 5.776, radius: 114 },
-            { z: 34, symbol: "Se", name: "硒", category: "nonmetal", mass: "78.96", ionization: 941, electronegativity: 2.55, density: 4.809, radius: 103 },
-            { z: 35, symbol: "Br", name: "溴", category: "halogen", mass: "79.90", ionization: 1140, electronegativity: 2.96, density: 3.122, radius: 94 },
-            { z: 36, symbol: "Kr", name: "氪", category: "noble", mass: "83.80", ionization: 1351, electronegativity: 3.00, density: 0.00375, radius: 88 },
-            { z: 37, symbol: "Rb", name: "銣", category: "alkali", mass: "85.47", ionization: 403, electronegativity: 0.82, density: 1.532, radius: 265 },
-            { z: 38, symbol: "Sr", name: "鍶", category: "alkaline", mass: "87.62", ionization: 550, electronegativity: 0.95, density: 2.64, radius: 219 },
-            { z: 39, symbol: "Y", name: "釔", category: "transition", mass: "88.91", ionization: 600, electronegativity: 1.22, density: 4.469, radius: 212 },
-            { z: 40, symbol: "Zr", name: "鋯", category: "transition", mass: "91.22", ionization: 640, electronegativity: 1.33, density: 6.506, radius: 206 },
-            { z: 41, symbol: "Nb", name: "鈮", category: "transition", mass: "92.91", ionization: 652, electronegativity: 1.6, density: 8.57, radius: 198 },
-            { z: 42, symbol: "Mo", name: "鉬", category: "transition", mass: "95.95", ionization: 684, electronegativity: 2.16, density: 10.22, radius: 190 },
-            { z: 43, symbol: "Tc", name: "鎝", category: "transition", mass: "(98)", ionization: 702, electronegativity: 1.9, density: 11.5, radius: 183 },
-            { z: 44, symbol: "Ru", name: "釕", category: "transition", mass: "101.1", ionization: 710, electronegativity: 2.2, density: 12.37, radius: 178 },
-            { z: 45, symbol: "Rh", name: "銠", category: "transition", mass: "102.9", ionization: 720, electronegativity: 2.28, density: 12.41, radius: 173 },
-            { z: 46, symbol: "Pd", name: "鈀", category: "transition", mass: "106.4", ionization: 804, electronegativity: 2.20, density: 12.02, radius: 169 },
-            { z: 47, symbol: "Ag", name: "銀", category: "transition", mass: "107.9", ionization: 731, electronegativity: 1.93, density: 10.501, radius: 165 },
-            { z: 48, symbol: "Cd", name: "鎘", category: "transition", mass: "112.4", ionization: 868, electronegativity: 1.69, density: 8.69, radius: 161 },
-            { z: 49, symbol: "In", name: "銦", category: "post-transition", mass: "114.8", ionization: 558, electronegativity: 1.78, density: 7.31, radius: 156 },
-            { z: 50, symbol: "Sn", name: "錫", category: "post-transition", mass: "118.7", ionization: 709, electronegativity: 1.96, density: 7.287, radius: 145 },
-            { z: 51, symbol: "Sb", name: "銻", category: "metalloid", mass: "121.8", ionization: 834, electronegativity: 2.05, density: 6.685, radius: 133 },
-            { z: 52, symbol: "Te", name: "碲", category: "metalloid", mass: "127.6", ionization: 869, electronegativity: 2.1, density: 6.232, radius: 123 },
-            { z: 53, symbol: "I", name: "碘", category: "halogen", mass: "126.9", ionization: 1008, electronegativity: 2.66, density: 4.93, radius: 115 },
-            { z: 54, symbol: "Xe", name: "氙", category: "noble", mass: "131.3", ionization: 1170, electronegativity: 2.60, density: 0.0059, radius: 108 },
-            { z: 55, symbol: "Cs", name: "銫", category: "alkali", mass: "132.9", ionization: 376, electronegativity: 0.79, density: 1.873, radius: 298 },
-            { z: 56, symbol: "Ba", name: "鋇", category: "alkaline", mass: "137.3", ionization: 503, electronegativity: 0.89, density: 3.594, radius: 253 },
-            { z: 57, symbol: "La", name: "鑭", category: "lanthanide", mass: "138.9", ionization: 538, electronegativity: 1.1, density: 6.145, radius: 195 },
-            { z: 58, symbol: "Ce", name: "鈰", category: "lanthanide", mass: "140.1", ionization: 534, electronegativity: 1.12, density: 6.77, radius: 185 },
-            { z: 59, symbol: "Pr", name: "鐠", category: "lanthanide", mass: "140.9", ionization: 527, electronegativity: 1.13, density: 6.773, radius: 247 },
-            { z: 60, symbol: "Nd", name: "釹", category: "lanthanide", mass: "144.2", ionization: 533, electronegativity: 1.14, density: 7.007, radius: 206 },
-            { z: 61, symbol: "Pm", name: "鉕", category: "lanthanide", mass: "(145)", ionization: 540, electronegativity: 1.13, density: 7.26, radius: 205 },
-            { z: 62, symbol: "Sm", name: "釤", category: "lanthanide", mass: "150.4", ionization: 545, electronegativity: 1.17, density: 7.52, radius: 238 },
-            { z: 63, symbol: "Eu", name: "銪", category: "lanthanide", mass: "152.0", ionization: 547, electronegativity: 1.2, density: 5.243, radius: 231 },
-            { z: 64, symbol: "Gd", name: "釓", category: "lanthanide", mass: "157.3", ionization: 593, electronegativity: 1.2, density: 7.895, radius: 233 },
-            { z: 65, symbol: "Tb", name: "鋱", category: "lanthanide", mass: "158.9", ionization: 566, electronegativity: 1.1, density: 8.229, radius: 225 },
-            { z: 66, symbol: "Dy", name: "鏑", category: "lanthanide", mass: "162.5", ionization: 573, electronegativity: 1.22, density: 8.55, radius: 228 },
-            { z: 67, symbol: "Ho", name: "鈥", category: "lanthanide", mass: "164.9", ionization: 581, electronegativity: 1.23, density: 8.795, radius: 226 },
-            { z: 68, symbol: "Er", name: "鉺", category: "lanthanide", mass: "167.3", ionization: 589, electronegativity: 1.24, density: 9.066, radius: 226 },
-            { z: 69, symbol: "Tm", name: "銩", category: "lanthanide", mass: "168.9", ionization: 597, electronegativity: 1.25, density: 9.321, radius: 222 },
-            { z: 70, symbol: "Yb", name: "鐿", category: "lanthanide", mass: "173.0", ionization: 603, electronegativity: 1.1, density: 6.965, radius: 222 },
-            { z: 71, symbol: "Lu", name: "鎦", category: "lanthanide", mass: "175.0", ionization: 524, electronegativity: 1.27, density: 9.84, radius: 217 },
-            { z: 72, symbol: "Hf", name: "鉿", category: "transition", mass: "178.5", ionization: 659, electronegativity: 1.3, density: 13.31, radius: 208 },
-            { z: 73, symbol: "Ta", name: "鉭", category: "transition", mass: "180.9", ionization: 761, electronegativity: 1.5, density: 16.654, radius: 200 },
-            { z: 74, symbol: "W", name: "鎢", category: "transition", mass: "183.8", ionization: 770, electronegativity: 2.36, density: 19.25, radius: 193 },
-            { z: 75, symbol: "Re", name: "錸", category: "transition", mass: "186.2", ionization: 760, electronegativity: 1.9, density: 21.02, radius: 188 },
-            { z: 76, symbol: "Os", name: "鋨", category: "transition", mass: "190.2", ionization: 840, electronegativity: 2.2, density: 22.61, radius: 185 },
-            { z: 77, symbol: "Ir", name: "銥", category: "transition", mass: "192.2", ionization: 880, electronegativity: 2.20, density: 22.56, radius: 180 },
-            { z: 78, symbol: "Pt", name: "鉑", category: "transition", mass: "195.1", ionization: 870, electronegativity: 2.28, density: 21.46, radius: 177 },
-            { z: 79, symbol: "Au", name: "金", category: "transition", mass: "197.0", ionization: 890, electronegativity: 2.54, density: 19.282, radius: 174 },
-            { z: 80, symbol: "Hg", name: "汞", category: "transition", mass: "200.6", ionization: 1007, electronegativity: 2.00, density: 13.5336, radius: 171 },
-            { z: 81, symbol: "Tl", name: "鉈", category: "post-transition", mass: "204.4", ionization: 589, electronegativity: 1.62, density: 11.85, radius: 156 },
-            { z: 82, symbol: "Pb", name: "鉛", category: "post-transition", mass: "207.2", ionization: 716, electronegativity: 1.87, density: 11.342, radius: 154 },
-            { z: 83, symbol: "Bi", name: "鉍", category: "post-transition", mass: "209.0", ionization: 703, electronegativity: 2.02, density: 9.807, radius: 143 },
-            { z: 84, symbol: "Po", name: "釙", category: "metalloid", mass: "(209)", ionization: 812, electronegativity: 2.0, density: 9.32, radius: 135 },
-            { z: 85, symbol: "At", name: "砈", category: "halogen", mass: "(210)", ionization: 890, electronegativity: 2.2, density: 7, radius: 127 },
-            { z: 86, symbol: "Rn", name: "氡", category: "noble", mass: "(222)", ionization: 1037, electronegativity: 2.2, density: 0.00973, radius: 120 },
-            { z: 87, symbol: "Fr", name: "鍅", category: "alkali", mass: "(223)", ionization: 380, electronegativity: 0.7, density: 1.87, radius: 348 },
-            { z: 88, symbol: "Ra", name: "鐳", category: "alkaline", mass: "(226)", ionization: 509, electronegativity: 0.9, density: 5.5, radius: 283 },
-            { z: 89, symbol: "Ac", name: "錒", category: "actinide", mass: "(227)", ionization: 499, electronegativity: 1.1, density: 10.07, radius: 260 },
-            { z: 90, symbol: "Th", name: "釷", category: "actinide", mass: "232.0", ionization: 587, electronegativity: 1.3, density: 11.72, radius: 237 },
-            { z: 91, symbol: "Pa", name: "鏷", category: "actinide", mass: "231.0", ionization: 568, electronegativity: 1.5, density: 15.37, radius: 243 },
-            { z: 92, symbol: "U", name: "鈾", category: "actinide", mass: "238.0", ionization: 598, electronegativity: 1.38, density: 18.95, radius: 240 },
-            { z: 93, symbol: "Np", name: "錼", category: "actinide", mass: "(237)", ionization: 605, electronegativity: 1.36, density: 20.45, radius: 221 },
-            { z: 94, symbol: "Pu", name: "鈽", category: "actinide", mass: "(244)", ionization: 585, electronegativity: 1.28, density: 19.84, radius: 243 },
-            { z: 95, symbol: "Am", name: "鋂", category: "actinide", mass: "(243)", ionization: 578, electronegativity: 1.13, density: 13.69, radius: 244 },
-            { z: 96, symbol: "Cm", name: "鋦", category: "actinide", mass: "(247)", ionization: 581, electronegativity: 1.28, density: 13.51, radius: 245 },
-            { z: 97, symbol: "Bk", name: "鉳", category: "actinide", mass: "(247)", ionization: 601, electronegativity: 1.3, density: 14.79, radius: 244 },
-            { z: 98, symbol: "Cf", name: "鉲", category: "actinide", mass: "(251)", ionization: 608, electronegativity: 1.3, density: 15.1, radius: 245 },
-            { z: 99, symbol: "Es", name: "鑀", category: "actinide", mass: "(252)", ionization: 619, electronegativity: 1.3, density: 8.84, radius: 245 },
-            { z: 100, symbol: "Fm", name: "鐨", category: "actinide", mass: "(257)", ionization: 627, electronegativity: 1.3, density: null, radius: 245 },
-            { z: 101, symbol: "Md", name: "鍆", category: "actinide", mass: "(258)", ionization: 635, electronegativity: 1.3, density: null, radius: 246 },
-            { z: 102, symbol: "No", name: "鍩", category: "actinide", mass: "(259)", ionization: 642, electronegativity: 1.3, density: null, radius: 246 },
-            { z: 103, symbol: "Lr", name: "鐒", category: "actinide", mass: "(262)", ionization: 470, electronegativity: 1.3, density: null, radius: 246 },
-            { z: 104, symbol: "Rf", name: "鑪", category: "transition", mass: "(267)", ionization: 580, electronegativity: null, density: null, radius: null },
-            { z: 105, symbol: "Db", name: "𨧀", category: "transition", mass: "(268)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 106, symbol: "Sg", name: "𨭎", category: "transition", mass: "(271)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 107, symbol: "Bh", name: "𨨏", category: "transition", mass: "(272)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 108, symbol: "Hs", name: "𨭆", category: "transition", mass: "(270)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 109, symbol: "Mt", name: "䥑", category: "unknown", mass: "(276)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 110, symbol: "Ds", name: "鐽", category: "unknown", mass: "(281)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 111, symbol: "Rg", name: "錀", category: "unknown", mass: "(280)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 112, symbol: "Cn", name: "鎶", category: "transition", mass: "(285)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 113, symbol: "Nh", name: "鉨", category: "unknown", mass: "(284)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 114, symbol: "Fl", name: "鈇", category: "post-transition", mass: "(289)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 115, symbol: "Mc", name: "鏌", category: "unknown", mass: "(288)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 116, symbol: "Lv", name: "鉝", category: "unknown", mass: "(293)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 117, symbol: "Ts", name: "鿬", category: "halogen", mass: "(294)", ionization: null, electronegativity: null, density: null, radius: null },
-            { z: 118, symbol: "Og", name: "鿫", category: "noble", mass: "(294)", ionization: null, electronegativity: null, density: null, radius: null }
+            { z: 1, symbol: "H", name: "氫", category: "nonmetal", mass: "1.008", ionization: 1312, electronegativity: 2.20, density: 0.00009, radius: 53, specific_heat: 14.304, thermal_conductivity: 0.1805, electrical_conductivity: null },
+            { z: 2, symbol: "He", name: "氦", category: "noble", mass: "4.003", ionization: 2372, electronegativity: null, density: 0.00018, radius: 31, specific_heat: 5.193, thermal_conductivity: 0.1513, electrical_conductivity: null },
+            { z: 3, symbol: "Li", name: "鋰", category: "alkali", mass: "6.94", ionization: 520, electronegativity: 0.98, density: 0.534, radius: 167, specific_heat: 3.582, thermal_conductivity: 85, electrical_conductivity: 10.8 },
+            { z: 4, symbol: "Be", name: "鈹", category: "alkaline", mass: "9.012", ionization: 900, electronegativity: 1.57, density: 1.85, radius: 112, specific_heat: 1.825, thermal_conductivity: 190, electrical_conductivity: 31.3 },
+            { z: 5, symbol: "B", name: "硼", category: "metalloid", mass: "10.81", ionization: 801, electronegativity: 2.04, density: 2.34, radius: 87, specific_heat: 1.026, thermal_conductivity: 27, electrical_conductivity: 1e-12 },
+            { z: 6, symbol: "C", name: "碳", category: "nonmetal", mass: "12.01", ionization: 1086, electronegativity: 2.55, density: 2.267, radius: 67, specific_heat: 0.709, thermal_conductivity: 140, electrical_conductivity: 0.061 },
+            { z: 7, symbol: "N", name: "氮", category: "nonmetal", mass: "14.01", ionization: 1402, electronegativity: 3.04, density: 0.00125, radius: 56, specific_heat: 1.04, thermal_conductivity: 0.0258, electrical_conductivity: null },
+            { z: 8, symbol: "O", name: "氧", category: "nonmetal", mass: "16.00", ionization: 1314, electronegativity: 3.44, density: 0.00143, radius: 48, specific_heat: 0.918, thermal_conductivity: 0.0265, electrical_conductivity: null },
+            { z: 9, symbol: "F", name: "氟", category: "halogen", mass: "19.00", ionization: 1681, electronegativity: 3.98, density: 0.0017, radius: 42, specific_heat: 0.824, thermal_conductivity: 0.0277, electrical_conductivity: null },
+            { z: 10, symbol: "Ne", name: "氖", category: "noble", mass: "20.18", ionization: 2081, electronegativity: null, density: 0.0009, radius: 38, specific_heat: 1.03, thermal_conductivity: 0.0491, electrical_conductivity: null },
+            { z: 11, symbol: "Na", name: "鈉", category: "alkali", mass: "22.99", ionization: 496, electronegativity: 0.93, density: 0.971, radius: 190, specific_heat: 1.228, thermal_conductivity: 140, electrical_conductivity: 21 },
+            { z: 12, symbol: "Mg", name: "鎂", category: "alkaline", mass: "24.31", ionization: 738, electronegativity: 1.31, density: 1.738, radius: 145, specific_heat: 1.023, thermal_conductivity: 156, electrical_conductivity: 22.6 },
+            { z: 13, symbol: "Al", name: "鋁", category: "post-transition", mass: "26.98", ionization: 578, electronegativity: 1.61, density: 2.698, radius: 118, specific_heat: 0.897, thermal_conductivity: 237, electrical_conductivity: 37.7 },
+            { z: 14, symbol: "Si", name: "矽", category: "metalloid", mass: "28.09", ionization: 786, electronegativity: 1.90, density: 2.3296, radius: 111, specific_heat: 0.705, thermal_conductivity: 148, electrical_conductivity: 2.52e-10 },
+            { z: 15, symbol: "P", name: "磷", category: "nonmetal", mass: "30.97", ionization: 1012, electronegativity: 2.19, density: 1.82, radius: 98, specific_heat: 0.769, thermal_conductivity: 0.236, electrical_conductivity: 1e-17 },
+            { z: 16, symbol: "S", name: "硫", category: "nonmetal", mass: "32.06", ionization: 1000, electronegativity: 2.58, density: 2.067, radius: 88, specific_heat: 0.71, thermal_conductivity: 0.205, electrical_conductivity: 5e-22 },
+            { z: 17, symbol: "Cl", name: "氯", category: "halogen", mass: "35.45", ionization: 1251, electronegativity: 3.16, density: 0.00321, radius: 79, specific_heat: 0.479, thermal_conductivity: 0.0089, electrical_conductivity: null },
+            { z: 18, symbol: "Ar", name: "氬", category: "noble", mass: "39.95", ionization: 1521, electronegativity: null, density: 0.0018, radius: 71, specific_heat: 0.52, thermal_conductivity: 0.0177, electrical_conductivity: null },
+            { z: 19, symbol: "K", name: "鉀", category: "alkali", mass: "39.10", ionization: 419, electronegativity: 0.82, density: 0.862, radius: 243, specific_heat: 0.757, thermal_conductivity: 102.5, electrical_conductivity: 13.9 },
+            { z: 20, symbol: "Ca", name: "鈣", category: "alkaline", mass: "40.08", ionization: 590, electronegativity: 1.00, density: 1.54, radius: 194, specific_heat: 0.647, thermal_conductivity: 201, electrical_conductivity: 29.8 },
+            { z: 21, symbol: "Sc", name: "鈧", category: "transition", mass: "44.96", ionization: 633, electronegativity: 1.36, density: 2.989, radius: 184, specific_heat: 0.568, thermal_conductivity: 15.8, electrical_conductivity: 1.77 },
+            { z: 22, symbol: "Ti", name: "鈦", category: "transition", mass: "47.87", ionization: 659, electronegativity: 1.54, density: 4.54, radius: 176, specific_heat: 0.523, thermal_conductivity: 21.9, electrical_conductivity: 2.38 },
+            { z: 23, symbol: "V", name: "釩", category: "transition", mass: "50.94", ionization: 651, electronegativity: 1.63, density: 6.11, radius: 171, specific_heat: 0.489, thermal_conductivity: 30.7, electrical_conductivity: 5 },
+            { z: 24, symbol: "Cr", name: "鉻", category: "transition", mass: "52.00", ionization: 653, electronegativity: 1.66, density: 7.15, radius: 166, specific_heat: 0.449, thermal_conductivity: 93.9, electrical_conductivity: 7.74 },
+            { z: 25, symbol: "Mn", name: "錳", category: "transition", mass: "54.94", ionization: 717, electronegativity: 1.55, density: 7.44, radius: 161, specific_heat: 0.479, thermal_conductivity: 7.81, electrical_conductivity: 0.695 },
+            { z: 26, symbol: "Fe", name: "鐵", category: "transition", mass: "55.85", ionization: 762, electronegativity: 1.83, density: 7.874, radius: 156, specific_heat: 0.449, thermal_conductivity: 80.4, electrical_conductivity: 9.93 },
+            { z: 27, symbol: "Co", name: "鈷", category: "transition", mass: "58.93", ionization: 760, electronegativity: 1.88, density: 8.86, radius: 152, specific_heat: 0.421, thermal_conductivity: 100, electrical_conductivity: 17.2 },
+            { z: 28, symbol: "Ni", name: "鎳", category: "transition", mass: "58.69", ionization: 737, electronegativity: 1.91, density: 8.912, radius: 149, specific_heat: 0.444, thermal_conductivity: 90.9, electrical_conductivity: 14.3 },
+            { z: 29, symbol: "Cu", name: "銅", category: "transition", mass: "63.55", ionization: 745, electronegativity: 1.90, density: 8.96, radius: 145, specific_heat: 0.385, thermal_conductivity: 401, electrical_conductivity: 59.6 },
+            { z: 30, symbol: "Zn", name: "鋅", category: "transition", mass: "65.38", ionization: 906, electronegativity: 1.65, density: 7.134, radius: 142, specific_heat: 0.388, thermal_conductivity: 116, electrical_conductivity: 16.6 },
+            { z: 31, symbol: "Ga", name: "鎵", category: "post-transition", mass: "69.72", ionization: 579, electronegativity: 1.81, density: 5.907, radius: 136, specific_heat: 0.371, thermal_conductivity: 40.6, electrical_conductivity: 6.78 },
+            { z: 32, symbol: "Ge", name: "鍺", category: "metalloid", mass: "72.63", ionization: 762, electronegativity: 2.01, density: 5.323, radius: 125, specific_heat: 0.32, thermal_conductivity: 60.2, electrical_conductivity: 2.17 },
+            { z: 33, symbol: "As", name: "砷", category: "metalloid", mass: "74.92", ionization: 947, electronegativity: 2.18, density: 5.776, radius: 114, specific_heat: 0.329, thermal_conductivity: 50.2, electrical_conductivity: 3.45 },
+            { z: 34, symbol: "Se", name: "硒", category: "nonmetal", mass: "78.96", ionization: 941, electronegativity: 2.55, density: 4.809, radius: 103, specific_heat: 0.321, thermal_conductivity: 0.519, electrical_conductivity: 1e-10 },
+            { z: 35, symbol: "Br", name: "溴", category: "halogen", mass: "79.90", ionization: 1140, electronegativity: 2.96, density: 3.122, radius: 94, specific_heat: 0.474, thermal_conductivity: 0.122, electrical_conductivity: 1e-16 },
+            { z: 36, symbol: "Kr", name: "氪", category: "noble", mass: "83.80", ionization: 1351, electronegativity: 3.00, density: 0.00375, radius: 88, specific_heat: 0.248, thermal_conductivity: 0.0094, electrical_conductivity: null },
+            { z: 37, symbol: "Rb", name: "銣", category: "alkali", mass: "85.47", ionization: 403, electronegativity: 0.82, density: 1.532, radius: 265, specific_heat: 0.363, thermal_conductivity: 58.2, electrical_conductivity: 7.79 },
+            { z: 38, symbol: "Sr", name: "鍶", category: "alkaline", mass: "87.62", ionization: 550, electronegativity: 0.95, density: 2.64, radius: 219, specific_heat: 0.301, thermal_conductivity: 35.4, electrical_conductivity: 7.62 },
+            { z: 39, symbol: "Y", name: "釔", category: "transition", mass: "88.91", ionization: 600, electronegativity: 1.22, density: 4.469, radius: 212, specific_heat: 0.298, thermal_conductivity: 17.2, electrical_conductivity: 1.66 },
+            { z: 40, symbol: "Zr", name: "鋯", category: "transition", mass: "91.22", ionization: 640, electronegativity: 1.33, density: 6.506, radius: 206, specific_heat: 0.278, thermal_conductivity: 22.6, electrical_conductivity: 2.36 },
+            { z: 41, symbol: "Nb", name: "鈮", category: "transition", mass: "92.91", ionization: 652, electronegativity: 1.6, density: 8.57, radius: 198, specific_heat: 0.265, thermal_conductivity: 53.7, electrical_conductivity: 6.93 },
+            { z: 42, symbol: "Mo", name: "鉬", category: "transition", mass: "95.95", ionization: 684, electronegativity: 2.16, density: 10.22, radius: 190, specific_heat: 0.251, thermal_conductivity: 138, electrical_conductivity: 17.4 },
+            { z: 43, symbol: "Tc", name: "鎝", category: "transition", mass: "(98)", ionization: 702, electronegativity: 1.9, density: 11.5, radius: 183, specific_heat: null, thermal_conductivity: 50.6, electrical_conductivity: 6.7 },
+            { z: 44, symbol: "Ru", name: "釕", category: "transition", mass: "101.1", ionization: 710, electronegativity: 2.2, density: 12.37, radius: 178, specific_heat: 0.238, thermal_conductivity: 117, electrical_conductivity: 13.7 },
+            { z: 45, symbol: "Rh", name: "銠", category: "transition", mass: "102.9", ionization: 720, electronegativity: 2.28, density: 12.41, radius: 173, specific_heat: 0.243, thermal_conductivity: 150, electrical_conductivity: 21.1 },
+            { z: 46, symbol: "Pd", name: "鈀", category: "transition", mass: "106.4", ionization: 804, electronegativity: 2.20, density: 12.02, radius: 169, specific_heat: 0.244, thermal_conductivity: 71.8, electrical_conductivity: 9.5 },
+            { z: 47, symbol: "Ag", name: "銀", category: "transition", mass: "107.9", ionization: 731, electronegativity: 1.93, density: 10.501, radius: 165, specific_heat: 0.235, thermal_conductivity: 429, electrical_conductivity: 63 },
+            { z: 48, symbol: "Cd", name: "鎘", category: "transition", mass: "112.4", ionization: 868, electronegativity: 1.69, density: 8.69, radius: 161, specific_heat: 0.232, thermal_conductivity: 96.6, electrical_conductivity: 13.8 },
+            { z: 49, symbol: "In", name: "銦", category: "post-transition", mass: "114.8", ionization: 558, electronegativity: 1.78, density: 7.31, radius: 156, specific_heat: 0.233, thermal_conductivity: 81.8, electrical_conductivity: 11.6 },
+            { z: 50, symbol: "Sn", name: "錫", category: "post-transition", mass: "118.7", ionization: 709, electronegativity: 1.96, density: 7.287, radius: 145, specific_heat: 0.228, thermal_conductivity: 66.8, electrical_conductivity: 9.17 },
+            { z: 51, symbol: "Sb", name: "銻", category: "metalloid", mass: "121.8", ionization: 834, electronegativity: 2.05, density: 6.685, radius: 133, specific_heat: 0.207, thermal_conductivity: 24.4, electrical_conductivity: 2.88 },
+            { z: 52, symbol: "Te", name: "碲", category: "metalloid", mass: "127.6", ionization: 869, electronegativity: 2.1, density: 6.232, radius: 123, specific_heat: 0.202, thermal_conductivity: 1.97, electrical_conductivity: 0.0002 },
+            { z: 53, symbol: "I", name: "碘", category: "halogen", mass: "126.9", ionization: 1008, electronegativity: 2.66, density: 4.93, radius: 115, specific_heat: 0.214, thermal_conductivity: 0.449, electrical_conductivity: 8e-14 },
+            { z: 54, symbol: "Xe", name: "氙", category: "noble", mass: "131.3", ionization: 1170, electronegativity: 2.60, density: 0.0059, radius: 108, specific_heat: 0.158, thermal_conductivity: 0.0057, electrical_conductivity: null },
+            { z: 55, symbol: "Cs", name: "銫", category: "alkali", mass: "132.9", ionization: 376, electronegativity: 0.79, density: 1.873, radius: 298, specific_heat: 0.242, thermal_conductivity: 35.9, electrical_conductivity: 4.89 },
+            { z: 56, symbol: "Ba", name: "鋇", category: "alkaline", mass: "137.3", ionization: 503, electronegativity: 0.89, density: 3.594, radius: 253, specific_heat: 0.204, thermal_conductivity: 18.4, electrical_conductivity: 2.8 },
+            { z: 57, symbol: "La", name: "鑭", category: "lanthanide", mass: "138.9", ionization: 538, electronegativity: 1.1, density: 6.145, radius: 195, specific_heat: 0.195, thermal_conductivity: 13.4, electrical_conductivity: 1.26 },
+            { z: 58, symbol: "Ce", name: "鈰", category: "lanthanide", mass: "140.1", ionization: 534, electronegativity: 1.12, density: 6.77, radius: 185, specific_heat: 0.192, thermal_conductivity: 11.3, electrical_conductivity: 1.15 },
+            { z: 59, symbol: "Pr", name: "鐠", category: "lanthanide", mass: "140.9", ionization: 527, electronegativity: 1.13, density: 6.773, radius: 247, specific_heat: 0.193, thermal_conductivity: 12.5, electrical_conductivity: 1.48 },
+            { z: 60, symbol: "Nd", name: "釹", category: "lanthanide", mass: "144.2", ionization: 533, electronegativity: 1.14, density: 7.007, radius: 206, specific_heat: 0.19, thermal_conductivity: 16.5, electrical_conductivity: 1.57 },
+            { z: 61, symbol: "Pm", name: "鉕", category: "lanthanide", mass: "(145)", ionization: 540, electronegativity: 1.13, density: 7.26, radius: 205, specific_heat: null, thermal_conductivity: 17.9, electrical_conductivity: 1.3 },
+            { z: 62, symbol: "Sm", name: "釤", category: "lanthanide", mass: "150.4", ionization: 545, electronegativity: 1.17, density: 7.52, radius: 238, specific_heat: 0.197, thermal_conductivity: 13.3, electrical_conductivity: 0.956 },
+            { z: 63, symbol: "Eu", name: "銪", category: "lanthanide", mass: "152.0", ionization: 547, electronegativity: 1.2, density: 5.243, radius: 231, specific_heat: 0.182, thermal_conductivity: 13.9, electrical_conductivity: 1.12 },
+            { z: 64, symbol: "Gd", name: "釓", category: "lanthanide", mass: "157.3", ionization: 593, electronegativity: 1.2, density: 7.895, radius: 233, specific_heat: 0.236, thermal_conductivity: 10.6, electrical_conductivity: 0.736 },
+            { z: 65, symbol: "Tb", name: "鋱", category: "lanthanide", mass: "158.9", ionization: 566, electronegativity: 1.1, density: 8.229, radius: 225, specific_heat: 0.182, thermal_conductivity: 11.1, electrical_conductivity: 0.889 },
+            { z: 66, symbol: "Dy", name: "鏑", category: "lanthanide", mass: "162.5", ionization: 573, electronegativity: 1.22, density: 8.55, radius: 228, specific_heat: 0.17, thermal_conductivity: 10.7, electrical_conductivity: 1.08 },
+            { z: 67, symbol: "Ho", name: "鈥", category: "lanthanide", mass: "164.9", ionization: 581, electronegativity: 1.23, density: 8.795, radius: 226, specific_heat: 0.165, thermal_conductivity: 16.2, electrical_conductivity: 1.17 },
+            { z: 68, symbol: "Er", name: "鉺", category: "lanthanide", mass: "167.3", ionization: 589, electronegativity: 1.24, density: 9.066, radius: 226, specific_heat: 0.168, thermal_conductivity: 14.5, electrical_conductivity: 1.16 },
+            { z: 69, symbol: "Tm", name: "銩", category: "lanthanide", mass: "168.9", ionization: 597, electronegativity: 1.25, density: 9.321, radius: 222, specific_heat: 0.16, thermal_conductivity: 16.9, electrical_conductivity: 1.5 },
+            { z: 70, symbol: "Yb", name: "鐿", category: "lanthanide", mass: "173.0", ionization: 603, electronegativity: 1.1, density: 6.965, radius: 222, specific_heat: 0.155, thermal_conductivity: 38.5, electrical_conductivity: 3.51 },
+            { z: 71, symbol: "Lu", name: "鎦", category: "lanthanide", mass: "175.0", ionization: 524, electronegativity: 1.27, density: 9.84, radius: 217, specific_heat: 0.154, thermal_conductivity: 16.4, electrical_conductivity: 1.73 },
+            { z: 72, symbol: "Hf", name: "鉿", category: "transition", mass: "178.5", ionization: 659, electronegativity: 1.3, density: 13.31, radius: 208, specific_heat: 0.144, thermal_conductivity: 23, electrical_conductivity: 2.95 },
+            { z: 73, symbol: "Ta", name: "鉭", category: "transition", mass: "180.9", ionization: 761, electronegativity: 1.5, density: 16.654, radius: 200, specific_heat: 0.14, thermal_conductivity: 57.5, electrical_conductivity: 7.27 },
+            { z: 74, symbol: "W", name: "鎢", category: "transition", mass: "183.8", ionization: 770, electronegativity: 2.36, density: 19.25, radius: 193, specific_heat: 0.132, thermal_conductivity: 173, electrical_conductivity: 18.2 },
+            { z: 75, symbol: "Re", name: "錸", category: "transition", mass: "186.2", ionization: 760, electronegativity: 1.9, density: 21.02, radius: 188, specific_heat: 0.137, thermal_conductivity: 48, electrical_conductivity: 5.42 },
+            { z: 76, symbol: "Os", name: "鋨", category: "transition", mass: "190.2", ionization: 840, electronegativity: 2.2, density: 22.61, radius: 185, specific_heat: 0.13, thermal_conductivity: 87.6, electrical_conductivity: 10.9 },
+            { z: 77, symbol: "Ir", name: "銥", category: "transition", mass: "192.2", ionization: 880, electronegativity: 2.20, density: 22.56, radius: 180, specific_heat: 0.131, thermal_conductivity: 147, electrical_conductivity: 19.7 },
+            { z: 78, symbol: "Pt", name: "鉑", category: "transition", mass: "195.1", ionization: 870, electronegativity: 2.28, density: 21.46, radius: 177, specific_heat: 0.133, thermal_conductivity: 71.6, electrical_conductivity: 9.26 },
+            { z: 79, symbol: "Au", name: "金", category: "transition", mass: "197.0", ionization: 890, electronegativity: 2.54, density: 19.282, radius: 174, specific_heat: 0.129, thermal_conductivity: 318, electrical_conductivity: 45.2 },
+            { z: 80, symbol: "Hg", name: "汞", category: "transition", mass: "200.6", ionization: 1007, electronegativity: 2.00, density: 13.5336, radius: 171, specific_heat: 0.14, thermal_conductivity: 8.3, electrical_conductivity: 1.04 },
+            { z: 81, symbol: "Tl", name: "鉈", category: "post-transition", mass: "204.4", ionization: 589, electronegativity: 1.62, density: 11.85, radius: 156, specific_heat: 0.129, thermal_conductivity: 46.1, electrical_conductivity: 6.7 },
+            { z: 82, symbol: "Pb", name: "鉛", category: "post-transition", mass: "207.2", ionization: 716, electronegativity: 1.87, density: 11.342, radius: 154, specific_heat: 0.129, thermal_conductivity: 35.3, electrical_conductivity: 4.81 },
+            { z: 83, symbol: "Bi", name: "鉍", category: "post-transition", mass: "209.0", ionization: 703, electronegativity: 2.02, density: 9.807, radius: 143, specific_heat: 0.122, thermal_conductivity: 7.97, electrical_conductivity: 0.867 },
+            { z: 84, symbol: "Po", name: "釙", category: "metalloid", mass: "(209)", ionization: 812, electronegativity: 2.0, density: 9.32, radius: 135, specific_heat: null, thermal_conductivity: 20, electrical_conductivity: 0.75 },
+            { z: 85, symbol: "At", name: "砈", category: "halogen", mass: "(210)", ionization: 890, electronegativity: 2.2, density: 7, radius: 127, specific_heat: null, thermal_conductivity: 1.7, electrical_conductivity: null },
+            { z: 86, symbol: "Rn", name: "氡", category: "noble", mass: "(222)", ionization: 1037, electronegativity: 2.2, density: 0.00973, radius: 120, specific_heat: 0.094, thermal_conductivity: 0.00361, electrical_conductivity: null },
+            { z: 87, symbol: "Fr", name: "鍅", category: "alkali", mass: "(223)", ionization: 380, electronegativity: 0.7, density: 1.87, radius: 348, specific_heat: null, thermal_conductivity: 15, electrical_conductivity: 1.5 },
+            { z: 88, symbol: "Ra", name: "鐳", category: "alkaline", mass: "(226)", ionization: 509, electronegativity: 0.9, density: 5.5, radius: 283, specific_heat: 0.094, thermal_conductivity: 18.6, electrical_conductivity: 1 },
+            { z: 89, symbol: "Ac", name: "錒", category: "actinide", mass: "(227)", ionization: 499, electronegativity: 1.1, density: 10.07, radius: 260, specific_heat: 0.12, thermal_conductivity: 12, electrical_conductivity: 0.546 },
+            { z: 90, symbol: "Th", name: "釷", category: "actinide", mass: "232.0", ionization: 587, electronegativity: 1.3, density: 11.72, radius: 237, specific_heat: 0.113, thermal_conductivity: 54, electrical_conductivity: 6.53 },
+            { z: 91, symbol: "Pa", name: "鏷", category: "actinide", mass: "231.0", ionization: 568, electronegativity: 1.5, density: 15.37, radius: 243, specific_heat: 0.12, thermal_conductivity: 47, electrical_conductivity: 5.26 },
+            { z: 92, symbol: "U", name: "鈾", category: "actinide", mass: "238.0", ionization: 598, electronegativity: 1.38, density: 18.95, radius: 240, specific_heat: 0.116, thermal_conductivity: 27.5, electrical_conductivity: 3.6 },
+            { z: 93, symbol: "Np", name: "錼", category: "actinide", mass: "(237)", ionization: 605, electronegativity: 1.36, density: 20.45, radius: 221, specific_heat: null, thermal_conductivity: 6, electrical_conductivity: 0.826 },
+            { z: 94, symbol: "Pu", name: "鈽", category: "actinide", mass: "(244)", ionization: 585, electronegativity: 1.28, density: 19.84, radius: 243, specific_heat: null, thermal_conductivity: 6.74, electrical_conductivity: 0.671 },
+            { z: 95, symbol: "Am", name: "鋂", category: "actinide", mass: "(243)", ionization: 578, electronegativity: 1.13, density: 13.69, radius: 244, specific_heat: null, thermal_conductivity: 10, electrical_conductivity: 0.22 },
+            { z: 96, symbol: "Cm", name: "鋦", category: "actinide", mass: "(247)", ionization: 581, electronegativity: 1.28, density: 13.51, radius: 245, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 97, symbol: "Bk", name: "鉳", category: "actinide", mass: "(247)", ionization: 601, electronegativity: 1.3, density: 14.79, radius: 244, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 98, symbol: "Cf", name: "鉲", category: "actinide", mass: "(251)", ionization: 608, electronegativity: 1.3, density: 15.1, radius: 245, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 99, symbol: "Es", name: "鑀", category: "actinide", mass: "(252)", ionization: 619, electronegativity: 1.3, density: 8.84, radius: 245, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 100, symbol: "Fm", name: "鐨", category: "actinide", mass: "(257)", ionization: 627, electronegativity: 1.3, density: null, radius: 245, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 101, symbol: "Md", name: "鍆", category: "actinide", mass: "(258)", ionization: 635, electronegativity: 1.3, density: null, radius: 246, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 102, symbol: "No", name: "鍩", category: "actinide", mass: "(259)", ionization: 642, electronegativity: 1.3, density: null, radius: 246, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 103, symbol: "Lr", name: "鐒", category: "actinide", mass: "(262)", ionization: 470, electronegativity: 1.3, density: null, radius: 246, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 104, symbol: "Rf", name: "鑪", category: "transition", mass: "(267)", ionization: 580, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 105, symbol: "Db", name: "𨧀", category: "transition", mass: "(268)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 106, symbol: "Sg", name: "𨭎", category: "transition", mass: "(271)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 107, symbol: "Bh", name: "𨨏", category: "transition", mass: "(272)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 108, symbol: "Hs", name: "𨭆", category: "transition", mass: "(270)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 109, symbol: "Mt", name: "䥑", category: "unknown", mass: "(276)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 110, symbol: "Ds", name: "鐽", category: "unknown", mass: "(281)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 111, symbol: "Rg", name: "錀", category: "unknown", mass: "(280)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 112, symbol: "Cn", name: "鎶", category: "transition", mass: "(285)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 113, symbol: "Nh", name: "鉨", category: "unknown", mass: "(284)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 114, symbol: "Fl", name: "鈇", category: "post-transition", mass: "(289)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 115, symbol: "Mc", name: "鏌", category: "unknown", mass: "(288)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 116, symbol: "Lv", name: "鉝", category: "unknown", mass: "(293)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 117, symbol: "Ts", name: "鿬", category: "halogen", mass: "(294)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null },
+            { z: 118, symbol: "Og", name: "鿫", category: "noble", mass: "(294)", ionization: null, electronegativity: null, density: null, radius: null, specific_heat: null, thermal_conductivity: null, electrical_conductivity: null }
         ];
 
         // Property configurations
@@ -710,6 +706,27 @@
                 min: 31,
                 max: 348,
                 colorStops: ['#ffd93d', '#ff9f43', '#ee5a52', '#9d2449', '#1a1a2e']
+            },
+            specific_heat: {
+                name: '比熱',
+                unit: 'J/(g·K)',
+                min: 0.09,
+                max: 14.3, // Hydrogen is huge, might skew, but let's keep linear or log later. Linear for now.
+                colorStops: ['#1a1a2e', '#2d4a6f', '#4a90a4', '#7dd3c0', '#b5f5ec']
+            },
+            thermal_conductivity: {
+                name: '導熱率',
+                unit: 'W/(m·K)',
+                min: 0,
+                max: 429, // Silver
+                colorStops: ['#1a1a2e', '#4a1942', '#c23a5a', '#ff6b6b', '#ffd93d']
+            },
+            electrical_conductivity: {
+                name: '導電率',
+                unit: 'MS/m',
+                min: 0,
+                max: 63, // Silver
+                colorStops: ['#1a1a2e', '#3d2066', '#7c3aed', '#a78bfa', '#e9d5ff']
             }
         };
 
@@ -756,6 +773,7 @@
         const speedDisplay = document.getElementById('speedDisplay');
         const colorScale = document.getElementById('colorScale');
         const scaleTitle = document.getElementById('scaleTitle');
+        const propertySelect = document.getElementById('propertySelect');
 
         let currentView = 'standard';
         let currentProperty = 'none';
@@ -898,7 +916,7 @@
                         el.classList.remove('light-bg');
                     }
                 } 
-                else if (property === 'density') {
+                else if (property === 'density' || property === 'specific_heat') {
                     el.classList.add('density-mode');
                     if (color) {
                         el.style.backgroundColor = color;
@@ -926,10 +944,13 @@
 
                 let displayValue = '';
                 if (value !== null) {
-                    if (property === 'density' && value < 0.01) {
+                    if ((property === 'density' || property === 'specific_heat' || property === 'thermal_conductivity') && value < 0.01) {
                         displayValue = value.toExponential(1);
-                    } else if (property === 'density' || property === 'electronegativity') {
-                        displayValue = value.toFixed(2);
+                    } else if (property === 'density' || property === 'electronegativity' || property === 'specific_heat' || property === 'thermal_conductivity' || property === 'electrical_conductivity') {
+                        // Adaptive precision based on value size
+                        if (value >= 100) displayValue = Math.round(value);
+                        else if (value >= 10) displayValue = value.toFixed(1);
+                        else displayValue = value.toFixed(2);
                     } else {
                         displayValue = Math.round(value);
                     }
@@ -1043,8 +1064,13 @@
                 const value = el[currentProperty];
                 if (value !== null) {
                     let displayValue = value;
-                    if (currentProperty === 'density' && value < 0.01) displayValue = value.toExponential(2);
-                    else if (typeof value === 'number') displayValue = value.toFixed(2);
+                    // Format special properties similarly to density logic in tooltip
+                    if ((currentProperty === 'density' || currentProperty === 'specific_heat' || currentProperty === 'thermal_conductivity') && value < 0.01) displayValue = value.toExponential(2);
+                    else if (typeof value === 'number') {
+                         if (value >= 100) displayValue = Math.round(value);
+                         else if (value >= 10) displayValue = value.toFixed(1);
+                         else displayValue = value.toFixed(2);
+                    }
                     propsHtml = `<p><span class="prop-highlight">${config.name}：${displayValue} ${config.unit}</span></p>`;
                 } else {
                     propsHtml = `<p><span class="prop-highlight">${config.name}：無資料</span></p>`;
@@ -1056,6 +1082,9 @@
                 <p>電負度：${el.electronegativity || 'N/A'}</p>
                 <p>密度：${el.density || 'N/A'}</p>
                 <p>半徑：${el.radius || 'N/A'}</p>
+                <p>比熱：${el.specific_heat || 'N/A'}</p>
+                <p>導熱率：${el.thermal_conductivity || 'N/A'}</p>
+                <p>導電率：${el.electrical_conductivity || 'N/A'}</p>
             `;
             tooltip.innerHTML = `
                 <h3>${el.symbol} - ${el.name}</h3>
@@ -1193,12 +1222,8 @@
             });
         });
 
-        document.querySelectorAll('.property-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.property-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updatePropertyDisplay(btn.dataset.property);
-            });
+        propertySelect.addEventListener('change', (e) => {
+            updatePropertyDisplay(e.target.value);
         });
 
         document.getElementById('zoomIn').addEventListener('click', () => {
