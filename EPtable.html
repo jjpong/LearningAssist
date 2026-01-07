@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動週期表</title>
+    <title>互動週期表 - 自由畫布版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -50,10 +50,10 @@
             font-family: 'Noto Sans TC', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            height: 100vh; /* Full viewport height */
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent body scroll, use internal container */
+            overflow: hidden;
         }
 
         /* --- Compact Header Area --- */
@@ -62,7 +62,7 @@
             padding: 10px 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             z-index: 10;
-            flex-shrink: 0; /* Prevent header from shrinking */
+            flex-shrink: 0;
         }
 
         .header-top-row {
@@ -94,7 +94,7 @@
         .subtitle {
             color: var(--text-secondary);
             font-size: 0.8rem;
-            display: none; /* Hide on small screens */
+            display: none;
         }
 
         @media(min-width: 768px) { .subtitle { display: inline; } }
@@ -229,13 +229,13 @@
 
         /* --- Main Viewport --- */
         .table-container {
-            flex: 1; /* Take remaining height */
+            flex: 1;
             position: relative;
-            overflow: hidden; /* Hide scrollbars for drag effect */
+            overflow: hidden; /* Canvas style: no scrollbars */
             background: var(--bg-primary);
             cursor: grab;
             user-select: none;
-            display: flex; 
+            /* No flex display here, we manage positions absolutely */
         }
 
         .table-container.grabbing {
@@ -246,8 +246,10 @@
             position: absolute;
             top: 0;
             left: 0;
-            transition: transform 0.3s ease, left 0.3s ease; /* Added left transition for smooth centering */
+            /* Crucial: transform origin at 0,0 allows easy math for pan/zoom */
             transform-origin: 0 0;
+            /* We will control transform via JS directly for pan/zoom */
+            /* Transition mostly for color changes and layout shifts inside, not the pan itself for responsiveness */
         }
 
         .element {
@@ -261,6 +263,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            /* Layout animations */
             transition: left var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1),
                         top var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1),
                         transform 0.2s ease,
@@ -429,7 +432,7 @@
         <div class="header-top-row">
             <div class="brand">
                 <h1>互動週期表</h1>
-                <span class="subtitle">Drag &amp; Explore</span>
+                <span class="subtitle">無限畫布・自由拖曳</span>
             </div>
             <div class="view-controls">
                 <button class="view-btn active" data-view="linear">序列</button>
@@ -707,18 +710,29 @@
         let currentProperty = 'none';
         let zoomLevel = 1;
         let animationSpeed = 1;
-        const minZoom = 0.15;
-        const maxZoom = 2.5;
-        const zoomStep = 0.1;
+        
+        // Transform state
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let hasDragged = false;
+        let startX = 0;
+        let startY = 0;
+        let startTranslateX = 0;
+        let startTranslateY = 0;
+
+        const minZoom = 0.1;
+        const maxZoom = 5;
+        const zoomStep = 0.2;
 
         const cellWidth = 52;
         const cellHeight = 60;
         const gap = 4;
         
-        // Added top padding variable (approx 1.3x cell height)
+        // Top padding constant
         const topPadding = 80;
 
-        // Speed preset mapping (indices 0-5)
+        // Speed preset mapping
         const speedValues = [0, 0.5, 1, 2, 5, 10];
 
         const viewDescriptions = {
@@ -777,11 +791,9 @@
                     <span class="property-value"></span>
                 `;
 
-                // Changed event listeners: Click to show tooltip
                 div.addEventListener('click', (e) => {
-                    // Prevent click if we just finished a drag operation
                     if (hasDragged) return;
-                    e.stopPropagation(); // Stop bubbling to container
+                    e.stopPropagation();
                     showTooltip(e, el);
                 });
 
@@ -808,7 +820,6 @@
             colorScale.classList.add('visible');
             scaleTitle.textContent = config.name;
             
-            // Update gradient bar
             const scaleBar = document.querySelector('.scale-bar');
             scaleBar.style.background = `linear-gradient(to right, ${config.colorStops.join(', ')})`;
 
@@ -849,54 +860,72 @@
             speedDisplay.textContent = `${speed}s`;
         }
 
-        function centerTable() {
-            // Calculate real dimensions based on zoom
-            const tableWidth = table.offsetWidth * zoomLevel;
-            const tableHeight = table.offsetHeight * zoomLevel;
-            const containerWidth = tableContainer.clientWidth;
-            const containerHeight = tableContainer.clientHeight;
-
-            // Horizontal Centering Logic
-            if (tableWidth < containerWidth) {
-                // If table is smaller than container, center visually by setting left offset
-                const offsetLeft = (containerWidth - tableWidth) / 2;
-                table.style.left = `${offsetLeft}px`;
-                tableContainer.scrollLeft = 0;
-            } else {
-                // If table is larger, center using scroll position
-                table.style.left = '0px'; // Reset left offset
-                const centerScroll = (tableWidth - containerWidth) / 2;
-                tableContainer.scrollLeft = centerScroll;
-                scrollLeft = centerScroll; // Update drag tracking var
-            }
-            
-            // Vertical - we respect the top padding mostly, but if we zoomed out a lot:
-            // Just ensure scrolling is reset or centered if needed.
-            // For now, let's keep vertical scroll at top to respect top padding
-            // unless dragging happens.
+        function applyTransform() {
+            table.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomLevel})`;
         }
 
-        function updateZoom(newZoom, centerOnMouse = false, mouseX = 0, mouseY = 0) {
+        function centerTable() {
+            // Get table dimensions (unscaled)
+            let maxCol = 0;
+            let maxRow = 0;
+            
+            elements.forEach(el => {
+                const z = parseInt(el.z);
+                let pos;
+                if (currentView === 'linear') pos = { row: 0, col: z - 1 };
+                else if (currentView === 'standard') pos = { row: standardPositions[z][0], col: standardPositions[z][1] };
+                else if (currentView === 'extended') pos = { row: extendedPositions[z][0], col: extendedPositions[z][1] };
+                
+                maxCol = Math.max(maxCol, pos.col);
+                maxRow = Math.max(maxRow, pos.row);
+            });
+
+            const contentWidth = (maxCol + 1) * (cellWidth + gap);
+            const contentHeight = (maxRow + 1) * (cellHeight + gap) + topPadding;
+
+            const viewportWidth = tableContainer.clientWidth;
+            const viewportHeight = tableContainer.clientHeight;
+
+            // Center calculation: (Viewport Center) - (Content Center * scale)
+            // But elements start at (0, 0) inside table, so we shift origin.
+            
+            translateX = (viewportWidth - contentWidth * zoomLevel) / 2;
+            translateY = (viewportHeight - contentHeight * zoomLevel) / 2;
+            
+            // Adjust Y slightly down if it's too high up due to topPadding logic
+            if (translateY < 0 && contentHeight * zoomLevel < viewportHeight) {
+                 translateY = 50; 
+            }
+
+            applyTransform();
+        }
+
+        function zoomAtPoint(factor, startX, startY) {
             const oldZoom = zoomLevel;
-            zoomLevel = Math.max(minZoom, Math.min(maxZoom, newZoom));
+            const newZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel * factor));
+            
+            if (newZoom === oldZoom) return;
+
+            // Calculate mouse position relative to the table (unscaled)
+            // mouseX = translateX + localX * scale
+            // localX = (mouseX - translateX) / scale
+            const rect = tableContainer.getBoundingClientRect();
+            const mouseX = startX - rect.left;
+            const mouseY = startY - rect.top;
+
+            const localX = (mouseX - translateX) / oldZoom;
+            const localY = (mouseY - translateY) / oldZoom;
+
+            // Update zoom
+            zoomLevel = newZoom;
             zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
 
-            table.style.transform = `scale(${zoomLevel})`;
+            // Calculate new translate to keep point stable
+            // newTranslateX = mouseX - localX * newScale
+            translateX = mouseX - localX * newZoom;
+            translateY = mouseY - localY * newZoom;
 
-            if (centerOnMouse && oldZoom !== zoomLevel) {
-                // Simplified zoom-to-cursor logic for custom drag/scale setup
-                const rect = tableContainer.getBoundingClientRect();
-                const relativeX = mouseX - rect.left;
-                const relativeY = mouseY - rect.top;
-                
-                // Adjust scroll based on zoom delta
-                // This is approximate for this specific DOM structure
-                tableContainer.scrollLeft += (relativeX) * (zoomLevel/oldZoom - 1);
-                tableContainer.scrollTop += (relativeY) * (zoomLevel/oldZoom - 1);
-                
-                scrollLeft = tableContainer.scrollLeft;
-                scrollTop = tableContainer.scrollTop;
-            }
+            applyTransform();
         }
 
         function updateLayout(view) {
@@ -917,7 +946,6 @@
                 }
 
                 const x = pos.col * (cellWidth + gap);
-                // Added topPadding here
                 const y = pos.row * (cellHeight + gap) + topPadding;
 
                 el.style.left = `${x}px`;
@@ -927,18 +955,18 @@
                 maxRow = Math.max(maxRow, pos.row);
             });
 
-            // Calculate content size including top padding and some bottom buffer
-            const contentWidth = (maxCol + 1) * (cellWidth + gap); 
-            const contentHeight = (maxRow + 1) * (cellHeight + gap) + topPadding + 100;
-
+            // Need to set a minimal width/height for table div just in case, though absolutely positioned elements float.
+            // Actually with transform translate, the div dimensions matter less for positioning but good for debugging.
+            const contentWidth = (maxCol + 1) * (cellWidth + gap);
+            const contentHeight = (maxRow + 1) * (cellHeight + gap) + topPadding;
+            
             table.style.width = `${contentWidth}px`;
             table.style.height = `${contentHeight}px`;
-            
+
             viewInfo.textContent = viewDescriptions[view];
             
-            // Re-center after layout change
-            // Using timeout to ensure DOM update is processed
-            setTimeout(centerTable, 50); 
+            // Re-center after layout update
+            setTimeout(centerTable, 50);
         }
 
         function showTooltip(e, el) {
@@ -981,78 +1009,77 @@
                 ${allProps}
             `;
             tooltip.classList.add('visible');
-            moveTooltip(e); // Use click position or element position
+            moveTooltip(e);
         }
 
         function moveTooltip(e) {
-            // Position tooltip near the click/element
             let x = e.clientX + 15;
             let y = e.clientY + 15;
             
             // Check boundaries
-            const rect = tooltip.getBoundingClientRect();
-            // Create temporary hidden tooltip to measure if it's currently hidden
-            if (!tooltip.classList.contains('visible')) {
+            // We need to know width/height before showing to clamp correctly
+            // Force temporary display to measure
+            const wasVisible = tooltip.classList.contains('visible');
+            if (!wasVisible) {
                 tooltip.style.visibility = 'hidden';
                 tooltip.style.display = 'block';
             }
             
-            const tipWidth = 250; // Approx max width
-            const tipHeight = 200; // Approx max height
-
-            if (x + tipWidth > window.innerWidth) x = e.clientX - tipWidth - 15;
-            if (y + tipHeight > window.innerHeight) y = e.clientY - tipHeight - 15;
+            const rect = tooltip.getBoundingClientRect();
             
-            tooltip.style.left = `${x}px`;
-            tooltip.style.top = `${y}px`;
-            
-            if (!tooltip.classList.contains('visible')) {
+            if (!wasVisible) {
                 tooltip.style.visibility = '';
                 tooltip.style.display = '';
             }
+
+            if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
+            if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+            
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
         }
 
         function hideTooltip() {
             tooltip.classList.remove('visible');
         }
 
-        // --- Drag to Pan Logic ---
-        let isDragging = false;
-        let hasDragged = false; // Flag to distinguish click vs drag
-        let startX, startY, scrollLeft, scrollTop;
-
+        // --- Infinite Canvas Drag Logic ---
         tableContainer.addEventListener('mousedown', (e) => {
-            if(e.button !== 0) return;
+            if(e.button !== 0) return; // Only left click
             isDragging = true;
-            hasDragged = false; // Reset drag flag
+            hasDragged = false;
             tableContainer.classList.add('grabbing');
-            startX = e.pageX - tableContainer.offsetLeft;
-            startY = e.pageY - tableContainer.offsetTop;
-            scrollLeft = tableContainer.scrollLeft;
-            scrollTop = tableContainer.scrollTop;
             
-            // Hide tooltip on drag start (click anywhere on background)
+            startX = e.clientX;
+            startY = e.clientY;
+            startTranslateX = translateX;
+            startTranslateY = translateY;
+            
             hideTooltip();
         });
 
-        tableContainer.addEventListener('mouseleave', () => { isDragging = false; tableContainer.classList.remove('grabbing'); });
-        tableContainer.addEventListener('mouseup', () => { isDragging = false; tableContainer.classList.remove('grabbing'); });
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                tableContainer.classList.remove('grabbing');
+            }
+        });
 
-        tableContainer.addEventListener('mousemove', (e) => {
+        window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             e.preventDefault();
-            const x = e.pageX - tableContainer.offsetLeft;
-            const y = e.pageY - tableContainer.offsetTop;
-            const walkX = (x - startX) * 1.5; 
-            const walkY = (y - startY) * 1.5;
             
-            // If moved significantly, mark as dragged
-            if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
                 hasDragged = true;
             }
 
-            tableContainer.scrollLeft = scrollLeft - walkX;
-            tableContainer.scrollTop = scrollTop - walkY;
+            translateX = startTranslateX + dx;
+            translateY = startTranslateY + dy;
+            
+            applyTransform();
         });
 
         // Event Listeners
@@ -1073,10 +1100,20 @@
             });
         });
 
-        document.getElementById('zoomIn').addEventListener('click', () => updateZoom(zoomLevel + zoomStep));
-        document.getElementById('zoomOut').addEventListener('click', () => updateZoom(zoomLevel - zoomStep));
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            // Zoom to center
+            const rect = tableContainer.getBoundingClientRect();
+            zoomAtPoint(1.2, rect.width/2 + rect.left, rect.height/2 + rect.top);
+        });
+        
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            const rect = tableContainer.getBoundingClientRect();
+            zoomAtPoint(0.8, rect.width/2 + rect.left, rect.height/2 + rect.top);
+        });
+        
         document.getElementById('zoomReset').addEventListener('click', () => {
-            updateZoom(1);
+            zoomLevel = 1;
+            zoomDisplay.textContent = '100%';
             centerTable();
         });
 
@@ -1084,8 +1121,8 @@
 
         tableContainer.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? -zoomStep : zoomStep;
-            updateZoom(zoomLevel + delta, true, e.clientX, e.clientY);
+            const factor = e.deltaY > 0 ? 0.9 : 1.1;
+            zoomAtPoint(factor, e.clientX, e.clientY);
         }, { passive: false });
 
         // Dark mode init
