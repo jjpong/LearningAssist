@@ -52,8 +52,6 @@
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-            /* Added padding bottom to ensure legend is visible */
-            padding-bottom: 50px;
         }
 
         .container {
@@ -345,8 +343,6 @@
             margin-bottom: 20px;
             cursor: grab;
             user-select: none;
-            /* Ensure there's enough space for scrolling */
-            padding-bottom: 40px; 
         }
 
         .table-container.grabbing {
@@ -380,7 +376,7 @@
         .periodic-table {
             position: relative;
             margin: 0 auto;
-            transition: transform 0.3s ease, margin 0.3s ease; /* Added margin transition */
+            transition: transform 0.3s ease;
             transform-origin: left top;
         }
 
@@ -550,8 +546,6 @@
             background: var(--bg-secondary);
             border-radius: 10px;
             margin-bottom: 15px;
-            /* Ensure legend has space from bottom */
-            margin-bottom: 40px;
         }
 
         .legend-item {
@@ -638,7 +632,6 @@
     <div class="container">
         <header>
             <h1>互動週期表</h1>
-            <p class="subtitle">三種視圖・週期性質視覺化</p>
         </header>
 
         <div class="controls">
@@ -682,12 +675,6 @@
                 <span class="control-label"><i class="fas fa-clock"></i> 動畫速度</span>
                 <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" step="1" value="2">
                 <span class="speed-display" id="speedDisplay">1s</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="control-label">
-                <i class="fas fa-mouse"></i> 滾輪縮放 / 拖曳平移
             </div>
         </div>
 
@@ -884,7 +871,7 @@
             90: [9, 3], 91: [9, 4], 92: [9, 5], 93: [9, 6], 94: [9, 7], 95: [9, 8], 96: [9, 9], 97: [9, 10], 98: [9, 11], 99: [9, 12], 100: [9, 13], 101: [9, 14], 102: [9, 15], 103: [9, 16]
         };
 
-        // Extended periodic table (Corrected positions)
+        // Extended periodic table
         const extendedPositions = {
             // Row 1
             1: [0, 0], 2: [0, 31],
@@ -935,10 +922,6 @@
         const cellWidth = 52;
         const cellHeight = 60;
         const gap = 4;
-        
-        // Store original dimensions for zoom calculation
-        let originalTableWidth = 0;
-        let originalTableHeight = 0;
 
         // Specific time values requested
         const speedValues = [0, 0.5, 1, 2, 5, 10];
@@ -1079,18 +1062,6 @@
             zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
 
             table.style.transform = `scale(${zoomLevel})`;
-            
-            // Adjust margins to compensate for scale transform so scrolling works properly
-            // transform: scale() happens visually but doesn't affect layout flow size
-            // We use margin to push the boundaries of the scroll container
-            if (originalTableWidth > 0 && originalTableHeight > 0) {
-                // Calculate extra space needed (or space to reduce if zooming out)
-                const widthDiff = originalTableWidth * (zoomLevel - 1);
-                const heightDiff = originalTableHeight * (zoomLevel - 1);
-                
-                table.style.marginRight = `${widthDiff}px`;
-                table.style.marginBottom = `${heightDiff}px`;
-            }
 
             if (centerOnMouse && oldZoom !== zoomLevel) {
                 const rect = tableContainer.getBoundingClientRect();
@@ -1130,17 +1101,9 @@
                 maxRow = Math.max(maxRow, pos.row);
             });
 
-            // Calculate original unscaled dimensions
-            originalTableWidth = (maxCol + 1) * (cellWidth + gap);
-            // Add extra buffer to height to prevent cutting off bottom elements
-            originalTableHeight = (maxRow + 1) * (cellHeight + gap) + 50; 
-
-            table.style.width = `${originalTableWidth}px`;
-            table.style.height = `${originalTableHeight}px`;
-            
-            // Re-apply zoom to recalculate margins
-            updateZoom(zoomLevel);
-            
+            table.style.width = `${(maxCol + 1) * (cellWidth + gap)}px`;
+            table.style.height = `${(maxRow + 1) * (cellHeight + gap)}px`;
+            table.style.transform = `scale(${zoomLevel})`;
             table.style.transformOrigin = 'left top';
 
             viewInfo.textContent = viewDescriptions[view];
