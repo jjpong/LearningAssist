@@ -50,334 +50,204 @@
             font-family: 'Noto Sans TC', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent body scroll, use internal container */
         }
 
-        .container {
-            padding: 20px;
-            max-width: 100%;
+        /* --- Compact Header Area --- */
+        .app-header {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            z-index: 10;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
         }
 
         h1 {
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-size: 1.5rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--accent), #00ff88);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            margin: 0;
+            white-space: nowrap;
         }
 
         .subtitle {
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            display: none; /* Hide on small screens */
         }
 
-        .controls {
+        @media(min-width: 768px) { .subtitle { display: inline; } }
+
+        .view-controls {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            gap: 5px;
         }
 
         .view-btn {
-            padding: 12px 24px;
-            font-size: 16px;
+            padding: 6px 12px;
+            font-size: 13px;
             font-family: 'Noto Sans TC', sans-serif;
             font-weight: 600;
-            border: 2px solid var(--accent);
+            border: 1px solid var(--accent);
             background: transparent;
             color: var(--accent);
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
 
-        .view-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-            transition: left 0.5s;
-        }
-
-        .view-btn:hover::before {
-            left: 100%;
-        }
-
-        .view-btn:hover {
+        .view-btn:hover, .view-btn.active {
             background: var(--accent);
             color: var(--bg-primary);
-            box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        .view-btn.active {
-            background: var(--accent);
-            color: var(--bg-primary);
-            box-shadow: 0 0 30px var(--accent-glow);
-        }
-
-        /* Property selector */
-        .property-controls {
+        .header-bottom-row {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding: 12px 20px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
             flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .property-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 8px;
         }
 
         .property-label {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
-            margin-right: 5px;
         }
 
         .property-btn {
-            padding: 8px 16px;
-            font-size: 13px;
-            font-family: 'Noto Sans TC', sans-serif;
-            font-weight: 500;
+            padding: 4px 10px;
+            font-size: 12px;
             border: 1px solid var(--text-secondary);
-            background: var(--bg-tertiary);
+            background: transparent;
             color: var(--text-secondary);
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .property-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
+        .property-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .property-btn.active { border-color: var(--accent); background: var(--accent); color: var(--bg-primary); }
 
-        .property-btn.active {
-            border-color: var(--accent);
-            background: var(--accent);
-            color: var(--bg-primary);
-        }
-
-        /* Color scale legend */
-        .color-scale {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 1px solid var(--text-secondary);
-        }
-
-        .color-scale.visible {
-            display: flex;
-        }
-
-        .scale-bar {
-            width: 120px;
-            height: 12px;
-            border-radius: 6px;
-            background: linear-gradient(to right, #1a1a2e, #4a1942, #c23a5a, #ff6b6b, #ffd93d);
-        }
-
-        .scale-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .scale-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .scale-title {
-            font-size: 11px;
-            color: var(--accent);
-        }
-
-        /* Control panel */
-        .control-panel {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 15px;
-            padding: 15px 20px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            flex-wrap: wrap;
-        }
-
-        .control-group {
+        .action-bar {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
-        .control-label {
-            font-size: 13px;
-            color: var(--text-secondary);
+        .zoom-group {
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-
-        .control-label i {
-            color: var(--accent);
+            gap: 5px;
         }
 
         .zoom-btn {
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            border: 2px solid var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+            border: 1px solid var(--text-secondary);
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .zoom-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            transform: scale(1.1);
-        }
-
-        .zoom-btn:active {
-            transform: scale(0.95);
-        }
+        .zoom-btn:hover { color: var(--accent); border-color: var(--accent); }
 
         .zoom-display {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--accent);
-            min-width: 55px;
+            width: 40px;
             text-align: center;
-            padding: 6px 10px;
-            background: var(--bg-primary);
-            border-radius: 6px;
-            border: 1px solid var(--text-secondary);
+        }
+
+        .speed-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .speed-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 140px;
-            height: 6px;
+            width: 80px;
+            height: 4px;
             background: var(--bg-tertiary);
-            border-radius: 3px;
+            border-radius: 2px;
             outline: none;
             cursor: pointer;
+            -webkit-appearance: none;
         }
-
+        
         .speed-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             background: var(--accent);
             border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .speed-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        .speed-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            background: var(--accent);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
         }
 
         .speed-display {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--accent);
-            min-width: 50px;
-            text-align: center;
+            width: 30px;
+            text-align: right;
         }
 
-        .divider {
-            width: 1px;
-            height: 30px;
-            background: var(--text-secondary);
-            opacity: 0.3;
-        }
-
+        /* --- Main Viewport --- */
         .table-container {
+            flex: 1; /* Take remaining height */
             position: relative;
-            overflow: auto;
-            padding: 20px;
-            min-height: 400px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            margin-bottom: 20px;
+            overflow: hidden; /* Hide scrollbars for drag effect */
+            background: var(--bg-primary);
             cursor: grab;
             user-select: none;
+            display: flex; 
         }
 
         .table-container.grabbing {
             cursor: grabbing;
         }
 
-        .table-container::-webkit-scrollbar {
-            height: 12px;
-            width: 12px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-            border-radius: 6px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 6px;
-            border: 2px solid var(--bg-tertiary);
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #00ffcc;
-        }
-
-        .table-container::-webkit-scrollbar-corner {
-            background: var(--bg-tertiary);
-        }
-
         .periodic-table {
-            position: relative;
-            margin: 0 auto;
-            transition: transform 0.3s ease;
-            transform-origin: left top;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease, left 0.3s ease; /* Added left transition for smooth centering */
+            transform-origin: 0 0;
         }
 
         .element {
@@ -411,9 +281,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .element.property-mode::before {
-            opacity: 0.3;
-        }
+        .element.property-mode::before { opacity: 0.3; }
 
         .element:hover {
             transform: scale(1.15);
@@ -421,107 +289,50 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--category-color);
         }
 
-        /* Number position: Top Left, Small */
         .element .number {
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            font-size: 8px;
-            color: var(--text-secondary);
+            position: absolute; top: 2px; left: 3px;
+            font-size: 8px; color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-            transition: color 0.3s ease;
         }
 
-        /* Symbol position: Top Right, Small */
         .element .symbol {
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            position: absolute; top: 3px; right: 3px;
+            font-size: 9px; font-weight: 600; color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-            transition: color 0.3s ease;
         }
 
-        /* Name position: Center, Large, Main Focus */
         .element .name {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 46px;
-            margin-top: 4px; /* Slight push to optical center */
-            transition: color 0.3s ease;
+            font-size: 16px; font-weight: 700; color: var(--text-primary);
+            text-align: center; margin-top: 4px;
         }
 
-        /* Mass position: Bottom, Small */
         .element .mass {
-            position: absolute;
-            bottom: 3px;
-            left: 0;
-            right: 0;
-            font-size: 7px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-secondary);
-            text-align: center;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
+            position: absolute; bottom: 3px; left: 0; right: 0;
+            font-size: 7px; color: var(--text-secondary); opacity: 0.8;
+            font-family: 'JetBrains Mono', monospace; text-align: center;
         }
+        
+        .element.property-mode .mass { opacity: 0; }
 
-        /* Hide mass when property value is shown */
-        .element.property-mode .mass {
-            opacity: 0;
-        }
-
-        /* Property bar */
         .element .property-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 0;
+            position: absolute; bottom: 0; left: 0; right: 0; height: 0;
             background: linear-gradient(to top, var(--prop-color), transparent);
-            transition: height 0.4s ease;
-            pointer-events: none;
-            opacity: 0.7;
+            transition: height 0.4s ease; pointer-events: none; opacity: 0.7;
         }
 
         .element .property-value {
-            position: absolute;
-            bottom: 2px;
-            left: 0;
-            right: 0;
-            font-size: 8px;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: transparent;
-            text-align: center;
-            transition: color 0.3s ease;
+            position: absolute; bottom: 2px; left: 0; right: 0;
+            font-size: 8px; font-weight: 700; color: transparent;
+            font-family: 'JetBrains Mono', monospace; text-align: center;
         }
 
         .element.property-mode .property-value {
-            color: var(--text-primary);
-            text-shadow: 0 0 3px rgba(0,0,0,0.8);
+            color: var(--text-primary); text-shadow: 0 0 3px rgba(0,0,0,0.8);
         }
 
-        /* Dark text for light backgrounds */
-        .element.light-bg .number,
-        .element.light-bg .symbol,
-        .element.light-bg .name {
-            color: #1a1a2e;
-        }
-
-        .element.light-bg .mass {
-             color: #1a1a2e;
-        }
-
-        .element.light-bg .property-value {
-            color: #1a1a2e;
-            text-shadow: none;
+        /* Light bg adjustments */
+        .element.light-bg .number, .element.light-bg .symbol, .element.light-bg .name, .element.light-bg .mass, .element.light-bg .property-value {
+            color: #1a1a2e; text-shadow: none;
         }
 
         /* Category colors */
@@ -537,15 +348,21 @@
         .actinide { --category-color: var(--actinide); }
         .unknown { --category-color: var(--unknown); }
 
+        /* --- Footer Legend --- */
+        .app-footer {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-top: 1px solid var(--bg-tertiary);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
         .legend {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            padding: 15px;
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 5px;
         }
 
         .legend-item {
@@ -557,131 +374,109 @@
         }
 
         .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
+            width: 10px; height: 10px; border-radius: 2px;
         }
 
         .view-info {
             text-align: center;
-            padding: 15px;
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 11px; color: var(--text-secondary);
+            margin-top: 5px;
         }
+
+        /* Color Scale */
+        .color-scale {
+            display: none; align-items: center; gap: 8px;
+            margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--text-secondary);
+        }
+        .color-scale.visible { display: flex; }
+        .scale-bar {
+            width: 80px; height: 8px; border-radius: 4px;
+            background: linear-gradient(to right, #1a1a2e, #ffd93d);
+        }
+        .scale-info { display: flex; flex-direction: column; gap: 1px; }
+        .scale-title { font-size: 10px; color: var(--accent); }
+        .scale-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-secondary); }
 
         /* Tooltip */
         .tooltip {
             position: fixed;
             background: var(--bg-secondary);
             border: 1px solid var(--accent);
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 8px;
+            padding: 12px;
             z-index: 1000;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.2s;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            max-width: 280px;
+            max-width: 250px;
         }
-
-        .tooltip.visible {
-            opacity: 1;
-        }
-
-        .tooltip h3 {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-            color: var(--accent);
-        }
-
-        .tooltip p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin: 3px 0;
-        }
-
-        .tooltip .prop-highlight {
-            color: var(--accent);
-            font-weight: 600;
-        }
+        .tooltip.visible { opacity: 1; }
+        .tooltip h3 { font-size: 1.1rem; margin-bottom: 4px; color: var(--accent); }
+        .tooltip p { font-size: 0.8rem; color: var(--text-secondary); margin: 2px 0; }
+        .tooltip .prop-highlight { color: var(--accent); font-weight: 600; }
 
         @media (max-width: 768px) {
-            .element {
-                width: 36px;
-                height: 44px;
-            }
-            .element .number { font-size: 7px; }
-            .element .symbol { font-size: 8px; }
-            .element .name { font-size: 12px; max-width: 32px; }
-            .element .mass { font-size: 5px; }
-            .element .property-value { font-size: 6px; }
-            .controls { gap: 8px; }
-            .view-btn { padding: 10px 16px; font-size: 14px; }
-            .property-btn { padding: 6px 12px; font-size: 12px; }
-            .zoom-btn { width: 32px; height: 32px; font-size: 14px; }
-            .control-panel { gap: 12px; padding: 12px; }
-            .speed-slider { width: 100px; }
-            .divider { display: none; }
-            .color-scale { margin-left: 0; padding-left: 0; border-left: none; margin-top: 10px; }
+            .header-top-row { flex-direction: column; align-items: flex-start; }
+            .header-bottom-row { justify-content: center; }
+            .legend { gap: 8px; }
+            .legend-item { font-size: 10px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>互動週期表</h1>
-        </header>
-
-        <div class="controls">
-            <button class="view-btn active" data-view="linear">原子序橫排</button>
-            <button class="view-btn" data-view="standard">標準週期表</button>
-            <button class="view-btn" data-view="extended">寬版週期表</button>
+    <header class="app-header">
+        <div class="header-top-row">
+            <div class="brand">
+                <h1>互動週期表</h1>
+                <span class="subtitle">Drag &amp; Explore</span>
+            </div>
+            <div class="view-controls">
+                <button class="view-btn active" data-view="linear">序列</button>
+                <button class="view-btn" data-view="standard">標準</button>
+                <button class="view-btn" data-view="extended">寬版</button>
+            </div>
         </div>
 
-        <div class="property-controls">
-            <span class="property-label"><i class="fas fa-chart-bar"></i> 顯示性質：</span>
-            <button class="property-btn active" data-property="none">無</button>
-            <button class="property-btn" data-property="ionization">第一游離能</button>
-            <button class="property-btn" data-property="electronegativity">電負度</button>
-            <button class="property-btn" data-property="density">密度 (STP)</button>
-            <button class="property-btn" data-property="radius">原子半徑</button>
-
-            <div class="color-scale" id="colorScale">
-                <div class="scale-info">
-                    <span class="scale-title" id="scaleTitle">第一游離能</span>
-                    <div class="scale-bar"></div>
-                    <div class="scale-labels">
-                        <span id="scaleMin">低</span>
-                        <span id="scaleMax">高</span>
+        <div class="header-bottom-row">
+            <div class="property-bar">
+                <span class="property-label"><i class="fas fa-layer-group"></i> 性質</span>
+                <button class="property-btn active" data-property="none">無</button>
+                <button class="property-btn" data-property="ionization">游離能</button>
+                <button class="property-btn" data-property="electronegativity">電負度</button>
+                <button class="property-btn" data-property="density">密度</button>
+                <button class="property-btn" data-property="radius">半徑</button>
+                
+                <div class="color-scale" id="colorScale">
+                    <div class="scale-info">
+                        <span class="scale-title" id="scaleTitle">Data</span>
+                        <div class="scale-bar"></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="control-panel">
-            <div class="control-group">
-                <span class="control-label"><i class="fas fa-search"></i> 縮放</span>
-                <button class="zoom-btn" id="zoomOut" title="縮小"><i class="fas fa-minus"></i></button>
-                <div class="zoom-display" id="zoomDisplay">100%</div>
-                <button class="zoom-btn" id="zoomIn" title="放大"><i class="fas fa-plus"></i></button>
-                <button class="zoom-btn" id="zoomReset" title="重置"><i class="fas fa-undo"></i></button>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="control-group">
-                <span class="control-label"><i class="fas fa-clock"></i> 動畫速度</span>
-                <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" step="1" value="2">
-                <span class="speed-display" id="speedDisplay">1s</span>
+            <div class="action-bar">
+                <div class="zoom-group">
+                    <button class="zoom-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
+                    <div class="zoom-display" id="zoomDisplay">100%</div>
+                    <button class="zoom-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
+                    <button class="zoom-btn" id="zoomReset"><i class="fas fa-expand"></i></button>
+                </div>
+                
+                <div class="speed-group">
+                    <span class="property-label"><i class="fas fa-clock"></i></span>
+                    <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" step="1" value="2">
+                    <span class="speed-display" id="speedDisplay">1s</span>
+                </div>
             </div>
         </div>
+    </header>
 
-        <div class="table-container" id="tableContainer">
-            <div class="periodic-table" id="periodicTable"></div>
-        </div>
+    <div class="table-container" id="tableContainer">
+        <div class="periodic-table" id="periodicTable"></div>
+    </div>
 
+    <footer class="app-footer">
         <div class="legend" id="categoryLegend">
             <div class="legend-item"><div class="legend-color" style="background: var(--alkali)"></div>鹼金屬</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--alkaline)"></div>鹼土金屬</div>
@@ -693,18 +488,17 @@
             <div class="legend-item"><div class="legend-color" style="background: var(--noble)"></div>稀有氣體</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--lanthanide)"></div>鑭系元素</div>
             <div class="legend-item"><div class="legend-color" style="background: var(--actinide)"></div>錒系元素</div>
-            <div class="legend-item"><div class="legend-color" style="background: var(--unknown)"></div>未知特性</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--unknown)"></div>未知</div>
         </div>
-
         <div class="view-info" id="viewInfo">
-            目前視圖：按原子序排列（1-118號元素依序排列成超長橫排）
+            目前視圖：按原子序排列
         </div>
-    </div>
+    </footer>
 
     <div class="tooltip" id="tooltip"></div>
 
     <script>
-        // Element data with atomic mass
+        // Data
         const elements = [
             { z: 1, symbol: "H", name: "氫", category: "nonmetal", mass: "1.008", ionization: 1312, electronegativity: 2.20, density: 0.00009, radius: 53 },
             { z: 2, symbol: "He", name: "氦", category: "noble", mass: "4.003", ionization: 2372, electronegativity: null, density: 0.00018, radius: 31 },
@@ -871,7 +665,7 @@
             90: [9, 3], 91: [9, 4], 92: [9, 5], 93: [9, 6], 94: [9, 7], 95: [9, 8], 96: [9, 9], 97: [9, 10], 98: [9, 11], 99: [9, 12], 100: [9, 13], 101: [9, 14], 102: [9, 15], 103: [9, 16]
         };
 
-        // Extended periodic table
+        // Extended periodic table (Corrected shifted positions for transition metals)
         const extendedPositions = {
             // Row 1
             1: [0, 0], 2: [0, 31],
@@ -879,7 +673,7 @@
             3: [1, 0], 4: [1, 1], 5: [1, 26], 6: [1, 27], 7: [1, 28], 8: [1, 29], 9: [1, 30], 10: [1, 31],
             // Row 3
             11: [2, 0], 12: [2, 1], 13: [2, 26], 14: [2, 27], 15: [2, 28], 16: [2, 29], 17: [2, 30], 18: [2, 31],
-            // Row 4 (Transition metals shifted right by 14 to accommodate f-block below)
+            // Row 4 (Transition metals shifted right by 14)
             19: [3, 0], 20: [3, 1], 
             21: [3, 16], 22: [3, 17], 23: [3, 18], 24: [3, 19], 25: [3, 20], 26: [3, 21], 27: [3, 22], 28: [3, 23], 29: [3, 24], 30: [3, 25],
             31: [3, 26], 32: [3, 27], 33: [3, 28], 34: [3, 29], 35: [3, 30], 36: [3, 31],
@@ -908,13 +702,11 @@
         const speedDisplay = document.getElementById('speedDisplay');
         const colorScale = document.getElementById('colorScale');
         const scaleTitle = document.getElementById('scaleTitle');
-        const scaleMin = document.getElementById('scaleMin');
-        const scaleMax = document.getElementById('scaleMax');
 
         let currentView = 'linear';
         let currentProperty = 'none';
         let zoomLevel = 1;
-        let animationSpeed = 1; // Default speed
+        let animationSpeed = 1;
         const minZoom = 0.15;
         const maxZoom = 2.5;
         const zoomStep = 0.1;
@@ -922,14 +714,17 @@
         const cellWidth = 52;
         const cellHeight = 60;
         const gap = 4;
+        
+        // Added top padding variable (approx 1.3x cell height)
+        const topPadding = 80;
 
-        // Specific time values requested
+        // Speed preset mapping (indices 0-5)
         const speedValues = [0, 0.5, 1, 2, 5, 10];
 
         const viewDescriptions = {
-            linear: '目前視圖：按原子序排列（1-118號元素依序排列成超長橫排）',
-            standard: '目前視圖：標準週期表（鑭系、錒系元素分離於下方）',
-            extended: '目前視圖：寬版週期表（鑭系、錒系元素合併至主表內）'
+            linear: '目前視圖：按原子序排列',
+            standard: '目前視圖：標準週期表',
+            extended: '目前視圖：寬版週期表'
         };
 
         function interpolateColor(value, min, max, colorStops) {
@@ -982,9 +777,13 @@
                     <span class="property-value"></span>
                 `;
 
-                div.addEventListener('mouseenter', (e) => showTooltip(e, el));
-                div.addEventListener('mousemove', (e) => moveTooltip(e));
-                div.addEventListener('mouseleave', hideTooltip);
+                // Changed event listeners: Click to show tooltip
+                div.addEventListener('click', (e) => {
+                    // Prevent click if we just finished a drag operation
+                    if (hasDragged) return;
+                    e.stopPropagation(); // Stop bubbling to container
+                    showTooltip(e, el);
+                });
 
                 table.appendChild(div);
             });
@@ -1008,10 +807,8 @@
 
             colorScale.classList.add('visible');
             scaleTitle.textContent = config.name;
-            scaleMin.textContent = config.min + ' ' + config.unit;
-            scaleMax.textContent = config.max + ' ' + config.unit;
-
-            // Update gradient
+            
+            // Update gradient bar
             const scaleBar = document.querySelector('.scale-bar');
             scaleBar.style.background = `linear-gradient(to right, ${config.colorStops.join(', ')})`;
 
@@ -1026,14 +823,11 @@
                     el.style.backgroundColor = color;
                     el.classList.toggle('light-bg', isLightColor(color));
 
-                    // Format value display
                     let displayValue = '';
                     if (value !== null) {
                         if (property === 'density' && value < 0.01) {
                             displayValue = value.toExponential(1);
-                        } else if (property === 'density') {
-                            displayValue = value.toFixed(2);
-                        } else if (property === 'electronegativity') {
+                        } else if (property === 'density' || property === 'electronegativity') {
                             displayValue = value.toFixed(2);
                         } else {
                             displayValue = Math.round(value);
@@ -1048,12 +842,38 @@
             });
         }
 
-        // Updated for index-based slider
         function updateAnimationSpeed(sliderIndex) {
             const speed = speedValues[sliderIndex];
             animationSpeed = speed;
             document.documentElement.style.setProperty('--animation-duration', `${speed}s`);
             speedDisplay.textContent = `${speed}s`;
+        }
+
+        function centerTable() {
+            // Calculate real dimensions based on zoom
+            const tableWidth = table.offsetWidth * zoomLevel;
+            const tableHeight = table.offsetHeight * zoomLevel;
+            const containerWidth = tableContainer.clientWidth;
+            const containerHeight = tableContainer.clientHeight;
+
+            // Horizontal Centering Logic
+            if (tableWidth < containerWidth) {
+                // If table is smaller than container, center visually by setting left offset
+                const offsetLeft = (containerWidth - tableWidth) / 2;
+                table.style.left = `${offsetLeft}px`;
+                tableContainer.scrollLeft = 0;
+            } else {
+                // If table is larger, center using scroll position
+                table.style.left = '0px'; // Reset left offset
+                const centerScroll = (tableWidth - containerWidth) / 2;
+                tableContainer.scrollLeft = centerScroll;
+                scrollLeft = centerScroll; // Update drag tracking var
+            }
+            
+            // Vertical - we respect the top padding mostly, but if we zoomed out a lot:
+            // Just ensure scrolling is reset or centered if needed.
+            // For now, let's keep vertical scroll at top to respect top padding
+            // unless dragging happens.
         }
 
         function updateZoom(newZoom, centerOnMouse = false, mouseX = 0, mouseY = 0) {
@@ -1064,13 +884,18 @@
             table.style.transform = `scale(${zoomLevel})`;
 
             if (centerOnMouse && oldZoom !== zoomLevel) {
+                // Simplified zoom-to-cursor logic for custom drag/scale setup
                 const rect = tableContainer.getBoundingClientRect();
                 const relativeX = mouseX - rect.left;
                 const relativeY = mouseY - rect.top;
-                const pointInContentX = (tableContainer.scrollLeft + relativeX) / oldZoom;
-                const pointInContentY = (tableContainer.scrollTop + relativeY) / oldZoom;
-                tableContainer.scrollLeft = pointInContentX * zoomLevel - relativeX;
-                tableContainer.scrollTop = pointInContentY * zoomLevel - relativeY;
+                
+                // Adjust scroll based on zoom delta
+                // This is approximate for this specific DOM structure
+                tableContainer.scrollLeft += (relativeX) * (zoomLevel/oldZoom - 1);
+                tableContainer.scrollTop += (relativeY) * (zoomLevel/oldZoom - 1);
+                
+                scrollLeft = tableContainer.scrollLeft;
+                scrollTop = tableContainer.scrollTop;
             }
         }
 
@@ -1092,7 +917,8 @@
                 }
 
                 const x = pos.col * (cellWidth + gap);
-                const y = pos.row * (cellHeight + gap);
+                // Added topPadding here
+                const y = pos.row * (cellHeight + gap) + topPadding;
 
                 el.style.left = `${x}px`;
                 el.style.top = `${y}px`;
@@ -1101,17 +927,21 @@
                 maxRow = Math.max(maxRow, pos.row);
             });
 
-            table.style.width = `${(maxCol + 1) * (cellWidth + gap)}px`;
-            table.style.height = `${(maxRow + 1) * (cellHeight + gap)}px`;
-            table.style.transform = `scale(${zoomLevel})`;
-            table.style.transformOrigin = 'left top';
+            // Calculate content size including top padding and some bottom buffer
+            const contentWidth = (maxCol + 1) * (cellWidth + gap); 
+            const contentHeight = (maxRow + 1) * (cellHeight + gap) + topPadding + 100;
 
+            table.style.width = `${contentWidth}px`;
+            table.style.height = `${contentHeight}px`;
+            
             viewInfo.textContent = viewDescriptions[view];
+            
+            // Re-center after layout change
+            // Using timeout to ensure DOM update is processed
+            setTimeout(centerTable, 50); 
         }
 
         function showTooltip(e, el) {
-            if(isDragging) return; // Prevent tooltip if dragging
-
             const categoryNames = {
                 'alkali': '鹼金屬', 'alkaline': '鹼土金屬', 'transition': '過渡金屬',
                 'post-transition': '後過渡金屬', 'metalloid': '類金屬', 'nonmetal': '非金屬',
@@ -1124,29 +954,22 @@
                 const config = propertyConfig[currentProperty];
                 const value = el[currentProperty];
                 if (value !== null) {
-                    let displayValue = '';
-                    if (currentProperty === 'density' && value < 0.01) {
-                        displayValue = value.toExponential(2);
-                    } else if (currentProperty === 'density') {
-                        displayValue = value.toFixed(3);
-                    } else if (currentProperty === 'electronegativity') {
-                        displayValue = value.toFixed(2);
-                    } else {
-                        displayValue = value;
-                    }
+                    let displayValue = value;
+                    if (currentProperty === 'density' && value < 0.01) displayValue = value.toExponential(2);
+                    else if (typeof value === 'number') displayValue = value.toFixed(2);
+                    
                     propsHtml = `<p><span class="prop-highlight">${config.name}：${displayValue} ${config.unit}</span></p>`;
                 } else {
                     propsHtml = `<p><span class="prop-highlight">${config.name}：無資料</span></p>`;
                 }
             }
 
-            // Show all properties
             const allProps = `
                 <p>原子量：${el.mass}</p>
-                <p>第一游離能：${el.ionization !== null ? el.ionization + ' kJ/mol' : 'N/A'}</p>
-                <p>電負度：${el.electronegativity !== null ? el.electronegativity : 'N/A'}</p>
-                <p>密度：${el.density !== null ? (el.density < 0.01 ? el.density.toExponential(2) : el.density.toFixed(3)) + ' g/cm³' : 'N/A'}</p>
-                <p>原子半徑：${el.radius !== null ? el.radius + ' pm' : 'N/A'}</p>
+                <p>第一游離能：${el.ionization || 'N/A'}</p>
+                <p>電負度：${el.electronegativity || 'N/A'}</p>
+                <p>密度：${el.density || 'N/A'}</p>
+                <p>半徑：${el.radius || 'N/A'}</p>
             `;
 
             tooltip.innerHTML = `
@@ -1154,72 +977,85 @@
                 <p>原子序：${el.z}</p>
                 <p>分類：${categoryNames[el.category]}</p>
                 ${propsHtml}
-                <hr style="border: none; border-top: 1px solid var(--text-secondary); margin: 8px 0; opacity: 0.3;">
+                <hr style="border: none; border-top: 1px solid var(--text-secondary); margin: 6px 0; opacity: 0.3;">
                 ${allProps}
             `;
             tooltip.classList.add('visible');
-            moveTooltip(e);
+            moveTooltip(e); // Use click position or element position
         }
 
         function moveTooltip(e) {
+            // Position tooltip near the click/element
             let x = e.clientX + 15;
             let y = e.clientY + 15;
-
-            const tooltipRect = tooltip.getBoundingClientRect();
-            if (x + tooltipRect.width > window.innerWidth) {
-                x = e.clientX - tooltipRect.width - 15;
+            
+            // Check boundaries
+            const rect = tooltip.getBoundingClientRect();
+            // Create temporary hidden tooltip to measure if it's currently hidden
+            if (!tooltip.classList.contains('visible')) {
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.display = 'block';
             }
-            if (y + tooltipRect.height > window.innerHeight) {
-                y = e.clientY - tooltipRect.height - 15;
-            }
+            
+            const tipWidth = 250; // Approx max width
+            const tipHeight = 200; // Approx max height
 
+            if (x + tipWidth > window.innerWidth) x = e.clientX - tipWidth - 15;
+            if (y + tipHeight > window.innerHeight) y = e.clientY - tipHeight - 15;
+            
             tooltip.style.left = `${x}px`;
             tooltip.style.top = `${y}px`;
+            
+            if (!tooltip.classList.contains('visible')) {
+                tooltip.style.visibility = '';
+                tooltip.style.display = '';
+            }
         }
 
         function hideTooltip() {
             tooltip.classList.remove('visible');
         }
 
-        // --- Drag to Pan Implementation ---
+        // --- Drag to Pan Logic ---
         let isDragging = false;
-        let startX;
-        let startY;
-        let scrollLeft;
-        let scrollTop;
+        let hasDragged = false; // Flag to distinguish click vs drag
+        let startX, startY, scrollLeft, scrollTop;
 
         tableContainer.addEventListener('mousedown', (e) => {
+            if(e.button !== 0) return;
             isDragging = true;
+            hasDragged = false; // Reset drag flag
             tableContainer.classList.add('grabbing');
             startX = e.pageX - tableContainer.offsetLeft;
             startY = e.pageY - tableContainer.offsetTop;
             scrollLeft = tableContainer.scrollLeft;
             scrollTop = tableContainer.scrollTop;
-            hideTooltip(); // Hide tooltip when starting drag
+            
+            // Hide tooltip on drag start (click anywhere on background)
+            hideTooltip();
         });
 
-        tableContainer.addEventListener('mouseleave', () => {
-            isDragging = false;
-            tableContainer.classList.remove('grabbing');
-        });
-
-        tableContainer.addEventListener('mouseup', () => {
-            isDragging = false;
-            tableContainer.classList.remove('grabbing');
-        });
+        tableContainer.addEventListener('mouseleave', () => { isDragging = false; tableContainer.classList.remove('grabbing'); });
+        tableContainer.addEventListener('mouseup', () => { isDragging = false; tableContainer.classList.remove('grabbing'); });
 
         tableContainer.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             e.preventDefault();
             const x = e.pageX - tableContainer.offsetLeft;
             const y = e.pageY - tableContainer.offsetTop;
-            const walkX = (x - startX); 
-            const walkY = (y - startY);
+            const walkX = (x - startX) * 1.5; 
+            const walkY = (y - startY) * 1.5;
+            
+            // If moved significantly, mark as dragged
+            if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
+                hasDragged = true;
+            }
+
             tableContainer.scrollLeft = scrollLeft - walkX;
             tableContainer.scrollTop = scrollTop - walkY;
         });
 
-        // Event listeners
+        // Event Listeners
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -1241,11 +1077,9 @@
         document.getElementById('zoomOut').addEventListener('click', () => updateZoom(zoomLevel - zoomStep));
         document.getElementById('zoomReset').addEventListener('click', () => {
             updateZoom(1);
-            tableContainer.scrollLeft = 0;
-            tableContainer.scrollTop = 0;
+            centerTable();
         });
 
-        // Updated slider listener
         speedSlider.addEventListener('input', (e) => updateAnimationSpeed(parseInt(e.target.value)));
 
         tableContainer.addEventListener('wheel', (e) => {
@@ -1254,18 +1088,17 @@
             updateZoom(zoomLevel + delta, true, e.clientX, e.clientY);
         }, { passive: false });
 
-        // Dark mode
+        // Dark mode init
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            document.documentElement.classList.toggle('dark', event.matches);
-        });
 
-        // Initialize
+        // Init
         createElements();
-        updateAnimationSpeed(2); // Set default to index 2 (1 second)
+        updateAnimationSpeed(2); 
         updateLayout('linear');
+        
+        window.addEventListener('resize', centerTable);
     </script>
 </body>
 </html>
