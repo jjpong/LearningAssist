@@ -432,11 +432,11 @@
         <div class="header-top-row">
             <div class="brand">
                 <h1>互動週期表</h1>
-                <span class="subtitle">無限畫布・自由拖曳</span>
+                <span class="subtitle"></span>
             </div>
             <div class="view-controls">
-                <button class="view-btn active" data-view="linear">序列</button>
-                <button class="view-btn" data-view="standard">標準</button>
+                <button class="view-btn" data-view="linear">序列</button>
+                <button class="view-btn active" data-view="standard">標準</button>
                 <button class="view-btn" data-view="extended">寬版</button>
             </div>
         </div>
@@ -706,7 +706,7 @@
         const colorScale = document.getElementById('colorScale');
         const scaleTitle = document.getElementById('scaleTitle');
 
-        let currentView = 'linear';
+        let currentView = 'standard';
         let currentProperty = 'none';
         let zoomLevel = 1;
         let animationSpeed = 1;
@@ -1133,7 +1133,7 @@
         // Init
         createElements();
         updateAnimationSpeed(2); 
-        updateLayout('linear');
+        updateLayout('standard');
         
         window.addEventListener('resize', centerTable);
     </script>
