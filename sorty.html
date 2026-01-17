@@ -38,7 +38,7 @@
             border-color: #0F4C81;
         }
         .form-checkbox:checked::after {
-            content: '\\2713';
+            content: '\2713';
             font-size: 0.9rem;
             color: white;
             position: absolute;
@@ -50,26 +50,47 @@
 </head>
 <body class="p-4 sm:p-6 lg:p-8">
 
-    <div id="api-key-modal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-50">
+    <!-- API Key Modal -->
+    <div id="api-key-modal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-[60]">
         <div class="bg-white p-8 rounded-lg shadow-xl w-11/12 max-w-md">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4">請輸入您的 Google Gemini API KEY</h2>
-            <p class="text-slate-600 mb-6 text-sm">此 KEY 將安全地儲存在您的瀏覽器中，僅供本頁面使用。您可以從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a> 取得。</p>
-            <input type="password" id="api-key-input" class="form-input mb-4" placeholder="請在此貼上您的 API KEY">
-            <div class="flex justify-end gap-4">
-                <button id="cancel-api-key" class="btn bg-slate-200 hover:bg-slate-300 text-slate-700">取消</button>
-                <button id="save-api-key" class="btn btn-primary">儲存並繼續</button>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Google Gemini API KEY 設定</h2>
+            <p class="text-slate-600 mb-6 text-sm">此 KEY 將儲存在您的瀏覽器中。您可以從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a> 取得。</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">API KEY</label>
+                <input type="password" id="api-key-input" class="form-input" placeholder="請在此貼上您的 API KEY">
+            </div>
+
+            <div class="flex justify-between gap-4 mt-6">
+                <button id="clear-api-key" class="text-red-600 hover:text-red-800 text-sm font-medium">清除儲存的金鑰</button>
+                <div class="flex gap-2">
+                    <button id="cancel-api-key" class="btn bg-slate-200 hover:bg-slate-300 text-slate-700">取消</button>
+                    <button id="save-api-key" class="btn btn-primary">儲存</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-8">
+        <header class="flex flex-col items-center mb-8 relative">
+            <!-- Settings Button -->
+            <div class="absolute right-0 top-0">
+                <button id="settings-btn" class="flex items-center text-slate-500 hover:text-[#0F4C81] transition-colors text-sm font-medium p-2 border border-slate-200 rounded-lg bg-white shadow-sm">
+                    <i data-lucide="key"></i> API KEY 設定
+                </button>
+            </div>
+
             <h1 class="text-4xl font-bold text-[#0F4C81]">實驗步驟卡片產生器</h1>
-            <p class="text-lg text-slate-600 mt-2">教師可自行設計實驗步驟卡片，一鍵生成網頁程式，讓學生根據主題與目的排列實驗步驟卡片。若在實驗步驟前選擇鎖定，則該實驗步驟會讓學生直接看到，選擇不鎖定的部分，會呈現空白讓學生作答。也可由AI協助生成步驟及干擾項。</p>
+            <p class="text-lg text-slate-600 mt-2 max-w-2xl text-center">
+                教師可自行設計實驗步驟卡片，一鍵生成網頁程式，讓學生根據主題與目的排列卡片。支援 AI 生成正確步驟與迷思概念干擾項。
+            </p>
         </header>
 
-        <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-            <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3">1. 輸入實驗資訊</h2>
+        <!-- 1. Experiment Info -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-6 border border-slate-100">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3 flex items-center">
+                <i data-lucide="info" class="text-blue-500"></i> 1. 輸入實驗資訊
+            </h2>
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
                     <label for="topic" class="block text-sm font-medium text-slate-600 mb-1">實驗主題</label>
@@ -82,10 +103,13 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+        <!-- 2. Correct Steps -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-6 border border-slate-100">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                 <h2 class="text-2xl font-semibold text-slate-800">2. 編輯正確步驟</h2>
-                 <button id="generate-ai-steps-btn" class="btn btn-primary py-2 px-5">
+                 <h2 class="text-2xl font-semibold text-slate-800 flex items-center">
+                    <i data-lucide="check-circle" class="text-teal-500"></i> 2. 編輯正確步驟
+                 </h2>
+                 <button id="generate-ai-steps-btn" class="btn btn-primary py-2 px-5 shadow-sm">
                     <i data-lucide="wand-2"></i>
                     <span id="ai-btn-text">AI 自動生成步驟</span>
                 </button>
@@ -96,15 +120,18 @@
             </button>
         </div>
         
-        <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-             <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3 flex items-center"><i data-lucide="alert-triangle" class="text-amber-500"></i>3. 新增干擾步驟 (選填)</h2>
-            <p class="text-lg text-slate-600 mt-2">可依據學生常見設計實驗步驟的迷思概念，設計干擾選項卡片，勾選後再由AI協助生成。</p>
+        <!-- 3. Distractor Steps -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-6 border border-slate-100">
+             <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3 flex items-center">
+                <i data-lucide="alert-triangle" class="text-amber-500"></i> 3. 新增干擾步驟 (選填)
+            </h2>
+            <p class="text-sm text-slate-500 mb-4 italic">可勾選迷思策略後讓 AI 生成，或手動新增卡片。</p>
 
             <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md mb-6">
-                <label class="block text-base font-bold text-amber-900 mb-2">請勾選干擾項的設計策略 (建議不超過2個)：</label>
+                <label class="block text-base font-bold text-amber-900 mb-2 underline decoration-amber-300">干擾項設計策略 (建議 1-2 個)：</label>
                 <div id="misconception-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                    </div>
-                <p id="misconception-warning" class="text-red-600 font-bold text-xs mt-2 hidden">提示：選擇過多策略可能使AI指令模糊，影響生成品質。</p>
+                </div>
+                <p id="misconception-warning" class="text-red-600 font-bold text-xs mt-2 hidden">提示：策略過多可能導致 AI 生成品質下降。</p>
             </div>
              
             <div id="distractor-steps-container" class="space-y-3 mb-4"></div>
@@ -113,15 +140,18 @@
             </button>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3">4. 完成並匯出</h2>
+        <!-- 4. Export -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4 border-b pb-3 flex items-center">
+                <i data-lucide="file-down" class="text-indigo-500"></i> 4. 完成並匯出
+            </h2>
             <div class="flex items-center space-x-3 mb-6 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md">
                 <input type="checkbox" id="include-grading" checked class="h-5 w-5 rounded border-gray-300 text-[#0F4C81] focus:ring-[#0F4C81]">
-                <label for="include-grading" class="font-medium">啟用【批改功能】?</label>
-                <p class="text-sm">啟用後，學生端將出現「完成批改」按鈕，並以紅綠框線標示結果。</p>
+                <label for="include-grading" class="font-medium cursor-pointer">啟用【批改功能】?</label>
+                <p class="text-sm ml-auto opacity-75">學生端將以紅綠框標示對錯</p>
             </div>
             <div class="text-center">
-                <button id="download-html-btn" class="btn btn-primary py-3 px-8 text-lg shadow-md">
+                <button id="download-html-btn" class="btn btn-primary py-4 px-10 text-xl shadow-lg transform active:scale-95 transition-transform">
                     <i data-lucide="download"></i> 產生並下載 HTML 學習單
                 </button>
             </div>
@@ -130,14 +160,16 @@
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        lucide.createIcons();
-
         document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
             // --- DOM Elements ---
             const apiKeyModal = document.getElementById('api-key-modal');
             const apiKeyInput = document.getElementById('api-key-input');
             const saveApiKeyBtn = document.getElementById('save-api-key');
             const cancelApiKeyBtn = document.getElementById('cancel-api-key');
+            const clearApiKeyBtn = document.getElementById('clear-api-key');
+            const settingsBtn = document.getElementById('settings-btn');
             
             const topicInput = document.getElementById('topic');
             const purposeInput = document.getElementById('purpose');
@@ -145,7 +177,6 @@
             
             const correctStepsContainer = document.getElementById('correct-steps-container');
             const addCorrectStepBtn = document.getElementById('add-correct-step-btn');
-            
             const misconceptionCheckboxes = document.getElementById('misconception-checkboxes');
             const misconceptionWarning = document.getElementById('misconception-warning');
             const distractorStepsContainer = document.getElementById('distractor-steps-container');
@@ -168,7 +199,7 @@
                     prompt: "模擬學生「忽略重要的控制變因」的錯誤。例如，設計一個實驗，但明顯需要控制不變的變因，卻沒有注意到，或是使其改變了。"
                 },
                 logic: {
-                    label: "實驗設計的邏輯性與完整性不足",
+                    label: "實驗設計的邏輯性不足",
                     prompt: "模擬學生「實驗設計的邏輯性與完整性不足」的錯誤。例如：忘記設立對照組、或忽略重複實驗的重要性。"
                 },
                 operational: {
@@ -176,10 +207,9 @@
                     prompt: "模擬學生「缺乏可操作性的測量定義」的錯誤。例如：應變變因定義模糊，寫出「觀察反應快不快」而不是具體可測量的指標。"
                 },
                 hypothesis: {
-                    label: "假設或實驗目的與實驗設計的連結薄弱",
+                    label: "設計無法有效檢驗假設",
                     prompt: "模擬學生「假設或實驗目的與實驗設計的連結薄弱」的錯誤。也就是設計出的步驟無法有效檢驗實驗假設。"
-                },
-
+                }
             };
 
             // --- API Key Management ---
@@ -188,51 +218,74 @@
                 storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
                 return storedApiKey;
             };
-            const saveApiKey = (key) => { localStorage.setItem(API_KEY_STORAGE_KEY, key); storedApiKey = key; };
-            const promptForApiKey = () => new Promise((resolve) => {
-                resolveApiKeyPromise = resolve;
+
+            const saveApiKey = (key) => { 
+                localStorage.setItem(API_KEY_STORAGE_KEY, key); 
+                storedApiKey = key; 
+            };
+
+            const openApiKeyModal = () => {
+                const currentKey = getApiKey();
+                apiKeyInput.value = currentKey || '';
                 apiKeyModal.classList.add('is-open');
                 apiKeyInput.focus();
+            };
+
+            const promptForApiKey = () => new Promise((resolve) => {
+                resolveApiKeyPromise = resolve;
+                openApiKeyModal();
             });
+
+            settingsBtn.addEventListener('click', openApiKeyModal);
+
             saveApiKeyBtn.addEventListener('click', () => {
                 const key = apiKeyInput.value.trim();
                 if (key) {
                     saveApiKey(key);
                     apiKeyModal.classList.remove('is-open');
                     if (resolveApiKeyPromise) resolveApiKeyPromise(key);
+                    resolveApiKeyPromise = null;
                 } else alert('API KEY 不能為空！');
             });
+
             cancelApiKeyBtn.addEventListener('click', () => {
                 apiKeyModal.classList.remove('is-open');
                 if (resolveApiKeyPromise) resolveApiKeyPromise(null);
+                resolveApiKeyPromise = null;
+            });
+
+            clearApiKeyBtn.addEventListener('click', () => {
+                if (confirm('確定要清除瀏覽器中儲存的 API KEY 嗎？')) {
+                    localStorage.removeItem(API_KEY_STORAGE_KEY);
+                    storedApiKey = null;
+                    apiKeyInput.value = '';
+                    alert('已清除金鑰。');
+                }
             });
 
             // --- Step Management ---
-           const createStepElement = (text = '', isDistractor = false, isPreset = false) => {
-                const id = `step-${Date.now()}-${Math.random()}`;
+            const createStepElement = (text = '', isDistractor = false, isPreset = false) => {
                 const div = document.createElement('div');
-                // 在 div 上加上一個 data-preset 屬性來記錄狀態
-                div.className = `flex items-center gap-2 sm:gap-4 p-2 rounded-lg ${isDistractor ? 'bg-amber-100' : 'bg-slate-50'}`;
-                div.dataset.preset = isPreset; // 加上這行
+                div.className = `flex items-center gap-2 sm:gap-4 p-2 rounded-lg border border-slate-200 transition-all ${isDistractor ? 'bg-amber-50' : 'bg-slate-50'}`;
+                div.dataset.preset = isPreset;
 
                 const labelText = isDistractor ? `干擾 ${distractorStepsContainer.children.length + 1}` : `${correctStepsContainer.children.length + 1}`;
                 
-                // 根據是否為干擾項，決定要不要顯示鎖頭
                 const lockButtonHtml = isDistractor ? '' : `
                     <button class="p-2 rounded-full transition-colors ${isPreset ? 'bg-blue-200 text-blue-800' : 'text-slate-400 hover:bg-slate-200'}" data-action="toggle-preset" title="${isPreset ? '解鎖步驟' : '鎖定步驟'}">
-                        <i data-lucide="${isPreset ? 'lock' : 'unlock'}" class="pointer-events-none"></i>
+                        <i data-lucide="${isPreset ? 'lock' : 'unlock'}" class="pointer-events-none w-4 h-4"></i>
                     </button>
                 `;
 
                 div.innerHTML = `
-                    <span class="font-bold w-8 text-center ${isDistractor ? 'text-amber-800' : 'text-[#0F4C81]'}">${labelText}</span>
+                    <span class="font-bold w-10 text-center ${isDistractor ? 'text-amber-800' : 'text-[#0F4C81]'}">${labelText}</span>
                     ${lockButtonHtml}
-                    <input type="text" value="${text}" class="form-input flex-grow ${isDistractor ? 'border-amber-300 bg-white/50 focus:ring-amber-500' : 'focus:ring-[#0F4C81]'}" placeholder="請輸入步驟說明">
-                    <button class="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors" data-action="delete">
-                        <i data-lucide="trash-2" class="pointer-events-none"></i>
+                    <input type="text" value="${text}" class="form-input flex-grow text-sm ${isDistractor ? 'border-amber-200 bg-white/50 focus:ring-amber-500' : 'focus:ring-[#0F4C81]'}" placeholder="請輸入步驟內容...">
+                    <button class="text-slate-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all" data-action="delete" title="刪除步驟">
+                        <i data-lucide="trash-2" class="pointer-events-none w-4 h-4"></i>
                     </button>
                 `;
-                //lucide.createIcons({ nodes: [div] });
+                lucide.createIcons({ nodes: [div] });
                 return div;
             };
 
@@ -241,11 +294,17 @@
                 container.appendChild(createStepElement('', isDistractor));
                 updateStepNumbers();
             };
+
             const updateStepNumbers = () => {
-                Array.from(correctStepsContainer.children).forEach((el, i) => { el.querySelector('span').textContent = `${i + 1}`; });
-                Array.from(distractorStepsContainer.children).forEach((el, i) => { el.querySelector('span').textContent = `干擾 ${i + 1}`; });
+                Array.from(correctStepsContainer.children).forEach((el, i) => { 
+                    el.querySelector('span').textContent = `${i + 1}`; 
+                });
+                Array.from(distractorStepsContainer.children).forEach((el, i) => { 
+                    el.querySelector('span').textContent = `干擾 ${i + 1}`; 
+                });
             };
-document.body.addEventListener('click', (e) => {
+
+            document.body.addEventListener('click', (e) => {
                 const deleteBtn = e.target.closest('[data-action="delete"]');
                 const presetBtn = e.target.closest('[data-action="toggle-preset"]');
 
@@ -255,17 +314,14 @@ document.body.addEventListener('click', (e) => {
                 } else if (presetBtn) {
                     const stepElement = presetBtn.closest('[data-preset]');
                     const isCurrentlyPreset = stepElement.dataset.preset === 'true';
-                    
-                    // 切換狀態
                     stepElement.dataset.preset = !isCurrentlyPreset;
-                    
-                    // 更新按鈕樣式和圖示
                     presetBtn.title = isCurrentlyPreset ? '鎖定步驟' : '解鎖步驟';
                     presetBtn.className = `p-2 rounded-full transition-colors ${!isCurrentlyPreset ? 'bg-blue-200 text-blue-800' : 'text-slate-400 hover:bg-slate-200'}`;
-                    presetBtn.innerHTML = `<i data-lucide="${!isCurrentlyPreset ? 'lock' : 'unlock'}" class="pointer-events-none"></i>`;
+                    presetBtn.innerHTML = `<i data-lucide="${!isCurrentlyPreset ? 'lock' : 'unlock'}" class="pointer-events-none w-4 h-4"></i>`;
                     lucide.createIcons({ nodes: [presetBtn] });
                 }
             });
+
             addCorrectStepBtn.addEventListener('click', () => addStep(false));
             addDistractorStepBtn.addEventListener('click', () => addStep(true));
 
@@ -273,41 +329,40 @@ document.body.addEventListener('click', (e) => {
             generateAiStepsBtn.addEventListener('click', async () => {
                 let apiKey = getApiKey();
                 if (!apiKey) apiKey = await promptForApiKey();
-                if (!apiKey) return alert('未提供 API KEY，無法生成步驟。');
-                if (!topicInput.value || !purposeInput.value) return alert("請先輸入實驗主題和目的！");
+                if (!apiKey) return; 
+
+                if (!topicInput.value || !purposeInput.value) {
+                    return alert("請先輸入實驗主題和目的！");
+                }
 
                 generateAiStepsBtn.disabled = true;
                 generateAiStepsBtn.querySelector('#ai-btn-text').textContent = '生成中...';
 
                 const selectedStrategies = Array.from(misconceptionCheckboxes.querySelectorAll('input:checked'))
-                                                .map(cb => misconceptionDetails[cb.value]?.prompt);
+                    .map(cb => misconceptionDetails[cb.value]?.prompt);
                 
-                let strategyPrompt;
-                if (selectedStrategies.length > 0) {
-                    strategyPrompt = selectedStrategies.join(' 另外，也請結合：');
-                } else {
-                    strategyPrompt = "看起來合理，但實際上是錯誤、多餘或與實驗目的無關的步驟。";
-                }
+                let strategyPrompt = selectedStrategies.length > 0 
+                    ? selectedStrategies.join(' 另外，也請結合：') 
+                    : "看起來合理，但實際上是錯誤或無關的步驟。";
 
                 const prompt = `
-                請為一個國中理化實驗生成詳細的實驗步驟。
+                請為一個國中理化實驗生成實驗步驟。
                 實驗主題: "${topicInput.value}"
                 實驗目的: "${purposeInput.value}"
 
-                重要指示：
-                1.  生成 5 到 7 個最核心的「正確步驟」。這些步驟不應包含順序編號 (如 1., 2.)。
-                2.  生成 2 到 3 個「干擾步驟」。這些步驟也不應包含順序編號。
-                3.  干擾步驟的設計必須緊扣以下策略：【${strategyPrompt}】
-                4.  所有步驟文字需清晰、符合國中生理解程度，每項少於50字。
+                指示：
+                1. 生成 5 到 7 個正確核心步驟。不含編號。
+                2. 生成 2 到 3 個干擾步驟。
+                3. 干擾項策略：【${strategyPrompt}】
+                4. 文字清晰，少於50字。
 
-                請嚴格以 JSON 格式回傳，格式如下：
+                回傳格式(JSON)：
                 {
-                    "correct_steps": ["正確步驟一", "正確步驟二", ...],
-                    "distractor_steps": ["符合策略的干擾步驟一", "符合策略的干擾步驟二", ...]
+                    "correct_steps": ["步驟1", "步驟2", ...],
+                    "distractor_steps": ["干擾1", "干擾2", ...]
                 }`;
 
                 try {
-                    // *** CRITICAL FIX: Corrected API URL ***
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-latest:generateContent?key=${apiKey}`;
                     
                     const response = await fetch(apiUrl, {
@@ -321,75 +376,74 @@ document.body.addEventListener('click', (e) => {
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(`API 呼叫失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+                        throw new Error(`API 錯誤: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
                     }
 
                     const result = await response.json();
-                    const generatedText = result.candidates[0].content.parts[0].text;
-                    const parsedJson = JSON.parse(generatedText);
+                    const parsedJson = JSON.parse(result.candidates[0].content.parts[0].text);
 
                     if (parsedJson.correct_steps && parsedJson.distractor_steps) {
                         correctStepsContainer.innerHTML = '';
                         distractorStepsContainer.innerHTML = '';
-                        parsedJson.correct_steps.forEach(text => correctStepsContainer.appendChild(createStepElement(text.replace(/^\d+\.\s*/, ''), false)));
-                        parsedJson.distractor_steps.forEach(text => distractorStepsContainer.appendChild(createStepElement(text.replace(/^\d+\.\s*/, ''), true)));
+                        parsedJson.correct_steps.forEach(text => correctStepsContainer.appendChild(createStepElement(text, false)));
+                        parsedJson.distractor_steps.forEach(text => distractorStepsContainer.appendChild(createStepElement(text, true)));
                         updateStepNumbers();
                     } else {
-                        throw new Error("AI 回應的格式不正確。");
+                        throw new Error("AI 回應格式錯誤。");
                     }
                 } catch (error) {
-                    console.error("Error generating steps:", error);
-                    alert(`生成步驟時發生錯誤：\n${error.message}\n\n請檢查您的 API KEY 是否正確，以及網路連線是否穩定。`);
+                    console.error("AI Error:", error);
+                    alert(`發生錯誤：${error.message}`);
                 } finally {
                     generateAiStepsBtn.disabled = false;
                     generateAiStepsBtn.querySelector('#ai-btn-text').textContent = 'AI 自動生成步驟';
                 }
             });
-            
+
             // --- HTML Export ---
             downloadHtmlBtn.addEventListener('click', () => {
                 const steps = Array.from(correctStepsContainer.children).map((stepEl, index) => ({
                     id: `step-${index}`,
                     text: stepEl.querySelector('input').value.trim(),
-                    isPreset: stepEl.dataset.preset === 'true' // 從 data-preset 屬性讀取狀態
+                    isPreset: stepEl.dataset.preset === 'true'
                 }));
-                const distractorSteps = Array.from(distractorStepsContainer.querySelectorAll('input')).map((input, index) => ({ id: `distractor-${index}`, text: input.value.trim() }));
+                const distractorSteps = Array.from(distractorStepsContainer.querySelectorAll('input')).map((input, index) => ({ 
+                    id: `distractor-${index}`, 
+                    text: input.value.trim() 
+                }));
                 
-                if (steps.some(s => !s.text)) {
-                    return alert('有卡片是空白的，請填寫內容或將其刪除。');
+                if (steps.some(s => !s.text) || (distractorSteps.length > 0 && distractorSteps.some(s => !s.text))) {
+                    return alert('有步驟卡片是空的，請填寫內容或將其刪除。');
                 }
+
+                if (steps.length === 0) return alert('請至少新增一個正確步驟。');
 
                 const htmlString = generateStudentHtml(topicInput.value, purposeInput.value, steps, distractorSteps, includeGradingCheckbox.checked);
                 const blob = new Blob([htmlString], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `${topicInput.value}_實驗排序.html`;
+                a.download = `${topicInput.value}_實驗步驟排序.html`;
                 a.click();
                 URL.revokeObjectURL(a.href);
             });
-            
-            // --- Initial Load & Dynamic UI Setup ---
-           const setupInitialUI = () => {
-                // Populate checkboxes from the misconceptionDetails object
-// Populate checkboxes
+
+            // --- Initial Load ---
+            const setupInitialUI = () => {
+                // Populate checkboxes
                 Object.keys(misconceptionDetails).forEach(key => {
                     const detail = misconceptionDetails[key];
                     const label = document.createElement('label');
-                    label.htmlFor = `cb-${key}`;
-                    label.className = 'flex items-center cursor-pointer';
+                    label.className = 'flex items-center cursor-pointer hover:bg-amber-100/50 p-1 rounded transition-colors';
 
                     const input = document.createElement('input');
                     input.type = 'checkbox';
                     input.id = `cb-${key}`;
                     input.value = key;
-                    // 使用 'hidden' class 讓原始 checkbox 消失，但功能保留
-                    input.className = 'hidden'; 
+                    input.className = 'hidden';
 
                     const customBox = document.createElement('div');
-                    customBox.className = 'w-5 h-5 border-2 border-slate-400 rounded-sm flex items-center justify-center transition-all';
-                    
-                    // SVG checkmark icon
-                    const svgIcon = `<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+                    customBox.className = 'w-5 h-5 border-2 border-slate-300 rounded flex items-center justify-center transition-all bg-white';
+                    const svgIcon = `<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
 
                     input.addEventListener('change', (e) => {
                         if (e.target.checked) {
@@ -399,76 +453,44 @@ document.body.addEventListener('click', (e) => {
                             customBox.classList.remove('bg-[#0F4C81]', 'border-[#0F4C81]');
                             customBox.innerHTML = '';
                         }
+                        const checkedCount = misconceptionCheckboxes.querySelectorAll('input:checked').length;
+                        misconceptionWarning.classList.toggle('hidden', checkedCount <= 2);
                     });
 
                     label.appendChild(input);
                     label.appendChild(customBox);
-                    
-                    const labelText = document.createElement('span');
-                    labelText.className = 'ml-2 text-amber-900';
-                    labelText.textContent = detail.label;
-                    label.appendChild(labelText);
-
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'ml-2 text-amber-900';
+                    labelSpan.textContent = detail.label;
+                    label.appendChild(labelSpan);
                     misconceptionCheckboxes.appendChild(label);
                 });
 
-                // Add the "Other" option manually
-                const otherDiv = document.createElement('div');
-                otherDiv.className = 'flex items-center sm:col-span-2'; // sm:col-span-2 makes it span the full width on larger screens
-                otherDiv.innerHTML = `
-                    <div class="flex items-center flex-shrink-0">
-                        <input type="checkbox" id="cb-other" value="other" class="form-checkbox mr-2">
-                        <label for="cb-other" class="cursor-pointer text-amber-900">其他：</label>
-                    </div>
-                    <input type="text" id="other-strategy-input" class="form-input ml-2 hidden" placeholder="請在此輸入您自訂的干擾項策略">
-                `;
-                misconceptionCheckboxes.appendChild(otherDiv);
-
-                // Add event listener for the "Other" checkbox to show/hide the text input
-                const otherCheckbox = document.getElementById('cb-other');
-                const otherInput = document.getElementById('other-strategy-input');
-                otherCheckbox.addEventListener('change', () => {
-                    otherInput.classList.toggle('hidden', !otherCheckbox.checked);
-                });
-                
-                // Add event listener to show a warning if more than 2 options are checked
-                misconceptionCheckboxes.addEventListener('change', () => {
-                    const checkedCount = misconceptionCheckboxes.querySelectorAll('input:checked').length;
-                    misconceptionWarning.classList.toggle('hidden', checkedCount <= 2);
-                });
-
-                // Set initial steps for the user
-                const initialCorrectSteps = [
+                // Set initial default steps
+                const initialSteps = [
                     '將電路元件（電源、電阻、安培計、開關）依序連接。', 
-                    '在導線正下方放置一個指北針，使指針N極與導線平行。', 
-                    '開啟電源，觀察指北針偏轉的角度與方向。', 
-                    '改變電源供應器的電壓，再次觀察指北針偏轉角度變化。', 
-                    '將電源正負極反接，改變電流方向，觀察指針偏轉方向。'
+                    '在導線正下方放置指北針，使針尖與導線平行。', 
+                    '開啟電源，觀察指北針偏轉角度與方向。', 
+                    '改變電源供應器電壓，再次觀察偏轉角度變化。', 
+                    '將電源正負極反接，觀察指針偏轉方向。'
                 ];
-                
-                // Default distractor steps are now empty
-                const initialDistractorSteps = [];
-                
-                initialCorrectSteps.forEach(text => correctStepsContainer.appendChild(createStepElement(text, false)));
-                initialDistractorSteps.forEach(text => distractorStepsContainer.appendChild(createStepElement(text, true)));
+                initialSteps.forEach(text => correctStepsContainer.appendChild(createStepElement(text, false)));
                 updateStepNumbers();
-                lucide.createIcons(); // <--- 在這裡補上這一行
+                lucide.createIcons();
+            };
 
-            };            
             setupInitialUI();
         });
 
-
-        // 【請用這整段函式，完整替換掉您檔案中舊的 generateStudentHtml 函式】
+        // Student HTML Generator Template
         const generateStudentHtml = (topic, purpose, steps, distractorSteps, includeGrading) => {
             const presetSteps = steps.filter(s => s.isPreset);
             const draggableCorrectSteps = steps.filter(s => !s.isPreset);
             const allDraggableCards = [...draggableCorrectSteps, ...distractorSteps].sort(() => Math.random() - 0.5);
             const correctOrderIds = steps.map(s => s.id);
 
-            return `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>實驗步驟排序</title><script src="https://cdn.tailwindcss.com"><\/script><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');body{font-family:'Noto Sans TC',sans-serif;background-color:#f8fafc;color:#212529;}button span{pointer-events:none;}.card{touch-action:none;transition:all 0.2s ease;box-shadow:0 2px 4px rgba(0,0,0,0.05);border:3px solid transparent;background-color:white;width:100%;}.card:hover:not(.card-preset){transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.1);}.card.dragging{opacity:0.5;transform:scale(1.05);background-color:#cfe2ff;}.card-preset{background-color:#e0e7ff;border-color:#a5b4fc;color:#3730a3;cursor:default;}.card.correct{border-color:#198754;}.card.incorrect{border-color:#dc3545;}.drop-zone{transition:background-color 0.2s ease,border-color 0.2s ease;border:2px dashed #dee2e6;min-height:60px;display:flex;align-items:center;justify-content:center;}.drop-zone.drag-over{background-color:#e7f5ff;border-color:#0F4C81;}.drop-zone.incorrect-empty{border-color:#dc3545;background-color:#f8d7da;}#card-sidebar{position:-webkit-sticky;position:sticky;top:1.5rem;align-self:start;}#result-modal{transition:opacity 0.3s ease-in-out;}#result-modal.hidden{pointer-events:none;opacity:0;}</style></head><body class="p-4 md:p-8"><div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg"><header class="text-center mb-8 border-b pb-4 border-slate-200"><h1 class="text-3xl font-bold text-[#0F4C81]">${topic}</h1><p class="text-lg mt-2 text-slate-600">${purpose}</p></header><main class="grid grid-cols-1 md:grid-cols-3 gap-8"><aside id="card-sidebar" class="md:col-span-1"><div class="p-4 rounded-lg bg-slate-100"><h2 class="text-xl font-semibold mb-3 text-slate-800">步驟卡片區</h2><p class="text-sm mb-4 text-slate-600">請將卡片拖曳到右方工作區，排出正確順序。注意！可能包含無關的「干擾」步驟。</p><div id="source-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-4 min-h-[100px]"></div></div></aside><div class="md:col-span-2"><h2 class="text-xl font-semibold mb-3 text-slate-800">工作區 (共 ${correctOrderIds.length} 個步驟)</h2><div id="workspace" class="flex flex-col gap-4"></div><div class="flex justify-center items-center gap-4 mt-8"><button id="clear-btn" class="bg-slate-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-600 transition-colors text-lg"><span>清空重來</span></button><button id="complete-btn" class="bg-blue-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-900 transition-colors text-lg shadow-md"><span>${includeGrading ? '完成批改' : '完成並複製'}</span></button></div></div></main></div><div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"><div class="bg-white p-6 md:p-8 rounded-lg shadow-2xl text-center w-full max-w-lg"><h3 class="text-2xl font-bold mb-4 text-[#0F4C81]">你的作答結果</h3><p class="mb-4 text-slate-600">文字已自動選取，請按 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl+C</kbd> 或 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd+C</kbd> 複製。</p><textarea id="result-textarea" readonly class="w-full h-48 p-3 border border-slate-300 rounded-md bg-slate-50 text-sm"></textarea><button id="close-modal-btn" class="mt-6 bg-slate-500 text-white font-bold py-2 px-8 rounded-lg hover:bg-slate-600 transition-colors"><span>關閉</span></button></div></div><script>document.addEventListener('DOMContentLoaded',function(){const steps=${JSON.stringify(steps)};const presetSteps=${JSON.stringify(presetSteps)};const allDraggableCards=${JSON.stringify(allDraggableCards)};const correctOrderIds=${JSON.stringify(correctOrderIds)};const enableGrading=${includeGrading};const sourceContainer=document.getElementById('source-cards');const workspaceContainer=document.getElementById('workspace');const completeBtn=document.getElementById('complete-btn');const clearBtn=document.getElementById('clear-btn');const resultModal=document.getElementById('result-modal');const resultTextarea=document.getElementById('result-textarea');const closeModalBtn=document.getElementById('close-modal-btn');let draggedCardId=null;function showResultModal(text){resultTextarea.value=text;resultModal.classList.remove('hidden');resultTextarea.focus();resultTextarea.select();}function hideResultModal(){resultModal.classList.add('hidden');}function createCard(step,isDraggable){const card=document.createElement('div');card.id=step.id;card.textContent=step.text;card.className='card p-3 rounded-lg border select-none text-left';if(isDraggable){card.draggable=true;card.classList.add('cursor-grab');card.dataset.isDraggable=true;card.addEventListener('dragstart',e=>{draggedCardId=e.target.id;setTimeout(()=>e.target.classList.add('dragging'),0);});card.addEventListener('dragend',e=>e.target.classList.remove('dragging'));}else{card.classList.add('card-preset');}return card;}function createDropZone(){const zone=document.createElement('div');zone.className='drop-zone rounded-lg flex-grow';zone.addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.classList.add('drag-over');});zone.addEventListener('dragleave',e=>e.currentTarget.classList.remove('drag-over'));zone.addEventListener('drop',handleDrop);return zone;}function removeGradingClasses(){workspaceContainer.querySelectorAll('.card').forEach(c=>c.classList.remove('correct','incorrect'));workspaceContainer.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('incorrect-empty'));}function initialize(){sourceContainer.innerHTML='';workspaceContainer.innerHTML='';allDraggableCards.forEach(step=>sourceContainer.appendChild(createCard(step,true)));steps.forEach((step,index)=>{const row=document.createElement('div');row.className='flex items-center gap-3 w-full';row.innerHTML=\`<span class="text-lg font-semibold w-6 text-right text-slate-500">\${index+1}.</span>\`;const zone=createDropZone();const presetCard=presetSteps.find(ps=>ps.id===step.id);if(presetCard){zone.appendChild(createCard(presetCard,false));}row.appendChild(zone);workspaceContainer.appendChild(row);});}function handleDrop(e){e.preventDefault();removeGradingClasses();e.currentTarget.classList.remove('drag-over');if(!draggedCardId)return;const draggedCard=document.getElementById(draggedCardId);if(!draggedCard)return;const targetZone=e.currentTarget;if(targetZone.children.length>0){const existingCard=targetZone.children[0];if(existingCard.dataset.isDraggable!=='true')return;if(draggedCard.parentElement){draggedCard.parentElement.appendChild(existingCard);}}targetZone.appendChild(draggedCard);}sourceContainer.addEventListener('dragover',e=>e.preventDefault());sourceContainer.addEventListener('drop',e=>{e.preventDefault();removeGradingClasses();const draggedCard=document.getElementById(draggedCardId);if(draggedCard)sourceContainer.appendChild(draggedCard);});completeBtn.addEventListener('click',()=>{removeGradingClasses();let studentSequenceText='';workspaceContainer.querySelectorAll('.flex').forEach((row,index)=>{const card=row.querySelector('.card');const slot=row.querySelector('.drop-zone');if(card){studentSequenceText+=\`\${index+1}. \${card.textContent}\\n\`;if(enableGrading){card.classList.add(card.id===correctOrderIds[index]?'correct':'incorrect');}}else{studentSequenceText+=\`\${index+1}. (空白)\\n\`;if(enableGrading&&slot)slot.classList.add('incorrect-empty');}});showResultModal(studentSequenceText.trim());});clearBtn.addEventListener('click',()=>{removeGradingClasses();const workspaceDraggableCards=Array.from(workspaceContainer.querySelectorAll('[data-is-draggable="true"]'));workspaceDraggableCards.forEach(card=>sourceContainer.appendChild(card));});closeModalBtn.addEventListener('click',hideResultModal);initialize();});<\/script></body></html>`;
-        };       
-       
+            return `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>實驗步驟排序：${topic}</title><script src="https://cdn.tailwindcss.com"><\/script><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');body{font-family:'Noto Sans TC',sans-serif;background-color:#f1f5f9;color:#1e293b;}.card{touch-action:none;transition:all 0.2s ease;background-color:white;border:2px solid transparent;}.card.dragging{opacity:0.5;transform:scale(0.98);background-color:#eff6ff;}.card-preset{background-color:#e0e7ff;border-color:#a5b4fc;color:#3730a3;cursor:not-allowed;}.card.correct{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e;}.card.incorrect{border-color:#ef4444;box-shadow:0 0 0 2px #ef4444;}.drop-zone{min-height:70px;transition:all 0.2s ease;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;}.drop-zone.drag-over{background-color:#dbeafe;border-color:#2563eb;border-style:solid;}.drop-zone.incorrect-empty{border-color:#ef4444;background-color:#fee2e2;}</style></head><body class="p-4 md:p-8"><div class="max-w-6xl mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-200"><header class="text-center mb-8 pb-6 border-b border-slate-100"><h1 class="text-3xl font-bold text-[#0F4C81]">${topic}</h1><p class="text-lg mt-2 text-slate-500 font-medium">${purpose}</p></header><main class="grid grid-cols-1 md:grid-cols-3 gap-8"><aside class="md:col-span-1"><div class="p-5 rounded-xl bg-slate-50 border border-slate-200 sticky top-4"><h2 class="text-xl font-bold mb-3 text-slate-800 flex items-center">卡片區</h2><p class="text-sm mb-5 text-slate-600">將下方卡片拖曳到右側正確位置：</p><div id="source-cards" class="flex flex-col gap-3 min-h-[100px]"></div></div></aside><div class="md:col-span-2"><h2 class="text-xl font-bold mb-4 text-slate-800">步驟排列區 (共 ${correctOrderIds.length} 個步驟)</h2><div id="workspace" class="space-y-4"></div><div class="flex justify-center gap-4 mt-10"><button id="clear-btn" class="bg-slate-500 text-white font-bold py-3 px-8 rounded-xl hover:bg-slate-600 transition-all shadow-md active:scale-95"><span>清空重來</span></button><button id="complete-btn" class="bg-[#0F4C81] text-white font-bold py-3 px-10 rounded-xl hover:bg-blue-900 transition-all shadow-lg active:scale-95"><span>${includeGrading ? '完成批改' : '完成並產生結果'}</span></button></div></div></main></div><div id="result-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4"><div class="bg-white p-8 rounded-2xl shadow-2xl text-center w-full max-w-lg border border-slate-100"><h3 class="text-2xl font-bold mb-2 text-[#0F4C81]">作答結果</h3><p class="mb-6 text-slate-500">你可以複製下方文字存檔。</p><textarea id="result-textarea" readonly class="w-full h-48 p-4 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none"></textarea><button id="close-modal-btn" class="mt-8 bg-slate-800 text-white font-bold py-3 px-10 rounded-xl hover:bg-slate-900 transition-all"><span>關閉視窗</span></button></div></div><script>document.addEventListener('DOMContentLoaded',function(){const steps=${JSON.stringify(steps)};const presetSteps=${JSON.stringify(presetSteps)};const allDraggableCards=${JSON.stringify(allDraggableCards)};const correctOrderIds=${JSON.stringify(correctOrderIds)};const enableGrading=${includeGrading};const sourceContainer=document.getElementById('source-cards');const workspaceContainer=document.getElementById('workspace');const completeBtn=document.getElementById('complete-btn');const clearBtn=document.getElementById('clear-btn');const resultModal=document.getElementById('result-modal');const resultTextarea=document.getElementById('result-textarea');const closeModalBtn=document.getElementById('close-modal-btn');let draggedCardId=null;function createCard(step,isDraggable){const card=document.createElement('div');card.id=step.id;card.textContent=step.text;card.className='card p-4 rounded-xl shadow-sm border text-sm font-medium select-none';if(isDraggable){card.draggable=true;card.classList.add('cursor-grab','hover:border-blue-300');card.dataset.isDraggable=true;card.addEventListener('dragstart',e=>{draggedCardId=e.target.id;setTimeout(()=>e.target.classList.add('dragging'),0);});card.addEventListener('dragend',e=>e.target.classList.remove('dragging'));}else{card.classList.add('card-preset');}return card;}function createDropZone(){const zone=document.createElement('div');zone.className='drop-zone rounded-xl';zone.addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.classList.add('drag-over');});zone.addEventListener('dragleave',e=>e.currentTarget.classList.remove('drag-over'));zone.addEventListener('drop',handleDrop);return zone;}function initialize(){sourceContainer.innerHTML='';workspaceContainer.innerHTML='';allDraggableCards.forEach(step=>sourceContainer.appendChild(createCard(step,true)));steps.forEach((step,index)=>{const row=document.createElement('div');row.className='flex items-center gap-4 w-full';row.innerHTML=\`<span class="text-xl font-bold w-8 text-slate-400">\${index+1}</span>\`;const zone=createDropZone();const presetCard=presetSteps.find(ps=>ps.id===step.id);if(presetCard){zone.appendChild(createCard(presetCard,false));}row.appendChild(zone);workspaceContainer.appendChild(row);});}function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag-over');const draggedCard=document.getElementById(draggedCardId);if(!draggedCard)return;const targetZone=e.currentTarget;if(targetZone.children.length>0){const existingCard=targetZone.children[0];if(existingCard.dataset.isDraggable!=='true')return;if(draggedCard.parentElement){draggedCard.parentElement.appendChild(existingCard);}}targetZone.appendChild(draggedCard);workspaceContainer.querySelectorAll('.card').forEach(c=>c.classList.remove('correct','incorrect'));workspaceContainer.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('incorrect-empty'));}sourceContainer.addEventListener('dragover',e=>e.preventDefault());sourceContainer.addEventListener('drop',e=>{e.preventDefault();const draggedCard=document.getElementById(draggedCardId);if(draggedCard)sourceContainer.appendChild(draggedCard);});completeBtn.addEventListener('click',()=>{let studentSequenceText='';workspaceContainer.querySelectorAll('.flex').forEach((row,index)=>{const card=row.querySelector('.card');const slot=row.querySelector('.drop-zone');if(card){studentSequenceText+=\`\${index+1}. \${card.textContent}\\n\`;if(enableGrading){card.classList.add(card.id===correctOrderIds[index]?'correct':'incorrect');}}else{studentSequenceText+=\`\${index+1}. (空白)\\n\`;if(enableGrading&&slot)slot.classList.add('incorrect-empty');}});resultTextarea.value=studentSequenceText.trim();resultModal.classList.remove('hidden');resultTextarea.select();});clearBtn.addEventListener('click',()=>{workspaceContainer.querySelectorAll('[data-is-draggable="true"]').forEach(card=>sourceContainer.appendChild(card));workspaceContainer.querySelectorAll('.card').forEach(c=>c.classList.remove('correct','incorrect'));workspaceContainer.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('incorrect-empty'));});closeModalBtn.addEventListener('click',()=>resultModal.classList.add('hidden'));initialize();});<\/script></body></html>`;
+        };
     </script>
 
 </body>
