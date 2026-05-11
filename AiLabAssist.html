@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室o</title>
+  <title>AI 互動實驗室</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -743,12 +743,10 @@ function executeLogin() {
 
     async function requestScreenShare() {
       try {
-        // 如果已經有舊的視訊串流，先把它徹底關閉
         if (screenStream) {
           screenStream.getTracks().forEach(track => track.stop());
         }
 
-        // 要求分享畫面 (強制預設當前分頁)
         screenStream = await navigator.mediaDevices.getDisplayMedia({ 
           video: { displaySurface: "browser" },
           preferCurrentTab: true 
@@ -756,19 +754,15 @@ function executeLogin() {
         
         const videoEl = document.getElementById('screenVideo');
         videoEl.srcObject = screenStream;
-        
         videoEl.onloadedmetadata = () => { videoEl.play(); };
         
-        // 更改按鈕樣式表示成功，🌟「拔除」不可點擊的限制
         const btn = document.getElementById('visionBtn');
         btn.innerText = "👁️ AI 觀察中";
         btn.style.color = "#2e7d32";
 
-        // 🌟 新增：監聽學生按下原生「停止共用」的事件
         screenStream.getVideoTracks()[0].onended = function () {
-          console.log("視訊分享已停止");
-          btn.innerText = "👁️ 點我重新授權"; // 提示學生可以重按
-          btn.style.color = "#d9485f";       // 變回紅色警告色
+          btn.innerText = "👁️ 點我重新授權";
+          btn.style.color = "#d9485f";
           isOperating = false;
         };
 
@@ -777,14 +771,55 @@ function executeLogin() {
         diffCanvas.height = 50;
         diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
 
-        // 避免重複設定計時器
         if (window.motionInterval) clearInterval(window.motionInterval);
         window.motionInterval = setInterval(checkVideoMotion, 500);
 
+        // ==========================================
+        // 🌟 新增：授權成功後，立刻觸發 AI 的「第一印象」介紹
+        // ==========================================
+        triggerFirstVisionGreeting();
+        // ==========================================
+
       } catch (e) {
-        // 學生按了取消
         console.log("授權取消或失敗");
       }
+    }
+
+    function triggerFirstVisionGreeting() {
+      // 如果 AI 正在思考，或是之前已經打過招呼了，就跳過
+      if (isWaitingForAI) return;
+
+      var chatBox = document.getElementById('chatBox');
+      var thinkingId = 'thinking-vision-start-' + Date.now();
+      
+      // 顯示一個提示，讓學生知道 AI 正在看
+      const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+      chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.8;">👀 (${roleName} 正在觀察實驗室環境...)</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // 取得說明書內容
+      const manual = currentSimState["【系統隱藏資訊：本實驗的背景知識與規則】"] || "這是一個科學實驗。";
+
+      // 🌟 核心指令：要求 AI 讀取說明書並轉化為「第一段對話」
+      var hiddenPrompt = `（系統重要事件：學生已授權視覺功能，你現在看得到畫面了。請參考以下實驗說明書，以你的角色語氣，熱情地向學生自我介紹，並簡單介紹這個實驗的目標。控制在 3 句話以內。說明書內容：${manual}）`;
+
+      isWaitingForAI = true;
+      
+      // 擷取當下畫面送出
+      let imgToSend = captureHighResScreenshot();
+
+      callGasApi('chatWithAI', {
+        userMessage: hiddenPrompt,
+        simStateStr: JSON.stringify(currentSimState),
+        credentials: currentCredentials,
+        imageBase64: imgToSend
+      })
+      .then(res => {
+        // AI 說完話後，將此視為開場白，後續就不再重複觸發
+        isFirstAIResponse = false; 
+        processAIResult(res, thinkingId);
+      })
+      .catch(err => processAIResult("FALLBACK", thinkingId));
     }
 
 function checkVideoMotion() {
