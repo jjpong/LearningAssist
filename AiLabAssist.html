@@ -286,9 +286,13 @@
       document.getElementById('userInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
 
+// 🌟 登入後才載入 iframe
       const selectedExp = allExperimentsList.find(e => e.id === document.getElementById('expSelect').value);
       if (selectedExp) {
         document.getElementById('simIframe').src = selectedExp.url;
+        
+        // 🌟 新增：把這堂課的「AI 說明書」永久寫入當前狀態中，讓 AI 隨時查閱！
+        currentSimState["【系統隱藏資訊：本實驗的背景知識與規則】"] = selectedExp.aiManual;
       }
 
       callGasApi('startLogSession', { studentName: currentCredentials.account, expName: currentExpName })
