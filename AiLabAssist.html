@@ -101,9 +101,9 @@
       </div>
     </div>
   </div>
-  <video id="screenVideo" autoplay muted style="display:none;"></video>
-  <canvas id="diffCanvas" style="display:none;"></canvas>
-  <canvas id="captureCanvas" style="display:none;"></canvas>
+<video id="screenVideo" autoplay muted playsinline style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; width: 10px; height: 10px;"></video>
+<canvas id="diffCanvas" style="display:none;"></canvas>
+<canvas id="captureCanvas" style="display:none;"></canvas>
   
   <script>
     let currentSimState = {};
