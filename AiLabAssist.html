@@ -101,37 +101,35 @@
       </div>
     </div>
   </div>
-<video id="screenVideo" autoplay muted style="display:none;"></video>
-<canvas id="diffCanvas" style="display:none;"></canvas>
-<canvas id="captureCanvas" style="display:none;"></canvas>
+
+  <video id="screenVideo" autoplay muted style="display:none;"></video>
+  <canvas id="diffCanvas" style="display:none;"></canvas>
+  <canvas id="captureCanvas" style="display:none;"></canvas>
+
   <script>
     let currentSimState = {};
     let debounceTimer = null; 
     let isWaitingForAI = false; 
     let isFirstLoad = true; 
     let actionLog = []; 
-    const MAX_LOG_SIZE = 15; 
-    
+    const MAX_LOG_SIZE = 15;
     let allExperimentsList = [];
     let characterList = []; 
     let recentChatHistory = [];
 
     let currentIgnoreRate = 0.3;
     let currentReactionTime = 3000;
-    
     let currentStudyActions = ["看著你"];
     let currentIdleActions = ["發呆中"];
     let currentConcernLines = ["你還在嗎？"];
     let currentSleepActions = ["睡著了"];
     let currentWakeActions = ["醒來了"];
-
     let isThrottled = false; 
 
     let lastActivityTime = Date.now();
     let idleState = 0; 
     let idleCheckInterval = null;
     let statusChangeInterval = null;
-
     let hasUserActed = false;       
     let isFirstAIResponse = true;   
 
@@ -141,7 +139,7 @@
     let fullSessionHistory = []; 
     let syncTimer = null;        
     
-    let systemGreetingMsg = ""; 
+    let systemGreetingMsg = "";
     let waitForGreeting = false;
 
     const chatContainer = document.getElementById('chatContainer');
@@ -150,14 +148,32 @@
     const dockIcon = document.getElementById('dockIcon');
     const loginOverlay = document.getElementById('loginOverlay');
 
-    // 加入錯誤攔截，若有問題直接彈出視窗
-    google.script.run
-      .withSuccessHandler(initializePage)
-      .withFailureHandler(function(err) {
-        alert("⚠️ 系統載入失敗！錯誤訊息：" + err.message + "\\n請檢查 Google Sheet 設定或重新部署。");
+    // ==========================================
+    // 🌟 外部 API 通訊橋樑 (取代 google.script.run)
+    // ==========================================
+    const gasUrl = "https://script.google.com/macros/s/AKfycbwUhl0gqlM09KnAWrl_aa-a6ruZXq_sN5Pf3qwXdR3JfMPSPw5nqMy3WvZn_piFHVLa/exec";
+    
+    async function callGasApi(action, payload = {}) {
+      try {
+        const response = await fetch(gasUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: action, ...payload })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("API 呼叫失敗:", error);
+        throw error;
+      }
+    }
+
+    // 🌟 初始化：向 GAS 請求資料
+    callGasApi('getWebAppInitData')
+      .then(data => initializePage(data))
+      .catch(err => {
+        alert("⚠️ 系統載入失敗！錯誤訊息：" + err.message + "\n請檢查 API 網址或網路連線。");
         document.getElementById('verifyBtn').innerText = "系統錯誤";
-      })
-      .getWebAppInitData();
+      });
 
     function initializePage(data) {
       const verifyBtn = document.getElementById('verifyBtn');
@@ -174,10 +190,9 @@
           if (exp.id === data.defaultExpId) opt.selected = true;
           expSelect.appendChild(opt);
         });
-        
         const selectedExp = allExperimentsList.find(e => e.id === expSelect.value);
         if (selectedExp) {
-            currentExpName = selectedExp.name; 
+            currentExpName = selectedExp.name;
             const roleSelect = document.getElementById('roleSelect');
             roleSelect.innerHTML = ''; 
             let filteredChars = characterList.filter(c => selectedExp.allowedRoles && selectedExp.allowedRoles.includes(c.id));
@@ -213,8 +228,7 @@
       if (selectedExp.allowedRoles && selectedExp.allowedRoles.length > 0) {
         filteredChars = characterList.filter(c => selectedExp.allowedRoles.includes(c.id));
       }
-      if (filteredChars.length === 0) filteredChars = characterList; 
-
+      if (filteredChars.length === 0) filteredChars = characterList;
       filteredChars.forEach(char => {
         let opt = document.createElement('option');
         opt.value = char.id; 
@@ -228,50 +242,54 @@
       let acc = document.getElementById('accountInput').value.trim();
       if (!acc) return;
       document.getElementById('verifyBtn').disabled = true;
-      google.script.run.withSuccessHandler((res) => {
-        currentCredentials.account = acc; currentCredentials.type = res.type; currentCredentials.limit = res.limit;
-        document.getElementById('step1').classList.add('hidden');
-        if (res.type === 'system') { res.reqPass ? document.getElementById('stepPassword').classList.remove('hidden') : executeLogin(); }
-        else { document.getElementById('stepCustomKey').classList.remove('hidden'); }
-      }).checkAccountStatus(acc);
+      
+      callGasApi('checkAccountStatus', { accountName: acc })
+        .then((res) => {
+          currentCredentials.account = acc; currentCredentials.type = res.type; currentCredentials.limit = res.limit;
+          document.getElementById('step1').classList.add('hidden');
+          if (res.type === 'system') { res.reqPass ? document.getElementById('stepPassword').classList.remove('hidden') : executeLogin(); }
+          else { document.getElementById('stepCustomKey').classList.remove('hidden'); }
+        });
     }
+
     function checkPassword() { 
       let pass = document.getElementById('passwordInput').value.trim();
-      google.script.run.withSuccessHandler((isValid) => { isValid ? executeLogin() : alert("密碼錯誤"); }).verifyPassword(currentCredentials.account, pass);
+      callGasApi('verifyPassword', { accountName: currentCredentials.account, inputPassword: pass })
+        .then((isValid) => { isValid ? executeLogin() : alert("密碼錯誤"); });
     }
+
     function startCustomLab() { let key = document.getElementById('apiKeyInput').value.trim(); if (!key) return; currentCredentials.customKey = key; executeLogin(); }
 
     function executeLogin() {
       loginOverlay.style.display = 'none'; 
-      document.getElementById('userInput').disabled = false; 
+      document.getElementById('userInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
 
-      // 🌟 登入後才載入 iframe
       const selectedExp = allExperimentsList.find(e => e.id === document.getElementById('expSelect').value);
       if (selectedExp) {
         document.getElementById('simIframe').src = selectedExp.url;
       }
 
-      google.script.run.withSuccessHandler((row) => {
-        sessionRowIndex = row;
-        appendLogHistory(`【系統】帳號「${currentCredentials.account}」登入並開始實驗。`);
+      callGasApi('startLogSession', { studentName: currentCredentials.account, expName: currentExpName })
+        .then((row) => {
+          sessionRowIndex = row;
+          appendLogHistory(`【系統】帳號「${currentCredentials.account}」登入並開始實驗。`);
 
-        if (isFirstLoad) {
-          isFirstLoad = false; 
-          
-          if (systemGreetingMsg !== "") {
-            printDirectGreeting(systemGreetingMsg);
-          } else {
-            waitForGreeting = true; 
-            setTimeout(() => { 
-              if (waitForGreeting && systemGreetingMsg === "") {
-                waitForGreeting = false;
-                printDirectGreeting("【系統提示】已進入實驗室，請開始操作儀器。");
-              }
-            }, 5000); 
+          if (isFirstLoad) {
+            isFirstLoad = false; 
+            if (systemGreetingMsg !== "") {
+              printDirectGreeting(systemGreetingMsg);
+            } else {
+              waitForGreeting = true; 
+              setTimeout(() => { 
+                if (waitForGreeting && systemGreetingMsg === "") {
+                  waitForGreeting = false;
+                  printDirectGreeting("【系統提示】已進入實驗室，請開始操作儀器。");
+                }
+              }, 5000); 
+            }
           }
-        }
-      }).startLogSession(currentCredentials.account, currentExpName);
+        });
     }
 
     function printDirectGreeting(msg) {
@@ -287,7 +305,6 @@
       if (idleCheckInterval) return;
 
       lastActivityTime = Date.now();
-      
       idleCheckInterval = setInterval(() => {
         if (!currentCredentials.account || isWaitingForAI) return;
         const diff = Date.now() - lastActivityTime;
@@ -330,8 +347,7 @@
     }
 
     function resetIdleTimer() {
-      if (!hasUserActed) return; 
-
+      if (!hasUserActed) return;
       if (idleState === 3) { 
         const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
         const chatBox = document.getElementById('chatBox');
@@ -352,44 +368,26 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // 🌟🌟🌟 通用 log 摘要組合器（不綁定任何特定實驗）🌟🌟🌟
     function buildActionLogLine(payload, actionText) {
       if (!payload) return `動作：${actionText}`;
+      if (typeof payload["log摘要"] === "string" && payload["log摘要"]) { return `動作：${actionText} (${payload["log摘要"]})`; }
+      if (typeof payload.logSummary === "string" && payload.logSummary) { return `動作：${actionText} (${payload.logSummary})`; }
 
-      // ① 若實驗主動提供摘要欄位，直接用（最高優先）
-      if (typeof payload["log摘要"] === "string" && payload["log摘要"]) {
-        return `動作：${actionText} (${payload["log摘要"]})`;
-      }
-      if (typeof payload.logSummary === "string" && payload.logSummary) {
-        return `動作：${actionText} (${payload.logSummary})`;
-      }
-
-      // ② 自動組合：排除「動作」「元資料」類 key，把其餘短字串欄位列出來
       const excludeKeys = new Set([
-        "學生最後的動作", "目前介面階段", "action", "liquid", "depth", "reading",
-        "動作", "液體", "當下液體", "深度", "讀數", "壓力",
-        "當前選擇角色", "近期對話脈絡", "過去一段時間的操作 Log",
-        "給AI夥伴的評估提示", "給AI老師的提示", "訊息類型",
-        "log摘要", "logSummary"
+        "學生最後的動作", "目前介面階段", "action", "liquid", "depth", "reading", "動作", "液體", "當下液體", "深度", "讀數", "壓力", "當前選擇角色", "近期對話脈絡", "過去一段時間的操作 Log", "給AI夥伴的評估提示", "給AI老師的提示", "訊息類型", "log摘要", "logSummary"
       ]);
-
       let parts = [];
       for (let key in payload) {
         if (!Object.prototype.hasOwnProperty.call(payload, key)) continue;
         if (excludeKeys.has(key)) continue;
         if (key.startsWith("_")) continue;
-
         let val = payload[key];
-        if (val === undefined || val === null) continue;
-        if (typeof val === "object") continue;  // 不展開陣列／物件
-
+        if (val === undefined || val === null || typeof val === "object") continue;
         let valStr = String(val).trim();
         if (!valStr || valStr.length > 60) continue;
-
         parts.push(`${key}：${valStr}`);
-        if (parts.length >= 5) break;  // 最多列 5 項，避免 log 過長
+        if (parts.length >= 5) break;
       }
-
       if (parts.length === 0) return `動作：${actionText}`;
       return `動作：${actionText} (${parts.join('；')})`;
     }
@@ -399,40 +397,43 @@
       const text = fullSessionHistory.join('\n');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'})); a.download = `log.txt`; a.click();
     }
+    
     function appendLogHistory(entryText) {
       let t = new Date().toLocaleTimeString('zh-TW', {hour12: false});
       fullSessionHistory.push(`[${t}] ${entryText}`);
       if (sessionRowIndex === -1) return;
-      clearTimeout(syncTimer); syncTimer = setTimeout(() => { google.script.run.updateLogSession(sessionRowIndex, fullSessionHistory.join('\n')); }, 2000); 
+      clearTimeout(syncTimer); 
+      syncTimer = setTimeout(() => { callGasApi('updateLogSession', { rowIndex: sessionRowIndex, fullLogStr: fullSessionHistory.join('\n') }); }, 2000);
     }
 
     function toggleDock(e) {  
       if(e) e.stopPropagation(); chatContainer.classList.toggle('docked');
-      if (!chatContainer.classList.contains('docked')) { chatContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 360px; height: 600px;'; dockIcon.style.opacity = '0.5'; } else { chatContainer.style.cssText = ''; dockIcon.style.opacity = '1'; }
+      if (!chatContainer.classList.contains('docked')) { chatContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 360px; height: 600px;'; dockIcon.style.opacity = '0.5';
+      } else { chatContainer.style.cssText = ''; dockIcon.style.opacity = '1'; }
     }
+    
     function toggleChat(e) { if(e) e.stopPropagation(); chatContainer.classList.toggle('minimized'); toggleIcon.innerText = chatContainer.classList.contains('minimized') ? '▲' : '▼'; }
 
-    let isDragging = false; let dragStartX, dragStartY, initialLeft, initialTop;
+    let isDragging = false;
+    let dragStartX, dragStartY, initialLeft, initialTop;
     chatHeader.addEventListener('mousedown', (e) => { 
       if (chatContainer.classList.contains('docked')) return; 
       if (e.target.tagName.toLowerCase() === 'select' || e.target.tagName.toLowerCase() === 'option' || e.target.classList.contains('icon-btn')) return; 
       isDragging = true; 
-      dragStartX = e.clientX; 
-      dragStartY = e.clientY; 
+      dragStartX = e.clientX; dragStartY = e.clientY; 
       const rect = chatContainer.getBoundingClientRect(); 
-      chatContainer.style.bottom = 'auto'; 
-      chatContainer.style.right = 'auto'; 
-      chatContainer.style.left = rect.left + 'px'; 
-      chatContainer.style.top = rect.top + 'px'; 
-      initialLeft = rect.left; 
-      initialTop = rect.top; 
+      chatContainer.style.bottom = 'auto'; chatContainer.style.right = 'auto'; 
+      chatContainer.style.left = rect.left + 'px'; chatContainer.style.top = rect.top + 'px'; 
+      initialLeft = rect.left; initialTop = rect.top; 
       document.getElementById('simIframe').style.pointerEvents = 'none';
     });
+    
     document.addEventListener('mousemove', (e) => { 
       if (!isDragging) return; 
       chatContainer.style.left = (initialLeft + (e.clientX - dragStartX)) + 'px'; 
       chatContainer.style.top = (initialTop + (e.clientY - dragStartY)) + 'px'; 
     });
+    
     document.addEventListener('mouseup', () => { 
       isDragging = false; 
       document.getElementById('simIframe').style.pointerEvents = 'auto';
@@ -444,12 +445,10 @@
       const selectedId = roleSelect.value;
       const roleName = roleSelect.options[roleSelect.selectedIndex].text;
       const selectedChar = characterList.find(c => c.id === selectedId);
-      
       if (selectedChar) { 
         if(selectedChar.avatar) document.getElementById('aiAvatar').src = selectedChar.avatar; 
         currentIgnoreRate = selectedChar.ignoreRate;
         currentReactionTime = selectedChar.reactionTime;
-        
         currentStudyActions = selectedChar.studyActions && selectedChar.studyActions.length > 0 ? selectedChar.studyActions : ["看著你"];
         currentIdleActions = selectedChar.idleActions && selectedChar.idleActions.length > 0 ? selectedChar.idleActions : ["發呆中"];
         currentConcernLines = selectedChar.concernLines && selectedChar.concernLines.length > 0 ? selectedChar.concernLines : ["你還在嗎？"];
@@ -457,11 +456,8 @@
         currentWakeActions = selectedChar.wakeActions && selectedChar.wakeActions.length > 0 ? selectedChar.wakeActions : ["醒來了"];
       }
 
-      isThrottled = false; 
-      
-      if (hasUserActed) {
-         resetIdleTimer(); 
-      }
+      isThrottled = false;
+      if (hasUserActed) { resetIdleTimer(); }
 
       if (!isInit) {
         var chatBox = document.getElementById('chatBox');
@@ -474,23 +470,21 @@
     }
 
     function processAIResult(response, thinkingId) {
-      isWaitingForAI = false; 
+      isWaitingForAI = false;
       const thinkingEl = document.getElementById(thinkingId);
       if (thinkingEl) thinkingEl.remove();
       
       var chatBox = document.getElementById('chatBox');
       const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
-
-      // 🌟 現在如果有錯誤，會直接在畫面上顯示紅色的 sys-error 警告！不再裝死！
       if (response.includes("系統提示：") || response.includes("發生錯誤") || response.includes("超出頻寬配額")) {
-        isThrottled = true; 
+        isThrottled = true;
         chatBox.innerHTML += `<div class="sys-error">${response}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
         return; 
       }
 
       if (response === "FALLBACK") {
-        isThrottled = true; 
+        isThrottled = true;
         let fallbackAction = getRandomAction(currentStudyActions, "思考了一下");
         let fallbackBubble = `*(${roleName} ${fallbackAction})*`;
         chatBox.innerHTML += `<div class="msg msg-action">${fallbackBubble}</div>`;
@@ -523,14 +517,12 @@
         }
         if (!currentCredentials.account) return; 
 
-// 🌟 新增：學生正式提交報告 → 特殊通道，跳過 ignore/fallback/短回應
-    if (payloadAction.indexOf("學生正式送出實驗報告") !== -1) {
-      handleStudentReport(event.data.payload, payloadAction);
-      return;  // 不走一般流程
-    }
-        if (payloadAction === "觀察實驗室環境中" || payloadAction === "") {
+        if (payloadAction.indexOf("學生正式送出實驗報告") !== -1) {
+          handleStudentReport(event.data.payload, payloadAction);
           return; 
         }
+  
+        if (payloadAction === "觀察實驗室環境中" || payloadAction === "") return; 
 
         if (!hasUserActed) {
           hasUserActed = true;
@@ -542,8 +534,6 @@
         currentSimState = event.data.payload;
         currentSimState["當前選擇角色"] = document.getElementById('roleSelect') ? document.getElementById('roleSelect').value : "";
         currentSimState["近期對話脈絡"] = recentChatHistory;
-
-        // 🌟 改用通用 log 組合器（不再寫死水壓實驗欄位）
         let timeString = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
         let actionStr = buildActionLogLine(event.data.payload, payloadAction);
         
@@ -558,7 +548,6 @@
         let actualReactionTime = isThrottled ? currentReactionTime + 3000 : currentReactionTime;
         let willIgnore = Math.random() < actualIgnoreRate; 
 
-        // 🌟 防連刷機制：只要您手一停下來 3 秒鐘，AI 就會接手發言！
         debounceTimer = setTimeout(() => {
           if (willIgnore) return;
           if (!isWaitingForAI && idleState === 0) triggerAIAutoResponse(); 
@@ -574,8 +563,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       var hiddenPrompt = "（系統隱藏事件：使用者進行了操作並停頓下來。請針對他的最新動作給予1句話的簡短回應。絕對不要重新介紹環境。）";
-      
-      
       let useFallbackChance = isThrottled ? 0.6 : 0.05; 
       if (isFirstAIResponse) {
          hiddenPrompt = "（系統隱藏事件：這是你『第一次』開口跟使用者說話，且使用者剛剛做了一個動作。請先熱情地簡短打招呼，接著針對他的動作給予回應。控制在2句話以內，絕對不要重新介紹環境。）";
@@ -585,59 +572,58 @@
 
       if (Math.random() < useFallbackChance) { setTimeout(() => { processAIResult("FALLBACK", thinkingId); }, 1500); return; }
 
-// 自動觸發時，使用剛剛靜止時拍下的畫面
-let imgToSend = screenStream ? latestScreenshotBase64 : "";
-google.script.run.withSuccessHandler(res => processAIResult(res, thinkingId)).withFailureHandler(err => processAIResult("FALLBACK", thinkingId)).chatWithAI(hiddenPrompt, JSON.stringify(currentSimState), currentCredentials, imgToSend);
+      let imgToSend = screenStream ? latestScreenshotBase64 : "";
+      callGasApi('chatWithAI', {
+        userMessage: hiddenPrompt,
+        simStateStr: JSON.stringify(currentSimState),
+        credentials: currentCredentials,
+        imageBase64: imgToSend
+      })
+      .then(res => processAIResult(res, thinkingId))
+      .catch(err => processAIResult("FALLBACK", thinkingId));
     }
-// 🌟🌟🌟 學生正式提交報告的 VIP 處理函式 🌟🌟🌟
-function handleStudentReport(payload, payloadAction) {
-  // 取消任何待送的一般訊息（避免被淹沒）
-  clearTimeout(debounceTimer);
-  
-  // 確保 idle 系統已啟動，且不要把下次當成「第一次見面」
-  if (!hasUserActed) {
-    hasUserActed = true;
-    startIdleSystem();
-  }
-  isFirstAIResponse = false;
-  
-  // 強制喚醒 AI（如果在發呆/睡覺也要起床批改）
-  if (idleState !== 0) {
-    idleState = 0;
-    document.getElementById('aiAvatar').style.filter = "none";
-  }
-  lastActivityTime = Date.now();
-  
-  // 把報告全文同步到 currentSimState
-  currentSimState = payload;
-  currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
-  currentSimState["近期對話脈絡"] = recentChatHistory;
-  
-  // 寫入操作 log（同時給 AI 與下載歷程看）
-  let timeString = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-  actionLog.push(`[${timeString}] 📤 學生正式提交了實驗報告`);
-  if (actionLog.length > MAX_LOG_SIZE) actionLog.shift();
-  currentSimState["過去一段時間的操作 Log"] = actionLog;
-  appendLogHistory(`【📤 學生提交報告】${payloadAction.substring(0, 100)}...`);
-  
-  // 顯示「閱讀中」的視覺回饋
-  var chatBox = document.getElementById('chatBox');
-  const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
-  var thinkingId = 'thinking-report-' + Date.now();
-  chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.8;">📚 (${roleName} 正在仔細閱讀你的實驗報告...)</div>`;
-  chatBox.scrollTop = chatBox.scrollHeight;
-  
-  // 🌟 報告專用 hiddenPrompt
-  var hiddenPrompt = "（系統重要事件：學生剛剛正式送出實驗報告，請仔細閱讀『學生最後的動作』欄位裡學生填寫的觀察與結論全文，給予具體、有結構的回饋。請：①先肯定觀察的優點；②指出需要補充或修正的地方；③提一個延伸思考的問題。長度可達 5-8 句。）";
-  
-  isWaitingForAI = true;
-  
-  // 直接呼叫 AI（跳過 willIgnore、跳過 FALLBACK、跳過 debounce）
-  google.script.run
-    .withSuccessHandler(res => processAIResult(res, thinkingId))
-    .withFailureHandler(err => processAIResult("⚠️ 報告送出失敗，請再試一次。", thinkingId))
-    .chatWithAI(hiddenPrompt, JSON.stringify(currentSimState), currentCredentials);
-}
+
+    function handleStudentReport(payload, payloadAction) {
+      clearTimeout(debounceTimer);
+      if (!hasUserActed) {
+        hasUserActed = true;
+        startIdleSystem();
+      }
+      isFirstAIResponse = false;
+      if (idleState !== 0) {
+        idleState = 0;
+        document.getElementById('aiAvatar').style.filter = "none";
+      }
+      lastActivityTime = Date.now();
+      
+      currentSimState = payload;
+      currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
+      currentSimState["近期對話脈絡"] = recentChatHistory;
+      let timeString = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+      actionLog.push(`[${timeString}] 📤 學生正式提交了實驗報告`);
+      if (actionLog.length > MAX_LOG_SIZE) actionLog.shift();
+      currentSimState["過去一段時間的操作 Log"] = actionLog;
+      appendLogHistory(`【📤 學生提交報告】${payloadAction.substring(0, 100)}...`);
+      
+      var chatBox = document.getElementById('chatBox');
+      const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+      var thinkingId = 'thinking-report-' + Date.now();
+      chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.8;">📚 (${roleName} 正在仔細閱讀你的實驗報告...)</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      var hiddenPrompt = "（系統重要事件：學生剛剛正式送出實驗報告，請仔細閱讀『學生最後的動作』欄位裡學生填寫的觀察與結論全文，給予具體、有結構的回饋。請：①先肯定觀察的優點；②指出需要補充或修正的地方；③提一個延伸思考的問題。長度可達 5-8 句。）";
+      
+      isWaitingForAI = true;
+      let imgToSend = screenStream ? latestScreenshotBase64 : "";
+      callGasApi('chatWithAI', {
+        userMessage: hiddenPrompt,
+        simStateStr: JSON.stringify(currentSimState),
+        credentials: currentCredentials,
+        imageBase64: imgToSend
+      })
+      .then(res => processAIResult(res, thinkingId))
+      .catch(err => processAIResult("⚠️ 報告送出失敗，請再試一次。", thinkingId));
+    }
 
     function sendMessage() {
       var inputEl = document.getElementById('userInput');
@@ -660,105 +646,110 @@ function handleStudentReport(payload, payloadAction) {
       if (recentChatHistory.length > 8) recentChatHistory.shift();
       currentSimState["近期對話脈絡"] = recentChatHistory;
 
-      isWaitingForAI = true; 
+      isWaitingForAI = true;
       var thinkingId = 'thinking-' + Date.now();
       chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.6;">(思考中...)</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
       currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
-
-// 學生手動發問時，強制截取當下最新畫面
-let imgToSend = screenStream ? captureHighResScreenshot() : "";
-google.script.run.withSuccessHandler(res => processAIResult(res, thinkingId)).withFailureHandler(err => processAIResult("FALLBACK", thinkingId)).chatWithAI(text, JSON.stringify(currentSimState), currentCredentials, imgToSend);
+      
+      // 學生手動發問時，強制截取當下最新畫面
+      let imgToSend = screenStream ? captureHighResScreenshot() : "";
+      callGasApi('chatWithAI', {
+        userMessage: text,
+        simStateStr: JSON.stringify(currentSimState),
+        credentials: currentCredentials,
+        imageBase64: imgToSend
+      })
+      .then(res => processAIResult(res, thinkingId))
+      .catch(err => processAIResult("FALLBACK", thinkingId));
     }
+
     // ==========================================
-// 🌟 AI 視覺與動態偵測引擎
-// ==========================================
-let screenStream = null;
-let diffCtx = null;
-let lastImageData = null;
-let isOperating = false;
-let motionStopTimer = null;
-let latestScreenshotBase64 = ""; // 隨時保存最新穩定畫面的 Base64
+    // 🌟 AI 視覺與動態偵測引擎
+    // ==========================================
+    let screenStream = null;
+    let diffCtx = null;
+    let lastImageData = null;
+    let isOperating = false;
+    let motionStopTimer = null;
+    let latestScreenshotBase64 = "";
 
-async function requestScreenShare() {
-  try {
-    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    document.getElementById('screenVideo').srcObject = screenStream;
-    
-    // 更改按鈕樣式表示成功
-    const btn = document.getElementById('visionBtn');
-    btn.innerText = "👁️ AI 觀察中";
-    btn.style.color = "#2e7d32"; 
-    btn.style.pointerEvents = "none";
-
-    // 初始化動態比對畫布 (縮小到 50x50 提升效能)
-    const diffCanvas = document.getElementById('diffCanvas');
-    diffCanvas.width = 50; diffCanvas.height = 50;
-    diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
-
-    // 開始每 0.5 秒看一次畫面
-    setInterval(checkVideoMotion, 500);
-  } catch (e) {
-    alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
-  }
-}
-
-function checkVideoMotion() {
-  const video = document.getElementById('screenVideo');
-  if (!video || video.readyState !== 4) return;
-
-  diffCtx.drawImage(video, 0, 0, 50, 50);
-  const currentImageData = diffCtx.getImageData(0, 0, 50, 50).data;
-
-  if (lastImageData) {
-    let diffCount = 0;
-    // 粗略比對像素差異
-    for (let i = 0; i < currentImageData.length; i += 4) {
-      if (Math.abs(currentImageData[i] - lastImageData[i]) > 20) diffCount++;
-    }
-
-    if (diffCount > 100) {
-      // 畫面劇烈變動：學生正在操作
-      isOperating = true;
-      clearTimeout(motionStopTimer); 
-      // 更新發呆系統，重置計時器
-      hasUserActed = true;
-      resetIdleTimer();
-      
-    } else if (isOperating) {
-      // 畫面停下來了：操作暫停
-      isOperating = false;
-      
-      // 等待 1.5 秒確認畫面真的靜止後，截一張高畫質圖片並觸發 AI
-      motionStopTimer = setTimeout(() => {
-        captureHighResScreenshot();
-        console.log("操作暫停，已擷取最新畫面！");
+    async function requestScreenShare() {
+      try {
+        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        document.getElementById('screenVideo').srcObject = screenStream;
         
-        // 🌟 觸發 AI 自動關心 (呼叫您原本寫好的函式)
-        if (!isWaitingForAI) triggerAIAutoResponse();
-      }, 1500);
-    }
-  }
-  lastImageData = new Uint8ClampedArray(currentImageData);
-}
+        // 更改按鈕樣式表示成功
+        const btn = document.getElementById('visionBtn');
+        btn.innerText = "👁️ AI 觀察中";
+        btn.style.color = "#2e7d32";
+        btn.style.pointerEvents = "none";
 
-// 擷取並壓縮當下畫面 (用於傳送給後端)
-function captureHighResScreenshot() {
-  const video = document.getElementById('screenVideo');
-  const canvas = document.getElementById('captureCanvas');
-  
-  // 控制寬度在 800px 以內，避免 GAS 傳輸超時
-  canvas.width = 800;
-  canvas.height = (video.videoHeight / video.videoWidth) * 800;
-  
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
-  // 轉成 JPEG 並壓縮畫質到 60%
-  let dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-  latestScreenshotBase64 = dataUrl.split(',')[1]; // 去除開頭的宣告字串
-  return latestScreenshotBase64;
-}
+        // 初始化動態比對畫布 (縮小到 50x50 提升效能)
+        const diffCanvas = document.getElementById('diffCanvas');
+        diffCanvas.width = 50;
+        diffCanvas.height = 50;
+        diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
+
+        // 開始每 0.5 秒看一次畫面
+        setInterval(checkVideoMotion, 500);
+      } catch (e) {
+        alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
+      }
+    }
+
+    function checkVideoMotion() {
+      const video = document.getElementById('screenVideo');
+      if (!video || video.readyState !== 4) return;
+
+      diffCtx.drawImage(video, 0, 0, 50, 50);
+      const currentImageData = diffCtx.getImageData(0, 0, 50, 50).data;
+      if (lastImageData) {
+        let diffCount = 0;
+        // 粗略比對像素差異
+        for (let i = 0; i < currentImageData.length; i += 4) {
+          if (Math.abs(currentImageData[i] - lastImageData[i]) > 20) diffCount++;
+        }
+
+        if (diffCount > 100) {
+          // 畫面劇烈變動：學生正在操作
+          isOperating = true;
+          clearTimeout(motionStopTimer); 
+          // 更新發呆系統，重置計時器
+          hasUserActed = true;
+          resetIdleTimer();
+        } else if (isOperating) {
+          // 畫面停下來了：操作暫停
+          isOperating = false;
+          // 等待 1.5 秒確認畫面真的靜止後，截一張高畫質圖片並觸發 AI
+          motionStopTimer = setTimeout(() => {
+            captureHighResScreenshot();
+            console.log("操作暫停，已擷取最新畫面！");
+            
+            // 🌟 觸發 AI 自動關心
+            if (!isWaitingForAI) triggerAIAutoResponse();
+          }, 1500);
+        }
+      }
+      lastImageData = new Uint8ClampedArray(currentImageData);
+    }
+
+    // 擷取並壓縮當下畫面 (用於傳送給後端)
+    function captureHighResScreenshot() {
+      const video = document.getElementById('screenVideo');
+      const canvas = document.getElementById('captureCanvas');
+      
+      // 控制寬度在 800px 以內，避免 GAS 傳輸超時
+      canvas.width = 800;
+      canvas.height = (video.videoHeight / video.videoWidth) * 800;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // 轉成 JPEG 並壓縮畫質到 60%
+      let dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      latestScreenshotBase64 = dataUrl.split(',')[1]; // 去除開頭的宣告字串
+      return latestScreenshotBase64;
+    }
   </script>
 </body>
 </html>
