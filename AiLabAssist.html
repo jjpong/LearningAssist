@@ -101,11 +101,10 @@
       </div>
     </div>
   </div>
-
   <video id="screenVideo" autoplay muted style="display:none;"></video>
   <canvas id="diffCanvas" style="display:none;"></canvas>
   <canvas id="captureCanvas" style="display:none;"></canvas>
-
+  
   <script>
     let currentSimState = {};
     let debounceTimer = null; 
@@ -149,7 +148,7 @@
     const loginOverlay = document.getElementById('loginOverlay');
 
     // ==========================================
-    // 🌟 外部 API 通訊橋樑 (取代 google.script.run)
+    // 🌟 外部 API 通訊橋樑 (取代舊版的 google.script.run)
     // ==========================================
     const gasUrl = "https://script.google.com/macros/s/AKfycbzNDnn82bxLWvEZdnkI83mvG-spC6yTPO5vLM6My8PxZh6uwrKNiV_XFbMKyejNzE8J/exec";
     
@@ -167,7 +166,7 @@
       }
     }
 
-    // 🌟 初始化：向 GAS 請求資料
+    // 🌟 初始化：向新的 GAS 網址請求資料
     callGasApi('getWebAppInitData')
       .then(data => initializePage(data))
       .catch(err => {
@@ -652,7 +651,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
       currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
       
-      // 學生手動發問時，強制截取當下最新畫面
       let imgToSend = screenStream ? captureHighResScreenshot() : "";
       callGasApi('chatWithAI', {
         userMessage: text,
@@ -704,6 +702,7 @@
 
       diffCtx.drawImage(video, 0, 0, 50, 50);
       const currentImageData = diffCtx.getImageData(0, 0, 50, 50).data;
+
       if (lastImageData) {
         let diffCount = 0;
         // 粗略比對像素差異
