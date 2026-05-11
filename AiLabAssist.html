@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室</title>
+  <title>AI 互動實驗室o</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -731,11 +731,37 @@
   }
 }
 
-    function checkVideoMotion() {
-      const video = document.getElementById('screenVideo');
-      if (!video || video.readyState !== 4) return;
+function checkVideoMotion() {
+      // 🌟 防呆 1：AI 思考時暫停偵測
+      if (isWaitingForAI) return;
 
+      const video = document.getElementById('screenVideo');
+      if (!video || video.readyState !== 4 || video.videoWidth === 0) return;
+
+      // 先將完整的影片畫面，原封不動地畫到 50x50 的比對畫布上
       diffCtx.drawImage(video, 0, 0, 50, 50);
+
+      // ==========================================
+      // 🌟 終極防呆 2：動態追蹤遮罩 (Dynamic Masking)
+      // ==========================================
+      // 算出畫布 (50x50) 與實際瀏覽器視窗大小的縮放比例
+      const scaleX = 50 / window.innerWidth;
+      const scaleY = 50 / window.innerHeight;
+
+      // 取得聊天視窗「當下」的真實座標與大小 (無論停靠、浮動、縮小都抓得到)
+      const chatContainer = document.getElementById('chatContainer');
+      const chatRect = chatContainer.getBoundingClientRect();
+
+      // 在比對畫布上，把聊天視窗所在的區域「塗成純黑」
+      diffCtx.fillStyle = "black";
+      diffCtx.fillRect(
+        chatRect.left * scaleX, 
+        chatRect.top * scaleY, 
+        chatRect.width * scaleX, 
+        chatRect.height * scaleY
+      );
+
+      // 取得塗黑後的最終像素資料，進行後續比對
       const currentImageData = diffCtx.getImageData(0, 0, 50, 50).data;
 
       if (lastImageData) {
@@ -746,16 +772,14 @@
         }
 
         if (diffCount > 100) {
-          // 畫面劇烈變動：學生正在操作
+          // 畫面劇烈變動：學生正在操作 (此時聊天框的變化已被無視)
           isOperating = true;
           clearTimeout(motionStopTimer); 
-          // 更新發呆系統，重置計時器
           hasUserActed = true;
           resetIdleTimer();
         } else if (isOperating) {
           // 畫面停下來了：操作暫停
           isOperating = false;
-          // 等待 1.5 秒確認畫面真的靜止後，截一張高畫質圖片並觸發 AI
           motionStopTimer = setTimeout(() => {
             captureHighResScreenshot();
             console.log("操作暫停，已擷取最新畫面！");
