@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室2</title>
+  <title>AI 互動實驗室</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -147,10 +147,25 @@
     const dockIcon = document.getElementById('dockIcon');
     const loginOverlay = document.getElementById('loginOverlay');
 
-    // ==========================================
+// ==========================================
     // 🌟 外部 API 通訊橋樑 (取代舊版的 google.script.run)
     // ==========================================
     const gasUrl = "https://script.google.com/macros/s/AKfycbzNDnn82bxLWvEZdnkI83mvG-spC6yTPO5vLM6My8PxZh6uwrKNiV_XFbMKyejNzE8J/exec";
+
+    // 👇 請把這整段補上去 👇
+    async function callGasApi(action, payload = {}) {
+      try {
+        const response = await fetch(gasUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: action, ...payload })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("API 呼叫失敗:", error);
+        throw error;
+      }
+    }
     
 async function requestScreenShare() {
       try {
