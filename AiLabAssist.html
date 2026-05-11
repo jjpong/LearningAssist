@@ -152,17 +152,30 @@
     // ==========================================
     const gasUrl = "https://script.google.com/macros/s/AKfycbzNDnn82bxLWvEZdnkI83mvG-spC6yTPO5vLM6My8PxZh6uwrKNiV_XFbMKyejNzE8J/exec";
 
-    // 👇 請把這整段補上去 👇
-    async function callGasApi(action, payload = {}) {
+async function callGasApi(action, payload = {}) {
       try {
         const response = await fetch(gasUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: action, ...payload })
         });
-        return await response.json();
+        
+        // ==========================================
+        // 🌟 防呆升級：先不要急著轉 JSON，先把包裹拆開看內容
+        // ==========================================
+        const rawText = await response.text(); 
+        
+        try {
+          // 嘗試把收到的文字轉換成 JSON 格式
+          return JSON.parse(rawText); 
+        } catch (parseError) {
+          // 如果轉換失敗，代表 GAS 傳回了 HTML 網頁或純文字錯誤
+          console.error("❌ 後端回傳的不是 JSON 格式！收到的原始內容為：\n", rawText);
+          throw new Error(`後端回應異常(可能是 Google 帳號衝突)。\n原始內容: ${rawText.substring(0, 60)}...`);
+        }
+
       } catch (error) {
-        console.error("API 呼叫失敗:", error);
+        console.error("API 呼叫發生錯誤:", error);
         throw error;
       }
     }
@@ -826,6 +839,7 @@ function triggerAIAutoResponse() {
       .catch(err => processAIResult("FALLBACK", thinkingId));
     }
 
+    
 function checkVideoMotion() {
       // 🌟 防呆 1：AI 思考時暫停偵測
       if (isWaitingForAI) return;
@@ -865,14 +879,22 @@ function checkVideoMotion() {
         for (let i = 0; i < currentImageData.length; i += 4) {
           if (Math.abs(currentImageData[i] - lastImageData[i]) > 20) diffCount++;
         }
-
-        if (diffCount > 30) {
+if (diffCount > 30) {
           // 畫面劇烈變動：學生正在操作 (此時聊天框的變化已被無視)
           isOperating = true;
           clearTimeout(motionStopTimer); 
-          hasUserActed = true;
+          
+          // ==========================================
+          // 🌟 修正：如果這是學生的「第一次」動作，必須正式啟動發呆系統！
+          // ==========================================
+          if (!hasUserActed) {
+            hasUserActed = true;
+            startIdleSystem();
+          }
+          
           resetIdleTimer();
-        }  else if (isOperating) {
+        }
+        else if (isOperating) {
           // 畫面停下來了：操作暫停
           isOperating = false;
           
