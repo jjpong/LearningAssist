@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <title>AI 互動實驗室</title>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
+    #simIframe { flex: 1; height: 100%; border: none; display: block; }
+
+    #loginOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(18, 29, 51, 0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: #fff; padding: 30px 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 100%; max-width: 360px; }
+    .login-box h2 { margin: 0 0 16px; color: #1f2a44; font-size: 1.4rem; }
+    .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;}
+    .input-group label { font-size: 0.9rem; font-weight: bold; color: #5f6f8c; margin-bottom: -6px;}
+    .login-box input, .login-box select { width: 100%; padding: 12px 15px; border: 2px solid #c9d6ea; border-radius: 12px; font-size: 1.05rem; box-sizing: border-box; outline: none; transition: 0.2s; background: #fff; }
+    .login-box input { text-align: center; }
+    .login-box input:focus, .login-box select:focus { border-color: #2d6cdf; }
+    .login-box select { cursor: pointer; color: #1f2a44; font-weight: bold;}
+    .login-box button { background: #2d6cdf; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s, transform 0.1s; }
+    .login-box button:hover { background: #1749a5; }
+    .login-box button:active { transform: scale(0.98); }
+    .login-box button:disabled { background: #c9d6ea; cursor: not-allowed; }
+    .footer-note { margin-top: 25px; font-size: 0.8rem; color: #888; line-height: 1.5; text-align: center;}
+    .hint-text { font-size: 0.85rem; color: #d9485f; margin-top: -6px; text-align: left; }
+    .hidden { display: none !important; }
+
+    .chat-container { position: fixed; bottom: 20px; right: 20px; width: 360px; height: 600px; min-width: 280px; min-height: 250px; background: #ffffff; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 1000; overflow: hidden; border: 1px solid #e0e0e0; resize: both; }
+    .chat-container.docked { position: relative !important; width: 20% !important; min-width: 320px !important; max-width: 500px !important; height: 100% !important; bottom: auto !important; right: auto !important; left: auto !important; top: auto !important; border-radius: 0; resize: none; border-left: 1px solid #d8e2f1; box-shadow: none; }
+    .chat-container.minimized { height: 50px !important; min-height: 50px; resize: none; }
+    .chat-header { background: #f8f9fa; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; cursor: grab; border-bottom: 1px solid #eee; height: 50px; box-sizing: border-box; user-select: none; }
+    .chat-container.docked .chat-header { cursor: default; }
+    .chat-header:active { cursor: grabbing; }
+    .chat-container.docked .chat-header:active { cursor: default; }
+    .header-left { display: flex; align-items: center; gap: 6px; }
+    .role-select { padding: 4px 8px; border-radius: 20px; border: 1px solid #ccc; font-size: 13px; outline: none; cursor: pointer; background: white; max-width: 90px;}
+    .ai-status-text { font-size: 12px; color: #888; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;}
+    .icon-btn { cursor: pointer; font-size: 13px; font-weight: bold; color: #555; padding: 4px 6px; border-radius: 6px; transition: background 0.2s; white-space: nowrap;}
+    .icon-btn:hover { background: #e2e8f0; }
+    .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: #f4f7f6; display: flex; flex-direction: column; gap: 12px; }
+    .msg { padding: 10px 14px; border-radius: 15px; max-width: 85%; word-wrap: break-word; line-height: 1.4; font-size: 14px; }
+    .msg-ai { background: #ffffff; border: 1px solid #e0e0e0; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .msg-action { background: transparent; border: none; align-self: center; box-shadow: none; color: #777; font-style: italic; font-size: 13px; padding: 4px 8px;}
+    .msg-user { background: #dcf8c6; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .sys-msg { text-align: center; color: #888; font-size: 12px; margin: 10px 0; }
+    .sys-error { text-align: center; color: #d9485f; font-size: 13px; font-weight: bold; margin: 10px 0; background: #fef6f7; padding: 8px; border-radius: 8px;}
+    .chat-input-area { padding: 10px 15px; border-top: 1px solid #eee; background: #fff; display: flex; gap: 8px; box-sizing: border-box; height: 60px; }
+    .chat-input-area input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 14px; }
+    .chat-input-area button { padding: 8px 16px; background: #4285F4; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .chat-input-area button:hover { background: #3367d6; }
+  </style>
+</head>
+<body>
+
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2>進入 AI 互動實驗室</h2>
+      <div class="input-group" id="stepExpSelect">
+        <label for="expSelect">1. 選擇實驗單元</label>
+        <select id="expSelect" onchange="updateExpPreview()"><option>系統準備中...</option></select>
+      </div>
+      <div class="input-group" id="step1">
+        <label for="accountInput">2. 登入身分</label>
+        <input type="text" id="accountInput" placeholder="輸入帳號或姓名" onkeypress="if(event.key === 'Enter') verifyAccount()">
+        <button onclick="verifyAccount()" id="verifyBtn" disabled>系統準備中...</button>
+      </div>
+      <div class="input-group hidden" id="stepPassword">
+        <p class="hint-text">請輸入該帳號的密碼：</p>
+        <input type="password" id="passwordInput" placeholder="請輸入密碼" onkeypress="if(event.key === 'Enter') checkPassword()">
+        <button onclick="checkPassword()" id="passBtn">驗證登入</button>
+      </div>
+      <div class="input-group hidden" id="stepCustomKey">
+        <p class="hint-text">此名稱不在白名單內。<br>請輸入您的 API Key 以繼續：</p>
+        <input type="password" id="apiKeyInput" placeholder="AIzaSy..." onkeypress="if(event.key === 'Enter') startCustomLab()">
+        <button onclick="startCustomLab()" id="customBtn">開始實驗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <iframe id="simIframe"></iframe>
+    <div class="chat-container docked" id="chatContainer">
+      <div class="chat-header" id="chatHeader">
+        <div class="header-left">
+          <span class="icon-btn" id="visionBtn" onclick="requestScreenShare()" title="授權 AI 觀看實驗" style="color: #d9485f;">👁️ 點我授權</span>
+          <img id="aiAvatar" src="" alt="AI" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
+          <select class="role-select" id="roleSelect" onmousedown="event.stopPropagation();" onchange="switchRole()"></select>
+          <span class="ai-status-text" id="aiStatusText">(等待操作...)</span>
+        </div>
+        <div style="display: flex; gap: 4px; align-items: center;">
+          <span class="icon-btn" onclick="downloadHistory()" title="下載歷程">💾</span>
+          <span class="icon-btn" id="dockIcon" onclick="toggleDock(event)" title="切換停靠">📌</span>
+          <span class="icon-btn" id="toggleIcon" onclick="toggleChat(event)">▼</span>
+        </div>
+      </div>
+      <div class="chat-body" id="chatBox"></div>
+      <div class="chat-input-area">
+        <input type="text" id="userInput" placeholder="輸入你想問的..." onkeypress="if(event.key === 'Enter') sendMessage()" disabled>
+        <button onclick="sendMessage()" id="sendBtn" disabled>發送</button>
+      </div>
+    </div>
+  </div>
+<video id="screenVideo" autoplay muted style="display:none;"></video>
+<canvas id="diffCanvas" style="display:none;"></canvas>
+<canvas id="captureCanvas" style="display:none;"></canvas>
+  <script>
+    let currentSimState = {};
+    let debounceTimer = null; 
+    let isWaitingForAI = false; 
+    let isFirstLoad = true; 
+    let actionLog = []; 
+    const MAX_LOG_SIZE = 15; 
+    
+    let allExperimentsList = [];
+    let characterList = []; 
+    let recentChatHistory = [];
+
+    let currentIgnoreRate = 0.3;
+    let currentReactionTime = 3000;
+    
+    let currentStudyActions = ["看著你"];
+    let currentIdleActions = ["發呆中"];
+    let currentConcernLines = ["你還在嗎？"];
+    let currentSleepActions = ["睡著了"];
+    let currentWakeActions = ["醒來了"];
+
+    let isThrottled = false; 
+
+    let lastActivityTime = Date.now();
+    let idleState = 0; 
+    let idleCheckInterval = null;
+    let statusChangeInterval = null;
+
+    let hasUserActed = false;       
+    let isFirstAIResponse = true;   
+
+    let currentCredentials = { account: '', type: '', customKey: '', limit: 0 };
+    let currentExpName = "";
+    let sessionRowIndex = -1;  
+    let fullSessionHistory = []; 
+    let syncTimer = null;        
+    
+    let systemGreetingMsg = ""; 
+    let waitForGreeting = false;
+
+    const chatContainer = document.getElementById('chatContainer');
+    const chatHeader = document.getElementById('chatHeader');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const dockIcon = document.getElementById('dockIcon');
+    const loginOverlay = document.getElementById('loginOverlay');
+
+    // 加入錯誤攔截，若有問題直接彈出視窗
+    google.script.run
+      .withSuccessHandler(initializePage)
+      .withFailureHandler(function(err) {
+        alert("⚠️ 系統載入失敗！錯誤訊息：" + err.message + "\\n請檢查 Google Sheet 設定或重新部署。");
+        document.getElementById('verifyBtn').innerText = "系統錯誤";
+      })
+      .getWebAppInitData();
+
+    function initializePage(data) {
+      const verifyBtn = document.getElementById('verifyBtn');
+      const expSelect = document.getElementById('expSelect');
+      allExperimentsList = data.experiments || [];
+      characterList = data.characters || [];
+
+      if (allExperimentsList.length > 0) {
+        expSelect.innerHTML = '';
+        allExperimentsList.forEach(exp => {
+          let opt = document.createElement('option');
+          opt.value = exp.id; 
+          opt.text = exp.name;
+          if (exp.id === data.defaultExpId) opt.selected = true;
+          expSelect.appendChild(opt);
+        });
+        
+        const selectedExp = allExperimentsList.find(e => e.id === expSelect.value);
+        if (selectedExp) {
+            currentExpName = selectedExp.name; 
+            const roleSelect = document.getElementById('roleSelect');
+            roleSelect.innerHTML = ''; 
+            let filteredChars = characterList.filter(c => selectedExp.allowedRoles && selectedExp.allowedRoles.includes(c.id));
+            if (filteredChars.length === 0) filteredChars = characterList; 
+            filteredChars.forEach(char => {
+              let opt = document.createElement('option');
+              opt.value = char.id; 
+              opt.text = char.name; 
+              roleSelect.appendChild(opt);
+            });
+            switchRole(true);
+        }
+
+        verifyBtn.innerText = "驗證身分並進入";
+        verifyBtn.style.background = "#2d6cdf";
+        verifyBtn.disabled = false;
+        document.getElementById('accountInput').focus();
+      } else {
+        expSelect.innerHTML = '<option>❌ 系統找不到實驗教材</option>';
+      }
+    }
+
+    function updateExpPreview() {
+      const expSelect = document.getElementById('expSelect');
+      const selectedExp = allExperimentsList.find(e => e.id === expSelect.value);
+      if (!selectedExp) return;
+
+      currentExpName = selectedExp.name; 
+      const roleSelect = document.getElementById('roleSelect');
+      roleSelect.innerHTML = ''; 
+
+      let filteredChars = characterList;
+      if (selectedExp.allowedRoles && selectedExp.allowedRoles.length > 0) {
+        filteredChars = characterList.filter(c => selectedExp.allowedRoles.includes(c.id));
+      }
+      if (filteredChars.length === 0) filteredChars = characterList; 
+
+      filteredChars.forEach(char => {
+        let opt = document.createElement('option');
+        opt.value = char.id; 
+        opt.text = char.name; 
+        roleSelect.appendChild(opt);
+      });
+      switchRole(true);
+    }
+
+    function verifyAccount() { 
+      let acc = document.getElementById('accountInput').value.trim();
+      if (!acc) return;
+      document.getElementById('verifyBtn').disabled = true;
+      google.script.run.withSuccessHandler((res) => {
+        currentCredentials.account = acc; currentCredentials.type = res.type; currentCredentials.limit = res.limit;
+        document.getElementById('step1').classList.add('hidden');
+        if (res.type === 'system') { res.reqPass ? document.getElementById('stepPassword').classList.remove('hidden') : executeLogin(); }
+        else { document.getElementById('stepCustomKey').classList.remove('hidden'); }
+      }).checkAccountStatus(acc);
+    }
+    function checkPassword() { 
+      let pass = document.getElementById('passwordInput').value.trim();
+      google.script.run.withSuccessHandler((isValid) => { isValid ? executeLogin() : alert("密碼錯誤"); }).verifyPassword(currentCredentials.account, pass);
+    }
+    function startCustomLab() { let key = document.getElementById('apiKeyInput').value.trim(); if (!key) return; currentCredentials.customKey = key; executeLogin(); }
+
+    function executeLogin() {
+      loginOverlay.style.display = 'none'; 
+      document.getElementById('userInput').disabled = false; 
+      document.getElementById('sendBtn').disabled = false;
+
+      // 🌟 登入後才載入 iframe
+      const selectedExp = allExperimentsList.find(e => e.id === document.getElementById('expSelect').value);
+      if (selectedExp) {
+        document.getElementById('simIframe').src = selectedExp.url;
+      }
+
+      google.script.run.withSuccessHandler((row) => {
+        sessionRowIndex = row;
+        appendLogHistory(`【系統】帳號「${currentCredentials.account}」登入並開始實驗。`);
+
+        if (isFirstLoad) {
+          isFirstLoad = false; 
+          
+          if (systemGreetingMsg !== "") {
+            printDirectGreeting(systemGreetingMsg);
+          } else {
+            waitForGreeting = true; 
+            setTimeout(() => { 
+              if (waitForGreeting && systemGreetingMsg === "") {
+                waitForGreeting = false;
+                printDirectGreeting("【系統提示】已進入實驗室，請開始操作儀器。");
+              }
+            }, 5000); 
+          }
+        }
+      }).startLogSession(currentCredentials.account, currentExpName);
+    }
+
+    function printDirectGreeting(msg) {
+      var chatBox = document.getElementById('chatBox');
+      const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+      chatBox.innerHTML += `<div class="msg msg-ai">${msg}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      appendLogHistory(`【系統開場白】${msg}`);
+      recentChatHistory.push(`【${roleName}】${msg}`);
+    }
+
+    function startIdleSystem() {
+      if (idleCheckInterval) return;
+
+      lastActivityTime = Date.now();
+      
+      idleCheckInterval = setInterval(() => {
+        if (!currentCredentials.account || isWaitingForAI) return;
+        const diff = Date.now() - lastActivityTime;
+        const chatBox = document.getElementById('chatBox');
+        const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+
+        if (diff > 300000 && idleState === 2) { 
+          idleState = 3;
+          let sleepAction = getRandomAction(currentSleepActions, "睡著了");
+          document.getElementById('aiStatusText').innerText = `(${sleepAction})`;
+          document.getElementById('aiAvatar').style.filter = "grayscale(50%) blur(1px)";
+          let msg = `*(${roleName} ${sleepAction})*`;
+          chatBox.innerHTML += `<div class="msg msg-action">${msg}</div>`;
+          chatBox.scrollTop = chatBox.scrollHeight;
+          appendLogHistory(`【AI 狀態】${msg}`);
+        } 
+        else if (diff > 180000 && idleState === 1) { 
+          idleState = 2;
+          let msg = getRandomAction(currentConcernLines, "欸，你怎麼停下來了？是不是哪裡卡住了？");
+          chatBox.innerHTML += `<div class="msg msg-ai">${msg}</div>`;
+          chatBox.scrollTop = chatBox.scrollHeight;
+          appendLogHistory(`【AI ${roleName}關心】${msg}`);
+        }
+        else if (diff > 120000 && idleState === 0) { 
+          idleState = 1;
+          let action = getRandomAction(currentIdleActions, "發呆中");
+          document.getElementById('aiStatusText').innerText = `(${action})`;
+          let msg = `*(${roleName} ${action})*`;
+          chatBox.innerHTML += `<div class="msg msg-action">${msg}</div>`;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      }, 1000);
+
+      statusChangeInterval = setInterval(() => {
+        if (idleState === 0) {
+          let action = getRandomAction(currentStudyActions, "認真看著你");
+          document.getElementById('aiStatusText').innerText = `(${action})`;
+        }
+      }, 30000);
+    }
+
+    function resetIdleTimer() {
+      if (!hasUserActed) return; 
+
+      if (idleState === 3) { 
+        const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+        const chatBox = document.getElementById('chatBox');
+        let wakeAction = getRandomAction(currentWakeActions, "突然驚醒");
+        chatBox.innerHTML += `<div class="msg msg-action">*(${roleName} ${wakeAction})*</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById('aiAvatar').style.filter = "none";
+      }
+      
+      lastActivityTime = Date.now();
+      idleState = 0;
+      let action = getRandomAction(currentStudyActions, "認真看著你");
+      document.getElementById('aiStatusText').innerText = `(${action})`;
+    }
+
+    function getRandomAction(arr, defaultText) {
+      if (!arr || arr.length === 0) return defaultText;
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // 🌟🌟🌟 通用 log 摘要組合器（不綁定任何特定實驗）🌟🌟🌟
+    function buildActionLogLine(payload, actionText) {
+      if (!payload) return `動作：${actionText}`;
+
+      // ① 若實驗主動提供摘要欄位，直接用（最高優先）
+      if (typeof payload["log摘要"] === "string" && payload["log摘要"]) {
+        return `動作：${actionText} (${payload["log摘要"]})`;
+      }
+      if (typeof payload.logSummary === "string" && payload.logSummary) {
+        return `動作：${actionText} (${payload.logSummary})`;
+      }
+
+      // ② 自動組合：排除「動作」「元資料」類 key，把其餘短字串欄位列出來
+      const excludeKeys = new Set([
+        "學生最後的動作", "目前介面階段", "action", "liquid", "depth", "reading",
+        "動作", "液體", "當下液體", "深度", "讀數", "壓力",
+        "當前選擇角色", "近期對話脈絡", "過去一段時間的操作 Log",
+        "給AI夥伴的評估提示", "給AI老師的提示", "訊息類型",
+        "log摘要", "logSummary"
+      ]);
+
+      let parts = [];
+      for (let key in payload) {
+        if (!Object.prototype.hasOwnProperty.call(payload, key)) continue;
+        if (excludeKeys.has(key)) continue;
+        if (key.startsWith("_")) continue;
+
+        let val = payload[key];
+        if (val === undefined || val === null) continue;
+        if (typeof val === "object") continue;  // 不展開陣列／物件
+
+        let valStr = String(val).trim();
+        if (!valStr || valStr.length > 60) continue;
+
+        parts.push(`${key}：${valStr}`);
+        if (parts.length >= 5) break;  // 最多列 5 項，避免 log 過長
+      }
+
+      if (parts.length === 0) return `動作：${actionText}`;
+      return `動作：${actionText} (${parts.join('；')})`;
+    }
+
+    function downloadHistory() { 
+      if (fullSessionHistory.length===0) return;
+      const text = fullSessionHistory.join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'})); a.download = `log.txt`; a.click();
+    }
+    function appendLogHistory(entryText) {
+      let t = new Date().toLocaleTimeString('zh-TW', {hour12: false});
+      fullSessionHistory.push(`[${t}] ${entryText}`);
+      if (sessionRowIndex === -1) return;
+      clearTimeout(syncTimer); syncTimer = setTimeout(() => { google.script.run.updateLogSession(sessionRowIndex, fullSessionHistory.join('\n')); }, 2000); 
+    }
+
+    function toggleDock(e) {  
+      if(e) e.stopPropagation(); chatContainer.classList.toggle('docked');
+      if (!chatContainer.classList.contains('docked')) { chatContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; width: 360px; height: 600px;'; dockIcon.style.opacity = '0.5'; } else { chatContainer.style.cssText = ''; dockIcon.style.opacity = '1'; }
+    }
+    function toggleChat(e) { if(e) e.stopPropagation(); chatContainer.classList.toggle('minimized'); toggleIcon.innerText = chatContainer.classList.contains('minimized') ? '▲' : '▼'; }
+
+    let isDragging = false; let dragStartX, dragStartY, initialLeft, initialTop;
+    chatHeader.addEventListener('mousedown', (e) => { 
+      if (chatContainer.classList.contains('docked')) return; 
+      if (e.target.tagName.toLowerCase() === 'select' || e.target.tagName.toLowerCase() === 'option' || e.target.classList.contains('icon-btn')) return; 
+      isDragging = true; 
+      dragStartX = e.clientX; 
+      dragStartY = e.clientY; 
+      const rect = chatContainer.getBoundingClientRect(); 
+      chatContainer.style.bottom = 'auto'; 
+      chatContainer.style.right = 'auto'; 
+      chatContainer.style.left = rect.left + 'px'; 
+      chatContainer.style.top = rect.top + 'px'; 
+      initialLeft = rect.left; 
+      initialTop = rect.top; 
+      document.getElementById('simIframe').style.pointerEvents = 'none';
+    });
+    document.addEventListener('mousemove', (e) => { 
+      if (!isDragging) return; 
+      chatContainer.style.left = (initialLeft + (e.clientX - dragStartX)) + 'px'; 
+      chatContainer.style.top = (initialTop + (e.clientY - dragStartY)) + 'px'; 
+    });
+    document.addEventListener('mouseup', () => { 
+      isDragging = false; 
+      document.getElementById('simIframe').style.pointerEvents = 'auto';
+    });
+
+    function switchRole(isInit = false) {
+      const roleSelect = document.getElementById('roleSelect');
+      if (roleSelect.options.length === 0) return;
+      const selectedId = roleSelect.value;
+      const roleName = roleSelect.options[roleSelect.selectedIndex].text;
+      const selectedChar = characterList.find(c => c.id === selectedId);
+      
+      if (selectedChar) { 
+        if(selectedChar.avatar) document.getElementById('aiAvatar').src = selectedChar.avatar; 
+        currentIgnoreRate = selectedChar.ignoreRate;
+        currentReactionTime = selectedChar.reactionTime;
+        
+        currentStudyActions = selectedChar.studyActions && selectedChar.studyActions.length > 0 ? selectedChar.studyActions : ["看著你"];
+        currentIdleActions = selectedChar.idleActions && selectedChar.idleActions.length > 0 ? selectedChar.idleActions : ["發呆中"];
+        currentConcernLines = selectedChar.concernLines && selectedChar.concernLines.length > 0 ? selectedChar.concernLines : ["你還在嗎？"];
+        currentSleepActions = selectedChar.sleepActions && selectedChar.sleepActions.length > 0 ? selectedChar.sleepActions : ["睡著了"];
+        currentWakeActions = selectedChar.wakeActions && selectedChar.wakeActions.length > 0 ? selectedChar.wakeActions : ["醒來了"];
+      }
+
+      isThrottled = false; 
+      
+      if (hasUserActed) {
+         resetIdleTimer(); 
+      }
+
+      if (!isInit) {
+        var chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML += `<div class="sys-msg">-- 已切換對話角色為：${roleName} --</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        appendLogHistory(`【系統】切換對話角色為：${roleName}`);
+      }
+      recentChatHistory = [];
+      currentSimState["當前選擇角色"] = selectedId;
+    }
+
+    function processAIResult(response, thinkingId) {
+      isWaitingForAI = false; 
+      const thinkingEl = document.getElementById(thinkingId);
+      if (thinkingEl) thinkingEl.remove();
+      
+      var chatBox = document.getElementById('chatBox');
+      const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+
+      // 🌟 現在如果有錯誤，會直接在畫面上顯示紅色的 sys-error 警告！不再裝死！
+      if (response.includes("系統提示：") || response.includes("發生錯誤") || response.includes("超出頻寬配額")) {
+        isThrottled = true; 
+        chatBox.innerHTML += `<div class="sys-error">${response}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return; 
+      }
+
+      if (response === "FALLBACK") {
+        isThrottled = true; 
+        let fallbackAction = getRandomAction(currentStudyActions, "思考了一下");
+        let fallbackBubble = `*(${roleName} ${fallbackAction})*`;
+        chatBox.innerHTML += `<div class="msg msg-action">${fallbackBubble}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        appendLogHistory(`【AI ${roleName}動作】${fallbackBubble}`);
+        return; 
+      }
+
+      var formattedResponse = response.replace(/\n/g, '<br>');
+      chatBox.innerHTML += `<div class="msg msg-ai">${formattedResponse}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      appendLogHistory(`【AI ${roleName}回答】${response}`);
+      
+      recentChatHistory.push(`【${roleName}】${response}`);
+      if (recentChatHistory.length > 8) recentChatHistory.shift();
+    }
+
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === 'SIMULATION_STATE') {
+        let payloadAction = event.data.payload["學生最後的動作"] || "";
+        
+        if (payloadAction.indexOf("【系統開場白】") !== -1) {
+          let msg = payloadAction.replace("【系統開場白】", "").trim();
+          systemGreetingMsg = msg; 
+          if (waitForGreeting) {
+            waitForGreeting = false;
+            printDirectGreeting(msg);
+          }
+          return; 
+        }
+        if (!currentCredentials.account) return; 
+
+// 🌟 新增：學生正式提交報告 → 特殊通道，跳過 ignore/fallback/短回應
+    if (payloadAction.indexOf("學生正式送出實驗報告") !== -1) {
+      handleStudentReport(event.data.payload, payloadAction);
+      return;  // 不走一般流程
+    }
+        if (payloadAction === "觀察實驗室環境中" || payloadAction === "") {
+          return; 
+        }
+
+        if (!hasUserActed) {
+          hasUserActed = true;
+          startIdleSystem(); 
+        }
+
+        resetIdleTimer();
+
+        currentSimState = event.data.payload;
+        currentSimState["當前選擇角色"] = document.getElementById('roleSelect') ? document.getElementById('roleSelect').value : "";
+        currentSimState["近期對話脈絡"] = recentChatHistory;
+
+        // 🌟 改用通用 log 組合器（不再寫死水壓實驗欄位）
+        let timeString = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        let actionStr = buildActionLogLine(event.data.payload, payloadAction);
+        
+        actionLog.push(`[${timeString}] ${actionStr}`);
+        if (actionLog.length > MAX_LOG_SIZE) actionLog.shift(); 
+        currentSimState["過去一段時間的操作 Log"] = actionLog;
+
+        appendLogHistory(`【操作】${actionStr}`);
+
+        clearTimeout(debounceTimer);
+        let actualIgnoreRate = isThrottled ? Math.max(currentIgnoreRate, 0.7) : currentIgnoreRate;
+        let actualReactionTime = isThrottled ? currentReactionTime + 3000 : currentReactionTime;
+        let willIgnore = Math.random() < actualIgnoreRate; 
+
+        // 🌟 防連刷機制：只要您手一停下來 3 秒鐘，AI 就會接手發言！
+        debounceTimer = setTimeout(() => {
+          if (willIgnore) return;
+          if (!isWaitingForAI && idleState === 0) triggerAIAutoResponse(); 
+        }, actualReactionTime + Math.floor(Math.random() * 1000));
+      }
+    });
+
+    function triggerAIAutoResponse() {
+      isWaitingForAI = true; 
+      var chatBox = document.getElementById('chatBox');
+      var thinkingId = 'thinking-auto-' + Date.now();
+      chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.6;">(觀察中...)</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      var hiddenPrompt = "（系統隱藏事件：使用者進行了操作並停頓下來。請針對他的最新動作給予1句話的簡短回應。絕對不要重新介紹環境。）";
+      
+      
+      let useFallbackChance = isThrottled ? 0.6 : 0.05; 
+      if (isFirstAIResponse) {
+         hiddenPrompt = "（系統隱藏事件：這是你『第一次』開口跟使用者說話，且使用者剛剛做了一個動作。請先熱情地簡短打招呼，接著針對他的動作給予回應。控制在2句話以內，絕對不要重新介紹環境。）";
+         useFallbackChance = 0; 
+         isFirstAIResponse = false; 
+      }
+
+      if (Math.random() < useFallbackChance) { setTimeout(() => { processAIResult("FALLBACK", thinkingId); }, 1500); return; }
+
+// 自動觸發時，使用剛剛靜止時拍下的畫面
+let imgToSend = screenStream ? latestScreenshotBase64 : "";
+google.script.run.withSuccessHandler(res => processAIResult(res, thinkingId)).withFailureHandler(err => processAIResult("FALLBACK", thinkingId)).chatWithAI(hiddenPrompt, JSON.stringify(currentSimState), currentCredentials, imgToSend);
+    }
+// 🌟🌟🌟 學生正式提交報告的 VIP 處理函式 🌟🌟🌟
+function handleStudentReport(payload, payloadAction) {
+  // 取消任何待送的一般訊息（避免被淹沒）
+  clearTimeout(debounceTimer);
+  
+  // 確保 idle 系統已啟動，且不要把下次當成「第一次見面」
+  if (!hasUserActed) {
+    hasUserActed = true;
+    startIdleSystem();
+  }
+  isFirstAIResponse = false;
+  
+  // 強制喚醒 AI（如果在發呆/睡覺也要起床批改）
+  if (idleState !== 0) {
+    idleState = 0;
+    document.getElementById('aiAvatar').style.filter = "none";
+  }
+  lastActivityTime = Date.now();
+  
+  // 把報告全文同步到 currentSimState
+  currentSimState = payload;
+  currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
+  currentSimState["近期對話脈絡"] = recentChatHistory;
+  
+  // 寫入操作 log（同時給 AI 與下載歷程看）
+  let timeString = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+  actionLog.push(`[${timeString}] 📤 學生正式提交了實驗報告`);
+  if (actionLog.length > MAX_LOG_SIZE) actionLog.shift();
+  currentSimState["過去一段時間的操作 Log"] = actionLog;
+  appendLogHistory(`【📤 學生提交報告】${payloadAction.substring(0, 100)}...`);
+  
+  // 顯示「閱讀中」的視覺回饋
+  var chatBox = document.getElementById('chatBox');
+  const roleName = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].text;
+  var thinkingId = 'thinking-report-' + Date.now();
+  chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.8;">📚 (${roleName} 正在仔細閱讀你的實驗報告...)</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
+  
+  // 🌟 報告專用 hiddenPrompt
+  var hiddenPrompt = "（系統重要事件：學生剛剛正式送出實驗報告，請仔細閱讀『學生最後的動作』欄位裡學生填寫的觀察與結論全文，給予具體、有結構的回饋。請：①先肯定觀察的優點；②指出需要補充或修正的地方；③提一個延伸思考的問題。長度可達 5-8 句。）";
+  
+  isWaitingForAI = true;
+  
+  // 直接呼叫 AI（跳過 willIgnore、跳過 FALLBACK、跳過 debounce）
+  google.script.run
+    .withSuccessHandler(res => processAIResult(res, thinkingId))
+    .withFailureHandler(err => processAIResult("⚠️ 報告送出失敗，請再試一次。", thinkingId))
+    .chatWithAI(hiddenPrompt, JSON.stringify(currentSimState), currentCredentials);
+}
+
+    function sendMessage() {
+      var inputEl = document.getElementById('userInput');
+      var text = inputEl.value.trim();
+      if (!text) return;
+      
+      if (!hasUserActed) {
+          hasUserActed = true;
+          isFirstAIResponse = false; 
+          startIdleSystem();
+      }
+      resetIdleTimer(); 
+
+      var chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML += `<div class="msg msg-user">${text}</div>`;
+      inputEl.value = ''; chatBox.scrollTop = chatBox.scrollHeight;
+      appendLogHistory(`【學生 ${currentCredentials.account}】${text}`);
+
+      recentChatHistory.push(`【學生】${text}`);
+      if (recentChatHistory.length > 8) recentChatHistory.shift();
+      currentSimState["近期對話脈絡"] = recentChatHistory;
+
+      isWaitingForAI = true; 
+      var thinkingId = 'thinking-' + Date.now();
+      chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.6;">(思考中...)</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      currentSimState["當前選擇角色"] = document.getElementById('roleSelect').value;
+
+// 學生手動發問時，強制截取當下最新畫面
+let imgToSend = screenStream ? captureHighResScreenshot() : "";
+google.script.run.withSuccessHandler(res => processAIResult(res, thinkingId)).withFailureHandler(err => processAIResult("FALLBACK", thinkingId)).chatWithAI(text, JSON.stringify(currentSimState), currentCredentials, imgToSend);
+    }
+    // ==========================================
+// 🌟 AI 視覺與動態偵測引擎
+// ==========================================
+let screenStream = null;
+let diffCtx = null;
+let lastImageData = null;
+let isOperating = false;
+let motionStopTimer = null;
+let latestScreenshotBase64 = ""; // 隨時保存最新穩定畫面的 Base64
+
+async function requestScreenShare() {
+  try {
+    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    document.getElementById('screenVideo').srcObject = screenStream;
+    
+    // 更改按鈕樣式表示成功
+    const btn = document.getElementById('visionBtn');
+    btn.innerText = "👁️ AI 觀察中";
+    btn.style.color = "#2e7d32"; 
+    btn.style.pointerEvents = "none";
+
+    // 初始化動態比對畫布 (縮小到 50x50 提升效能)
+    const diffCanvas = document.getElementById('diffCanvas');
+    diffCanvas.width = 50; diffCanvas.height = 50;
+    diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
+
+    // 開始每 0.5 秒看一次畫面
+    setInterval(checkVideoMotion, 500);
+  } catch (e) {
+    alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
+  }
+}
+
+function checkVideoMotion() {
+  const video = document.getElementById('screenVideo');
+  if (!video || video.readyState !== 4) return;
+
+  diffCtx.drawImage(video, 0, 0, 50, 50);
+  const currentImageData = diffCtx.getImageData(0, 0, 50, 50).data;
+
+  if (lastImageData) {
+    let diffCount = 0;
+    // 粗略比對像素差異
+    for (let i = 0; i < currentImageData.length; i += 4) {
+      if (Math.abs(currentImageData[i] - lastImageData[i]) > 20) diffCount++;
+    }
+
+    if (diffCount > 100) {
+      // 畫面劇烈變動：學生正在操作
+      isOperating = true;
+      clearTimeout(motionStopTimer); 
+      // 更新發呆系統，重置計時器
+      hasUserActed = true;
+      resetIdleTimer();
+      
+    } else if (isOperating) {
+      // 畫面停下來了：操作暫停
+      isOperating = false;
+      
+      // 等待 1.5 秒確認畫面真的靜止後，截一張高畫質圖片並觸發 AI
+      motionStopTimer = setTimeout(() => {
+        captureHighResScreenshot();
+        console.log("操作暫停，已擷取最新畫面！");
+        
+        // 🌟 觸發 AI 自動關心 (呼叫您原本寫好的函式)
+        if (!isWaitingForAI) triggerAIAutoResponse();
+      }, 1500);
+    }
+  }
+  lastImageData = new Uint8ClampedArray(currentImageData);
+}
+
+// 擷取並壓縮當下畫面 (用於傳送給後端)
+function captureHighResScreenshot() {
+  const video = document.getElementById('screenVideo');
+  const canvas = document.getElementById('captureCanvas');
+  
+  // 控制寬度在 800px 以內，避免 GAS 傳輸超時
+  canvas.width = 800;
+  canvas.height = (video.videoHeight / video.videoWidth) * 800;
+  
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // 轉成 JPEG 並壓縮畫質到 60%
+  let dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+  latestScreenshotBase64 = dataUrl.split(',')[1]; // 去除開頭的宣告字串
+  return latestScreenshotBase64;
+}
+  </script>
+</body>
+</html>
