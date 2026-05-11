@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室x</title>
+  <title>AI 互動實驗室</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -168,32 +168,37 @@
     }
     
 async function requestScreenShare() {
-      try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        const videoEl = document.getElementById('screenVideo');
-        videoEl.srcObject = screenStream;
-        
-        // 🌟 強制確保影片有在載入後播放，否則會截到黑畫面
-        videoEl.onloadedmetadata = () => {
-          videoEl.play();
-        };
-        
-        // 更改按鈕樣式表示成功
-        const btn = document.getElementById('visionBtn');
-        btn.innerText = "👁️ AI 觀察中";
-        btn.style.color = "#2e7d32";
-        btn.style.pointerEvents = "none";
+  try {
+    // 使用新版參數，優化學生的授權體驗
+    screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+      video: { displaySurface: "browser" },
+      preferCurrentTab: true 
+    });
+    
+    const videoEl = document.getElementById('screenVideo');
+    videoEl.srcObject = screenStream;
+    
+    // 強制確保影片有在載入後播放
+    videoEl.onloadedmetadata = () => {
+      videoEl.play();
+    };
+    
+    // 更改按鈕樣式表示成功
+    const btn = document.getElementById('visionBtn');
+    btn.innerText = "👁️ AI 觀察中";
+    btn.style.color = "#2e7d32";
+    btn.style.pointerEvents = "none";
 
-        const diffCanvas = document.getElementById('diffCanvas');
-        diffCanvas.width = 50;
-        diffCanvas.height = 50;
-        diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
+    const diffCanvas = document.getElementById('diffCanvas');
+    diffCanvas.width = 50;
+    diffCanvas.height = 50;
+    diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
 
-        setInterval(checkVideoMotion, 500);
-      } catch (e) {
-        alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
-      }
-    }
+    setInterval(checkVideoMotion, 500);
+  } catch (e) {
+    alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
+  }
+}
 
     // 擷取並壓縮當下畫面 (用於傳送給後端)
     function captureHighResScreenshot() {
