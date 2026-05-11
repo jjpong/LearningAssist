@@ -281,40 +281,69 @@
 
     function startCustomLab() { let key = document.getElementById('apiKeyInput').value.trim(); if (!key) return; currentCredentials.customKey = key; executeLogin(); }
 
-    function executeLogin() {
+function executeLogin() {
+      // 1. 隱藏登入遮罩並啟用聊天輸入介面
       loginOverlay.style.display = 'none'; 
       document.getElementById('userInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
 
-// 🌟 登入後才載入 iframe
+      // 2. 根據下拉選單找出目前選擇的實驗資料
       const selectedExp = allExperimentsList.find(e => e.id === document.getElementById('expSelect').value);
+      
       if (selectedExp) {
+        // 3. 載入 PhET 實驗網址到中間的 iframe
         document.getElementById('simIframe').src = selectedExp.url;
         
-        // 🌟 新增：把這堂課的「AI 說明書」永久寫入當前狀態中，讓 AI 隨時查閱！
+        // 4. 🧠 注入背景知識：將從 Google Sheet 讀到的「說明書」放入 AI 的記憶中
         currentSimState["【系統隱藏資訊：本實驗的背景知識與規則】"] = selectedExp.aiManual;
+
+        // 5. 👁️ 重置視覺授權按鈕狀態
+        // 這是為了預防學生從「有廣播的實驗」切換到「沒廣播的實驗」時按鈕消失的問題
+        const vBtn = document.getElementById('visionBtn');
+        vBtn.style.display = 'inline-block'; // 確保按鈕顯示
+        vBtn.innerText = "👁️ 點我授權";
+        vBtn.style.color = "#d9485f";        // 恢復為紅色提醒
+        vBtn.style.pointerEvents = "auto";   // 恢復可點擊
+
+        // 如果原本已經有開啟的視訊串流，先徹底關閉以節省效能與電力
+        if (typeof screenStream !== 'undefined' && screenStream) {
+          screenStream.getTracks().forEach(track => track.stop());
+          screenStream = null;
+        }
       }
 
-      callGasApi('startLogSession', { studentName: currentCredentials.account, expName: currentExpName })
-        .then((row) => {
-          sessionRowIndex = row;
-          appendLogHistory(`【系統】帳號「${currentCredentials.account}」登入並開始實驗。`);
+      // 6. 📝 向 GAS 後台回報學生登入，並啟動學習歷程紀錄
+      // 注意：這裡改用 callGasApi 以符合 GitHub 跨網域架構
+      callGasApi('startLogSession', { 
+        studentName: currentCredentials.account, 
+        expName: currentExpName 
+      })
+      .then((row) => {
+        // 儲存這一筆紀錄在 Google Sheet 中的行號，方便後續更新
+        sessionRowIndex = row;
+        appendLogHistory(`【系統】帳號「${currentCredentials.account}」登入並開始實驗。`);
 
-          if (isFirstLoad) {
-            isFirstLoad = false; 
-            if (systemGreetingMsg !== "") {
-              printDirectGreeting(systemGreetingMsg);
-            } else {
-              waitForGreeting = true; 
-              setTimeout(() => { 
-                if (waitForGreeting && systemGreetingMsg === "") {
-                  waitForGreeting = false;
-                  printDirectGreeting("【系統提示】已進入實驗室，請開始操作儀器。");
-                }
-              }, 5000); 
-            }
+        // 7. 🤖 處理 AI 開場白 (Greeting Message)
+        if (isFirstLoad) {
+          isFirstLoad = false; 
+          // 如果實驗程式已經有廣播開場白過來，就直接顯示
+          if (systemGreetingMsg !== "") {
+            printDirectGreeting(systemGreetingMsg);
+          } else {
+            // 如果 5 秒內實驗室沒說話，則顯示系統預設的招呼語
+            waitForGreeting = true; 
+            setTimeout(() => { 
+              if (waitForGreeting && systemGreetingMsg === "") {
+                waitForGreeting = false;
+                printDirectGreeting("【系統提示】已進入實驗室，請開始操作儀器。");
+              }
+            }, 5000); 
           }
-        });
+        }
+      })
+      .catch(err => {
+        console.error("無法連線至 GAS 啟動紀錄:", err);
+      });
     }
 
     function printDirectGreeting(msg) {
@@ -529,6 +558,20 @@
 
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === 'SIMULATION_STATE') {
+        // ==========================================
+        // 🌟 自動偵測：收到廣播，隱藏授權按鈕並關閉視覺引擎
+        // ==========================================
+        const vBtn = document.getElementById('visionBtn');
+        if (vBtn.style.display !== 'none') {
+          vBtn.style.display = 'none'; // 把按鈕藏起來
+          console.log("偵測到實驗室原生廣播，自動關閉視覺截圖功能！");
+          
+          // 如果學生手太快已經按了授權，幫他把視訊串流關掉省資源
+          if (typeof screenStream !== 'undefined' && screenStream) {
+            screenStream.getTracks().forEach(track => track.stop());
+            screenStream = null;
+          }
+        }
         let payloadAction = event.data.payload["學生最後的動作"] || "";
         
         if (payloadAction.indexOf("【系統開場白】") !== -1) {
