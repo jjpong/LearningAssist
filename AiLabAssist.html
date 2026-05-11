@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室</title>
+  <title>AI 互動實驗室2</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -630,8 +630,8 @@ function executeLogin() {
       chatBox.innerHTML += `<div id="${thinkingId}" class="msg msg-action" style="opacity:0.6;">(觀察中...)</div>`;
       chatBox.scrollTop = chatBox.scrollHeight;
 
-      var hiddenPrompt = "（系統隱藏事件：使用者進行了操作並停頓下來。請針對他的最新動作給予1句話的簡短回應。絕對不要重新介紹環境。）";
-      let useFallbackChance = isThrottled ? 0.6 : 0.05; 
+// 🌟 強化版：要求 AI 嚴格確認初始狀態
+      var hiddenPrompt = `（系統重要事件：學生已授權視覺功能，你現在看得到畫面了。請嚴格根據你「眼睛」看到的最新截圖，確認物體現在的位置。請參考以下實驗說明書，熱情地向學生打招呼並簡介實驗。切記：不要腦補器材！說明書內容：${manual}）`;      let useFallbackChance = isThrottled ? 0.6 : 0.05; 
       if (isFirstAIResponse) {
          hiddenPrompt = "（系統隱藏事件：這是你『第一次』開口跟使用者說話，且使用者剛剛做了一個動作。請先熱情地簡短打招呼，接著針對他的動作給予回應。控制在2句話以內，絕對不要重新介紹環境。）";
          useFallbackChance = 0; 
@@ -801,8 +801,8 @@ function executeLogin() {
       const manual = currentSimState["【系統隱藏資訊：本實驗的背景知識與規則】"] || "這是一個科學實驗。";
 
       // 🌟 核心指令：要求 AI 讀取說明書並轉化為「第一段對話」
-      var hiddenPrompt = `（系統重要事件：學生已授權視覺功能，你現在看得到畫面了。請參考以下實驗說明書，以你的角色語氣，熱情地向學生自我介紹，並簡單介紹這個實驗的目標。控制在 3 句話以內。說明書內容：${manual}）`;
-
+// 🌟 強化版：要求 AI 嚴格確認初始狀態
+      var hiddenPrompt = `（系統重要事件：學生已授權視覺功能，你現在看得到畫面了。請嚴格根據你「眼睛」看到的最新截圖，確認物體現在的位置。請參考以下實驗說明書，熱情地向學生打招呼並簡介實驗。切記：不要腦補器材！說明書內容：${manual}）`;
       isWaitingForAI = true;
       
       // 擷取當下畫面送出
