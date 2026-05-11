@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室x</title>
+  <title>AI 互動實驗室</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -695,28 +695,41 @@
     let latestScreenshotBase64 = "";
 
     async function requestScreenShare() {
-      try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        document.getElementById('screenVideo').srcObject = screenStream;
-        
-        // 更改按鈕樣式表示成功
-        const btn = document.getElementById('visionBtn');
-        btn.innerText = "👁️ AI 觀察中";
-        btn.style.color = "#2e7d32";
-        btn.style.pointerEvents = "none";
+  try {
+    // 🌟 防呆升級版：強制瀏覽器優先選擇「目前的分頁」
+    screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+      video: {
+        displaySurface: "browser", // 限制只抓取瀏覽器畫面
+      },
+      preferCurrentTab: true // 🌟 關鍵黑科技：預設直接選中當前分頁！
+    });
+    
+    const videoEl = document.getElementById('screenVideo');
+    videoEl.srcObject = screenStream;
+    
+    // 強制確保影片有在載入後播放
+    videoEl.onloadedmetadata = () => {
+      videoEl.play();
+    };
+    
+    // 更改按鈕樣式表示成功
+    const btn = document.getElementById('visionBtn');
+    btn.innerText = "👁️ AI 觀察中";
+    btn.style.color = "#2e7d32";
+    btn.style.pointerEvents = "none";
 
-        // 初始化動態比對畫布 (縮小到 50x50 提升效能)
-        const diffCanvas = document.getElementById('diffCanvas');
-        diffCanvas.width = 50;
-        diffCanvas.height = 50;
-        diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
+    // 初始化動態比對畫布 (縮小到 50x50 提升效能)
+    const diffCanvas = document.getElementById('diffCanvas');
+    diffCanvas.width = 50;
+    diffCanvas.height = 50;
+    diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
 
-        // 開始每 0.5 秒看一次畫面
-        setInterval(checkVideoMotion, 500);
-      } catch (e) {
-        alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
-      }
-    }
+    // 開始每 0.5 秒看一次畫面
+    setInterval(checkVideoMotion, 500);
+  } catch (e) {
+    alert("請選擇「分享分頁」，AI 才能看到你的操作喔！");
+  }
+}
 
     function checkVideoMotion() {
       const video = document.getElementById('screenVideo');
