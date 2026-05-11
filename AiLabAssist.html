@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>AI 互動實驗室2</title>
+  <title>AI 互動實驗室</title>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .main-container { display: flex; height: 100vh; width: 100vw; position: relative; background: #f8f9fa; }
@@ -868,16 +868,26 @@ function checkVideoMotion() {
           clearTimeout(motionStopTimer); 
           hasUserActed = true;
           resetIdleTimer();
-        } else if (isOperating) {
+        }  else if (isOperating) {
           // 畫面停下來了：操作暫停
           isOperating = false;
+          
           motionStopTimer = setTimeout(() => {
             captureHighResScreenshot();
             console.log("操作暫停，已擷取最新畫面！");
             
-            // 🌟 觸發 AI 自動關心
-            if (!isWaitingForAI) triggerAIAutoResponse();
-          }, 1500);
+            // ==========================================
+            // 🌟 補回原汁原味的「忽視率 (Ignore Rate)」！
+            // 讓 AI 有機率保持安靜，不會每個動作都碎碎念
+            // ==========================================
+            let willIgnore = Math.random() < currentIgnoreRate;
+            
+            if (!willIgnore && !isWaitingForAI) {
+              triggerAIAutoResponse();
+            } else {
+              console.log("AI 決定這次不說話，讓學生專心觀察。");
+            }
+          }, 1000); // (這是您剛剛調快的 1 秒)
         }
       }
       lastImageData = new Uint8ClampedArray(currentImageData);
