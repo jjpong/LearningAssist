@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>化學元素霓虹貪食蛇 - Neon Chemistry Snake</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- html2pdf.js for PDF Report Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .font-arcade {
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    .font-tech {
+      font-family: 'Chakra Petch', 'Noto Sans TC', sans-serif;
+    }
+
+    /* Glow Effects */
+    .glow-text-cyan {
+      text-shadow: 0 0 8px rgba(6, 182, 212, 0.8), 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    
+    .glow-text-pink {
+      text-shadow: 0 0 8px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.4);
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    #gameCanvas {
+      border-radius: 1rem;
+      background-color: #080c14;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+
+    .dpad-btn:active {
+      transform: scale(0.92);
+      filter: brightness(1.3);
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(6, 182, 212, 0.6); }
+      50% { border-color: rgba(236, 72, 153, 0.8); }
+    }
+
+    .pulse-glow {
+      animation: pulse-border 2s infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 h-screen max-h-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+  
+  <!-- Minimal Header Bar -->
+  <header class="w-full glass-panel border-b border-slate-800/80 shrink-0 px-3 py-2 z-40">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 via-teal-400 to-pink-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
+          <i class="fa-solid fa-flask text-slate-950 text-base font-bold"></i>
+        </div>
+        <div>
+          <h1 class="font-tech font-bold text-base md:text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-emerald-300 to-pink-400">
+            CHEM-SNAKE
+          </h1>
+        </div>
+      </div>
+
+      <!-- Action Control Buttons -->
+      <div class="flex items-center space-x-2">
+        <button id="soundToggleBtn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 transition-colors border border-slate-700/60 text-sm" title="切換音效">
+          <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+        </button>
+        <button id="helpBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 transition-colors border border-slate-700/60 text-xs font-tech font-bold flex items-center gap-1.5" title="元素規則">
+          <i class="fa-solid fa-atom"></i>
+          <span>遊戲規則</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Viewport-fitting Main Area -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-2 sm:p-3 flex flex-col lg:flex-row gap-3 items-center justify-center overflow-hidden min-h-0">
+    
+    <!-- Target Mission & Stats Column -->
+    <div class="w-full lg:w-80 flex flex-col space-y-2 shrink-0">
+      
+      <!-- Target Element Banner Bar -->
+      <div class="w-full glass-panel rounded-xl p-2.5 border pulse-glow flex flex-col space-y-1.5">
+        <div class="flex items-center justify-between font-tech text-[11px] text-slate-300">
+          <span class="flex items-center gap-1">
+            <i class="fa-solid fa-crosshair text-cyan-400 animate-pulse"></i>
+            <span class="font-bold text-slate-200">當前任務：</span>
+          </span>
+          <div class="flex items-center gap-1">
+            <span id="diffModeBadge" class="px-2 py-0.5 rounded-full bg-slate-800 border border-amber-500/40 text-amber-300 text-[9px] font-bold">
+              高中難度
+            </span>
+            <span id="targetModeTag" class="px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[9px] font-bold">
+              Phase 1
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900/90 rounded-lg p-2 border border-slate-800">
+          <!-- Target Display Box -->
+          <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+            <div id="targetCard" class="w-11 h-11 rounded-lg bg-gradient-to-br from-cyan-500/30 to-pink-500/30 border border-cyan-400 flex flex-col items-center justify-center font-bold shadow-md shrink-0">
+              <i id="targetIcon" class="fa-solid fa-atom text-xl text-cyan-300"></i>
+              <span id="targetBadge" class="text-[8px] text-amber-300 font-extrabold">Z=?</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                <span id="phaseNoticePill" class="text-emerald-400 font-bold shrink-0">[階段一]</span>
+                <span id="targetCategoryText" class="break-words">請尋找豆子</span>
+              </div>
+              <div id="targetNameText" class="text-xs sm:text-sm font-black text-slate-100 font-tech break-words leading-tight">
+                氫 (Hydrogen)
+              </div>
+            </div>
+          </div>
+
+          <!-- Reward Info -->
+          <div class="text-right font-tech shrink-0 pl-2 border-l border-slate-800 ml-1">
+            <div class="text-[9px] text-slate-400 font-semibold">配對得分</div>
+            <div id="targetRewardText" class="text-sm font-bold text-amber-400 font-arcade">+1 分</div>
+          </div>
+        </div>
+        
+        <!-- Target Hint Banner -->
+        <div id="sidebarQuestionHint" class="text-[10px] font-semibold text-cyan-300 bg-slate-900/60 p-1.5 rounded-md border border-slate-800/80 break-words leading-snug">
+          觀察提示並吃到對應的豆子！
+        </div>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="w-full glass-panel rounded-xl p-2 flex items-center justify-between text-xs font-tech">
+        <div class="flex items-center space-x-1">
+          <span class="text-slate-400 text-[10px]">得分:</span>
+          <span id="scoreDisplay" class="font-arcade text-cyan-400 text-xs sm:text-sm glow-text-cyan">00000</span>
+        </div>
+        
+        <div class="flex items-center space-x-1">
+          <span class="text-slate-400 text-[10px]">等級:</span>
+          <span id="levelDisplay" class="font-bold text-emerald-400 text-xs sm:text-sm">Lv.1</span>
+        </div>
+
+        <div class="flex items-center space-x-1">
+          <span class="text-slate-400 text-[10px]">蛇身:</span>
+          <span id="lengthDisplay" class="font-bold text-purple-300 text-xs sm:text-sm">3 節</span>
+        </div>
+
+        <div class="flex items-center space-x-1">
+          <span class="text-slate-400 text-[10px]">最高:</span>
+          <span id="highScoreDisplay" class="font-arcade text-pink-400 text-xs sm:text-sm">00000</span>
+        </div>
+      </div>
+
+      <!-- Desktop D-Pad & Controls in Sidebar -->
+      <div class="hidden lg:flex flex-col items-center glass-panel rounded-xl p-2.5 space-y-2">
+        <div class="grid grid-cols-3 gap-1.5 w-36 h-36">
+          <div></div>
+          <button id="dpadUp" class="dpad-btn rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/20 flex items-center justify-center text-lg shadow-md">
+            <i class="fa-solid fa-caret-up"></i>
+          </button>
+          <div></div>
+
+          <button id="dpadLeft" class="dpad-btn rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/20 flex items-center justify-center text-lg shadow-md">
+            <i class="fa-solid fa-caret-left"></i>
+          </button>
+          <div class="rounded-lg bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-cyan-400 text-[9px] font-tech font-bold">
+            <i class="fa-solid fa-atom text-xs mb-0.5"></i>
+            <span>SNAKE</span>
+          </div>
+          <button id="dpadRight" class="dpad-btn rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/20 flex items-center justify-center text-lg shadow-md">
+            <i class="fa-solid fa-caret-right"></i>
+          </button>
+
+          <div></div>
+          <button id="dpadDown" class="dpad-btn rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/20 flex items-center justify-center text-lg shadow-md">
+            <i class="fa-solid fa-caret-down"></i>
+          </button>
+          <div></div>
+        </div>
+
+        <button id="pauseBtn" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-tech text-xs border border-slate-700 transition-colors flex items-center justify-center space-x-1.5">
+          <i class="fa-solid fa-pause"></i>
+          <span>暫停 (Space)</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Canvas Column -->
+    <div class="relative flex-1 w-full h-full min-h-0 min-w-0 flex items-center justify-center">
+      <div class="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+        <canvas id="gameCanvas" class="block border border-cyan-500/30 object-contain"></canvas>
+
+        <!-- Start Overlay -->
+        <div id="startOverlay" class="absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-6 text-center z-20">
+          <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-2xl mb-3 shadow-lg shadow-cyan-500/20 animate-pulse">
+            <i class="fa-solid fa-atom"></i>
+          </div>
+          <h2 class="font-tech text-xl sm:text-2xl font-bold text-slate-100 mb-1">化學元素貪食蛇</h2>
+          <p class="text-xs text-slate-300 mb-4 max-w-xs leading-relaxed">
+            對應側邊/頂部的<span class="text-cyan-400 font-bold">目標任務</span>，尋找<span class="text-amber-400 font-bold">正確配對豆子</span>！<br>
+            <span class="text-emerald-400">吃對得分＝原子序(Z)</span>；<span class="text-red-400">吃錯扣蛇身＝週期數(P)</span>！
+          </p>
+          
+          <!-- Difficulty Selector Buttons -->
+          <div class="flex items-center justify-center gap-2 mb-5 font-tech text-xs">
+            <span class="text-slate-400 font-bold">選擇難度：</span>
+            <button id="diffJuniorBtn" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold hover:border-cyan-400 transition-all flex items-center gap-1">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span>國中自然</span>
+            </button>
+            <button id="diffSeniorBtn" class="px-3 py-1.5 rounded-lg border border-cyan-400 bg-cyan-500/20 text-cyan-300 font-bold shadow-md shadow-cyan-500/20 transition-all flex items-center gap-1">
+              <i class="fa-solid fa-flask"></i>
+              <span>高中化學</span>
+            </button>
+          </div>
+
+          <button id="startGameBtn" class="px-7 py-3 rounded-xl font-tech font-bold text-slate-950 bg-gradient-to-r from-cyan-400 via-emerald-300 to-pink-400 hover:opacity-90 transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/30 text-base flex items-center space-x-2">
+            <i class="fa-solid fa-play"></i>
+            <span>開始實驗遊戲</span>
+          </button>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="hidden absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-6 text-center z-20">
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 text-2xl mb-2">
+            <i class="fa-solid fa-pause"></i>
+          </div>
+          <h2 class="font-tech text-xl font-bold text-amber-300 mb-1">實驗暫停中</h2>
+          <p class="text-xs text-slate-400 mb-5">按空白鍵或點擊繼續遊戲</p>
+          
+          <button id="resumeGameBtn" class="px-8 py-2.5 rounded-xl font-tech font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all text-sm mb-2.5 w-44">
+            繼續遊戲
+          </button>
+          <button id="restartGameBtn" class="px-8 py-2 rounded-xl font-tech font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all text-xs w-44 border border-slate-700">
+            重新開始
+          </button>
+        </div>
+
+        <!-- Victory / Game Clear Modal -->
+        <div id="victoryOverlay" class="hidden absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-4 text-center z-20 overflow-hidden border-2 border-amber-400/80 shadow-2xl shadow-amber-500/30">
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 text-2xl mb-1 shadow-lg shadow-amber-500/30 animate-bounce shrink-0">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <h2 class="font-tech text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-emerald-300 to-cyan-400 mb-0.5 shrink-0">
+            🎉 實驗完全破關！(GRAND CLEAR)
+          </h2>
+          <p class="text-[11px] text-amber-200 mb-2 max-w-xs leading-tight shrink-0 font-semibold">
+            太厲害了！你已經精通並回答完所有國高中化學元素題庫！
+          </p>
+          
+          <div class="w-full bg-slate-900/90 rounded-xl p-2 border border-amber-500/30 mb-2 max-w-xs text-xs font-tech space-y-1 shrink-0">
+            <div class="flex justify-between">
+              <span class="text-slate-400">最終榮耀總分</span>
+              <span id="vicFinalScore" class="font-arcade text-amber-400 text-sm">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">最高紀錄</span>
+              <span id="vicHighScore" class="font-arcade text-pink-400">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">達成最高等級</span>
+              <span id="vicLevel" class="font-bold text-emerald-400">Lv.5</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">成功解鎖配對元素</span>
+              <span id="vicEatenCount" class="font-bold text-cyan-300">0 個</span>
+            </div>
+          </div>
+
+          <!-- Answer History Summary Section for Victory -->
+          <div class="w-full max-w-xs bg-slate-900/95 rounded-xl p-2 border border-slate-800 text-left font-tech text-xs mb-2 flex flex-col flex-1 min-h-0">
+            <div class="font-bold text-amber-300 border-b border-slate-800 pb-1 mb-1 flex justify-between items-center text-[10px] shrink-0">
+              <span><i class="fa-solid fa-award text-amber-400 mr-1"></i>完美通關答題總結報告</span>
+              <span id="vicLogCountBadge" class="text-[9px] text-slate-400 font-normal">共 0 題</span>
+            </div>
+            
+            <div class="overflow-y-auto space-y-1.5 pr-1 flex-1 text-[10px] leading-snug">
+              <div>
+                <div class="font-bold text-amber-300 mb-0.5 flex items-center gap-1 border-b border-slate-800/60 pb-0.5">
+                  <i class="fa-solid fa-link text-[9px]"></i> 1. 符號與名稱對應
+                </div>
+                <ul id="vicSymNameLogList" class="space-y-1 text-slate-300 pl-1">
+                  <li class="text-slate-500 italic">無答題紀錄</li>
+                </ul>
+              </div>
+
+              <div>
+                <div class="font-bold text-pink-300 mb-0.5 flex items-center gap-1 border-b border-slate-800/60 pb-0.5">
+                  <i class="fa-solid fa-atom text-[9px]"></i> 2. 元素性質對應
+                </div>
+                <ul id="vicPropLogList" class="space-y-1 text-slate-300 pl-1">
+                  <li class="text-slate-500 italic">無答題紀錄</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="vicDownloadPdfBtn" class="px-4 py-2 rounded-xl font-tech font-bold text-slate-100 bg-slate-800 hover:bg-slate-700 border border-amber-500/50 transition-all flex items-center gap-1.5 text-xs shadow-md hover:border-amber-400">
+              <i class="fa-solid fa-file-pdf text-red-400"></i>
+              <span>下載 PDF 紀錄表</span>
+            </button>
+            <button id="vicPlayAgainBtn" class="px-7 py-2 rounded-xl font-tech font-bold text-slate-950 bg-gradient-to-r from-amber-300 via-emerald-400 to-cyan-400 hover:opacity-90 transition-all transform hover:scale-105 shadow-lg shadow-amber-500/30 text-xs">
+              再次挑戰新實驗
+            </button>
+          </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameOverOverlay" class="hidden absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-4 text-center z-20 overflow-hidden">
+          <div class="w-12 h-12 rounded-2xl bg-pink-500/20 border border-pink-400/40 flex items-center justify-center text-pink-400 text-xl mb-1 shadow-lg shadow-pink-500/20 shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <h2 class="font-tech text-lg font-bold text-pink-500 mb-0.5 shrink-0">實驗中斷 (GAME OVER)</h2>
+          <p id="gameOverReason" class="text-[11px] text-slate-300 mb-2 max-w-xs leading-tight shrink-0">你撞到了牆壁！</p>
+          
+          <div class="w-full bg-slate-900/90 rounded-xl p-2 border border-slate-800 mb-2 max-w-xs text-xs font-tech space-y-1 shrink-0">
+            <div class="flex justify-between">
+              <span class="text-slate-400">總得分 (原子序)</span>
+              <span id="finalScore" class="font-arcade text-cyan-400">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">最高紀錄</span>
+              <span id="finalHighScore" class="font-arcade text-pink-400">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">達到等級</span>
+              <span id="finalLevel" class="font-bold text-emerald-400">Lv.1</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">成功配對元素</span>
+              <span id="finalEatenCount" class="font-bold text-amber-400">0 個</span>
+            </div>
+          </div>
+
+          <!-- Answer History Summary Section -->
+          <div class="w-full max-w-xs bg-slate-900/95 rounded-xl p-2.5 border border-slate-800 text-left font-tech text-xs mb-3 flex flex-col flex-1 min-h-0">
+            <div class="font-bold text-cyan-300 border-b border-slate-800 pb-1 mb-1.5 flex justify-between items-center text-[11px] shrink-0">
+              <span><i class="fa-solid fa-clipboard-check text-emerald-400 mr-1"></i>實驗答題紀錄報告</span>
+              <span id="logCountBadge" class="text-[9px] text-slate-400 font-normal">共 0 題</span>
+            </div>
+            
+            <div class="overflow-y-auto space-y-2 pr-1 flex-1 text-[10px] leading-snug">
+              <!-- Category 1: Symbol & Name -->
+              <div>
+                <div class="font-bold text-amber-300 mb-0.5 flex items-center gap-1 border-b border-slate-800/60 pb-0.5">
+                  <i class="fa-solid fa-link text-[9px]"></i> 1. 符號與名稱對應
+                </div>
+                <ul id="symNameLogList" class="space-y-1 text-slate-300 pl-1">
+                  <li class="text-slate-500 italic">無答題紀錄</li>
+                </ul>
+              </div>
+
+              <!-- Category 2: Element Properties -->
+              <div>
+                <div class="font-bold text-pink-300 mb-0.5 flex items-center gap-1 border-b border-slate-800/60 pb-0.5">
+                  <i class="fa-solid fa-atom text-[9px]"></i> 2. 元素性質對應
+                </div>
+                <ul id="propLogList" class="space-y-1 text-slate-300 pl-1">
+                  <li class="text-slate-500 italic">無答題紀錄</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="downloadPdfBtn" class="px-4 py-2 rounded-xl font-tech font-bold text-slate-100 bg-slate-800 hover:bg-slate-700 border border-cyan-500/50 transition-all flex items-center gap-1.5 text-xs shadow-md hover:border-cyan-400">
+              <i class="fa-solid fa-file-pdf text-red-400"></i>
+              <span>下載 PDF 紀錄表</span>
+            </button>
+            <button id="playAgainBtn" class="px-7 py-2 rounded-xl font-tech font-bold text-slate-950 bg-gradient-to-r from-cyan-400 to-pink-500 hover:opacity-90 transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/30 text-xs">
+              再次挑戰
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Touch D-Pad -->
+    <div class="flex lg:hidden items-center justify-between w-full shrink-0 pt-1">
+      <button id="mobilePauseBtn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 font-tech text-xs border border-slate-700 flex items-center gap-1">
+        <i class="fa-solid fa-pause"></i>
+        <span>暫停</span>
+      </button>
+
+      <div class="flex items-center space-x-1">
+        <button id="mobileDpadLeft" class="dpad-btn w-10 h-10 rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-caret-left"></i>
+        </button>
+        <div class="flex flex-col space-y-1">
+          <button id="mobileDpadUp" class="dpad-btn w-10 h-10 rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-caret-up"></i>
+          </button>
+          <button id="mobileDpadDown" class="dpad-btn w-10 h-10 rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-caret-down"></i>
+          </button>
+        </div>
+        <button id="mobileDpadRight" class="dpad-btn w-10 h-10 rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-caret-right"></i>
+        </button>
+      </div>
+    </div>
+
+  <!-- Hidden Printable PDF Report Container -->
+  <div id="pdfReportWrapper" class="fixed -left-[9999px] -top-[9999px]">
+    <div id="pdfReportContainer" class="bg-slate-950 text-slate-100 p-6 rounded-xl border border-cyan-500/40 w-[700px] font-tech space-y-4">
+      <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
+            <i class="fa-solid fa-flask"></i> 化學元素霓虹貪食蛇 - 實驗學習紀錄報告
+          </h2>
+          <p id="pdfReportTime" class="text-xs text-slate-400 mt-1">測驗時間: 2026/08/10 14:00:00</p>
+        </div>
+        <div class="text-right">
+          <span id="pdfReportDiffBadge" class="px-3 py-1 rounded-full bg-slate-800 border border-amber-500/40 text-amber-300 text-xs font-bold">高中難度</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 bg-slate-900 p-3 rounded-lg border border-slate-800 text-center text-xs">
+        <div>
+          <div class="text-slate-400 text-[10px]">實驗總得分</div>
+          <div id="pdfScore" class="font-bold text-cyan-400 text-sm">0</div>
+        </div>
+        <div>
+          <div class="text-slate-400 text-[10px]">達成最高等級</div>
+          <div id="pdfLevel" class="font-bold text-emerald-400 text-sm">Lv.1</div>
+        </div>
+        <div>
+          <div class="text-slate-400 text-[10px]">配對成功元素</div>
+          <div id="pdfEaten" class="font-bold text-amber-400 text-sm">0 個</div>
+        </div>
+        <div>
+          <div class="text-slate-400 text-[10px]">總答題數</div>
+          <div id="pdfTotalQ" class="font-bold text-purple-300 text-sm">0 題</div>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <h3 class="font-bold text-cyan-300 border-b border-slate-800 pb-1 mb-2 flex items-center gap-1 text-xs">
+            <i class="fa-solid fa-link"></i> 1. 符號與名稱對應紀錄
+          </h3>
+          <ul id="pdfSymNameList" class="space-y-1.5 pl-1">
+            <li class="text-slate-500 italic">無答題紀錄</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-pink-300 border-b border-slate-800 pb-1 mb-2 flex items-center gap-1 text-xs">
+            <i class="fa-solid fa-atom"></i> 2. 元素性質對應紀錄
+          </h3>
+          <ul id="pdfPropList" class="space-y-1.5 pl-1">
+            <li class="text-slate-500 italic">無答題紀錄</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-3 border-t border-slate-800 text-[10px] text-slate-500 flex justify-between items-center">
+        <span>Chem-Snake Educational Chemistry Learning Report</span>
+        <span>化學元素評量紀錄表</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Polyfill for roundRect on legacy canvas rendering contexts */
+    if (CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (typeof r === 'number') r = [r, r, r, r];
+        let [tl, tr, br, bl] = r;
+        this.beginPath();
+        this.moveTo(x + tl, y);
+        this.lineTo(x + w - tr, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + tr);
+        this.lineTo(x + w, y + h - br);
+        this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+        this.lineTo(x + bl, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - bl);
+        this.lineTo(x, y + tl);
+        this.quadraticCurveTo(x, y, x + tl, y);
+        this.closePath();
+        return this;
+      };
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Canvas & Grid Constants
+    const GRID_SIZE = 20;
+    let CELL_SIZE = 20;
+
+    // Senior High School Chemistry Database (高中化學題庫)
+    const ELEMENTS_DB_SENIOR = [
+      { z: 1, symbol: 'H', name: '氫', period: 1, group: 1, state: 'gas', isMetal: false, props: ['宇宙中最豐富的元素', '最輕的元素', '常溫常壓為無色氣體'] },
+      { z: 2, symbol: 'He', name: '氦', period: 1, group: 18, state: 'gas', isMetal: false, props: ['不可燃的稀有氣體', '常用於充填氣球', '沸點最低的元素'] },
+      { z: 3, symbol: 'Li', name: '鋰', period: 2, group: 1, state: 'solid', isMetal: true, props: ['密度最小的金屬', '密度比水小可浮於水面', '常用於二次充電電池'] },
+      { z: 4, symbol: 'Be', name: '鈹', period: 2, group: 2, state: 'solid', isMetal: true, props: ['氧化物呈現兩性的鹼土金屬', '透X光能力強', '常用於航空合金'] },
+      { z: 5, symbol: 'B', name: '硼', period: 2, group: 13, state: 'solid', isMetal: false, props: ['最輕的類金屬元素', '清潔劑化合成分', '耐熱玻璃添加物'] },
+      { z: 6, symbol: 'C', name: '碳', period: 2, group: 14, state: 'solid', isMetal: false, props: ['有機化合物核心元素', '石墨與鑽石中的主要元素', '具有多種同素異形體'] },
+      { z: 7, symbol: 'N', name: '氮', period: 2, group: 15, state: 'gas', isMetal: false, props: ['空氣中含量最高 (約78%)', '常用於食品包裝防腐充填', '製造氨肥原料'] },
+      { z: 8, symbol: 'O', name: '氧', period: 2, group: 16, state: 'gas', isMetal: false, props: ['地殼中含量最多的元素', '維持生物呼吸必需氣體', '具助燃性'] },
+      { z: 9, symbol: 'F', name: '氟', period: 2, group: 17, state: 'gas', isMetal: false, props: ['電負度最高的元素', '活性最強的非金屬元素', '牙膏常見添加物元素'] },
+      { z: 10, symbol: 'Ne', name: '氖', period: 2, group: 18, state: 'gas', isMetal: false, props: ['霓虹燈發紅光填充氣體', '原子量僅次於氦氣的稀有氣體', '高壓放電呈橙紅色'] },
+      { z: 11, symbol: 'Na', name: '鈉', period: 3, group: 1, state: 'solid', isMetal: true, props: ['與水反應生成強鹼並釋放氫氣', '黃色焰色反應', '食鹽的主要陽離子成分'] },
+      { z: 12, symbol: 'Mg', name: '鎂', period: 3, group: 2, state: 'solid', isMetal: true, props: ['燃燒發出強烈白光', '葉綠素的核心金屬原子', '質輕堅固的合金材料'] },
+      { z: 13, symbol: 'Al', name: '鋁', period: 3, group: 13, state: 'solid', isMetal: true, props: ['地殼中含量最多的金屬元素', '表面易形成致密氧化層防銹', '常用於飲料罐與金屬箔紙'] },
+      { z: 14, symbol: 'Si', name: '矽', period: 3, group: 14, state: 'solid', isMetal: false, props: ['半導體晶圓主要原料', '地殼含量第二多的元素', '二氧化物為沙子主成分'] },
+      { z: 15, symbol: 'P', name: '磷', period: 3, group: 15, state: 'solid', isMetal: false, props: ['火柴盒側邊摩擦塗料成分', '生物體骨骼與DNA組成分', '易燃劇毒的同素異形體成分'] },
+      { z: 16, symbol: 'S', name: '硫', period: 3, group: 16, state: 'solid', isMetal: false, props: ['黃色脆性非金屬固體', '溫泉常見的黃色礦物成分', '強酸(H2SO4)工業製造原料'] },
+      { z: 17, symbol: 'Cl', name: '氯', period: 3, group: 17, state: 'gas', isMetal: false, props: ['黃綠色有毒刺激氣體', '常用於自來水消毒殺菌', '食鹽陰離子來源'] },
+      { z: 18, symbol: 'Ar', name: '氬', period: 3, group: 18, state: 'gas', isMetal: false, props: ['空氣中含量最多的稀有氣體', '常用於焊接保護氣體', '填充傳統白熾燈泡防氧化'] },
+      { z: 19, symbol: 'K', name: '鉀', period: 4, group: 1, state: 'solid', isMetal: true, props: ['紫色焰色反應', '植物肥料三要素之一', '與水反應劇烈並產生紫色火焰'] },
+      { z: 20, symbol: 'Ca', name: '鈣', period: 4, group: 2, state: 'solid', isMetal: true, props: ['人體骨骼與牙齒主要成分', '磚紅色焰色反應', '灰石與大理石的核心元素'] },
+      { z: 26, symbol: 'Fe', name: '鐵', period: 4, group: 8, state: 'solid', isMetal: true, props: ['血紅素的核心金屬離子', '應用最廣泛的過渡金屬', '具強磁性金屬'] },
+      { z: 29, symbol: 'Cu', name: '銅', period: 4, group: 11, state: 'solid', isMetal: true, props: ['紫紅色導電性極佳金屬', 'Brass 與 Bronze 合金主要成分', '常見於電線與電路板'] },
+      { z: 30, symbol: 'Zn', name: '鋅', period: 4, group: 12, state: 'solid', isMetal: true, props: ['常用於鋼材表面防銹鍍層', '乾電池負極材料', '人體重要微量元素'] },
+      { z: 35, symbol: 'Br', name: '溴', period: 4, group: 17, state: 'liquid', isMetal: false, props: ['常溫常壓下唯一液態非金屬', '紅棕色易揮發液體', '蒸氣具強烈刺激性與毒性'] },
+      { z: 36, symbol: 'Kr', name: '氪', period: 4, group: 18, state: 'gas', isMetal: false, props: ['高強度閃光燈填充氣體', '空氣中極微量的重稀有氣體', '名稱源自希臘文「隱蔽」'] },
+      { z: 47, symbol: 'Ag', name: '銀', period: 5, group: 11, state: 'solid', isMetal: true, props: ['常溫下導電性與導熱性最好的金屬', '傳統照相膠片感光成分', '延展性極佳的貴金屬'] },
+      { z: 50, symbol: 'Sn', name: '錫', period: 5, group: 14, state: 'solid', isMetal: true, props: ['馬口鐵鍍層金屬', '電路板銲接合金主要成分', '青銅合金成分之一'] },
+      { z: 53, symbol: 'I', name: '碘', period: 5, group: 17, state: 'solid', isMetal: false, props: ['紫黑色晶體易昇華', '遇澱粉會呈現藍紫色反應', '甲狀腺素合成必需元素'] },
+      { z: 56, symbol: 'Ba', name: '鋇', period: 6, group: 2, state: 'solid', isMetal: true, props: ['黃綠色焰色反應', '其硫酸鹽常用作消化道X光造影劑', '活性極高且化合物具強烈毒性的鹼土金屬'] }
+    ];
+
+    // Junior High School Natural Science Database (國中自然題庫 - 簡化版)
+    const ELEMENTS_DB_JUNIOR = [
+      { z: 1, symbol: 'H', name: '氫', period: 1, group: 1, state: 'gas', isMetal: false, props: ['最輕的氣體元素', '無色無味且燃燒生成水的氣體', '宇宙中含量最多的元素'] },
+      { z: 2, symbol: 'He', name: '氦', period: 1, group: 18, state: 'gas', isMetal: false, props: ['安全充填氣球的稀有氣體', '密度最小的惰性氣體', '宇宙中含量第二多的元素'] },
+      { z: 3, symbol: 'Li', name: '鋰', period: 2, group: 1, state: 'solid', isMetal: true, props: ['密度最小的金屬', '手機充電電池(二次電池)中的輕質金屬'] },
+      { z: 6, symbol: 'C', name: '碳', period: 2, group: 14, state: 'solid', isMetal: false, props: ['鑽石與石墨的主要元素', '木炭與煤炭的主要成分', '有機化合物的核心元素'] },
+      { z: 7, symbol: 'N', name: '氮', period: 2, group: 15, state: 'gas', isMetal: false, props: ['空氣中含量最多的氣體 (約78%)', '洋芋片包裝充填的保護氣體', '製造植物肥料(尿素)的核心元素'] },
+      { z: 8, symbol: 'O', name: '氧', period: 2, group: 16, state: 'gas', isMetal: false, props: ['生物呼吸不可或缺的氣體', '具有助燃性且佔空氣約21%的氣體', '地殼中含量最多的元素'] },
+      { z: 9, symbol: 'F', name: '氟', period: 2, group: 17, state: 'gas', isMetal: false, props: ['預防蛀牙的牙膏添加元素', '活性最強且用於防蛀牙的鹵素元素'] },
+      { z: 10, symbol: 'Ne', name: '氖', period: 2, group: 18, state: 'gas', isMetal: false, props: ['通電會發橘紅色光的惰性氣體'] },
+      { z: 11, symbol: 'Na', name: '鈉', period: 3, group: 1, state: 'solid', isMetal: true, props: ['保存在石油中且黃色焰色反應的金屬', '遇水劇烈反應產生氫氣且呈黃色焰色', '食鹽(NaCl)中的金屬陽離子成分'] },
+      { z: 12, symbol: 'Mg', name: '鎂', period: 3, group: 2, state: 'solid', isMetal: true, props: ['燃燒時發出耀眼強烈白光的金屬', '葉綠素中的核心金屬元素'] },
+      { z: 13, symbol: 'Al', name: '鋁', period: 3, group: 13, state: 'solid', isMetal: true, props: ['地殼中含量最多的金屬元素', '常用於包裝金屬箔紙與飲料罐', '質輕且表面有致密氧化層防銹的金屬'] },
+      { z: 14, symbol: 'Si', name: '矽', period: 3, group: 14, state: 'solid', isMetal: false, props: ['半導體與晶圓晶片主要原料', '沙子與石英晶體的主要元素', '地殼含量第二多的元素'] },
+      { z: 15, symbol: 'P', name: '磷', period: 3, group: 15, state: 'solid', isMetal: false, props: ['火柴盒側邊摩擦塗料中的易燃成分', '生物體DNA與骨骼中的非金屬成分'] },
+      { z: 16, symbol: 'S', name: '硫', period: 3, group: 16, state: 'solid', isMetal: false, props: ['黃色脆性非金屬固體', '火山與溫泉區常見的黃色礦物'] },
+      { z: 17, symbol: 'Cl', name: '氯', period: 3, group: 17, state: 'gas', isMetal: false, props: ['黃綠色有毒且具刺激性的氣體', '自來水消毒殺菌常用的氣體消毒劑', '食鹽(NaCl)中的非金屬陰離子'] },
+      { z: 18, symbol: 'Ar', name: '氬', period: 3, group: 18, state: 'gas', isMetal: false, props: ['空氣中含量最多的稀有氣體', '傳統白熾燈泡充填防氧化的惰性氣體'] },
+      { z: 19, symbol: 'K', name: '鉀', period: 4, group: 1, state: 'solid', isMetal: true, props: ['保存在石油中且紫色焰色反應的金屬', '植物肥料三要素(N, P, K)中的金屬成分'] },
+      { z: 20, symbol: 'Ca', name: '鈣', period: 4, group: 2, state: 'solid', isMetal: true, props: ['人類骨骼與牙齒的主要金屬成分', '大理石與石灰石的主要金屬成分'] },
+      { z: 26, symbol: 'Fe', name: '鐵', period: 4, group: 8, state: 'solid', isMetal: true, props: ['血液中血紅素的核心金屬離子', '生活中最常見具強磁性的金屬', '鋼材的主要金屬成分'] },
+      { z: 29, symbol: 'Cu', name: '銅', period: 4, group: 11, state: 'solid', isMetal: true, props: ['紫紅色、導電性極佳的金屬', '電線與電路板主要的金屬導線', '特定合金(Brass/Bronze)的基底金屬'] },
+      { z: 30, symbol: 'Zn', name: '鋅', period: 4, group: 12, state: 'solid', isMetal: true, props: ['鍍在鋼鐵表面防銹的鋼鐵鍍層金屬', '乾電池負極材料的金屬外殼'] },
+      { z: 35, symbol: 'Br', name: '溴', period: 4, group: 17, state: 'liquid', isMetal: false, props: ['常溫常壓下唯一的液態非金屬', '紅棕色的液態非金屬元素'] },
+      { z: 47, symbol: 'Ag', name: '銀', period: 5, group: 11, state: 'solid', isMetal: true, props: ['所有金屬中導電性與導熱性第一名', '亮白色貴金屬飾品常見原料'] },
+      { z: 53, symbol: 'I', name: '碘', period: 5, group: 17, state: 'solid', isMetal: false, props: ['紫黑色晶體且易昇華的非金屬', '遇澱粉會變藍紫色的元素', '加在食鹽中可預防甲狀腺腫大的元素'] }
+    ];
+
+    // Difficulty State
+    let selectedDifficulty = 'senior'; // 'junior' or 'senior'
+    let ELEMENTS_DB = ELEMENTS_DB_SENIOR;
+
+    // Broad Property Questions Pool
+    const BROAD_PROPERTY_QUESTIONS = [
+      {
+        title: "良好導電金屬",
+        hint: "請吃具有良好導電性的【金屬】元素豆子！",
+        check: (e) => e.isMetal
+      },
+      {
+        title: "常溫常壓氣體",
+        hint: "請吃常溫常壓下為【氣體】狀態的元素豆子！",
+        check: (e) => e.state === 'gas'
+      },
+      {
+        title: "鹼金族元素",
+        hint: "請吃週期表中【第 1 族】的活性金屬元素豆子！",
+        check: (e) => e.group === 1 && e.z !== 1
+      },
+      {
+        title: "鹵素元素",
+        hint: "請吃週期表中【第 17 族】的鹵素元素豆子！",
+        check: (e) => e.group === 17
+      },
+      {
+        title: "稀有/惰性氣體",
+        hint: "請吃週期表中【第 18 族】性質極不活潑的氣體豆子！",
+        check: (e) => e.group === 18
+      }
+    ];
+
+    // HUD & DOM Elements
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const lengthDisplay = document.getElementById('lengthDisplay');
+
+    const targetNameText = document.getElementById('targetNameText');
+    const targetCategoryText = document.getElementById('targetCategoryText');
+    const targetBadge = document.getElementById('targetBadge');
+    const targetRewardText = document.getElementById('targetRewardText');
+    const targetModeTag = document.getElementById('targetModeTag');
+    const phaseNoticePill = document.getElementById('phaseNoticePill');
+    const diffModeBadge = document.getElementById('diffModeBadge');
+
+    const sidebarQuestionHint = document.getElementById('sidebarQuestionHint');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+
+    const diffJuniorBtn = document.getElementById('diffJuniorBtn');
+    const diffSeniorBtn = document.getElementById('diffSeniorBtn');
+
+    function setDifficulty(diff) {
+      selectedDifficulty = diff;
+      if (diff === 'junior') {
+        ELEMENTS_DB = ELEMENTS_DB_JUNIOR;
+        diffModeBadge.innerText = '國中難度';
+        diffModeBadge.className = 'px-2 py-0.5 rounded-full bg-slate-800 border border-emerald-500/40 text-emerald-300 text-[9px] font-bold';
+        
+        diffJuniorBtn.className = 'px-3 py-1.5 rounded-lg border border-emerald-400 bg-emerald-500/20 text-emerald-300 font-bold shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1';
+        diffSeniorBtn.className = 'px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold hover:border-cyan-400 transition-all flex items-center gap-1';
+      } else {
+        ELEMENTS_DB = ELEMENTS_DB_SENIOR;
+        diffModeBadge.innerText = '高中難度';
+        diffModeBadge.className = 'px-2 py-0.5 rounded-full bg-slate-800 border border-amber-500/40 text-amber-300 text-[9px] font-bold';
+
+        diffSeniorBtn.className = 'px-3 py-1.5 rounded-lg border border-cyan-400 bg-cyan-500/20 text-cyan-300 font-bold shadow-md shadow-cyan-500/20 transition-all flex items-center gap-1';
+        diffJuniorBtn.className = 'px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-400 font-bold hover:border-cyan-400 transition-all flex items-center gap-1';
+      }
+    }
+
+    diffJuniorBtn.addEventListener('click', () => setDifficulty('junior'));
+    diffSeniorBtn.addEventListener('click', () => setDifficulty('senior'));
+
+    // Game Variables
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('chem_snake_highscore') || '0');
+    let level = 1;
+    let eatenCount = 0;
+
+    let snake = [];
+    let snakeHistory = [];
+    let dir = { x: 1, y: 0 };
+    let nextDir = { x: 1, y: 0 };
+
+    let foods = [];
+    let particles = [];
+    let floatingTexts = [];
+    let answerLog = []; // Answer History Tracker
+
+    // Streaming & Question Limits Tracker
+    let symbolNameEatenCount = {}; // { z: count } for Name<->Symbol matching (max 3 per element)
+    let usedSpecificProps = new Set(); // Set of `${z}_${propIndex}`
+    let usedBroadPropsCount = {}; // { broadTitle: count } (max 2 per broad property)
+
+    let isRunning = false;
+    let isPaused = false;
+
+    let baseSpeed = 170; // 慢速模式起步 (Slow speed start)
+    let currentSpeed = 170;
+    let gameLoopTimeout = null;
+
+    let activeQuestion = null;
+
+    // Web Audio Synthesizer
+    const sound = {
+      enabled: true,
+      ctx: null,
+      bgmTimer: null,
+      bgmStep: 0,
+      bgmLevel: 1,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+      },
+      playBeep(freq, type, duration, vol = 0.1) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      },
+      playTurn() { this.playBeep(400, 'sine', 0.05, 0.05); },
+      playCorrect() {
+        this.playBeep(523.25, 'triangle', 0.08, 0.15);
+        setTimeout(() => this.playBeep(659.25, 'triangle', 0.6, 0.15), 60);
+        setTimeout(() => this.playBeep(783.99, 'triangle', 0.18, 0.15), 120);
+      },
+      playWrong() {
+        this.playBeep(220, 'sawtooth', 0.15, 0.2);
+        setTimeout(() => this.playBeep(160, 'sawtooth', 0.25, 0.2), 120);
+      },
+      playGameOver() {
+        this.stopBgm();
+        this.playBeep(300, 'sawtooth', 0.2, 0.2);
+        setTimeout(() => this.playBeep(220, 'sawtooth', 0.25, 0.2), 150);
+        setTimeout(() => this.playBeep(150, 'sawtooth', 0.4, 0.2), 350);
+      },
+      playVictory() {
+        this.stopBgm();
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playBeep(freq, 'triangle', 0.25, 0.18), idx * 90);
+        });
+      },
+      // Dynamic BGM Engine
+      startBgm() {
+        this.stopBgm();
+        if (!this.enabled) return;
+        this.init();
+        this.tickBgm();
+      },
+      stopBgm() {
+        if (this.bgmTimer) {
+          clearTimeout(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      },
+      tickBgm() {
+        if (!this.enabled || !isRunning || isPaused) return;
+        
+        // Synth scale notes in Hz (C Minor Pentatonic Scale)
+        const scale = [
+          130.81, 155.56, 174.61, 196.00, 233.08, // C3, Eb3, F3, G3, Bb3
+          261.63, 311.13, 349.23, 392.00, 466.16  // C4, Eb4, F4, G4, Bb4
+        ];
+        
+        // 16-step Arpeggio Pattern
+        const bassPattern = [0, 2, 3, 4, 1, 3, 4, 2, 0, 3, 4, 5, 2, 4, 3, 1];
+        
+        const step = this.bgmStep % bassPattern.length;
+        let noteIdx = bassPattern[step];
+        
+        // Dynamic pitch shift as level increases
+        if (this.bgmLevel >= 3 && step % 4 === 2) {
+          noteIdx += 2;
+        }
+        if (this.bgmLevel >= 5 && step % 2 === 1) {
+          noteIdx = (noteIdx + 3) % scale.length;
+        }
+
+        const freq = scale[noteIdx % scale.length];
+        const waveType = (this.bgmLevel >= 4 && step % 4 === 0) ? 'square' : 'triangle';
+        const vol = 0.035; 
+        const dur = 0.12;
+
+        this.playBeep(freq, waveType, dur, vol);
+
+        // Hi-hat sound layer for Lv.2+
+        if (this.bgmLevel >= 2 && step % 2 === 0) {
+          this.playBeep(850 + (step * 40), 'sine', 0.02, 0.012);
+        }
+
+        this.bgmStep++;
+
+        // BGM Tempo Speeds Up with Level (ms per step)
+        const interval = Math.max(120, 260 - (this.bgmLevel - 1) * 35);
+        this.bgmTimer = setTimeout(() => this.tickBgm(), interval);
+      },
+      updateBgmLevel(lvl) {
+        this.bgmLevel = lvl;
+      }
+    };
+
+    // Responsive Canvas Resize
+    function resizeCanvas() {
+      if (!canvas || !canvas.parentElement) return;
+      const container = canvas.parentElement;
+      const rect = container.getBoundingClientRect();
+      const size = Math.floor(Math.min(rect.width, rect.height));
+
+      if (size > 0) {
+        canvas.width = size;
+        canvas.height = size;
+        CELL_SIZE = canvas.width / GRID_SIZE;
+        if (isRunning) draw();
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function setDirection(dx, dy) {
+      if (!isRunning || isPaused) return;
+      if (dx === -dir.x && dy === -dir.y) return;
+      if (dx !== dir.x || dy !== dir.y) {
+        nextDir = { x: dx, y: dy };
+        sound.playTurn();
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': case 'w': case 'W': setDirection(0, -1); break;
+        case 'ArrowDown': case 's': case 'S': setDirection(0, 1); break;
+        case 'ArrowLeft': case 'a': case 'A': setDirection(-1, 0); break;
+        case 'ArrowRight': case 'd': case 'D': setDirection(1, 0); break;
+        case ' ':
+          e.preventDefault();
+          togglePause();
+          break;
+      }
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (!touchStartX || !touchStartY) return;
+      let diffX = e.changedTouches[0].clientX - touchStartX;
+      let diffY = e.changedTouches[0].clientY - touchStartY;
+
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (Math.abs(diffX) > 20) setDirection(diffX > 0 ? 1 : -1, 0);
+      } else {
+        if (Math.abs(diffY) > 20) setDirection(0, diffY > 0 ? 1 : -1);
+      }
+      touchStartX = 0;
+    touchStartY = 0;
+  }, { passive: true });
+
+  // D-Pad Bindings with Safe Optional Chaining
+  document.getElementById('dpadUp')?.addEventListener('click', () => setDirection(0, -1));
+  document.getElementById('dpadDown')?.addEventListener('click', () => setDirection(0, 1));
+  document.getElementById('dpadLeft')?.addEventListener('click', () => setDirection(-1, 0));
+  document.getElementById('dpadRight')?.addEventListener('click', () => setDirection(1, 0));
+
+  document.getElementById('mobileDpadUp')?.addEventListener('click', () => setDirection(0, -1));
+  document.getElementById('mobileDpadDown')?.addEventListener('click', () => setDirection(0, 1));
+    function initGame() {
+      score = 0;
+      level = 1;
+      eatenCount = 0;
+      answerLog = [];
+      
+      // Reset Question Quotas
+      symbolNameEatenCount = {};
+      usedSpecificProps = new Set();
+      usedBroadPropsCount = {};
+
+      updateHUD();
+
+      const startX = Math.floor(GRID_SIZE / 2);
+      const startY = Math.floor(GRID_SIZE / 2);
+      const defaultElem = ELEMENTS_DB[0];
+
+      snake = [
+        { x: startX, y: startY },
+        { x: startX - 1, y: startY },
+        { x: startX - 2, y: startY }
+      ];
+
+      snakeHistory = [defaultElem, defaultElem];
+
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+
+      particles = [];
+      floatingTexts = [];
+
+      startOverlay.classList.add('hidden');
+      pauseOverlay.classList.add('hidden');
+      gameOverOverlay.classList.add('hidden');
+      document.getElementById('victoryOverlay').classList.add('hidden');
+
+      pickNewQuestion();
+
+      isRunning = true;
+      isPaused = false;
+
+      sound.updateBgmLevel(1);
+      sound.startBgm();
+
+      runGameLoop();
+    }
+
+    function getAvailableElementsForSymName() {
+      let pool = [];
+      if (level === 1) pool = ELEMENTS_DB.filter(e => e.z <= 10);
+      else if (level === 2) pool = ELEMENTS_DB.filter(e => e.z <= 20);
+      else pool = ELEMENTS_DB.filter(e => e.period > 2); // Level 3+: Filter out Period 1-2 elements
+
+      return pool.filter(e => (symbolNameEatenCount[e.z] || 0) < 3);
+    }
+
+    function getAvailableSpecificProps() {
+      let pool = [];
+      if (level >= 5) {
+        pool = ELEMENTS_DB; // Phase 3 (Lv.5+): All elements available for properties
+      } else {
+        pool = ELEMENTS_DB.filter(e => e.period > 2);
+      }
+
+      let available = [];
+      pool.forEach(e => {
+        e.props.forEach((propStr, idx) => {
+          const key = `${e.z}_${idx}`;
+          if (!usedSpecificProps.has(key)) {
+            available.push({ element: e, propStr: propStr, propIndex: idx, key: key });
+          }
+        });
+      });
+      return available;
+    }
+
+    function getAvailableBroadProps() {
+      return BROAD_PROPERTY_QUESTIONS.filter(bq => (usedBroadPropsCount[bq.title] || 0) < 2);
+    }
+
+    function getFoodCountForLevel() {
+      return Math.min(2 + level, 7);
+    }
+
+    function pickNewQuestion() {
+      const symNamePool = getAvailableElementsForSymName();
+      const specPropsPool = getAvailableSpecificProps();
+      const broadPropsPool = getAvailableBroadProps();
+
+      if (symNamePool.length === 0 && specPropsPool.length === 0 && broadPropsPool.length === 0) {
+        triggerVictory();
+        return;
+      }
+
+      let qType = "NAME_TO_SYM";
+      if (level <= 2) {
+        if (symNamePool.length > 0) {
+          qType = Math.random() > 0.5 ? "NAME_TO_SYM" : "SYM_TO_NAME";
+        } else if (specPropsPool.length > 0 || broadPropsPool.length > 0) {
+          qType = "PROPERTY";
+        }
+      } else if (level <= 4) {
+        const canDoSym = symNamePool.length > 0;
+        const canDoProp = (specPropsPool.length > 0 || broadPropsPool.length > 0);
+
+        if (canDoSym && canDoProp) {
+          const rand = Math.random();
+          if (rand < 0.35) qType = "NAME_TO_SYM";
+          else if (rand < 0.70) qType = "SYM_TO_NAME";
+          else qType = "PROPERTY";
+        } else if (canDoProp) {
+          qType = "PROPERTY";
+        } else {
+          qType = Math.random() > 0.5 ? "NAME_TO_SYM" : "SYM_TO_NAME";
+        }
+      } else {
+        // Level 5+: Phase 3 (100% Property questions)
+        if (specPropsPool.length > 0 || broadPropsPool.length > 0) {
+          qType = "PROPERTY";
+        } else if (symNamePool.length > 0) {
+          qType = Math.random() > 0.5 ? "NAME_TO_SYM" : "SYM_TO_NAME";
+        }
+      }
+
+      if (qType === "NAME_TO_SYM" && symNamePool.length > 0) {
+        const targetElem = symNamePool[Math.floor(Math.random() * symNamePool.length)];
+        activeQuestion = {
+          type: "NAME_TO_SYM",
+          prompt: `${targetElem.name}`,
+          category: "請尋找元素符號",
+          badge: `Z=${targetElem.z}`,
+          reward: `+${targetElem.z} 分`,
+          hint: `看名稱「${targetElem.name}」，吃對應的【元素符號】豆子！`,
+          foodDisplayMode: "SYMBOL",
+          checkCorrect: (elem) => elem.z === targetElem.z
+        };
+      } else if (qType === "SYM_TO_NAME" && symNamePool.length > 0) {
+        const targetElem = symNamePool[Math.floor(Math.random() * symNamePool.length)];
+        activeQuestion = {
+          type: "SYM_TO_NAME",
+          prompt: `${targetElem.symbol}`,
+          category: "請尋找中文名稱",
+          badge: `Z=${targetElem.z}`,
+          reward: `+${targetElem.z} 分`,
+          hint: `看符號「${targetElem.symbol}」，吃對應的【中文名稱】豆子！`,
+          foodDisplayMode: "NAME",
+          checkCorrect: (elem) => elem.z === targetElem.z
+        };
+      } else {
+        const foodDisp = Math.random() > 0.5 ? "SYMBOL" : "NAME";
+        const preferBroad = Math.random() > 0.5;
+
+        if ((preferBroad && broadPropsPool.length > 0) || specPropsPool.length === 0) {
+          const broadQ = broadPropsPool[Math.floor(Math.random() * broadPropsPool.length)];
+          activeQuestion = {
+            type: "PROPERTY",
+            broadKey: broadQ.title,
+            prompt: broadQ.title,
+            category: `課本元素屬性題 (${foodDisp === "SYMBOL" ? "尋找符號" : "尋找名稱"})`,
+            badge: "特性題",
+            reward: "依原子序",
+            hint: broadQ.hint,
+            foodDisplayMode: foodDisp,
+            checkCorrect: broadQ.check
+          };
+        } else {
+          const chosenPropObj = specPropsPool[Math.floor(Math.random() * specPropsPool.length)];
+          const targetElem = chosenPropObj.element;
+
+          activeQuestion = {
+            type: "PROPERTY",
+            propKey: chosenPropObj.key,
+            prompt: `「${chosenPropObj.propStr}」`,
+            category: `課本特性題 (${foodDisp === "SYMBOL" ? "尋找符號" : "尋找名稱"})`,
+            badge: `Z=${targetElem.z}`,
+            reward: `+${targetElem.z} 分`,
+            hint: `依特性記述，吃正確對應的元素豆子！`,
+            foodDisplayMode: foodDisp,
+            checkCorrect: (elem) => elem.z === targetElem.z
+          };
+        }
+      }
+
+      targetNameText.innerText = activeQuestion.prompt;
+      targetCategoryText.innerText = activeQuestion.category;
+      targetBadge.innerText = activeQuestion.badge;
+      targetRewardText.innerText = activeQuestion.reward;
+
+      if (activeQuestion.prompt.length > 16) {
+        targetNameText.className = "text-xs font-extrabold text-slate-100 font-tech break-words leading-tight";
+      } else if (activeQuestion.prompt.length > 10) {
+        targetNameText.className = "text-xs sm:text-sm font-black text-slate-100 font-tech break-words leading-tight";
+      } else {
+        targetNameText.className = "text-sm sm:text-base font-black text-slate-100 font-tech break-words leading-tight";
+      }
+
+      if (level >= 5) {
+        targetModeTag.innerText = "Phase 3: 全性質題目考驗";
+        targetModeTag.className = "px-2 py-0.5 rounded-full bg-purple-950 border border-purple-500/40 text-purple-300 text-[9px] font-bold";
+        phaseNoticePill.innerText = "[第三階段]";
+        phaseNoticePill.className = "text-purple-400 font-bold";
+      } else if (level >= 3) {
+        targetModeTag.innerText = "Phase 2: 特性題解鎖";
+        targetModeTag.className = "px-2 py-0.5 rounded-full bg-pink-950 border border-pink-500/40 text-pink-300 text-[9px] font-bold";
+        phaseNoticePill.innerText = "[第二階段]";
+        phaseNoticePill.className = "text-pink-400 font-bold";
+      } else {
+        targetModeTag.innerText = "Phase 1: 基礎對應";
+        targetModeTag.className = "px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[9px] font-bold";
+        phaseNoticePill.innerText = "[第一階段]";
+        phaseNoticePill.className = "text-emerald-400 font-bold";
+      }
+
+      sidebarQuestionHint.innerText = activeQuestion.hint;
+      spawnFoods();
+    }
+
+    function spawnFoods() {
+      foods = [];
+      const totalCount = getFoodCountForLevel();
+      const availablePool = ELEMENTS_DB;
+
+      const correctCandidates = availablePool.filter(e => activeQuestion.checkCorrect(e));
+      const validPool = correctCandidates.length > 0 ? correctCandidates : ELEMENTS_DB;
+      const chosenCorrectElem = validPool[Math.floor(Math.random() * validPool.length)];
+
+      let correctPos = getRandomEmptyPos();
+      foods.push({
+        x: correctPos.x,
+        y: correctPos.y,
+        element: chosenCorrectElem,
+        displayMode: activeQuestion.foodDisplayMode
+      });
+
+      const wrongPool = availablePool.filter(e => !activeQuestion.checkCorrect(e));
+
+      for (let i = 1; i < totalCount; i++) {
+        let pos = getRandomEmptyPos();
+        let wrongElem = wrongPool.length > 0 ? wrongPool[Math.floor(Math.random() * wrongPool.length)] : ELEMENTS_DB[0];
+        
+        foods.push({
+          x: pos.x,
+          y: pos.y,
+          element: wrongElem,
+          displayMode: activeQuestion.foodDisplayMode
+        });
+      }
+    }
+
+    function getRandomEmptyPos() {
+      let valid = false;
+      let rx, ry;
+
+      while (!valid) {
+        rx = Math.floor(Math.random() * GRID_SIZE);
+        ry = Math.floor(Math.random() * GRID_SIZE);
+
+        const onSnake = snake.some(s => s.x === rx && s.y === ry);
+        const onFood = foods.some(f => f.x === rx && f.y === ry);
+
+        if (!onSnake && !onFood) valid = true;
+      }
+      return { x: rx, y: ry };
+    }
+
+    function runGameLoop() {
+      if (gameLoopTimeout) clearTimeout(gameLoopTimeout);
+      if (!isRunning || isPaused) return;
+
+      currentSpeed = Math.max(45, baseSpeed - (level - 1) * 12);
+
+      update();
+      draw();
+
+      gameLoopTimeout = setTimeout(runGameLoop, currentSpeed);
+    }
+
+    function recordAnswer(question, eatenElem, isCorrect) {
+      const isProp = (question.type === 'PROPERTY');
+      answerLog.push({
+        prompt: question.prompt,
+        category: isProp ? 'PROPERTY' : 'SYM_NAME',
+        chosen: `${eatenElem.name} (${eatenElem.symbol})`,
+        isCorrect: isCorrect
+      });
+    }
+
+    function handleCorrectEat(eatenFood) {
+      eatenCount++;
+      sound.playCorrect();
+
+      recordAnswer(activeQuestion, eatenFood.element, true);
+
+      if (activeQuestion.type === "NAME_TO_SYM" || activeQuestion.type === "SYM_TO_NAME") {
+        const z = eatenFood.element.z;
+        symbolNameEatenCount[z] = (symbolNameEatenCount[z] || 0) + 1;
+      } else if (activeQuestion.type === "PROPERTY") {
+        if (activeQuestion.propKey) {
+          usedSpecificProps.add(activeQuestion.propKey);
+        } else if (activeQuestion.broadKey) {
+          usedBroadPropsCount[activeQuestion.broadKey] = (usedBroadPropsCount[activeQuestion.broadKey] || 0) + 1;
+        }
+      }
+
+      const earnedPts = eatenFood.element.z;
+      score += earnedPts;
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('chem_snake_highscore', highScore);
+      }
+
+      checkLevelUp();
+
+      createParticles(eatenFood.x, eatenFood.y, '#22c55e', 14);
+      addFloatingText(`+${earnedPts}分 (${eatenFood.element.name})`, eatenFood.x, eatenFood.y, '#22c55e');
+
+      updateHUD();
+      pickNewQuestion();
+    }
+
+    function handleWrongEat(eatenFood) {
+      sound.playWrong();
+      
+      recordAnswer(activeQuestion, eatenFood.element, false);
+
+      const wrongElem = eatenFood.element;
+      const penaltySegments = wrongElem.period;
+      const penaltyPoints = wrongElem.z;
+
+      score = Math.max(0, score - penaltyPoints);
+
+      createParticles(eatenFood.x, eatenFood.y, '#ef4444', 18);
+      addFloatingText(`吃錯! -${penaltyPoints}分 斷${penaltySegments}節`, eatenFood.x, eatenFood.y, '#f87171');
+
+      for (let i = 0; i < penaltySegments; i++) {
+        if (snake.length > 1) {
+          snake.pop();
+          if (snakeHistory.length > 0) snakeHistory.pop();
+        } else {
+          triggerGameOver(`吃錯元素「${wrongElem.name} (${wrongElem.symbol})」！它是 Z=${wrongElem.z}、第 ${wrongElem.period} 週期元素，導致扣除 ${penaltyPoints} 分並斷裂 ${penaltySegments} 節死亡！`);
+          return true;
+        }
+      }
+
+      spawnFoods();
+      updateHUD();
+      return false;
+    }
+
+    function update() {
+      dir = nextDir;
+      
+      let head = { 
+        x: snake[0].x + dir.x, 
+        y: snake[0].y + dir.y
+      };
+
+      // 經典穿越模式 (Classic Wrap-around)
+      if (head.x < 0) head.x = GRID_SIZE - 1;
+      if (head.x >= GRID_SIZE) head.x = 0;
+      if (head.y < 0) head.y = GRID_SIZE - 1;
+      if (head.y >= GRID_SIZE) head.y = 0;
+
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          triggerGameOver('事故發生！蛇咬到了自己的身軀。');
+          return;
+        }
+      }
+
+      let eatenIndex = foods.findIndex(f => f.x === head.x && f.y === head.y);
+
+      if (eatenIndex !== -1) {
+        let eatenFood = foods[eatenIndex];
+        const isCorrect = activeQuestion.checkCorrect(eatenFood.element);
+
+        if (isCorrect) {
+          snake.unshift(head);
+          snakeHistory.push(eatenFood.element);
+          handleCorrectEat(eatenFood);
+        } else {
+          let dead = handleWrongEat(eatenFood);
+          if (dead) return;
+        }
+      } else {
+        snake.unshift(head);
+        snake.pop();
+      }
+
+      updateParticlesAndText();
+    }
+
+    function checkLevelUp() {
+      let oldLevel = level;
+      let computedLevel = 1;
+      if (score >= 400) computedLevel = 5;
+      else if (score >= 220) computedLevel = 4;
+      else if (score >= 110) computedLevel = 3;
+      else if (score >= 45) computedLevel = 2;
+      else computedLevel = 1;
+
+      level = Math.max(oldLevel, computedLevel);
+      sound.updateBgmLevel(level);
+
+      if (level > oldLevel) {
+        sound.playCorrect();
+        addFloatingText(`升級到 Lv.${level}！`, snake[0].x, snake[0].y, '#38bdf8');
+      }
+    }
+
+    function updateHUD() {
+      scoreDisplay.innerText = String(score).padStart(5, '0');
+      highScoreDisplay.innerText = String(highScore).padStart(5, '0');
+      levelDisplay.innerText = `Lv.${level}`;
+      lengthDisplay.innerText = `${snake.length} 節`;
+    }
+
+    function createParticles(gx, gy, color, count = 10) {
+      const px = gx * CELL_SIZE + CELL_SIZE / 2;
+      const py = gy * CELL_SIZE + CELL_SIZE / 2;
+
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: px,
+          y: py,
+          vx: (Math.random() - 0.5) * 7,
+          vy: (Math.random() - 0.5) * 7,
+          life: 1.0,
+          color: color
+        });
+      }
+    }
+
+    function addFloatingText(text, gx, gy, color) {
+      floatingTexts.push({
+        text: text,
+        x: gx * CELL_SIZE + CELL_SIZE / 2,
+        y: gy * CELL_SIZE,
+        vy: -1.2,
+        life: 1.0,
+        color: color
+      });
+    }
+
+    function updateParticlesAndText() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.04;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        let ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.life -= 0.025;
+        if (ft.life <= 0) floatingTexts.splice(i, 1);
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = '#080c14';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= GRID_SIZE; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL_SIZE, 0);
+        ctx.lineTo(i * CELL_SIZE, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * CELL_SIZE);
+        ctx.lineTo(canvas.width, i * CELL_SIZE);
+        ctx.stroke();
+      }
+
+      // Draw Foods
+      foods.forEach(f => {
+        const x = f.x * CELL_SIZE;
+        const y = f.y * CELL_SIZE;
+
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(245, 158, 11, 0.7)';
+
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.roundRect(x + 1.5, y + 1.5, CELL_SIZE - 3, CELL_SIZE - 3, 6);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath();
+        ctx.roundRect(x + 3, y + 3, CELL_SIZE - 6, CELL_SIZE - 6, 4);
+        ctx.fill();
+
+        const textToShow = (f.displayMode === "NAME") ? f.element.name : f.element.symbol;
+
+        ctx.fillStyle = '#fde047';
+        let fontSize = CELL_SIZE * 0.52;
+        if (textToShow.length > 2) fontSize = CELL_SIZE * 0.38;
+        ctx.font = `bold ${fontSize}px 'Chakra Petch', 'Noto Sans TC', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(textToShow, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + 1);
+      });
+
+      // Draw Snake Segments
+      snake.forEach((seg, index) => {
+        const x = seg.x * CELL_SIZE;
+        const y = seg.y * CELL_SIZE;
+
+        if (index === 0) {
+          ctx.shadowBlur = 18;
+          ctx.shadowColor = 'rgba(6, 182, 212, 0.9)';
+
+          ctx.fillStyle = '#06b6d4';
+          ctx.beginPath();
+          ctx.roundRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2, 8);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = '#082f49';
+          ctx.beginPath();
+          ctx.roundRect(x + 3, y + 3, CELL_SIZE - 6, CELL_SIZE - 6, 6);
+          ctx.fill();
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#38bdf8';
+          
+          let eyeX = x + CELL_SIZE / 2 + dir.x * 4;
+          let eyeY = y + CELL_SIZE / 2 + dir.y * 4;
+          ctx.beginPath();
+          ctx.arc(eyeX, eyeY, CELL_SIZE * 0.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        } else {
+          let historyIdx = snakeHistory.length - index;
+          let elem = (historyIdx >= 0 && historyIdx < snakeHistory.length) ? snakeHistory[historyIdx] : ELEMENTS_DB[0];
+
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'rgba(168, 85, 247, 0.4)';
+
+          ctx.fillStyle = '#581c87';
+          ctx.beginPath();
+          ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 6);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.roundRect(x + 3.5, y + 3.5, CELL_SIZE - 7, CELL_SIZE - 7, 4);
+          ctx.fill();
+
+          // Element symbol
+          ctx.fillStyle = '#e9d5ff';
+          let fontSize = CELL_SIZE * 0.4;
+          if (elem.symbol.length > 2) fontSize = CELL_SIZE * 0.3;
+          ctx.font = `bold ${fontSize}px 'Chakra Petch', sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(elem.symbol, x + CELL_SIZE / 2, y + CELL_SIZE / 2 - 2);
+
+          // Atomic number Z indicator
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = `bold ${CELL_SIZE * 0.22}px 'Chakra Petch', sans-serif`;
+          ctx.fillText(`Z=${elem.z}`, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + CELL_SIZE * 0.28);
+        }
+      });
+
+      // Draw Particles
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Draw Floating Texts
+      floatingTexts.forEach(ft => {
+        ctx.fillStyle = ft.color;
+        ctx.globalAlpha = ft.life;
+        ctx.font = "bold 12px 'Noto Sans TC', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.globalAlpha = 1.0;
+      });
+    }
+
+    function renderAnswerLog() {
+      const symNameList = document.getElementById('symNameLogList');
+      const propList = document.getElementById('propLogList');
+      const logCountBadge = document.getElementById('logCountBadge');
+
+      logCountBadge.innerText = `共 ${answerLog.length} 題`;
+      symNameList.innerHTML = '';
+      propList.innerHTML = '';
+
+      const symNameEntries = answerLog.filter(item => item.category === 'SYM_NAME');
+      const propEntries = answerLog.filter(item => item.category === 'PROPERTY');
+
+      if (symNameEntries.length === 0) {
+        symNameList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        symNameEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-1 py-0.5 border-b border-slate-800/40";
+          const icon = item.isCorrect 
+            ? '<i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>' 
+            : '<i class="fa-solid fa-circle-xmark text-red-400 mt-0.5 shrink-0"></i>';
+          
+          li.innerHTML = `
+            <div class="flex items-start gap-1 min-w-0">
+              ${icon}
+              <span class="truncate text-slate-200">題目: <strong class="text-cyan-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0 ml-1">
+              ${item.chosen}
+            </span>
+          `;
+          symNameList.appendChild(li);
+        });
+      }
+
+      if (propEntries.length === 0) {
+        propList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        propEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-1 py-0.5 border-b border-slate-800/40";
+          const icon = item.isCorrect 
+            ? '<i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>' 
+            : '<i class="fa-solid fa-circle-xmark text-red-400 mt-0.5 shrink-0"></i>';
+          
+          li.innerHTML = `
+            <div class="flex items-start gap-1 min-w-0">
+              ${icon}
+              <span class="truncate text-slate-200">題目: <strong class="text-pink-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0 ml-1">
+              ${item.chosen}
+            </span>
+          `;
+          propList.appendChild(li);
+        });
+      }
+    }
+
+    function triggerVictory() {
+      isRunning = false;
+      sound.playVictory();
+
+      document.getElementById('vicFinalScore').innerText = score;
+      document.getElementById('vicHighScore').innerText = highScore;
+      document.getElementById('vicLevel').innerText = `Lv.${level}`;
+      document.getElementById('vicEatenCount').innerText = `${eatenCount} 個`;
+
+      const vicSymNameList = document.getElementById('vicSymNameLogList');
+      const vicPropList = document.getElementById('vicPropLogList');
+      const vicLogBadge = document.getElementById('vicLogCountBadge');
+
+      vicLogBadge.innerText = `共 ${answerLog.length} 題`;
+      vicSymNameList.innerHTML = '';
+      vicPropList.innerHTML = '';
+
+      const symNameEntries = answerLog.filter(item => item.category === 'SYM_NAME');
+      const propEntries = answerLog.filter(item => item.category === 'PROPERTY');
+
+      if (symNameEntries.length === 0) {
+        vicSymNameList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        symNameEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-1 py-0.5 border-b border-slate-800/40";
+          const icon = item.isCorrect 
+            ? '<i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>' 
+            : '<i class="fa-solid fa-circle-xmark text-red-400 mt-0.5 shrink-0"></i>';
+          
+          li.innerHTML = `
+            <div class="flex items-start gap-1 min-w-0">
+              ${icon}
+              <span class="truncate text-slate-200">題目: <strong class="text-cyan-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0 ml-1">
+              ${item.chosen}
+            </span>
+          `;
+          vicSymNameList.appendChild(li);
+        });
+      }
+
+      if (propEntries.length === 0) {
+        vicPropList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        propEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-1 py-0.5 border-b border-slate-800/40";
+          const icon = item.isCorrect 
+            ? '<i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>' 
+            : '<i class="fa-solid fa-circle-xmark text-red-400 mt-0.5 shrink-0"></i>';
+          
+          li.innerHTML = `
+            <div class="flex items-start gap-1 min-w-0">
+              ${icon}
+              <span class="truncate text-slate-200">題目: <strong class="text-pink-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0 ml-1">
+              ${item.chosen}
+            </span>
+          `;
+          vicPropList.appendChild(li);
+        });
+      }
+
+      document.getElementById('victoryOverlay').classList.remove('hidden');
+    }
+
+    function triggerGameOver(reasonText) {
+      isRunning = false;
+      sound.playGameOver();
+
+      finalScore.innerText = score;
+      finalHighScore.innerText = highScore;
+      finalLevel.innerText = `Lv.${level}`;
+      finalEatenCount.innerText = `${eatenCount} 個`;
+      gameOverReason.innerText = reasonText;
+
+      renderAnswerLog();
+
+      gameOverOverlay.classList.remove('hidden');
+    }
+
+    function generatePDFReport() {
+      const container = document.getElementById('pdfReportContainer');
+      const now = new Date();
+      const timeStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      
+      document.getElementById('pdfReportTime').innerText = `測驗時間: ${timeStr}`;
+      document.getElementById('pdfReportDiffBadge').innerText = (selectedDifficulty === 'junior') ? '國中難度' : '高中難度';
+      document.getElementById('pdfScore').innerText = score;
+      document.getElementById('pdfLevel').innerText = `Lv.${level}`;
+      document.getElementById('pdfEaten').innerText = `${eatenCount} 個`;
+      document.getElementById('pdfTotalQ').innerText = `${answerLog.length} 題`;
+
+      const pdfSymNameList = document.getElementById('pdfSymNameList');
+      const pdfPropList = document.getElementById('pdfPropList');
+
+      pdfSymNameList.innerHTML = '';
+      pdfPropList.innerHTML = '';
+
+      const symNameEntries = answerLog.filter(item => item.category === 'SYM_NAME');
+      const propEntries = answerLog.filter(item => item.category === 'PROPERTY');
+
+      if (symNameEntries.length === 0) {
+        pdfSymNameList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        symNameEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-2 py-1 border-b border-slate-800/60";
+          const statusText = item.isCorrect ? '<span class="text-emerald-400 font-bold">[ 正確 ]</span>' : '<span class="text-red-400 font-bold">[ 錯誤 ]</span>';
+          li.innerHTML = `
+            <div class="flex items-start gap-1.5 min-w-0">
+              ${statusText}
+              <span class="text-slate-200">題目: <strong class="text-cyan-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0">
+              選擇答案: ${item.chosen}
+            </span>
+          `;
+          pdfSymNameList.appendChild(li);
+        });
+      }
+
+      if (propEntries.length === 0) {
+        pdfPropList.innerHTML = '<li class="text-slate-500 italic">無答題紀錄</li>';
+      } else {
+        propEntries.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-start justify-between gap-2 py-1 border-b border-slate-800/60";
+          const statusText = item.isCorrect ? '<span class="text-emerald-400 font-bold">[ 正確 ]</span>' : '<span class="text-red-400 font-bold">[ 錯誤 ]</span>';
+          li.innerHTML = `
+            <div class="flex items-start gap-1.5 min-w-0">
+              ${statusText}
+              <span class="text-slate-200">題目: <strong class="text-pink-300">${item.prompt}</strong></span>
+            </div>
+            <span class="${item.isCorrect ? 'text-emerald-300' : 'text-red-300 font-bold'} shrink-0">
+              選擇答案: ${item.chosen}
+            </span>
+          `;
+          pdfPropList.appendChild(li);
+        });
+      }
+
+      const opt = {
+        margin:       8,
+        filename:     `化學元素貪食蛇_學習紀錄_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#020617' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(container).save();
+    }
+
+    function togglePause() {
+      if (!isRunning) return;
+      isPaused = !isPaused;
+      if (isPaused) {
+        if (gameLoopTimeout) clearTimeout(gameLoopTimeout);
+        sound.stopBgm();
+        pauseOverlay.classList.remove('hidden');
+      } else {
+        pauseOverlay.classList.add('hidden');
+        sound.startBgm();
+        runGameLoop();
+      }
+    }
+
+    document.getElementById('startGameBtn')?.addEventListener('click', () => {
+      sound.init();
+      initGame();
+    });
+
+    document.getElementById('playAgainBtn')?.addEventListener('click', () => {
+      initGame();
+    });
+
+    document.getElementById('vicPlayAgainBtn')?.addEventListener('click', () => {
+      initGame();
+    });
+
+    document.getElementById('downloadPdfBtn')?.addEventListener('click', generatePDFReport);
+    document.getElementById('vicDownloadPdfBtn')?.addEventListener('click', generatePDFReport);
+
+    document.getElementById('pauseBtn')?.addEventListener('click', togglePause);
+    document.getElementById('mobilePauseBtn')?.addEventListener('click', togglePause);
+    document.getElementById('resumeGameBtn')?.addEventListener('click', togglePause);
+    document.getElementById('restartGameBtn')?.addEventListener('click', () => {
+      initGame();
+    });
+
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    soundToggleBtn?.addEventListener('click', () => {
+      sound.enabled = !sound.enabled;
+      const soundIcon = document.getElementById('soundIcon');
+      if (soundIcon) {
+        soundIcon.className = sound.enabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark text-slate-500";
+      }
+      if (sound.enabled) {
+        if (isRunning && !isPaused) sound.startBgm();
+      } else {
+        sound.stopBgm();
+      }
+    });
+
+    // Help Modal Listeners
+    document.getElementById('helpBtn')?.addEventListener('click', () => {
+      document.getElementById('helpModal')?.classList.remove('hidden');
+    });
+    document.getElementById('closeHelpBtn')?.addEventListener('click', () => {
+      document.getElementById('helpModal')?.classList.add('hidden');
+    });
+    document.getElementById('gotItBtn')?.addEventListener('click', () => {
+      document.getElementById('helpModal')?.classList.add('hidden');
+    });
+
+    window.onload = function() {
+      resizeCanvas();
+      updateHUD();
+    };
+  </script>
+</body>
+</html>
