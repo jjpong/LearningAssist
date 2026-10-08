@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>向量加減法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=STIX+Two+Text:ital,wght@1,500;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F7FA; --grid-minor:#DDE8F0; --grid-major:#B7CCDB; --axis:#34475B;
+  --ink:#17283A; --muted:#5A6B7D; --panel:#FFFFFF; --line:#D6E1E9; --field:#F6F9FB;
+  --result:#D0103A; --focus:#2F7FD0;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1923; --grid-minor:#1A2834; --grid-major:#2A3D4E; --axis:#A3B6C8;
+    --ink:#E5EDF4; --muted:#93A4B5; --panel:#14212D; --line:#24374A; --field:#1A2A38;
+    --result:#FF5C7C; --focus:#6FB0F0;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1923; --grid-minor:#1A2834; --grid-major:#2A3D4E; --axis:#A3B6C8;
+  --ink:#E5EDF4; --muted:#93A4B5; --panel:#14212D; --line:#24374A; --field:#1A2A38;
+  --result:#FF5C7C; --focus:#6FB0F0;
+}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0; height:100%; background:var(--paper); color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; font-size:15px; line-height:1.5}
+.app{display:grid; grid-template-columns:minmax(0,1fr) 370px; height:100%}
+.stage{position:relative; overflow:hidden; background:var(--paper)}
+#board{display:block; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab}
+#board.panning{cursor:grabbing}
+.panel{background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; display:flex; flex-direction:column}
+.panel-head{padding:18px 20px 12px}
+h1{font-size:22px; font-weight:700; margin:0 0 2px; letter-spacing:.02em}
+.sub{margin:0; color:var(--muted); font-size:13.5px}
+.toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:0 20px 14px; border-bottom:1px solid var(--line)}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+.btn-main{background:var(--ink); color:var(--panel); border:0; border-radius:8px; padding:7px 14px; font-weight:500}
+.btn-ghost{background:transparent; border:1px solid var(--line); border-radius:8px; padding:6px 12px; color:var(--muted)}
+.btn-ghost:hover{color:var(--ink); border-color:var(--muted)}
+select{font:inherit; color:var(--ink); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:6px 8px}
+.toolbar label{font-size:13.5px; color:var(--muted); display:flex; gap:6px; align-items:center}
+
+.list{padding:12px 14px; display:flex; flex-direction:column; gap:10px}
+.empty{color:var(--muted); padding:8px 6px; margin:0}
+.card{border:1px solid var(--line); border-left:5px solid var(--c); border-radius:6px 10px 10px 6px; padding:10px 12px 12px; background:var(--panel); transition:box-shadow .15s}
+.card.active{box-shadow:0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent)}
+.card.off{opacity:.62}
+.card-top{display:flex; align-items:center; gap:10px; margin-bottom:8px}
+.vname{font-family:"STIX Two Text","Times New Roman",serif; font-style:italic; font-weight:700; font-size:22px; color:var(--c); min-width:24px; line-height:1}
+.ops{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-left:auto}
+.ops button{border:0; background:transparent; padding:4px 11px; font-size:13.5px; color:var(--muted)}
+.ops button+button{border-left:1px solid var(--line)}
+.ops button[aria-pressed="true"]{background:var(--c); color:#fff; font-weight:500}
+.del{border:0; background:transparent; color:var(--muted); font-size:20px; line-height:1; padding:2px 6px; border-radius:6px}
+.del:hover{color:var(--result)}
+.fields{display:grid; grid-template-columns:1fr 1fr; gap:6px 10px}
+.fields label{display:flex; flex-direction:column; font-size:12px; color:var(--muted); gap:2px}
+.fields input{font:inherit; font-size:15px; color:var(--ink); background:var(--field); border:1px solid var(--line); border-radius:6px; padding:4px 8px; width:100%; font-variant-numeric:tabular-nums}
+.fields .sep{grid-column:1/-1; border-top:1px dashed var(--line); margin:4px 0 0}
+
+.vec{position:relative; display:inline-block; font-family:"STIX Two Text","Times New Roman",serif; font-style:italic; font-weight:700; padding-top:.32em; line-height:1}
+.vec::before{content:""; position:absolute; left:8%; right:0; top:.08em; border-top:1.5px solid currentColor}
+.vec::after{content:""; position:absolute; right:-1px; top:-.08em; border:.2em solid transparent; border-left:.34em solid currentColor; border-right:0}
+
+.result{margin-top:auto; border-top:1px solid var(--line); padding:16px 20px 20px; background:color-mix(in srgb, var(--result) 5%, var(--panel))}
+.result h2{font-size:15px; margin:0 0 8px; font-weight:700}
+.eq{font-size:22px; margin:0 0 6px; line-height:1.6}
+.eq .vec{font-size:24px}
+.eq .r{color:var(--result)}
+.rnums{display:flex; flex-wrap:wrap; gap:4px 18px; margin:0 0 8px; font-variant-numeric:tabular-nums}
+.rnums b{font-weight:700}
+.work{font-size:13.5px; color:var(--muted); margin:0 0 12px; font-variant-numeric:tabular-nums; overflow-x:auto}
+.work div{white-space:nowrap}
+.opts{display:flex; flex-direction:column; gap:6px; font-size:13.5px}
+.opts label{display:flex; align-items:center; gap:8px}
+.opts input[type=checkbox]{width:16px; height:16px; accent-color:var(--result)}
+
+.zoom{position:absolute; right:12px; bottom:12px; display:flex; gap:6px}
+.zoom button{background:var(--panel); border:1px solid var(--line); border-radius:8px; min-width:36px; height:36px; padding:0 10px; color:var(--ink)}
+.hint{position:absolute; left:12px; bottom:12px; max-width:min(440px, calc(100% - 200px)); font-size:12.5px; color:var(--muted); background:color-mix(in srgb, var(--paper) 85%, transparent); padding:6px 10px; border-radius:8px; pointer-events:none}
+
+svg .gminor{stroke:var(--grid-minor); stroke-width:1}
+svg .gmajor{stroke:var(--grid-major); stroke-width:1}
+svg .axis{stroke:var(--axis); stroke-width:1.6}
+svg .axisfill{fill:var(--axis)}
+svg .tick{fill:var(--muted); font-size:11px; font-family:"Noto Sans TC",system-ui,sans-serif}
+svg .axname{fill:var(--axis); font-size:14px; font-style:italic; font-family:"STIX Two Text","Times New Roman",serif}
+svg .vlabel{font-family:"STIX Two Text","Times New Roman",serif; font-style:italic; font-weight:700; font-size:19px; paint-order:stroke; stroke:var(--paper); stroke-width:4px; stroke-linejoin:round}
+svg .hit{cursor:move}
+svg .headhit{cursor:crosshair}
+svg .ring{opacity:0; transition:opacity .12s}
+svg .vg:hover .ring, svg .vg.active .ring{opacity:1}
+svg .comp{stroke:var(--result); stroke-width:1.5; stroke-dasharray:4 4; fill:none; opacity:.8}
+svg .comptext{fill:var(--result); font-size:13px; font-family:"Noto Sans TC",system-ui,sans-serif; paint-order:stroke; stroke:var(--paper); stroke-width:3px}
+
+@media (max-width: 820px){
+  html,body{height:auto}
+  .app{display:block; height:auto}
+  .stage{height:60vh; min-height:340px; border-bottom:1px solid var(--line)}
+  .panel{border-left:0}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage" id="stage">
+    <svg id="board" role="img" aria-label="座標平面上的向量圖"></svg>
+    <div class="hint">拖曳箭頭尖端改變長度與方向，拖曳箭身移動位置。拖曳空白處平移，滾輪縮放。</div>
+    <div class="zoom">
+      <button id="zin" aria-label="放大">＋</button>
+      <button id="zout" aria-label="縮小">－</button>
+      <button id="zfit">全部顯示</button>
+    </div>
+  </div>
+
+  <aside class="panel">
+    <div class="panel-head">
+      <h1>向量加減法</h1>
+      <p class="sub">建立向量，選擇加、減或不算，看合向量怎麼來。</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn-main" id="add">新增向量</button>
+      <label>吸附
+        <select id="snap">
+          <option value="1">整數格點</option>
+          <option value="0.5">半格</option>
+          <option value="0.1">0.1</option>
+        </select>
+      </label>
+      <button class="btn-ghost" id="clear">全部清除</button>
+    </div>
+    <div class="list" id="list"></div>
+
+    <section class="result" aria-live="polite">
+      <h2>運算結果</h2>
+      <p class="eq" id="eq"></p>
+      <div class="rnums" id="rnums"></div>
+      <div class="work" id="work"></div>
+      <div class="opts">
+        <label><input type="checkbox" id="optChain" checked> 顯示首尾相接作圖</label>
+        <label><input type="checkbox" id="optComp"> 顯示合向量的 x、y 分量</label>
+        <label>合向量起點
+          <select id="optFrom">
+            <option value="first">第一個參與向量的起點</option>
+            <option value="origin">原點</option>
+          </select>
+        </label>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function(){
+const COLORS=['#2F7FD0','#2E9E62','#E39400','#8C5CD1','#0F9E9E','#C2671E','#4A6FA5','#B0479A'];
+const NAMES='ABCDEFGHJKLMNPQSTUVW'.split('');
+const state={vectors:[], view:{cx:2,cy:2,s:40}, snap:1, chain:true, comps:false, from:'first', active:null};
+let nextId=1, W=600, H=400;
+
+const svg=document.getElementById('board');
+const listEl=document.getElementById('list');
+
+/* ---------- helpers ---------- */
+const r2=n=>Math.round(n*100)/100;
+const clean=n=>Math.abs(n)<1e-9?0:n;
+function fmt(n){ return String(r2(clean(n))).replace('-','−'); }
+function fmtIn(n){ return String(r2(clean(n))); }
+const mag=v=>Math.hypot(v.dx,v.dy);
+function angDeg(x,y){ let a=Math.atan2(y,x)*180/Math.PI; if(a<0)a+=360; return Math.abs(a-360)<1e-9?0:a; }
+function snapv(n){ const s=state.snap; return Math.round(Math.round(n/s)*s*1000)/1000; }
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const findV=id=>state.vectors.find(v=>v.id===id);
+
+function addVector(dx,dy,x0=0,y0=0,op='+'){
+  const used=new Set(state.vectors.map(v=>v.name));
+  const name=NAMES.find(n=>!used.has(n));
+  if(!name) return null;
+  const usedC=new Set(state.vectors.map(v=>v.color));
+  const color=COLORS.find(c=>!usedC.has(c))||COLORS[state.vectors.length%COLORS.length];
+  const v={id:nextId++,name,color,x0,y0,dx,dy,op};
+  state.vectors.push(v);
+  return v;
+}
+
+function computeResult(){
+  const inc=state.vectors.filter(v=>v.op!=='0');
+  if(!inc.length) return null;
+  const start=state.from==='origin'?{x:0,y:0}:{x:inc[0].x0,y:inc[0].y0};
+  let p={...start}, Rx=0, Ry=0; const segs=[];
+  inc.forEach(v=>{
+    const sg=v.op==='-'?-1:1, ex=sg*v.dx, ey=sg*v.dy;
+    segs.push({v, sg, x1:p.x, y1:p.y, x2:p.x+ex, y2:p.y+ey});
+    p={x:p.x+ex, y:p.y+ey}; Rx+=ex; Ry+=ey;
+  });
+  return {inc, start, end:p, Rx:clean(Rx), Ry:clean(Ry), segs};
+}
+
+/* ---------- drawing ---------- */
+function arrowSvg(x1,y1,x2,y2,color,{w=3,dash=false,op=1}={}){
+  const len=Math.hypot(x2-x1,y2-y1);
+  if(len<1.5) return `<circle cx="${x1}" cy="${y1}" r="${w+1}" fill="${color}" opacity="${op}"/>`;
+  const ux=(x2-x1)/len, uy=(y2-y1)/len;
+  const hl=Math.min(5*w+2, len*0.5), hw=hl*0.55;
+  const bx=x2-ux*hl, by=y2-uy*hl;
+  const px=-uy, py=ux;
+  return `<g opacity="${op}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"${dash?' stroke-dasharray="7 6"':''}/>`+
+         `<polygon points="${x2},${y2} ${bx+px*hw},${by+py*hw} ${bx-px*hw},${by-py*hw}" fill="${color}"/></g>`;
+}
+function labelSvg(text,x1,y1,x2,y2,color,prefix=''){
+  const len=Math.hypot(x2-x1,y2-y1)||1;
+  let nx=-(y2-y1)/len, ny=(x2-x1)/len;   // screen-left normal
+  if(ny>0.2||(Math.abs(ny)<=0.2&&nx>0)){nx=-nx;ny=-ny;} // prefer above / left
+  const mx=(x1+x2)/2+nx*18, my=(y1+y2)/2+ny*18+6;
+  const tw=prefix?6:0;
+  return `<g class="vlabel" fill="${color}"><text x="${mx}" y="${my}" text-anchor="middle">${esc(prefix+text)}</text>`+
+    `<path d="M${mx-5+tw} ${my-17}h10m-3.5 -3l3.5 3l-3.5 3" fill="none" stroke="${color}" stroke-width="1.6" style="stroke-width:1.6px;paint-order:normal"/></g>`;
+}
+
+function draw(){
+  const rect=svg.getBoundingClientRect(); W=rect.width||600; H=rect.height||400;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const {cx,cy,s}=state.view;
+  const X=x=>W/2+(x-cx)*s, Y=y=>H/2-(y-cy)*s;
+  const xmin=cx-W/2/s, xmax=cx+W/2/s, ymin=cy-H/2/s, ymax=cy+H/2/s;
+  const steps=[0.1,0.2,0.5,1,2,5,10,20,50,100];
+  const step=steps.find(t=>t*s>=26)||100;
+  let minor='', major='', out='';
+  for(let i=Math.ceil(xmin/step);i<=Math.floor(xmax/step);i++){
+    const x=X(i*step).toFixed(1); (i%5===0?(m=>major+=m):(m=>minor+=m))(`M${x} 0V${H}`);
+  }
+  for(let i=Math.ceil(ymin/step);i<=Math.floor(ymax/step);i++){
+    const y=Y(i*step).toFixed(1); (i%5===0?(m=>major+=m):(m=>minor+=m))(`M0 ${y}H${W}`);
+  }
+  out+=`<path class="gminor" d="${minor}"/><path class="gmajor" d="${major}"/>`;
+  // axes (clamped to view edge when off-screen)
+  const ax=Math.min(Math.max(X(0),0),W), ay=Math.min(Math.max(Y(0),0),H);
+  out+=`<line class="axis" x1="0" y1="${ay}" x2="${W-2}" y2="${ay}"/><line class="axis" x1="${ax}" y1="${H}" x2="${ax}" y2="2"/>`;
+  out+=`<polygon class="axisfill" points="${W},${ay} ${W-10},${ay-5} ${W-10},${ay+5}"/><polygon class="axisfill" points="${ax},0 ${ax-5},10 ${ax+5},10"/>`;
+  out+=`<text class="axname" x="${W-14}" y="${ay-9}" text-anchor="end">x</text><text class="axname" x="${ax+10}" y="18">y</text>`;
+  const every=step*s>=44?1:2;
+  const tyY=Math.min(ay+15,H-4), txX=Math.max(ax-6,30);
+  for(let i=Math.ceil(xmin/step);i<=Math.floor(xmax/step);i++){
+    if(i===0||i%every) continue;
+    out+=`<text class="tick" x="${X(i*step)}" y="${tyY}" text-anchor="middle">${fmt(i*step)}</text>`;
+  }
+  for(let i=Math.ceil(ymin/step);i<=Math.floor(ymax/step);i++){
+    if(i===0||i%every) continue;
+    out+=`<text class="tick" x="${txX}" y="${Y(i*step)+4}" text-anchor="end">${fmt(i*step)}</text>`;
+  }
+  if(X(0)>=0&&X(0)<=W&&Y(0)>=0&&Y(0)<=H) out+=`<text class="tick" x="${X(0)-6}" y="${Y(0)+15}" text-anchor="end">0</text>`;
+
+  const res=computeResult();
+  const rc=getComputedStyle(document.documentElement).getPropertyValue('--result').trim()||'#D0103A';
+
+  // head-to-tail construction (under real vectors)
+  if(res&&state.chain){
+    res.segs.forEach((g,i)=>{
+      const same=state.from==='first'&&i===0&&g.sg===1;
+      if(same) return;
+      out+=arrowSvg(X(g.x1),Y(g.y1),X(g.x2),Y(g.y2),g.v.color,{w:2.2,dash:true,op:.85});
+      out+=labelSvg(g.v.name,X(g.x1),Y(g.y1),X(g.x2),Y(g.y2),g.v.color,g.sg<0?'−':'');
+    });
+  }
+  // real vectors
+  state.vectors.forEach(v=>{
+    const x1=X(v.x0), y1=Y(v.y0), x2=X(v.x0+v.dx), y2=Y(v.y0+v.dy);
+    const op=v.op==='0'?.38:1;
+    out+=`<g class="vg${state.active===v.id?' active':''}" data-vid="${v.id}">`;
+    out+=`<line class="hit" data-role="body" data-id="${v.id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="20" stroke-linecap="round"/>`;
+    out+=arrowSvg(x1,y1,x2,y2,v.color,{w:3.2,op});
+    out+=`<circle cx="${x1}" cy="${y1}" r="4" fill="${v.color}" opacity="${op}" pointer-events="none"/>`;
+    out+=labelSvg(v.name,x1,y1,x2,y2,v.color);
+    out+=`<circle class="ring" cx="${x2}" cy="${y2}" r="11" fill="none" stroke="${v.color}" stroke-width="2" pointer-events="none"/>`;
+    out+=`<circle class="headhit" data-role="head" data-id="${v.id}" cx="${x2}" cy="${y2}" r="16" fill="transparent"/>`;
+    out+=`</g>`;
+  });
+  // result
+  if(res){
+    const sx=X(res.start.x), sy=Y(res.start.y), ex=X(res.end.x), ey=Y(res.end.y);
+    if(state.comps){
+      const cxp=X(res.end.x);
+      out+=`<path class="comp" d="M${sx} ${sy}H${cxp}V${ey}"/>`;
+      if(Math.abs(res.Rx)>1e-9) out+=`<text class="comptext" x="${(sx+cxp)/2}" y="${sy+(res.Ry>=0?18:-8)}" text-anchor="middle">Rx = ${fmt(res.Rx)}</text>`;
+      if(Math.abs(res.Ry)>1e-9) out+=`<text class="comptext" x="${cxp+(res.Rx>=0?8:-8)}" y="${(sy+ey)/2+4}" text-anchor="${res.Rx>=0?'start':'end'}">Ry = ${fmt(res.Ry)}</text>`;
+    }
+    out+=`<g pointer-events="none">`+arrowSvg(sx,sy,ex,ey,rc,{w:4.5})+
+         `<circle cx="${sx}" cy="${sy}" r="5" fill="${rc}"/>`+labelSvg('R',sx,sy,ex,ey,rc)+`</g>`;
+  }
+  svg.innerHTML=out;
+}
+
+/* ---------- panel ---------- */
+function cardHTML(v){
+  const opBtn=(o,t)=>`<button data-op="${o}" aria-pressed="${v.op===o}">${t}</button>`;
+  return `<div class="card${v.op==='0'?' off':''}${state.active===v.id?' active':''}" data-id="${v.id}" style="--c:${v.color}">
+    <div class="card-top">
+      <span class="vname"><span class="vec">${v.name}</span></span>
+      <div class="ops" role="group" aria-label="向量 ${v.name} 的運算方式">${opBtn('+','加')}${opBtn('-','減')}${opBtn('0','不算')}</div>
+      <button class="del" aria-label="刪除向量 ${v.name}">×</button>
+    </div>
+    <div class="fields">
+      <label>x 分量<input type="number" step="any" data-f="dx"></label>
+      <label>y 分量<input type="number" step="any" data-f="dy"></label>
+      <label>長度<input type="number" step="any" min="0" data-f="mag"></label>
+      <label>方向（度，自 +x 逆時針）<input type="number" step="any" data-f="ang"></label>
+      <div class="sep"></div>
+      <label>起點 x<input type="number" step="any" data-f="x0"></label>
+      <label>起點 y<input type="number" step="any" data-f="y0"></label>
+    </div>
+  </div>`;
+}
+function renderList(){
+  if(!state.vectors.length){ listEl.innerHTML='<p class="empty">還沒有向量。按「新增向量」開始。</p>'; return; }
+  listEl.innerHTML=state.vectors.map(cardHTML).join('');
+  state.vectors.forEach(v=>updateCard(v));
+}
+function updateCard(v){
+  const card=listEl.querySelector(`.card[data-id="${v.id}"]`); if(!card) return;
+  const vals={dx:v.dx,dy:v.dy,mag:mag(v),ang:mag(v)>1e-9?angDeg(v.dx,v.dy):0,x0:v.x0,y0:v.y0};
+  card.querySelectorAll('input[data-f]').forEach(inp=>{
+    if(inp===document.activeElement) return;
+    inp.value=fmtIn(vals[inp.dataset.f]);
+  });
+}
+function setActive(id){
+  state.active=id;
+  listEl.querySelectorAll('.card').forEach(c=>c.classList.toggle('active',+c.dataset.id===id));
+}
+
+function vecSpan(name,cls=''){ return `<span class="vec${cls?' '+cls:''}">${name}</span>`; }
+function sumLine(res,key){
+  let s='';
+  res.inc.forEach((v,i)=>{
+    const val=v[key], par=val<0?`(${fmt(val)})`:fmt(val);
+    if(i===0) s+= v.op==='-'?`−${par}`:fmt(val);
+    else s+= (v.op==='-'?' − ':' + ')+par;
+  });
+  return s;
+}
+function updateResult(){
+  const res=computeResult();
+  const eq=document.getElementById('eq'), rn=document.getElementById('rnums'), wk=document.getElementById('work');
+  if(!res){
+    eq.innerHTML=''; wk.innerHTML='';
+    rn.innerHTML='<span style="color:var(--muted)">把至少一個向量設為「加」或「減」，這裡會出現合向量。</span>';
+    return;
+  }
+  let e=`<span class="r">${vecSpan('R')}</span> = `;
+  res.inc.forEach((v,i)=>{
+    const sp=`<span style="color:${v.color}">${vecSpan(v.name)}</span>`;
+    e+= i===0?(v.op==='-'?'−'+sp:sp):(v.op==='-'?' − ':' + ')+sp;
+  });
+  eq.innerHTML=e;
+  const m=Math.hypot(res.Rx,res.Ry);
+  rn.innerHTML=`<span><b>R</b> = (${fmt(res.Rx)}, ${fmt(res.Ry)})</span><span>長度 |R| = <b>${fmt(m)}</b></span>`+
+    `<span>方向 θ = <b>${m>1e-9?fmt(angDeg(res.Rx,res.Ry))+'°':'—（零向量）'}</b></span>`;
+  wk.innerHTML=`<div>Rx = ${sumLine(res,'dx')} = ${fmt(res.Rx)}</div><div>Ry = ${sumLine(res,'dy')} = ${fmt(res.Ry)}</div>`;
+}
+function refresh(full){ if(full) renderList(); draw(); updateResult(); }
+
+/* ---------- panel events ---------- */
+listEl.addEventListener('click',e=>{
+  const card=e.target.closest('.card'); if(!card) return;
+  const v=findV(+card.dataset.id);
+  const ob=e.target.closest('[data-op]');
+  if(ob){ v.op=ob.dataset.op; setActive(v.id); refresh(true); return; }
+  if(e.target.closest('.del')){
+    state.vectors=state.vectors.filter(x=>x!==v);
+    if(state.active===v.id) state.active=null;
+    refresh(true);
+  }
+});
+listEl.addEventListener('focusin',e=>{ const c=e.target.closest('.card'); if(c){ setActive(+c.dataset.id); draw(); } });
+listEl.addEventListener('input',e=>{
+  const inp=e.target.closest('input[data-f]'); if(!inp) return;
+  const v=findV(+inp.closest('.card').dataset.id);
+  const n=parseFloat(inp.value); if(!isFinite(n)) return;
+  const f=inp.dataset.f;
+  if(f==='mag'){ const a=Math.atan2(v.dy,v.dx); const L=Math.max(0,n); v.dx=clean(L*Math.cos(a)); v.dy=clean(L*Math.sin(a)); if(mag(v)<1e-9&&L>0){v.dx=L;v.dy=0;} }
+  else if(f==='ang'){ const L=mag(v)||1, a=n*Math.PI/180; v.dx=clean(L*Math.cos(a)); v.dy=clean(L*Math.sin(a)); }
+  else v[f]=n;
+  updateCard(v); draw(); updateResult();
+});
+listEl.addEventListener('focusout',e=>{
+  const c=e.target.closest('.card'); if(!c) return;
+  setTimeout(()=>{ const v=findV(+c.dataset.id); if(v) updateCard(v); },0);
+});
+
+document.getElementById('add').addEventListener('click',()=>{
+  const k=state.vectors.length;
+  const presets=[[3,1],[1,3],[-2,2],[2,-2],[-3,-1],[4,0],[0,3],[-1,-3]];
+  const [dx,dy]=presets[k%presets.length];
+  const v=addVector(dx,dy,0,0,'+');
+  if(!v){ alert('最多可建立 '+NAMES.length+' 個向量。'); return; }
+  setActive(v.id); refresh(true);
+  const card=listEl.querySelector(`.card[data-id="${v.id}"]`); if(card) card.scrollIntoView({block:'nearest'});
+});
+document.getElementById('clear').addEventListener('click',()=>{
+  if(state.vectors.length && !confirm('要刪除所有向量嗎？')) return;
+  state.vectors=[]; state.active=null; refresh(true);
+});
+document.getElementById('snap').addEventListener('change',e=>{ state.snap=parseFloat(e.target.value); });
+document.getElementById('optChain').addEventListener('change',e=>{ state.chain=e.target.checked; draw(); });
+document.getElementById('optComp').addEventListener('change',e=>{ state.comps=e.target.checked; draw(); });
+document.getElementById('optFrom').addEventListener('change',e=>{ state.from=e.target.value; draw(); });
+
+/* ---------- board interaction ---------- */
+let drag=null;
+const pointers=new Map(); let pinch=null;
+function toWorld(cx,cy){
+  const r=svg.getBoundingClientRect();
+  return {x:state.view.cx+(cx-r.left-W/2)/state.view.s, y:state.view.cy-(cy-r.top-H/2)/state.view.s};
+}
+function zoomAt(factor,clientX,clientY){
+  const r=svg.getBoundingClientRect();
+  const px=clientX-r.left, py=clientY-r.top;
+  const w=toWorld(clientX,clientY);
+  const s=Math.min(240,Math.max(6,state.view.s*factor));
+  state.view.s=s; state.view.cx=w.x-(px-W/2)/s; state.view.cy=w.y+(py-H/2)/s;
+  draw();
+}
+svg.addEventListener('pointerdown',e=>{
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  svg.setPointerCapture(e.pointerId);
+  if(pointers.size===2){
+    const [a,b]=[...pointers.values()];
+    pinch={d:Math.hypot(a.x-b.x,a.y-b.y), s:state.view.s}; drag=null; return;
+  }
+  const t=e.target.closest('[data-role]'); const p=toWorld(e.clientX,e.clientY);
+  if(t){
+    const v=findV(+t.dataset.id);
+    drag={type:t.dataset.role, v, ox:p.x-v.x0, oy:p.y-v.y0};
+    setActive(v.id); draw();
+  } else {
+    drag={type:'pan', sx:e.clientX, sy:e.clientY, cx:state.view.cx, cy:state.view.cy};
+    svg.classList.add('panning');
+  }
+  e.preventDefault();
+});
+svg.addEventListener('pointermove',e=>{
+  if(pointers.has(e.pointerId)) pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&pointers.size===2){
+    const [a,b]=[...pointers.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y);
+    zoomAt((pinch.s*d/pinch.d)/state.view.s,(a.x+b.x)/2,(a.y+b.y)/2); return;
+  }
+  if(!drag) return;
+  const p=toWorld(e.clientX,e.clientY);
+  if(drag.type==='pan'){
+    state.view.cx=drag.cx-(e.clientX-drag.sx)/state.view.s;
+    state.view.cy=drag.cy+(e.clientY-drag.sy)/state.view.s;
+    draw(); return;
+  }
+  const v=drag.v;
+  if(drag.type==='head'){
+    v.dx=r2(snapv(p.x)-v.x0); v.dy=r2(snapv(p.y)-v.y0);
+  } else {
+    v.x0=snapv(p.x-drag.ox); v.y0=snapv(p.y-drag.oy);
+  }
+  updateCard(v); draw(); updateResult();
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size<2) pinch=null;
+  if(pointers.size===0){ drag=null; svg.classList.remove('panning'); }
+}
+svg.addEventListener('pointerup',endPointer);
+svg.addEventListener('pointercancel',endPointer);
+svg.addEventListener('wheel',e=>{ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.0015),e.clientX,e.clientY); },{passive:false});
+
+function centerZoom(f){ const r=svg.getBoundingClientRect(); zoomAt(f,r.left+W/2,r.top+H/2); }
+document.getElementById('zin').addEventListener('click',()=>centerZoom(1.25));
+document.getElementById('zout').addEventListener('click',()=>centerZoom(0.8));
+document.getElementById('zfit').addEventListener('click',fit);
+
+function fit(){
+  const pts=[[0,0]];
+  state.vectors.forEach(v=>{pts.push([v.x0,v.y0],[v.x0+v.dx,v.y0+v.dy]);});
+  const res=computeResult(); if(res) res.segs.forEach(g=>pts.push([g.x2,g.y2]));
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs)-1.5, x1=Math.max(...xs)+1.5, y0=Math.min(...ys)-1.5, y1=Math.max(...ys)+1.5;
+  const r=svg.getBoundingClientRect(); W=r.width||W; H=r.height||H;
+  state.view.s=Math.min(120,Math.max(8,Math.min(W/(x1-x0),H/(y1-y0))));
+  state.view.cx=(x0+x1)/2; state.view.cy=(y0+y1)/2;
+  draw();
+}
+
+/* ---------- theme & resize ---------- */
+new ResizeObserver(()=>draw()).observe(svg);
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>draw()); }catch(_){}
+new MutationObserver(()=>draw()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- start ---------- */
+addVector(4,1,0,0,'+');
+addVector(1,3,0,0,'+');
+refresh(true);
+requestAnimationFrame(fit);
+})();
+</script>
+</body>
+</html>
