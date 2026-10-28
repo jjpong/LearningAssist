@@ -126,7 +126,7 @@
   <main id="list"></main>
   <p id="empty" class="empty">找不到符合的程式，換個關鍵字試試。</p>
 
-  <footer>新上傳的程式會自動出現在「新加入」區；想整理分類或說明時，再到 index.html 的 PROGRAMS 陣列加一筆即可。</footer>
+  <footer>新上傳的程式會自動出現在「新加入」區；想整理分類或說明時，再到 index.html 的 PROGRAMS 陣列加一筆即可。<br><a href="old/" style="color:inherit">舊版本存放區</a></footer>
 </div>
 
 <script>
@@ -159,7 +159,8 @@ const HIDDEN = [
 
 const PROGRAMS = [
   // ── 概念圖 ──
-  { cat: "概念圖", title: "概念圖製作工具", desc: "選擇章節概念與連接詞，拖曳建立概念圖，可匯出 PDF、PNG 或 draw.io。", files: ["conceptMap2.html", "PmindmapV10.html", "conceptMap.html", "cmap.html", "cmapTesting.html"] },
+  { cat: "概念圖", title: "概念圖製作工具", desc: "從 Google 試算表載入章節概念，拖曳建立概念圖，可匯出 PDF、PNG。", files: ["conceptMap2.html"] },
+  { cat: "概念圖", title: "概念圖製作工具（draw.io 匯出版）", desc: "內建章節概念，可切換箭頭方向，匯出 draw.io、PDF、PNG。", files: ["cmapTesting.html"] },
   { cat: "概念圖", title: "化學反應概念圖", desc: "用化學反應單元的概念與連接詞製作概念圖。", files: ["cMapOfChemReaction.html"] },
 
   // ── 練習活動 ──
@@ -181,7 +182,7 @@ const PROGRAMS = [
   { cat: "教師工具", title: "剛好學：課堂互動 so easy", desc: "教師建立教室發起是非、選擇、文字、繪圖等即時互動，學生輸入代碼加入。", files: ["classtools.html"] },
   { cat: "教師工具", title: "實驗步驟卡片產生器", desc: "輸入實驗主題與步驟，一鍵產生學生用的排序卡片網頁，可用 AI 生成迷思干擾項。", files: ["sorty.html"] },
   { cat: "教師工具", title: "閱讀測驗網頁程式 AI 提示詞生成器", desc: "產生用於 AI 製作閱讀測驗網頁的提示詞。", files: ["生成器V2.html"] },
-  { cat: "教師工具", title: "物質的質量與體積關係圖", desc: "產生質量與體積的數據圖，可顯示趨勢線。", files: ["3mass_volumn.html", "2mass_volumn2.html", "2mass_volumn1.html", "1mass_volumn.html"] },
+  { cat: "教師工具", title: "物質的質量與體積關係圖", desc: "產生質量與體積的數據圖，可顯示趨勢線。", files: ["3mass_volumn.html"] },
   { cat: "教師工具", title: "不同物質的質量與體積關係圖", desc: "選擇水、銅、鋁、鐵，比較斜率看出密度差異。", files: ["4mass_volumn.html"] },
   { cat: "教師工具", title: "水在量筒中的質量與體積關係圖", desc: "產生水在量筒中的質量與體積數據圖。", files: ["waterMass_volumn_GC.html"] },
   { cat: "教師工具", title: "溶解度與溫度關係圖", desc: "硝酸鉀、氯化鈉、氫氧化鈣的溶解度隨溫度變化圖。", files: ["solubility.html"] },
@@ -194,9 +195,10 @@ const PROGRAMS = [
   { cat: "教師工具", title: "酸鹼滴定 pH 數據產生器", desc: "選擇滴定類型與濃度，產生 pH 變化的滴定曲線。", files: ["酸鹼中和pH數據產生器.html"] },
 
   // ── 其他 ──
-  { cat: "其他", title: "國中英語 Wordle", desc: "用國中英語單字玩 Wordle 猜字遊戲。", files: ["wordleTWJH.html", "wordleTWJH2.html"] },
+  { cat: "其他", title: "國中英語 Wordle", desc: "用國中英語單字玩 Wordle 猜字遊戲。", files: ["wordleTWJH.html"] },
+  { cat: "其他", title: "國中英語 Wordle（300 字版）", desc: "只用 300 個常用單字的 Wordle 版本。", files: ["wordleTWJH2.html"] },
   { cat: "其他", title: "黑白棋", desc: "和電腦對弈黑白棋，可調整 AI 難度。", files: ["reversi.html"] },
-  { cat: "其他", title: "JSP 跨校活動地圖", desc: "參與學校的地理位置與主辦據點地圖。", files: ["JSP2026map.html", "JSP2025MAPs.html"] }
+  { cat: "其他", title: "JSP 跨校活動地圖", desc: "參與學校的地理位置與主辦據點地圖。", files: ["JSP2026map.html"] }
 ];
 
 /* ───────── 以下為顯示邏輯，一般不需修改 ───────── */

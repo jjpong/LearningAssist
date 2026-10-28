@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舊版本存放區</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #1d2433;
+    --muted: #5d6779;
+    --line: #e2e7f0;
+    --accent: #2563eb;
+    --accent-soft: #e8f0ff;
+    --shadow: 0 1px 3px rgba(20, 30, 60, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f141d;
+      --card: #182031;
+      --text: #e8edf6;
+      --muted: #9aa6bb;
+      --line: #2a344a;
+      --accent: #6ea0ff;
+      --accent-soft: #1f2d4d;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 56px; }
+  header h1 { margin: 0 0 4px; font-size: 1.7rem; }
+  header p { margin: 0; color: var(--muted); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 8px; }
+  .search {
+    flex: 1 1 240px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: .92rem;
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .count { color: var(--muted); font-size: .9rem; margin: 4px 0 0; }
+
+  section { margin-top: 32px; }
+  section h2 {
+    font-size: 1.15rem;
+    margin: 0 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card .title { font-weight: 600; font-size: 1.02rem; color: var(--accent); text-decoration: none; }
+  .card .title:hover { text-decoration: underline; }
+  .card .desc { color: var(--muted); font-size: .9rem; margin: 0; flex: 1; }
+  .versions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .versions a {
+    font-size: .78rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .versions a:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: .72rem;
+    font-weight: 600;
+    vertical-align: 2px;
+    background: #f59e0b;
+    color: #fff;
+  }
+  .card .file { color: var(--muted); font-size: .76rem; margin: 0; word-break: break-all; }
+  .empty { display: none; text-align: center; color: var(--muted); padding: 40px 0; }
+  footer { margin-top: 40px; color: var(--muted); font-size: .85rem; text-align: center; }
+  .badge { display: none; }
+  header a { color: var(--accent); margin-left: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>舊版本存放區</h1>
+    <p>已被新版取代的程式放在這裡，平常不需要用到。<a href="../">← 回到學習輔助工具列表</a></p>
+  </header>
+
+  <div class="toolbar">
+    <input id="q" class="search" type="search" placeholder="搜尋程式名稱、說明或檔名…" aria-label="搜尋程式">
+    <div id="chips" class="chips" role="group" aria-label="分類篩選"></div>
+  </div>
+  <p id="count" class="count"></p>
+
+  <main id="list"></main>
+  <p id="empty" class="empty">找不到符合的程式，換個關鍵字試試。</p>
+
+  <footer>這一頁會自動列出 old 資料夾裡的所有程式。</footer>
+</div>
+
+<script>
+/*
+  ── 自動偵測新程式 ──
+  只要把新的 .html 上傳到 repo 根目錄，打開本頁時就會自動出現一張卡片：
+    • 卡片標題 = 該檔案的 <title>
+    • 說明     = 該檔案的 <meta name="description" content="…">（沒有就不顯示）
+    • 分類     = 該檔案的 <meta name="category" content="光與色彩">（沒有或對不上就放「新加入」）
+  想要正式整理時，再把它寫進下方 PROGRAMS 陣列（可合併多個版本、改標題說明）。
+  不想顯示的舊版檔案，加進 HIDDEN 陣列即可。
+
+  ── PROGRAMS 欄位 ──
+  cat   : 分類名稱（要與 CATEGORIES 其中之一相同）
+  title : 顯示名稱
+  desc  : 一句話說明
+  files : 檔名陣列；第一個是主要連結，其餘會顯示成「其他版本」小標籤
+*/
+// 放在 GitHub Pages 上時會自動判斷「哪個帳號/儲存庫/資料夾」，下面兩行只是判斷不出來時的預設值
+const DEFAULT_REPO = "jjpong/LearningAssist";
+const BRANCH = "main";
+
+const CATEGORIES = [];
+const NEW_CAT = "舊版本";
+
+const HIDDEN = ["index.html"];
+
+const PROGRAMS = [];
+
+/* ───────── 以下為顯示邏輯，一般不需修改 ───────── */
+const $ = id => document.getElementById(id);
+const href = f => encodeURIComponent(f);
+let activeCat = "全部";
+const AUTO = [];   // 自動偵測到的新程式
+
+function allCats() {
+  return AUTO.some(p => p.cat === NEW_CAT) ? [...CATEGORIES, NEW_CAT] : CATEGORIES;
+}
+
+function renderChips() {
+  const box = $("chips");
+  box.innerHTML = "";
+  ["全部", ...allCats()].forEach(name => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.textContent = name;
+    b.setAttribute("aria-pressed", String(name === activeCat));
+    b.onclick = () => { activeCat = name; renderChips(); render(); };
+    box.appendChild(b);
+  });
+}
+
+function render() {
+  const kw = $("q").value.trim().toLowerCase();
+  const list = $("list");
+  list.innerHTML = "";
+  let shown = 0;
+
+  allCats().forEach(cat => {
+    if (activeCat !== "全部" && activeCat !== cat) return;
+    const items = [...PROGRAMS, ...AUTO].filter(p =>
+      p.cat === cat &&
+      (!kw || (p.title + p.desc + p.files.join(" ")).toLowerCase().includes(kw))
+    );
+    if (!items.length) return;
+    shown += items.length;
+
+    const sec = document.createElement("section");
+    const h = document.createElement("h2");
+    h.textContent = cat;
+    sec.appendChild(h);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    items.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const a = document.createElement("a");
+      a.className = "title";
+      a.href = href(p.files[0]);
+      a.textContent = p.title;
+      if (p.auto) {
+        const b = document.createElement("span");
+        b.className = "badge";
+        b.textContent = "新";
+        a.appendChild(b);
+      }
+      card.appendChild(a);
+
+      const d = document.createElement("p");
+      d.className = "desc";
+      d.textContent = p.desc;
+      card.appendChild(d);
+
+      if (p.auto) {
+        const fn = document.createElement("p");
+        fn.className = "file";
+        fn.textContent = p.files[0];
+        card.appendChild(fn);
+      }
+
+      if (p.files.length > 1) {
+        const v = document.createElement("div");
+        v.className = "versions";
+        p.files.forEach(f => {
+          const va = document.createElement("a");
+          va.href = href(f);
+          va.textContent = f.replace(/\.html$/, "");
+          v.appendChild(va);
+        });
+        card.appendChild(v);
+      }
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    list.appendChild(sec);
+  });
+
+  $("count").textContent = "共 " + shown + " 個程式";
+  $("empty").style.display = shown ? "none" : "block";
+}
+
+/* ───────── 自動偵測新程式 ───────── */
+// 從網址判斷位置：https://帳號.github.io/儲存庫/資料夾/index.html
+function whereAmI() {
+  const host = location.hostname;
+  if (host.endsWith(".github.io")) {
+    const owner = host.slice(0, -".github.io".length);
+    const segs = location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    if (segs.length && /\.html?$/i.test(segs[segs.length - 1])) segs.pop();
+    if (segs.length) return { repo: owner + "/" + segs[0], folder: segs.slice(1).join("/") };
+    return { repo: owner + "/" + host, folder: "" };   // 個人主站 帳號.github.io
+  }
+  return { repo: DEFAULT_REPO, folder: "" };
+}
+const HERE = whereAmI();
+const LIST_CACHE_KEY = "lab-file-list:" + HERE.repo + "/" + HERE.folder;
+const LIST_CACHE_MS = 30 * 60 * 1000;   // 同一台電腦 30 分鐘內不重複查詢
+let EXISTING = null;   // 資料夾裡實際存在的檔案（查不到時為 null）
+
+function cacheGet(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+}
+function cacheSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+}
+
+// 取得 repo 根目錄所有 .html 檔名：先問 GitHub API（最即時），失敗再問 jsDelivr（不限次數）
+async function listRepoHtml() {
+  const c = cacheGet(LIST_CACHE_KEY);
+  if (c && Date.now() - c.t < LIST_CACHE_MS && Array.isArray(c.files)) return c.files;
+
+  let files = null;
+  try {
+    const dir = HERE.folder.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+    const r = await fetch(`https://api.github.com/repos/${HERE.repo}/contents/${dir}`);
+    if (r.ok) {
+      const data = await r.json();
+      files = data.filter(x => x.type === "file").map(x => x.name);
+    }
+  } catch (e) {}
+
+  if (!files) {
+    try {
+      const r = await fetch(`https://data.jsdelivr.com/v1/packages/gh/${HERE.repo}@${BRANCH}?structure=flat`);
+      if (r.ok) {
+        const data = await r.json();
+        const prefix = HERE.folder ? "/" + HERE.folder + "/" : "/";
+        files = data.files.map(x => x.name)
+          .filter(n => n.startsWith(prefix))
+          .map(n => n.slice(prefix.length))
+          .filter(n => !n.includes("/"));
+      }
+    } catch (e) {}
+  }
+
+  if (!files) return null;
+  files = files.filter(n => /\.html?$/i.test(n));
+  cacheSet(LIST_CACHE_KEY, { t: Date.now(), files });
+  return files;
+}
+
+// 只讀新檔案的 <head>（大檔案也不會整個下載），取出標題、說明、分類
+async function readHead(file) {
+  const key = "lab-head:" + file;
+  const c = cacheGet(key);
+  if (c && Date.now() - c.t < LIST_CACHE_MS) return c.info;
+
+  let info = {};
+  try {
+    const r = await fetch(href(file));
+    if (r.ok) {
+      const reader = r.body.getReader();
+      const dec = new TextDecoder("utf-8");
+      let text = "";
+      while (text.length < 200000) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += dec.decode(value, { stream: true });
+        if (/<\/head>/i.test(text)) break;
+      }
+      reader.cancel().catch(() => {});
+      const doc = new DOMParser().parseFromString(text, "text/html");
+      const meta = n => (doc.querySelector(`meta[name="${n}"]`) || {}).content || "";
+      info = {
+        title: (doc.title || "").replace(/[‪-‮]/g, "").trim(),
+        desc: meta("description").trim(),
+        cat: meta("category").trim()
+      };
+    }
+  } catch (e) {}
+  cacheSet(key, { t: Date.now(), info });
+  return info;
+}
+
+async function detectNewPrograms() {
+  const files = await listRepoHtml();
+  if (!files) return;   // 查不到清單（離線或被限流）就只顯示手動清單
+
+  // 手動清單裡、但這個資料夾沒有的檔案就不顯示（把 index 複製到別的資料夾也不會出現壞連結）
+  EXISTING = new Set(files);
+  for (let i = PROGRAMS.length - 1; i >= 0; i--) {
+    PROGRAMS[i].files = PROGRAMS[i].files.filter(f => EXISTING.has(f));
+    if (!PROGRAMS[i].files.length) PROGRAMS.splice(i, 1);
+  }
+
+  const known = new Set([...HIDDEN, ...PROGRAMS.flatMap(p => p.files)]);
+  const fresh = files.filter(f => !known.has(f));
+  if (!fresh.length) { renderChips(); render(); return; }
+
+  const infos = await Promise.all(fresh.map(readHead));
+  fresh.forEach((f, i) => {
+    const info = infos[i];
+    AUTO.push({
+      auto: true,
+      cat: CATEGORIES.includes(info.cat) ? info.cat : NEW_CAT,
+      title: info.title || f.replace(/\.html?$/i, ""),
+      desc: info.desc || "",
+      files: [f]
+    });
+  });
+  renderChips();
+  render();
+}
+
+$("q").addEventListener("input", render);
+renderChips();
+render();
+detectNewPrograms();
+</script>
+</body>
+</html>
