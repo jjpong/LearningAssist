@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>冰塊在室溫融化模擬</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 整體容器樣式 */
+        .container {
+            text-align: center;
+            font-family: 'Inter', sans-serif; /* 使用 Inter 字體 */
+            padding: 20px;
+            background-color: #f0f4f8; /* 淡藍色背景 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* 圖表容器樣式 */
+        .chart-container {
+            width: 95%;
+            max-width: 900px;
+            height: 600px; /* 固定高度 */
+            margin: 20px auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            position: relative;
+            background-color: #ffffff; /* 白色背景 */
+        }
+        /* 按鈕樣式 */
+        .action-btn { /* 改名以更通用 */
+            background-color: #50c878; /* 綠色 */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* 按鈕懸停效果 */
+        .action-btn:hover {
+            background-color: #40a060; /* 深一點的綠色 */
+            transform: translateY(-1px);
+        }
+        /* 標題樣式 */
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+         /* 資訊文字樣式 */
+        .info-text {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>冰塊在室溫融化模擬</h1>
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+            <div style="margin-top: 20px;">
+                <button id="reloadBtn" class="action-btn">重新模擬</button>
+            </div>
+             <div id="info" class="info-text">正在計算...</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 全域變數 ---
+        let tempChart = null; // 圖表實例
+        let simulationData = []; // 儲存模擬結果
+
+        // --- 物理常數與設定 ---
+        const mass = 10; // 質量 (g)
+        const initialTemp = -10; // 初始溫度 (°C)
+        const roomTemp = 20; // 環境溫度 (°C)
+        const meltingPoint = 0; // 熔點 (°C)
+
+        const specificHeatIce = 0.5; // 冰的比熱 (cal/g°C)
+        const specificHeatWater = 1.0; // 水的比熱 (cal/g°C)
+        const latentHeatFusion = 80; // 融化熱 (cal/g)
+
+        // *** 修改：降低有效熱傳遞係數，使過程變慢 ***
+        const k = 0.02; // 原為 0.1
+
+        // 模擬時間步長 (秒)
+        const dt = 1;
+        // 模擬停止條件 (溫度接近室溫)
+        const stopTempThreshold = roomTemp - 0.1;
+        // 最大模擬時間 (防止無限迴圈)
+        const maxTime = 10800; // 增加到 3 小時 (秒)
+
+        // *** 修改：數據取樣間隔 ***
+        const sampleInterval = 10; // 每 10 秒記錄一次數據
+
+        // --- 函數：執行模擬 ---
+        function runSimulation() {
+            simulationData = []; // 清空舊數據
+            let currentTime = 0;
+            let currentTemp = initialTemp;
+            let heatAbsorbedTotal = 0; // 追蹤總吸收熱量
+            let state = 'HEATING_ICE'; // 可能狀態: HEATING_ICE, MELTING, HEATING_WATER, DONE
+
+            // 計算各階段所需總熱量
+            const heatToMeltPoint = mass * specificHeatIce * (meltingPoint - initialTemp);
+            const heatToMeltCompletely = heatToMeltPoint + mass * latentHeatFusion;
+            // const heatToRoomTemp = heatToMeltCompletely + mass * specificHeatWater * (roomTemp - meltingPoint); // 不再需要預先計算總熱量
+
+            simulationData.push({ x: currentTime, y: currentTemp }); // 初始點
+
+            while (state !== 'DONE' && currentTime < maxTime) {
+                let heatTransferRate = 0;
+                let heatIncrement = 0;
+
+                // 根據當前溫度計算溫差和傳熱速率
+                const tempDifference = roomTemp - currentTemp;
+                if (tempDifference > 0) { // 只有當物體溫度低於環境溫度時才傳熱
+                    heatTransferRate = k * tempDifference; // cal/s
+                    heatIncrement = heatTransferRate * dt; // cal
+                    heatAbsorbedTotal += heatIncrement;
+                } else {
+                    // 溫度已達或超過室溫，停止傳熱
+                    state = 'DONE';
+                    currentTemp = roomTemp; // 強制設為室溫
+                    heatIncrement = 0;
+                }
+
+                 // 根據狀態更新溫度或融化進度
+                switch (state) {
+                    case 'HEATING_ICE':
+                        if (heatAbsorbedTotal >= heatToMeltPoint) {
+                            // 到達熔點，計算超出的熱量用於融化
+                            const excessHeat = heatAbsorbedTotal - heatToMeltPoint;
+                            currentTemp = meltingPoint;
+                            state = 'MELTING';
+                            // 用超出的熱量更新融化階段的總熱量
+                            heatAbsorbedTotal = heatToMeltPoint + excessHeat;
+                             // 再次檢查是否直接融化完畢
+                            if (heatAbsorbedTotal >= heatToMeltCompletely) {
+                                const excessHeat2 = heatAbsorbedTotal - heatToMeltCompletely;
+                                state = 'HEATING_WATER';
+                                // 用超出的熱量計算水的初始溫度上升
+                                const initialWaterTempRise = excessHeat2 / (mass * specificHeatWater);
+                                currentTemp = meltingPoint + initialWaterTempRise;
+                                if (currentTemp >= stopTempThreshold) {
+                                    currentTemp = roomTemp;
+                                    state = 'DONE';
+                                }
+                            }
+
+                        } else {
+                            // 還在加熱冰塊
+                            const tempRise = heatIncrement / (mass * specificHeatIce);
+                            currentTemp += tempRise;
+                        }
+                        break;
+
+                    case 'MELTING':
+                        currentTemp = meltingPoint; // 保持在熔點
+                        if (heatAbsorbedTotal >= heatToMeltCompletely) {
+                            // 融化完成，計算超出的熱量用於加熱水
+                            const excessHeat = heatAbsorbedTotal - heatToMeltCompletely;
+                            state = 'HEATING_WATER';
+                            const tempRise = excessHeat / (mass * specificHeatWater);
+                            currentTemp = meltingPoint + tempRise;
+                             if (currentTemp >= stopTempThreshold) {
+                                currentTemp = roomTemp;
+                                state = 'DONE';
+                            }
+                        }
+                        // 如果未融化完成，溫度不變，只需累積熱量
+                        break;
+
+                    case 'HEATING_WATER':
+                        if (currentTemp >= stopTempThreshold) {
+                             currentTemp = roomTemp; // 強制設為室溫
+                             state = 'DONE';
+                        } else {
+                             // 繼續加熱水
+                            const tempRise = heatIncrement / (mass * specificHeatWater);
+                            currentTemp += tempRise;
+                             // 再次檢查是否達到停止條件
+                             if (currentTemp >= stopTempThreshold) {
+                                currentTemp = roomTemp;
+                                state = 'DONE';
+                             }
+                        }
+                        break;
+                }
+
+                currentTime += dt; // 時間推進
+
+                // *** 修改：儲存數據點的條件 ***
+                // 每隔 sampleInterval 秒記錄一次數據，或者在模擬結束時記錄最後一點
+                if (currentTime % sampleInterval === 0 || (state === 'DONE' && simulationData[simulationData.length - 1].x !== currentTime)) {
+                     simulationData.push({ x: currentTime, y: Math.min(currentTemp, roomTemp) }); // 確保溫度不超過室溫
+                }
+
+            } // end while loop
+
+             // 更新資訊文字
+             const finalTimeMinutes = (currentTime / 60).toFixed(1);
+             document.getElementById('info').textContent = `模擬完成，總耗時約 ${finalTimeMinutes} 分鐘。 (數據每 ${sampleInterval} 秒記錄一次)`;
+
+            // 繪製圖表
+            plotChart();
+        }
+
+        // --- 函數：繪製圖表 ---
+        function plotChart() {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (tempChart !== null) {
+                tempChart.destroy();
+            }
+
+            tempChart = new Chart(ctx, {
+                type: 'line', // 使用線圖顯示連續變化
+                data: {
+                    datasets: [{
+                        label: '溫度變化',
+                        data: simulationData,
+                        borderColor: 'rgb(75, 192, 192)', // 青色線
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)', // 區域填充（可選）
+                        borderWidth: 2,
+                        pointRadius: 2, // 點可以稍微明顯一點
+                        pointHoverRadius: 5,
+                        tension: 0.1 // 使線條稍微平滑
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // 允許圖表調整高度
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `10g 冰塊 (-10°C) 在 ${roomTemp}°C 環境中的溫度變化`,
+                            font: { size: 18, weight: 'bold' },
+                            padding: { top: 10, bottom: 20 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) label += `${context.parsed.y.toFixed(1)}°C`;
+                                    label += ` (時間: ${context.parsed.x.toFixed(0)} 秒)`;
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 (秒)',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0,
+                            // X 軸最大值會自動調整
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '溫度 (°C)',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            min: initialTemp - 5, // Y 軸最小值
+                            max: roomTemp + 5, // Y 軸最大值
+                            ticks: {
+                                stepSize: 5 // Y 軸刻度間隔
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    }
+                }
+            });
+        }
+
+        // --- 事件監聽器 ---
+        // 頁面加載完成後執行模擬
+        window.onload = runSimulation;
+
+        // 重新模擬按鈕
+        document.getElementById('reloadBtn').onclick = function() {
+             document.getElementById('info').textContent = '正在重新計算...';
+             // 稍微延遲執行，讓 "正在計算" 的訊息有機會顯示
+             setTimeout(runSimulation, 50);
+        };
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>不同物質的質量與體積關係圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .control-panel {
+            width: 90%;
+            max-width: 800px;
+            margin: 10px auto;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .checkbox-container input {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            margin-right: 8px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .water-color {
+            background-color: rgba(70, 130, 180, 0.2);
+            border: 2px solid rgba(70, 130, 180, 1);
+        }
+        .copper-color {
+            background-color: rgba(205, 127, 50, 0.2);
+            border: 2px solid rgba(205, 127, 50, 1);
+        }
+        .aluminum-color {
+            background-color: rgba(169, 169, 169, 0.2);
+            border: 2px solid rgba(169, 169, 169, 1);
+        }
+        .iron-color {
+            background-color: rgba(85, 85, 85, 0.2);
+            border: 2px solid rgba(85, 85, 85, 1);
+        }
+        .checkbox-input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .checkmark {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            display: none;
+        }
+        .checkbox-input:checked ~ .checkmark {
+            display: block;
+        }
+        .water-checkmark {
+            background-color: rgba(70, 130, 180, 1);
+        }
+        .copper-checkmark {
+            background-color: rgba(205, 127, 50, 1);
+        }
+        .aluminum-checkmark {
+            background-color: rgba(169, 169, 169, 1);
+        }
+        .iron-checkmark {
+            background-color: rgba(85, 85, 85, 1);
+        }
+        .water-formula {
+            border-color: rgba(70, 130, 180, 1);
+        }
+        .copper-formula {
+            border-color: rgba(205, 127, 50, 1);
+        }
+        .aluminum-formula {
+            border-color: rgba(169, 169, 169, 1);
+        }
+        .iron-formula {
+            border-color: rgba(85, 85, 85, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>實驗設置：</strong> 這個圖表顯示不同物質的質量與體積關係。測量誤差：體積±0.1cm³，質量±0.01g。通過比較斜率可以觀察到不同物質的密度差異。</p>
+        </div>
+        <div class="control-panel">
+            <span>選擇要顯示的物質：</span>
+            <label class="checkbox-container">
+                <span class="custom-checkbox water-color">
+                    <input type="checkbox" class="checkbox-input" id="waterCheckbox" checked>
+                    <span class="checkmark water-checkmark"></span>
+                </span>
+                水 (H₂O)
+            </label>
+            <label class="checkbox-container">
+                <span class="custom-checkbox copper-color">
+                    <input type="checkbox" class="checkbox-input" id="copperCheckbox" checked>
+                    <span class="checkmark copper-checkmark"></span>
+                </span>
+                銅 (Cu)
+            </label>
+            <label class="checkbox-container">
+                <span class="custom-checkbox aluminum-color">
+                    <input type="checkbox" class="checkbox-input" id="aluminumCheckbox" checked>
+                    <span class="checkmark aluminum-checkmark"></span>
+                </span>
+                鋁 (Al)
+            </label>
+            <label class="checkbox-container">
+                <span class="custom-checkbox iron-color">
+                    <input type="checkbox" class="checkbox-input" id="ironCheckbox" checked>
+                    <span class="checkmark iron-checkmark"></span>
+                </span>
+                鐵 (Fe)
+            </label>
+        </div>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+            <div id="waterFormulaLabel" class="formula-label water-formula"></div>
+            <div id="copperFormulaLabel" class="formula-label copper-formula"></div>
+            <div id="aluminumFormulaLabel" class="formula-label aluminum-formula"></div>
+            <div id="ironFormulaLabel" class="formula-label iron-formula"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 定義物質的密度和外觀
+            const materials = [
+                { 
+                    id: 'water',
+                    name: '水 (H₂O)', 
+                    density: 0.997,  // g/cm³ (約攝氏25度)
+                    color: 'rgba(70, 130, 180, 0.7)',
+                    borderColor: 'rgba(70, 130, 180, 1)',
+                    formulaLabelId: 'waterFormulaLabel'
+                },
+                { 
+                    id: 'copper',
+                    name: '銅 (Cu)', 
+                    density: 8.96,  // g/cm³
+                    color: 'rgba(205, 127, 50, 0.7)', // 調亮的銅色
+                    borderColor: 'rgba(205, 127, 50, 1)',
+                    formulaLabelId: 'copperFormulaLabel'
+                },
+                { 
+                    id: 'aluminum',
+                    name: '鋁 (Al)', 
+                    density: 2.7,  // g/cm³
+                    color: 'rgba(169, 169, 169, 0.7)',
+                    borderColor: 'rgba(169, 169, 169, 1)',
+                    formulaLabelId: 'aluminumFormulaLabel'
+                },
+                { 
+                    id: 'iron',
+                    name: '鐵 (Fe)', 
+                    density: 7.87,  // g/cm³
+                    color: 'rgba(85, 85, 85, 0.7)',
+                    borderColor: 'rgba(85, 85, 85, 1)',
+                    formulaLabelId: 'ironFormulaLabel'
+                }
+            ];
+            
+            // 生成體積數據點
+            const volumes = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+            
+            // 為每種材料創建數據點和數據集
+            const allDataPoints = [];
+            const datasets = [];
+            const trendlines = [];
+            
+            materials.forEach(material => {
+                const dataPoints = [];
+                
+                volumes.forEach(v => {
+                    // 體積誤差：±0.1cm³
+                    const volumeError = (Math.random() * 0.2 - 0.1);
+                    const actualVolume = v + volumeError;
+                    
+                    // 計算理論質量
+                    const theoreticalMass = actualVolume * material.density;
+                    
+                    // 質量誤差：±0.01g
+                    const massError = (Math.random() * 0.02 - 0.01);
+                    
+                    // 總質量 = 理論質量 + 質量誤差
+                    const totalMass = Math.round((theoreticalMass + massError) * 100) / 100;
+                    
+                    // 使用標稱體積和計算得到的質量
+                    dataPoints.push({ x: v, y: totalMass });
+                });
+                
+                allDataPoints.push(dataPoints);
+                
+                // 創建數據集
+                datasets.push({
+                    label: material.name,
+                    data: dataPoints,
+                    backgroundColor: material.color,
+                    pointRadius: 6
+                });
+                
+                // 計算趨勢線斜率（即擬合密度）
+                let sumXY = 0, sumXX = 0;
+                dataPoints.forEach(point => {
+                    sumXY += point.x * point.y;
+                    sumXX += point.x * point.x;
+                });
+                const fittedDensity = Math.round((sumXY / sumXX) * 1000) / 1000;
+                material.fittedDensity = fittedDensity;
+                
+                // 創建趨勢線數據集
+                const maxVolume = Math.max(...volumes) * 1.1;
+                trendlines.push({
+                    label: `${material.name}趨勢線`,
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: maxVolume, y: maxVolume * fittedDensity }
+                    ],
+                    borderColor: material.borderColor,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    type: 'line'
+                });
+                
+                // 設置公式標籤文本
+                const formulaLabel = document.getElementById(material.formulaLabelId);
+                formulaLabel.innerHTML = `m = ${fittedDensity} × V`;
+            });
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // 創建圖表
+            const myChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '不同物質的質量與體積關係圖',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const material = materials.find(m => m.name === context.dataset.label?.replace('趨勢線', '').trim());
+                                    if (context.dataset.type === 'line') {
+                                        // 這是趨勢線
+                                        return `${context.dataset.label.replace('趨勢線', '')}: 密度 = ${material.fittedDensity} g/cm³`;
+                                    }
+                                    return `${context.dataset.label}: ${context.parsed.y} g, ${context.parsed.x} cm³`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '體積 (cm³)'
+                            },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '質量 (g)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 標記趨勢線是否顯示
+            let trendlineVisible = false;
+            
+            // 獲取按鈕和勾選框元素
+            const toggleBtn = document.getElementById('toggleBtn');
+            const waterCheckbox = document.getElementById('waterCheckbox');
+            const copperCheckbox = document.getElementById('copperCheckbox');
+            const aluminumCheckbox = document.getElementById('aluminumCheckbox');
+            const ironCheckbox = document.getElementById('ironCheckbox');
+            
+            // 定位公式標籤位置的函數
+            function positionFormulaLabels() {
+                // 獲取圖表的坐標轉換
+                const scales = myChart.scales;
+                
+                materials.forEach((material, index) => {
+                    if ((material.id === 'water' && waterCheckbox.checked) ||
+                        (material.id === 'copper' && copperCheckbox.checked) ||
+                        (material.id === 'aluminum' && aluminumCheckbox.checked) ||
+                        (material.id === 'iron' && ironCheckbox.checked)) {
+                        
+                        const formulaLabel = document.getElementById(material.formulaLabelId);
+                        
+                        // 獲取該材料的最後一個數據點
+                        const lastPoint = allDataPoints[index][allDataPoints[index].length - 1];
+                        
+                        // 計算在圖表上的最後一個數據點的像素坐標
+                        const pointCoord = {
+                            x: scales.x.getPixelForValue(lastPoint.x),
+                            y: scales.y.getPixelForValue(lastPoint.y)
+                        };
+                        
+                        // 將標籤放在最後一個數據點下方偏右
+                        formulaLabel.style.left = (pointCoord.x + 15) + 'px';
+                        formulaLabel.style.top = (pointCoord.y + 15) + 'px';
+                        
+                        // 顯示標籤
+                        formulaLabel.style.display = 'block';
+                    } else {
+                        // 隱藏未選中材料的標籤
+                        document.getElementById(material.formulaLabelId).style.display = 'none';
+                    }
+                });
+            }
+            
+            // 更新圖表函數
+            function updateChart() {
+                // 獲取勾選狀態
+                const waterChecked = waterCheckbox.checked;
+                const copperChecked = copperCheckbox.checked;
+                const aluminumChecked = aluminumCheckbox.checked;
+                const ironChecked = ironCheckbox.checked;
+                
+                // 確保至少有一個物質被選中
+                if (!waterChecked && !copperChecked && !aluminumChecked && !ironChecked) {
+                    alert('請至少選擇一種物質！');
+                    // 檢查是哪個被取消，將其重新勾選
+                    if (this && this.id) {
+                        document.getElementById(this.id).checked = true;
+                    } else {
+                        waterCheckbox.checked = true;
+                    }
+                    return;
+                }
+                
+                // 創建新的數據集陣列
+                const activeDatasets = [];
+                const activeTrendlines = [];
+                
+                if (waterChecked) {
+                    activeDatasets.push(datasets[0]);
+                    if (trendlineVisible) activeTrendlines.push(trendlines[0]);
+                }
+                if (copperChecked) {
+                    activeDatasets.push(datasets[1]);
+                    if (trendlineVisible) activeTrendlines.push(trendlines[1]);
+                }
+                if (aluminumChecked) {
+                    activeDatasets.push(datasets[2]);
+                    if (trendlineVisible) activeTrendlines.push(trendlines[2]);
+                }
+                if (ironChecked) {
+                    activeDatasets.push(datasets[3]);
+                    if (trendlineVisible) activeTrendlines.push(trendlines[3]);
+                }
+                
+                // 更新圖表
+                myChart.data.datasets = [...activeDatasets, ...activeTrendlines];
+                
+                // 動態調整Y軸最大值
+                let maxMass = 0;
+                activeDatasets.forEach(dataset => {
+                    const datasetMax = Math.max(...dataset.data.map(point => point.y));
+                    if (datasetMax > maxMass) maxMass = datasetMax;
+                });
+                
+                // 為Y軸設置合適的最大值（上限增加20%）
+                const yMax = Math.ceil(maxMass * 1.2);
+                myChart.options.scales.y.max = yMax;
+                
+                myChart.update();
+                
+                // 如果趨勢線顯示，更新公式標籤
+                if (trendlineVisible) {
+                    setTimeout(positionFormulaLabels, 100);
+                } else {
+                    // 隱藏所有公式標籤
+                    materials.forEach(material => {
+                        document.getElementById(material.formulaLabelId).style.display = 'none';
+                    });
+                }
+            }
+            
+            // 為勾選框添加事件監聽器
+            waterCheckbox.addEventListener('change', updateChart);
+            copperCheckbox.addEventListener('change', updateChart);
+            aluminumCheckbox.addEventListener('change', updateChart);
+            ironCheckbox.addEventListener('change', updateChart);
+            
+            // 趨勢線切換按鈕事件
+            toggleBtn.addEventListener('click', function() {
+                trendlineVisible = !trendlineVisible;
+                
+                if (trendlineVisible) {
+                    toggleBtn.textContent = '隱藏趨勢線';
+                } else {
+                    toggleBtn.textContent = '顯示趨勢線';
+                }
+                
+                // 更新圖表
+                updateChart();
+            });
+            
+            // 窗口調整大小時重新定位標籤
+            window.addEventListener('resize', function() {
+                if (trendlineVisible) {
+                    setTimeout(positionFormulaLabels, 100);
+                }
+            });
+            
+            // 初始化圖表
+            updateChart();
+        });
+    </script>
+</body>
+</html>

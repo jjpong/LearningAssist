@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑白棋 (Reversi/Othello)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin-top: 20px;
+        }
+        .game-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            border: 2px solid #333;
+            background-color: #008000; /* Green background for the board */
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .cell.valid-move::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+        }
+        .piece {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .black {
+            background-color: black;
+        }
+        .white {
+            background-color: white;
+        }
+        .info-panel {
+            margin-left: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .info-panel h2 {
+            margin-top: 0;
+        }
+        .score, .turn-info {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>黑白棋 (Reversi/Othello)</h1>
+
+    <div class="game-container">
+        <div id="board" class="board"></div>
+        <div class="info-panel">
+            <h2>遊戲資訊</h2>
+            <div id="scoreBlack" class="score">黑棋: 2</div>
+            <div id="scoreWhite" class="score">白棋: 2</div>
+            <div id="turnInfo" class="turn-info">輪到: 黑棋</div>
+            <div id="message"></div>
+            <button id="resetButton">重新開始</button>
+            <div>
+                <label for="aiDifficulty">AI 難度 (預覽層數):</label>
+                <select id="aiDifficulty">
+                    <option value="1">1 (非常簡單)</option>
+                    <option value="2">2 (簡單)</option>
+                    <option value="3" selected>3 (普通)</option>
+                    <option value="4">4 (困難)</option>
+                    <option value="5">5 (很有挑戰)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EMPTY = 0;
+        const BLACK = 1;
+        const WHITE = 2;
+        const BOARD_SIZE = 8;
+
+        let board = [];
+        let currentPlayer;
+        let humanPlayer = BLACK; // 人類玩家執黑
+        let aiPlayer = WHITE;    // AI 執白
+        let aiDifficulty = 3; // Minimax 搜尋深度
+
+        const boardElement = document.getElementById('board');
+        const scoreBlackElement = document.getElementById('scoreBlack');
+        const scoreWhiteElement = document.getElementById('scoreWhite');
+        const turnInfoElement = document.getElementById('turnInfo');
+        const messageElement = document.getElementById('message');
+        const resetButton = document.getElementById('resetButton');
+        const aiDifficultySelector = document.getElementById('aiDifficulty');
+
+        // 方向向量: 上, 下, 左, 右, 左上, 右上, 左下, 右下
+        const directions = [
+            [-1, 0], [1, 0], [0, -1], [0, 1],
+            [-1, -1], [-1, 1], [1, -1], [1, 1]
+        ];
+        
+        // 位置權重表，用於AI評估 (角落最重要，邊緣次之，角落旁的位置要小心)
+        const positionWeights = [
+            [120, -20, 20,  5,  5, 20, -20, 120],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [ 20,  -5, 15,  3,  3, 15,  -5,  20],
+            [  5,  -5,  3,  3,  3,  3,  -5,   5],
+            [  5,  -5,  3,  3,  3,  3,  -5,   5],
+            [ 20,  -5, 15,  3,  3, 15,  -5,  20],
+            [-20, -40, -5, -5, -5, -5, -40, -20],
+            [120, -20, 20,  5,  5, 20, -20, 120]
+        ];
+
+        function initBoard() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(EMPTY));
+            board[3][3] = WHITE;
+            board[3][4] = BLACK;
+            board[4][3] = BLACK;
+            board[4][4] = WHITE;
+            currentPlayer = BLACK;
+            messageElement.textContent = '';
+            aiDifficulty = parseInt(aiDifficultySelector.value);
+            renderBoard();
+            updateInfo();
+            showValidMoves();
+
+            if (currentPlayer === aiPlayer) {
+                setTimeout(makeAiMove, 500);
+            }
+        }
+
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    if (board[r][c] !== EMPTY) {
+                        const piece = document.createElement('div');
+                        piece.classList.add('piece');
+                        piece.classList.add(board[r][c] === BLACK ? 'black' : 'white');
+                        cell.appendChild(piece);
+                    }
+                    cell.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function updateInfo() {
+            let blackScore = 0;
+            let whiteScore = 0;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] === BLACK) blackScore++;
+                    else if (board[r][c] === WHITE) whiteScore++;
+                }
+            }
+            scoreBlackElement.textContent = `黑棋: ${blackScore}`;
+            scoreWhiteElement.textContent = `白棋: ${whiteScore}`;
+            turnInfoElement.textContent = `輪到: ${currentPlayer === BLACK ? '黑棋' : '白棋'}`;
+        }
+
+        function getFlips(row, col, player) {
+            if (board[row][col] !== EMPTY) return []; // 已經有棋子
+
+            const opponent = player === BLACK ? WHITE : BLACK;
+            let piecesToFlip = [];
+
+            for (const [dr, dc] of directions) {
+                let r = row + dr;
+                let c = col + dc;
+                let currentLineFlips = [];
+
+                while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                    if (board[r][c] === opponent) {
+                        currentLineFlips.push([r, c]);
+                    } else if (board[r][c] === player) {
+                        piecesToFlip.push(...currentLineFlips);
+                        break; // 找到己方棋子，此方向有效
+                    } else { // EMPTY
+                        break; // 空白格，此方向無效
+                    }
+                    r += dr;
+                    c += dc;
+                }
+            }
+            return piecesToFlip;
+        }
+
+        function isValidMove(row, col, player) {
+            return getFlips(row, col, player).length > 0;
+        }
+
+        function getValidMoves(player) {
+            const moves = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (isValidMove(r, c, player)) {
+                        moves.push([r, c]);
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function showValidMoves() {
+            // 清除之前的 valid-move 標記
+            document.querySelectorAll('.cell.valid-move').forEach(cell => cell.classList.remove('valid-move'));
+
+            if (currentPlayer === humanPlayer) {
+                const validMoves = getValidMoves(currentPlayer);
+                validMoves.forEach(([r, c]) => {
+                    const cell = boardElement.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+                    if (cell) {
+                        cell.classList.add('valid-move');
+                    }
+                });
+            }
+        }
+
+        function makeMove(row, col, player) {
+            const piecesToFlip = getFlips(row, col, player);
+            if (piecesToFlip.length === 0 && board[row][col] === EMPTY) { // 確保即使 getFlips 為空 (理論上不應該發生在合法移動)，也不會放置棋子
+                return false; // 無效移動
+            }
+            
+            board[row][col] = player;
+            piecesToFlip.forEach(([r, c]) => {
+                board[r][c] = player;
+            });
+
+            renderBoard(); // 立即渲染棋盤變化
+            return true;
+        }
+
+        function handleCellClick(event) {
+            if (currentPlayer !== humanPlayer) return; // 不是人類玩家的回合
+
+            const row = parseInt(event.target.closest('.cell').dataset.row);
+            const col = parseInt(event.target.closest('.cell').dataset.col);
+
+            if (isValidMove(row, col, currentPlayer)) {
+                messageElement.textContent = '';
+                makeMove(row, col, currentPlayer);
+                switchPlayer();
+            } else {
+                messageElement.textContent = '無效的落子位置！';
+            }
+        }
+
+        function switchPlayer() {
+            currentPlayer = (currentPlayer === BLACK) ? WHITE : BLACK;
+            updateInfo();
+            showValidMoves(); // 為新玩家顯示合法走位
+
+            const validMoves = getValidMoves(currentPlayer);
+            if (validMoves.length === 0) {
+                // 當前玩家無棋可下，再換對方
+                messageElement.textContent = `${currentPlayer === BLACK ? '黑棋' : '白棋'} 無棋可下，跳過回合。`;
+                currentPlayer = (currentPlayer === BLACK) ? WHITE : BLACK;
+                updateInfo();
+                showValidMoves();
+                const opponentValidMoves = getValidMoves(currentPlayer);
+                if (opponentValidMoves.length === 0) {
+                    // 雙方都無棋可下，遊戲結束
+                    gameOver();
+                    return;
+                }
+            }
+
+            if (currentPlayer === aiPlayer) {
+                setTimeout(makeAiMove, 500); // 給一點延遲讓AI看起來在思考
+            }
+        }
+
+        function gameOver() {
+            let blackScore = 0;
+            let whiteScore = 0;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] === BLACK) blackScore++;
+                    else if (board[r][c] === WHITE) whiteScore++;
+                }
+            }
+
+            let winnerMessage = "遊戲結束！ ";
+            if (blackScore > whiteScore) winnerMessage += "黑棋獲勝！";
+            else if (whiteScore > blackScore) winnerMessage += "白棋獲勝！";
+            else winnerMessage += "平局！";
+            
+            messageElement.textContent = winnerMessage;
+            turnInfoElement.textContent = "遊戲結束";
+
+            // 移除所有 valid-move 標記
+            document.querySelectorAll('.cell.valid-move').forEach(cell => cell.classList.remove('valid-move'));
+        }
+
+        // --- AI Logic ---
+        function evaluateBoard(currentBoard, player) {
+            let score = 0;
+            let opponent = player === BLACK ? WHITE : BLACK;
+            
+            let myPieces = 0;
+            let oppPieces = 0;
+            let myMobility = 0;
+            let oppMobility = 0;
+            let myCorner = 0;
+            let oppCorner = 0;
+            let myPositionalScore = 0;
+            let oppPositionalScore = 0;
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (currentBoard[r][c] === player) {
+                        myPieces++;
+                        myPositionalScore += positionWeights[r][c];
+                        if ((r===0||r===BOARD_SIZE-1) && (c===0||c===BOARD_SIZE-1)) myCorner++;
+                    } else if (currentBoard[r][c] === opponent) {
+                        oppPieces++;
+                        oppPositionalScore += positionWeights[r][c];
+                         if ((r===0||r===BOARD_SIZE-1) && (c===0||c===BOARD_SIZE-1)) oppCorner++;
+                    }
+                }
+            }
+
+            // 棋子差異分
+            score += (myPieces - oppPieces) * 10;
+            
+            // 位置權重分
+            score += (myPositionalScore - oppPositionalScore);
+
+            // 角落分 (非常重要)
+            score += (myCorner - oppCorner) * 800; // 大幅增加角落權重
+
+            // 行動力分
+            myMobility = getValidMovesOnBoard(currentBoard, player).length;
+            oppMobility = getValidMovesOnBoard(currentBoard, opponent).length;
+            score += (myMobility - oppMobility) * 50; // 行動力權重
+
+            return score;
+        }
+        
+        // Minimax 演算法需要的 getValidMoves (操作任意棋盤)
+        function getValidMovesOnBoard(boardState, player) {
+            const moves = [];
+            const originalBoard = board; // 暫存當前主棋盤
+            board = boardState; // 臨時切換到模擬棋盤
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (isValidMove(r, c, player)) { // isValidMove 內部會使用全局 board
+                        moves.push([r, c]);
+                    }
+                }
+            }
+            board = originalBoard; // 恢復主棋盤
+            return moves;
+        }
+        
+        // Minimax 演算法需要的 makeMove (操作任意棋盤，並返回新棋盤)
+        function makeMoveOnBoard(boardState, row, col, player) {
+            let newBoard = boardState.map(arr => arr.slice()); // 深拷貝
+            const originalBoard = board; // 暫存
+            board = newBoard; // 臨時切換
+
+            const piecesToFlip = getFlips(row, col, player); // getFlips 內部使用全局 board
+            if (piecesToFlip.length === 0 && newBoard[row][col] === EMPTY) {
+                 board = originalBoard; return null; // 無效移動
+            }
+
+            newBoard[row][col] = player;
+            piecesToFlip.forEach(([r, c]) => {
+                newBoard[r][c] = player;
+            });
+            
+            board = originalBoard; // 恢復
+            return newBoard;
+        }
+
+        function minimax(currentBoard, depth, alpha, beta, maximizingPlayer, playerForEval) {
+            const opponentForEval = playerForEval === BLACK ? WHITE : BLACK;
+            
+            if (depth === 0) {
+                return { score: evaluateBoard(currentBoard, playerForEval), move: null };
+            }
+
+            const validMoves = getValidMovesOnBoard(currentBoard, maximizingPlayer ? playerForEval : opponentForEval);
+
+            if (validMoves.length === 0) { // 沒有合法移動
+                 // 如果雙方都無棋可下，則是遊戲結束狀態
+                const opponentValidMoves = getValidMovesOnBoard(currentBoard, maximizingPlayer ? opponentForEval : playerForEval);
+                if (opponentValidMoves.length === 0) {
+                     return { score: evaluateBoard(currentBoard, playerForEval), move: null }; // 遊戲結束，直接評分
+                }
+                // 只有一方無棋可下，輪到對方，相當於跳過，但深度不變，因為局面未實質推進
+                return minimax(currentBoard, depth -1, alpha, beta, !maximizingPlayer, playerForEval);
+
+            }
+
+            let bestMove = null;
+
+            if (maximizingPlayer) { // AI (playerForEval) 的回合
+                let maxEval = -Infinity;
+                for (const move of validMoves) {
+                    const newBoardState = makeMoveOnBoard(currentBoard, move[0], move[1], playerForEval);
+                    if (!newBoardState) continue;
+
+                    const evaluation = minimax(newBoardState, depth - 1, alpha, beta, false, playerForEval).score;
+                    if (evaluation > maxEval) {
+                        maxEval = evaluation;
+                        bestMove = move;
+                    }
+                    alpha = Math.max(alpha, evaluation);
+                    if (beta <= alpha) break; // Alpha-beta剪枝
+                }
+                return { score: maxEval, move: bestMove };
+            } else { // 對手 (opponentForEval) 的回合
+                let minEval = Infinity;
+                for (const move of validMoves) {
+                    const newBoardState = makeMoveOnBoard(currentBoard, move[0], move[1], opponentForEval);
+                     if (!newBoardState) continue;
+
+                    const evaluation = minimax(newBoardState, depth - 1, alpha, beta, true, playerForEval).score;
+                     if (evaluation < minEval) {
+                        minEval = evaluation;
+                        bestMove = move; // 雖然這是對手的最佳移動，但我們只需要分數
+                    }
+                    beta = Math.min(beta, evaluation);
+                    if (beta <= alpha) break; // Alpha-beta剪枝
+                }
+                return { score: minEval, move: bestMove }; // 返回minEval和對手選擇的移動（儘管AI不直接使用此移動）
+            }
+        }
+
+        function makeAiMove() {
+            messageElement.textContent = 'AI 正在思考...';
+            aiDifficulty = parseInt(aiDifficultySelector.value); // 更新AI難度
+
+            // 延遲執行 AI 思考，避免頁面卡頓感
+            setTimeout(() => {
+                const validMoves = getValidMoves(aiPlayer);
+                if (validMoves.length === 0) {
+                    // AI 無棋可下，理論上 switchPlayer 已經處理了這種情況
+                    messageElement.textContent = 'AI 無棋可下，跳過。';
+                    switchPlayer(); 
+                    return;
+                }
+
+                // 測試：隨機選擇一個有效移動 (如果 Minimax 出錯時的備用方案)
+                // const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                // makeMove(randomMove[0], randomMove[1], aiPlayer);
+
+                const bestMoveResult = minimax(board, aiDifficulty, -Infinity, Infinity, true, aiPlayer);
+                
+                if (bestMoveResult && bestMoveResult.move) {
+                    makeMove(bestMoveResult.move[0], bestMoveResult.move[1], aiPlayer);
+                } else if (validMoves.length > 0) {
+                    // 如果 Minimax 沒有返回有效移動 (例如所有移動評分都一樣差，或初始實現有bug)
+                    // 則隨機選擇一個，確保遊戲能繼續
+                    console.warn("Minimax did not return a best move, or board state issue. Making a random valid move.");
+                    const randomFallbackMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    makeMove(randomFallbackMove[0], randomFallbackMove[1], aiPlayer);
+                } else {
+                     // 理論上不應該到這裡，因為上面已經檢查過 validMoves.length === 0
+                    console.error("AI has no valid moves, but previous check failed.");
+                }
+
+
+                messageElement.textContent = '';
+                switchPlayer();
+            }, 100); // 短暫延遲讓"AI正在思考"訊息可見
+        }
+
+        resetButton.addEventListener('click', initBoard);
+        aiDifficultySelector.addEventListener('change', (event) => {
+            aiDifficulty = parseInt(event.target.value);
+            // 如果你想在改變難度後立即重置遊戲，可以在這裡調用 initBoard()
+            // initBoard(); 
+            console.log("AI 難度已更改為: " + aiDifficulty);
+        });
+
+        // 初始化遊戲
+        initBoard();
+    </script>
+</body>
+</html>

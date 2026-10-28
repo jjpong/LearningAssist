@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣學校地圖 (鎖定台灣範圍)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #aacde1; /* 設定地圖外圍的背景色 */
+        }
+        /* 客製化文字標籤的樣式 */
+        .school-div-label {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap; /* 確保文字不換行 */
+            border: 1px solid #999;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-align: left; /* 所有標籤內文字統一靠左對齊 */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        // 1. 定義台灣區域的地理邊界
+        // 西南角座標 (緯度, 經度)
+        var southWest = L.latLng(21.5, 118.0);
+        // 東北角座標 (緯度, 經度)
+        var northEast = L.latLng(26.5, 124.0);
+        // 建立邊界物件
+        var bounds = L.latLngBounds(southWest, northEast);
+
+        // 2. 初始化地圖，並加入限制選項
+        var map = L.map('map', {
+            maxBounds: bounds,   // 設定最大邊界
+            minZoom: 8           // 設定最小縮放等級
+        }).setView([24.2, 121.0], 8);
+
+        // 使用簡潔的淺灰色圖資
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            // 這個選項很重要，確保在邊界外的圖磚不會被載入
+            bounds: bounds,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
+
+        // 建立一個更顯目的紅色圖標 (只給同德國中使用)
+        var redIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // 學校資料陣列，包含精確的標籤位置與連接點設定
+        var schools = [
+            {name: "臺北市 龍山國中", marker_lat: 25.0361, marker_lng: 121.505, label_lat: 25.45, label_lng: 121.7, anchor: 'left'},
+            {name: "屏東縣 明正國中", marker_lat: 22.681, marker_lng: 120.493, label_lat: 22.681, label_lng: 121.0, anchor: 'left'},
+            {name: "臺北市 誠正國中", marker_lat: 25.054, marker_lng: 121.599, label_lat: 25.25, label_lng: 121.85, anchor: 'left'},
+            {name: "桃園市 建國國中", marker_lat: 24.989, marker_lng: 121.319, label_lat: 25.1, label_lng: 120.5, anchor: 'right'},
+            {name: "桃園市 會稽國中", marker_lat: 25.018, marker_lng: 121.320, label_lat: 25.2, label_lng: 120.5, anchor: 'right'},
+            {name: "桃園市 平興國中", marker_lat: 24.949, marker_lng: 121.205, label_lat: 24.8, label_lng: 120.5, anchor: 'right'},
+            {name: "彰化縣 彰安國中", marker_lat: 24.083, marker_lng: 120.537, label_lat: 24.083, label_lng: 120.1, anchor: 'right'},
+            {name: "宜蘭縣 宜蘭國中", marker_lat: 24.761, marker_lng: 121.758, label_lat: 24.6, label_lng: 122.1, anchor: 'left'},
+            {name: "新北市 康橋國際學校", marker_lat: 24.957, marker_lng: 121.528, label_lat: 24.8, label_lng: 121.9, anchor: 'left'},
+            {name: "嘉義縣 民和國中", marker_lat: 23.447, marker_lng: 120.528, label_lat: 23.447, label_lng: 121.0, anchor: 'left'},
+            {name: "桃園市 同德國中", marker_lat: 25.013, marker_lng: 121.303, label_lat: 25.0, label_lng: 120.5, anchor: 'right'},
+            {name: "花蓮縣 三民國中", marker_lat: 23.682, marker_lng: 121.490, label_lat: 23.682, label_lng: 121.9, anchor: 'left'}
+        ];
+
+        // ... (後續繪製標記的程式碼完全相同，無需變更) ...
+        schools.forEach(function(school) {
+            var marker;
+            var markerOptions = {};
+            var markerPos = [school.marker_lat, school.marker_lng];
+            var labelPos = [school.label_lat, school.label_lng];
+            var labelWidth = (school.name.length * 15.5) + 16;
+            if (school.name === "桃園市 同德國中") {
+                markerOptions.icon = redIcon;
+                markerOptions.zIndexOffset = 1000;
+            }
+            marker = L.marker(markerPos, markerOptions).addTo(map);
+            marker.bindPopup("<b>" + school.name + "</b>");
+            var iconAnchor;
+            if (school.anchor === 'right') {
+                iconAnchor = [labelWidth, 14];
+            } else {
+                iconAnchor = [0, 14];
+            }
+            var labelIcon = L.divIcon({
+                className: 'school-div-label',
+                html: '<div>' + school.name + '</div>',
+                iconSize: [labelWidth, 28],
+                iconAnchor: iconAnchor
+            });
+            L.marker(labelPos, { icon: labelIcon, zIndexOffset: 500 }).addTo(map);
+            L.polyline([markerPos, labelPos], {
+                color: '#555',
+                weight: 1.5,
+                opacity: 0.8
+            }).addTo(map);
+        });
+
+    </script>
+
+</body>
+</html>

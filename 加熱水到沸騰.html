@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>加熱水模擬實驗</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .labelHigh {
+            border-color: rgb(255, 99, 132);
+        }
+        .labelLow {
+            border-color: rgb(54, 162, 235);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+            <div id="labelHigh" class="formula-label labelHigh"></div>
+            <div id="labelLow" class="formula-label labelLow"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+                <button id="reloadBtn" class="toggle-btn" style="background-color: #007bff;">重新實驗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       // 全域變數
+        let tempChart = null;
+        let trendlineVisible = false;
+
+        // 函數：計算加熱水的溫度
+        function calculateWaterTemperature(initialTemp, heatingRate, time, waterMass) {
+            const specificHeatOfWater = 1;  // 水的比熱為 1 cal/g°C
+            const timeInSeconds = time * 60; // 將分鐘轉換為秒
+            const totalHeat = heatingRate * timeInSeconds; // 加熱的總熱量
+            const tempIncrease = totalHeat / (waterMass * specificHeatOfWater); // 溫度上升
+            let finalTemp = initialTemp + tempIncrease;
+
+             // 限制最高溫度為 100°C
+            if (finalTemp > 100) {
+                finalTemp = 100;
+            }
+            return finalTemp;
+        }
+
+        // 函數：設定實驗
+        function setupExperiment() {
+            // 實驗參數
+            const initialTemp = 20;      // 水的初始溫度
+            const heatingRate = 100;    // 加熱速率 (cal/s)
+            const duration = 30;         // 實驗持續時間 (分鐘)
+            const boilingPoint = 100;    // 水的沸點
+            const interval = 3;          // 測量間隔 (分鐘)
+
+            // 隨機生成水的質量，使沸騰時間在 18 到 22 分鐘之間
+            const minTimeToBoiling = 18 * 60; // 秒
+            const maxTimeToBoiling = 22 * 60; // 秒
+            const minWaterMass = (heatingRate * minTimeToBoiling) / (boilingPoint - initialTemp);
+            const maxWaterMass = (heatingRate * maxTimeToBoiling) / (boilingPoint - initialTemp);
+            const waterMass = minWaterMass + Math.random() * (maxWaterMass - minWaterMass);  // 水的質量 (g)
+
+            const times = [];
+            const temps = [];
+            let timeToBoilingCalculated = (boilingPoint - initialTemp) * waterMass / heatingRate / 60;
+            let a = heatingRate / waterMass * 60; // 計算斜率 a，單位為 °C/min
+            let boilingTime = timeToBoilingCalculated;
+
+
+            for (let t = 0; t <= duration; t += interval) {
+                times.push(t);
+                let temp = calculateWaterTemperature(initialTemp, heatingRate, t, waterMass);
+                 // 添加小的隨機誤差
+                const error = (Math.random() * 0.2 - 0.1);
+                temp = Math.round((temp + error) * 10) / 10;
+                temps.push(temp);
+            }
+
+             // 建立趨勢線資料
+            const trendPoints = [];
+            const trendTimesCount = 100;
+            const trendTimeStep = duration / trendTimesCount;
+            for (let i = 0; i <= trendTimesCount; i++) {
+                const t = i * trendTimeStep;
+                const trendTemp = initialTemp + a * t;
+                trendPoints.push({ x: t, y: trendTemp });
+            }
+
+            // 創建基本數據集
+            const datasets = {
+                label: '水溫',
+                data: times.map((t, i) => ({ x: t, y: temps[i] })),
+                backgroundColor: 'rgb(54, 162, 235)', // 更改為藍色
+                pointRadius: 6,
+                pointHoverRadius: 8
+            };
+
+            // 創建趨勢線數據集
+            const trendLineDataset = {
+                label: '水溫趨勢線',
+                data: trendPoints,
+                borderColor: 'rgba(54, 162, 235, 0.8)', // 更改為藍色
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                borderWidth: 2,
+                pointRadius: 0,
+                type: 'line'
+            };
+
+            // 獲取 canvas 元素
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (tempChart !== null) {
+                tempChart.destroy();
+            }
+
+            // 創建圖表
+            tempChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [datasets]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '加熱水溫度的變化 (每 3 分鐘測量)',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                         tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                     return `${context.dataset.label}: ${context.parsed.y}°C (時間: ${context.parsed.x} 分鐘)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 (分鐘)'
+                            },
+                            min: 0,
+                            max: duration,
+                            ticks: {
+                                stepSize: 3
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '溫度 (°C)'
+                            },
+                            min: 10,
+                            max: 110,
+                            ticks: {
+                                stepSize: 10
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 趨勢線方程式
+            const eq = `T(t) = ${a.toFixed(2)}t + ${initialTemp.toFixed(0)}`;
+            document.getElementById('labelHigh').innerHTML = eq;
+            document.getElementById('labelLow').innerHTML = "";
+
+            function positionLabels() {
+                const scales = tempChart.scales;
+                const x = scales.x.getPixelForValue(15);
+                const yHigh = scales.y.getPixelForValue(80);
+
+
+                const labelHigh = document.getElementById('labelHigh');
+                labelHigh.style.left = x + 'px';
+                labelHigh.style.top = yHigh + 'px';
+
+                const labelLow = document.getElementById('labelLow');
+                labelLow.style.display = 'none';
+            }
+
+            trendlineVisible = false;
+            document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+            document.getElementById('labelHigh').style.display = 'none';
+            document.getElementById('labelLow').style.display = 'none';
+
+            // 更新趨勢線顯示
+            toggleTrendline = function() {
+                trendlineVisible = !trendlineVisible;
+                if (trendlineVisible) {
+                    tempChart.data.datasets = [datasets, trendLineDataset];
+                    document.getElementById('toggleBtn').textContent = '隱藏趨勢線';
+                     setTimeout(positionLabels, 100);
+                     document.getElementById('labelHigh').style.display = 'block';
+                     document.getElementById('labelLow').style.display = 'none';
+                } else {
+                    tempChart.data.datasets = [datasets];
+                    document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+                    document.getElementById('labelHigh').style.display = 'none';
+                    document.getElementById('labelLow').style.display = 'none';
+                }
+                tempChart.update();
+            };
+
+            document.getElementById('toggleBtn').onclick = toggleTrendline;
+
+            window.addEventListener('resize', function() {
+                if (trendlineVisible) {
+                     setTimeout(positionLabels, 100);
+                }
+            });
+        }
+
+        // 執行實驗設定
+        setupExperiment();
+
+        // 重新執行實驗
+        document.getElementById('reloadBtn').onclick = setupExperiment;
+    </script>
+</body>
+</html>

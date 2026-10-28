@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>物體升溫曲線比較</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .labelA {
+            border-color: rgb(255, 99, 132);
+        }
+        .labelB {
+            border-color: rgb(54, 162, 235);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>實驗設置：</strong> 在相同加熱條件下，加熱A和B的升溫情況。</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+            <div id="labelA" class="formula-label labelA"></div>
+            <div id="labelB" class="formula-label labelB"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設定初始溫度和升溫率
+            const initialTemp = 20; // 初始溫度25°C
+            const rateA = 2;        // A物體升溫率：2°C/分鐘
+            const rateB = 1;        // B物體升溫率：1°C/分鐘
+            const duration = 30;    // 加熱總時間：30分鐘
+            const interval = 3;     // 測量間隔：每3分鐘
+            
+            // 創建時間軸和溫度數據
+            const times = [];
+            const tempsA = [];
+            const tempsB = [];
+            
+            for (let t = 0; t <= duration; t += interval) {
+                times.push(t);
+                
+                // 添加極微小的隨機波動以模擬真實數據
+                const randomFactorA = 1 + (Math.random() * 0.01 - 0.005); // ±0.5%的極小波動
+                const randomFactorB = 1 + (Math.random() * 0.01 - 0.005); // ±0.5%的極小波動
+                
+                // 計算並四捨五入到一位小數
+                const tempA = Math.round((initialTemp + t * rateA * randomFactorA) * 10) / 10;
+                const tempB = Math.round((initialTemp + t * rateB * randomFactorB) * 10) / 10;
+                
+                tempsA.push(tempA);
+                tempsB.push(tempB);
+            }
+            
+            // 為趨勢線進行線性回歸計算
+            function linearRegression(x, y) {
+                const n = x.length;
+                let sumX = 0;
+                let sumY = 0;
+                let sumXY = 0;
+                let sumXX = 0;
+                
+                for (let i = 0; i < n; i++) {
+                    sumX += x[i];
+                    sumY += y[i];
+                    sumXY += x[i] * y[i];
+                    sumXX += x[i] * x[i];
+                }
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                return { slope, intercept };
+            }
+            
+            // 計算趨勢線
+            const regressionA = linearRegression(times, tempsA);
+            const regressionB = linearRegression(times, tempsB);
+            
+            // 四捨五入到小數點後兩位
+            const slopeA = Math.round(regressionA.slope * 100) / 100;
+            const interceptA = Math.round(regressionA.intercept * 100) / 100;
+            const slopeB = Math.round(regressionB.slope * 100) / 100;
+            const interceptB = Math.round(regressionB.intercept * 100) / 100;
+            
+            // 建立趨勢線數據集
+            const trendLineA = [
+                { x: 0, y: interceptA },
+                { x: duration, y: interceptA + slopeA * duration }
+            ];
+            
+            const trendLineB = [
+                { x: 0, y: interceptB },
+                { x: duration, y: interceptB + slopeB * duration }
+            ];
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            
+            // 創建基本數據集
+            const datasetsA = {
+                label: 'A物體',
+                data: times.map((t, i) => ({ x: t, y: tempsA[i] })),
+                backgroundColor: 'rgb(255, 99, 132)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            };
+            
+            const datasetsB = {
+                label: 'B物體',
+                data: times.map((t, i) => ({ x: t, y: tempsB[i] })),
+                backgroundColor: 'rgb(54, 162, 235)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            };
+            
+            // 創建趨勢線數據集
+            const trendLineDatasetA = {
+                label: 'A物體趨勢線',
+                data: trendLineA,
+                borderColor: 'rgba(255, 99, 132, 0.8)',
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                borderWidth: 2,
+                pointRadius: 0,
+                type: 'line'
+            };
+            
+            const trendLineDatasetB = {
+                label: 'B物體趨勢線',
+                data: trendLineB,
+                borderColor: 'rgba(54, 162, 235, 0.8)',
+                backgroundColor: 'rgba(0, 0, 0, 0)',
+                borderWidth: 2,
+                pointRadius: 0,
+                type: 'line'
+            };
+            
+            // 創建圖表
+            const tempChart = new Chart(ctx, {
+                type: 'scatter',  // 使用散點圖以移除連線
+                data: {
+                    datasets: [datasetsA, datasetsB]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'  // 圖例放在右邊
+                        },
+                        title: {
+                            display: true,
+                            text: '物體升溫曲線比較 (每3分鐘測量)',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label || '';
+                                    if (datasetLabel.includes('趨勢線')) {
+                                        // 這是趨勢線
+                                        if (datasetLabel.includes('A')) {
+                                            return `A物體趨勢線: T = ${interceptA} + ${slopeA} × t`;
+                                        } else {
+                                            return `B物體趨勢線: T = ${interceptB} + ${slopeB} × t`;
+                                        }
+                                    }
+                                    return `${datasetLabel}: ${context.parsed.y}°C (${context.parsed.x}分鐘)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: '時間 (分鐘)'
+                            },
+                            min: 0,
+                            max: 33,
+                            ticks: {
+                                stepSize: 3
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '溫度 (°C)'
+                            },
+                            min: 0, // 起始值略低於25°C，便於觀察
+                            ticks: {
+                                stepSize: 10
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 獲取標籤和按鈕元素
+            const labelA = document.getElementById('labelA');
+            const labelB = document.getElementById('labelB');
+            const toggleBtn = document.getElementById('toggleBtn');
+            
+            // 設置趨勢線方程式文本
+            labelA.innerHTML = `T = ${interceptA} + ${slopeA} × t`;
+            labelB.innerHTML = `T = ${interceptB} + ${slopeB} × t`;
+            
+            // 定位公式標籤的函數
+            function positionLabels() {
+                // 獲取圖表的坐標轉換
+                const scales = tempChart.scales;
+                
+                // 計算A標籤位置 (放在趨勢線末端偏上)
+                const endPointA = trendLineA[1];
+                const posA = {
+                    x: scales.x.getPixelForValue(endPointA.x * 0.7),
+                    y: scales.y.getPixelForValue(endPointA.y * 0.9)
+                };
+                
+                // 計算B標籤位置 (放在趨勢線末端偏下)
+                const endPointB = trendLineB[1];
+                const posB = {
+                    x: scales.x.getPixelForValue(endPointB.x * 0.7),
+                    y: scales.y.getPixelForValue(endPointB.y * 1.05)
+                };
+                
+                // 設置標籤位置
+                labelA.style.left = (posA.x + 15) + 'px';
+                labelA.style.top = (posA.y - 30) + 'px';
+                
+                labelB.style.left = (posB.x + 15) + 'px';
+                labelB.style.top = (posB.y - 30) + 'px';
+            }
+            
+            // 標記趨勢線是否顯示
+            let trendlineVisible = false;
+            
+            // 趨勢線切換按鈕事件
+            toggleBtn.addEventListener('click', function() {
+                trendlineVisible = !trendlineVisible;
+                
+                if (trendlineVisible) {
+                    // 添加趨勢線
+                    tempChart.data.datasets = [datasetsA, datasetsB, trendLineDatasetA, trendLineDatasetB];
+                    toggleBtn.textContent = '隱藏趨勢線';
+                    
+                    // 顯示標籤
+                    setTimeout(() => {
+                        positionLabels();
+                        labelA.style.display = 'block';
+                        labelB.style.display = 'block';
+                    }, 100);
+                } else {
+                    // 移除趨勢線
+                    tempChart.data.datasets = [datasetsA, datasetsB];
+                    toggleBtn.textContent = '顯示趨勢線';
+                    
+                    // 隱藏標籤
+                    labelA.style.display = 'none';
+                    labelB.style.display = 'none';
+                }
+                
+                // 更新圖表
+                tempChart.update();
+            });
+            
+            // 窗口調整大小時重新定位標籤
+            window.addEventListener('resize', function() {
+                if (trendlineVisible) {
+                    setTimeout(positionLabels, 100);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

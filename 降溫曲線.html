@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>高溫水降溫模擬實驗</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .labelHigh {
+            border-color: rgb(255, 99, 132);
+        }
+        .labelLow {
+            border-color: rgb(54, 162, 235);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>實驗設置：</strong> 將高溫水（80°C）置於 20°C 的室溫環境中，觀察其降溫過程。每 3 分鐘測量一次水溫，共測量 60 分鐘。測量誤差約為 ±0.1°C。</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+            <div id="labelHigh" class="formula-label labelHigh"></div>
+            <div id="labelLow" class="formula-label labelLow"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+                <button id="reloadBtn" class="toggle-btn" style="background-color: #007bff;">重新實驗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變數
+        let tempChart = null;  // 用於儲存溫度圖表的物件
+        let trendlineVisible = false; // 用於追蹤趨勢線的顯示狀態
+
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+
+
+            // 設定實驗函數，會在頁面加載和點擊重新實驗按鈕時調用
+            function setupExperiment() {
+                // 設定初始溫度 (高溫80°C，室溫20°C)
+                const initialTempHigh = 80;
+                const roomTemp = 20;
+
+                // 設定熱平衡溫度 (水最終會降至室溫)
+                const equilibriumTemp = roomTemp;
+
+                // 設定熱交換時間常數 (調整此值以控制降溫速度，目標25-35分鐘降到20度)
+                const timeConstant = 8 + Math.random() * 4; // 時間常數在 8-12 分鐘之間，原本是10-15分鐘
+
+                // 測量間隔和總時間
+                const interval = 3;      // 測量間隔：每 3 分鐘
+                const duration = 60;     // 測量總時間：60 分鐘
+
+                // 創建時間軸和溫度數據
+                const times = [];
+                const tempsHigh = [];
+
+
+                for (let t = 0; t <= duration; t += interval) {
+                    times.push(t);
+
+                    // 計算指數衰減模型下的理論溫度
+                    // T(t) = T_room + (T_initial - T_room) * e^(-t/tau)
+                    const decayFactor = Math.exp(-t / timeConstant);
+                    const theoreticalTemp = equilibriumTemp + (initialTempHigh - equilibriumTemp) * decayFactor;
+
+
+                    // 添加測量誤差 (±0.1°C)
+                    const error = (Math.random() * 0.2 - 0.1);
+
+
+                    // 計算最終測量溫度並四捨五入到一位小數
+                    const temp = Math.round((theoreticalTemp + error) * 10) / 10;
+
+
+                    tempsHigh.push(temp);
+
+                }
+
+                // 建立趨勢線數據 (指數函數)
+                const trendPointsHigh = [];
+                const trendTimesCount = 100; // 使曲線更平滑
+                const trendTimeStep = duration / trendTimesCount;
+
+                for (let i = 0; i <= trendTimesCount; i++) {
+                    const t = i * trendTimeStep;
+                    const decayFactor = Math.exp(-t / timeConstant);
+                    const trendTemp = equilibriumTemp + (initialTempHigh - equilibriumTemp) * decayFactor;
+                    trendPointsHigh.push({ x: t, y: trendTemp });
+                }
+
+                // 創建基本數據集
+                const datasetsHigh = {
+                    label: '水溫',
+                    data: times.map((t, i) => ({ x: t, y: tempsHigh[i] })),
+                    backgroundColor: 'rgb(54, 162, 235)', // 將顏色改為藍色
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                };
+
+
+                // 創建趨勢線數據集
+                const trendLineDatasetHigh = {
+                    label: '水溫趨勢線',
+                    data: trendPointsHigh,
+                    borderColor: 'rgba(54, 162, 235, 0.8)', // 趨勢線顏色也改為藍色
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    type: 'line'
+                };
+
+
+                // 獲取canvas元素
+                const ctx = document.getElementById('tempChart').getContext('2d');
+
+                // 如果已經存在圖表，先銷毀
+                if (tempChart !== null) {
+                    tempChart.destroy();
+                }
+
+                // 創建新圖表
+                tempChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [datasetsHigh] // 只有一個數據集，即水溫
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right' // 將圖例放在右側
+                            },
+                            title: {
+                                display: true,
+                                text: '高溫水降溫過程 (每 3 分鐘測量)', //更符合實驗描述的標題
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y}°C (${context.parsed.x} 分鐘)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '時間 (分鐘)'
+                                },
+                                min: 0,
+                                max: 60, // x軸最大值改為60
+                                ticks: {
+                                    stepSize: 3
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '溫度 (°C)'
+                                },
+                                min: 10, // 確保可以看到所有數據
+                                max: 90,
+                                ticks: {
+                                    stepSize: 10
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // 設置趨勢線方程式文本 (四捨五入到小數後一位)
+                const eqHigh = `T = ${equilibriumTemp.toFixed(1)} + ${(initialTempHigh - equilibriumTemp).toFixed(1)}e^(-t/${timeConstant.toFixed(1)})`;
+                document.getElementById('labelHigh').innerHTML = eqHigh;
+                document.getElementById('labelLow').innerHTML = ""; // 清空labelLow
+
+                // 定位公式標籤的函數
+                function positionLabels() {
+                    // 獲取圖表的坐標轉換
+                    const scales = tempChart.scales;
+
+                    // 計算標籤位置 (放在時間45-50分鐘附近)
+                    const x = scales.x.getPixelForValue(45);
+
+                    // 高溫標籤放在平衡溫度上方
+                    const yHigh = scales.y.getPixelForValue(equilibriumTemp + 5);
+
+
+                    // 設置標籤位置
+                    const labelHigh = document.getElementById('labelHigh');
+                    labelHigh.style.left = x + 'px';
+                    labelHigh.style.top = yHigh + 'px';
+
+                    const labelLow = document.getElementById('labelLow');
+                    labelLow.style.display = 'none'; // 隱藏 labelLow
+                }
+
+                // 重設趨勢線顯示狀態
+                trendlineVisible = false;
+                document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+
+                // 隱藏標籤
+                document.getElementById('labelHigh').style.display = 'none';
+                document.getElementById('labelLow').style.display = 'none';
+
+                // 更新趨勢線顯示函數
+                toggleTrendline = function() {
+                    trendlineVisible = !trendlineVisible;
+
+                    if (trendlineVisible) {
+                        // 添加趨勢線
+                        tempChart.data.datasets = [datasetsHigh, trendLineDatasetHigh]; // 只添加高溫的趨勢線
+                        document.getElementById('toggleBtn').textContent = '隱藏趨勢線';
+
+                        // 顯示標籤
+                        setTimeout(() => {
+                            positionLabels();
+                            document.getElementById('labelHigh').style.display = 'block';
+                            document.getElementById('labelLow').style.display = 'none'; // 確保 labelLow 隱藏
+                        }, 100);
+                    } else {
+                        // 移除趨勢線
+                        tempChart.data.datasets = [datasetsHigh]; // 移除趨勢線數據集
+                        document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+
+                        // 隱藏標籤
+                        document.getElementById('labelHigh').style.display = 'none';
+                        document.getElementById('labelLow').style.display = 'none';
+                    }
+
+                    // 更新圖表
+                    tempChart.update();
+                };
+
+                // 為按鈕添加事件監聽器
+                document.getElementById('toggleBtn').onclick = toggleTrendline;
+
+                // 窗口調整大小時重新定位標籤
+                window.addEventListener('resize', function() {
+                    if (trendlineVisible) {
+                        setTimeout(positionLabels, 100);
+                    }
+                });
+            }
+
+            // 初始化實驗
+            setupExperiment();
+
+            // 為重新實驗按鈕添加事件監聽器
+            document.getElementById('reloadBtn').onclick = setupExperiment;
+        });
+    </script>
+</body>
+</html>

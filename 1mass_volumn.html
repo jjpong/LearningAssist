@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>物質的體積和質量關係圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            right: 20%;
+            top: 20%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+            <div id="formulaLabel" class="formula-label"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設置材料和數據
+            const materialName = '鋁';
+            const density = 2.7; // 鋁的密度 g/cm³
+            
+            // 生成體積數據點
+            const volumes = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+            
+            // 計算質量 (加入一些隨機誤差)
+            const masses = volumes.map(v => {
+                const error = (Math.random() * 0.06 - 0.03); // ±3% 誤差
+                return Math.round((v * density * (1 + error)) * 100) / 100;
+            });
+            
+            // 計算趨勢線斜率 (簡化為密度值)
+            let sumXY = 0, sumXX = 0;
+            for (let i = 0; i < volumes.length; i++) {
+                sumXY += volumes[i] * masses[i];
+                sumXX += volumes[i] * volumes[i];
+            }
+            const fittedDensity = Math.round((sumXY / sumXX) * 100) / 100;
+            
+            // 最大體積值及對應的y值
+            const maxVolume = Math.max(...volumes) * 1.1;
+            const maxY = maxVolume * fittedDensity;
+            
+            // 創建圖表的數據集
+            const dataConfig = {
+                datasets: [
+                    {
+                        label: `${materialName}的質量與體積關係`,
+                        data: volumes.map((v, i) => ({ x: v, y: masses[i] })),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        pointRadius: 6
+                    }
+                ]
+            };
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // 創建圖表
+            const myChart = new Chart(ctx, {
+                type: 'scatter',
+                data: dataConfig,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: `${materialName}的質量與體積關係圖`,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '體積 (cm³)'
+                            },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '質量 (g)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 準備趨勢線數據
+            const trendlineData = {
+                label: '趨勢線',
+                data: [
+                    { x: 0, y: 0 },
+                    { x: maxVolume, y: maxY }
+                ],
+                type: 'line',
+                borderColor: 'rgba(255, 99, 132, 0.8)',
+                borderWidth: 2,
+                pointRadius: 0
+            };
+            
+            // 獲取公式標籤元素和按鈕
+            const formulaLabel = document.getElementById('formulaLabel');
+            const toggleBtn = document.getElementById('toggleBtn');
+            
+            // 設置公式文本
+            formulaLabel.innerHTML = `m = ${fittedDensity} × V`;
+            
+            // 標記趨勢線是否顯示
+            let trendlineVisible = false;
+            
+            toggleBtn.addEventListener('click', function() {
+                if (!trendlineVisible) {
+                    // 添加趨勢線到圖表
+                    myChart.data.datasets.push(trendlineData);
+                    formulaLabel.style.display = 'block';
+                    toggleBtn.textContent = '隱藏趨勢線';
+                    trendlineVisible = true;
+                } else {
+                    // 移除趨勢線
+                    myChart.data.datasets.pop();
+                    formulaLabel.style.display = 'none';
+                    toggleBtn.textContent = '顯示趨勢線';
+                    trendlineVisible = false;
+                }
+                
+                // 更新圖表
+                myChart.update();
+            });
+        });
+    </script>
+</body>
+</html>

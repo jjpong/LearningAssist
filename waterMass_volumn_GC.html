@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>水在量筒中的質量與體積關係圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .water-formula {
+            border-color: #4682B4;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #4682B4;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+            <div id="waterFormulaLabel" class="formula-label water-formula"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設置水的密度和量筒質量
+            const waterDensity = 0.997; // g/cm³ (約攝氏25度)
+            const cylinderMass = 20; // g
+            
+            // 生成體積數據點
+            const volumes = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
+            
+            // 創建數據點
+            const dataPoints = [];
+            volumes.forEach(v => {
+                // 體積誤差：±1ml (最多1ml的誤差)
+                const volumeError = (Math.random() * 2 - 1); // -1到+1之間的隨機值
+                const actualVolume = v + volumeError;
+                
+                // 計算理論水質量
+                const theoreticalWaterMass = actualVolume * waterDensity;
+                
+                // 質量誤差：±0.01g
+                const massError = (Math.random() * 0.02 - 0.01); // -0.01到+0.01之間的隨機值
+                
+                // 總質量 = 水的質量 + 量筒質量 + 質量誤差
+                const totalMass = Math.round((theoreticalWaterMass + cylinderMass + massError) * 100) / 100;
+                
+                // 使用原始標稱體積作為x值，但實際計算時考慮了誤差
+                dataPoints.push({ x: v, y: totalMass });
+            });
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // 創建圖表
+            const myChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '含量筒的總質量',
+                        data: dataPoints,
+                        backgroundColor: 'rgba(70, 130, 180, 0.7)',
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '水在量筒中的質量與體積關係圖',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '水的體積 (cm³)'
+                            },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '總質量 (g)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 計算趨勢線斜率（水的密度）
+            let sumXY = 0, sumXX = 0;
+            dataPoints.forEach(point => {
+                // 去除量筒質量的影響，僅考慮水的增量
+                sumXY += point.x * (point.y - cylinderMass);
+                sumXX += point.x * point.x;
+            });
+            const fittedDensity = Math.round((sumXY / sumXX) * 1000) / 1000;
+            
+            // 創建趨勢線數據集
+            const maxVolume = Math.max(...volumes) * 1.1;
+            const trendline = {
+                label: '趨勢線',
+                data: [
+                    { x: 0, y: cylinderMass }, // 注意：y軸截距是量筒質量
+                    { x: maxVolume, y: cylinderMass + maxVolume * fittedDensity }
+                ],
+                type: 'line',
+                borderColor: 'rgba(70, 130, 180, 0.8)',
+                borderWidth: 2,
+                pointRadius: 0
+            };
+            
+            // 獲取公式標籤元素和按鈕
+            const waterFormulaLabel = document.getElementById('waterFormulaLabel');
+            const toggleBtn = document.getElementById('toggleBtn');
+            
+            // 設置公式文本 (注意：這里加上了量筒質量項)
+            waterFormulaLabel.innerHTML = `m = ${cylinderMass} + ${fittedDensity} × V`;
+            
+            // 標記趨勢線是否顯示
+            let trendlineVisible = false;
+            
+            // 定位公式標籤位置的函數 - 放在最後一個實驗數據點下方偏右
+            function positionFormulaLabels() {
+                // 獲取圖表的坐標轉換
+                const scales = myChart.scales;
+                
+                // 獲取最後一個數據點
+                const lastPoint = dataPoints[dataPoints.length - 1];
+                
+                // 計算在圖表上的最後一個數據點的像素坐標
+                const pointCoord = {
+                    x: scales.x.getPixelForValue(lastPoint.x),
+                    y: scales.y.getPixelForValue(lastPoint.y)
+                };
+                
+                // 將標籤放在最後一個數據點下方偏右
+                waterFormulaLabel.style.left = (pointCoord.x + 15) + 'px';
+                waterFormulaLabel.style.top = (pointCoord.y + 15) + 'px';
+            }
+            
+            toggleBtn.addEventListener('click', function() {
+                if (!trendlineVisible) {
+                    // 添加趨勢線到圖表
+                    myChart.data.datasets.push(trendline);
+                    
+                    // 等待圖表更新後再定位標籤
+                    setTimeout(() => {
+                        positionFormulaLabels();
+                        waterFormulaLabel.style.display = 'block';
+                    }, 100);
+                    
+                    toggleBtn.textContent = '隱藏趨勢線';
+                    trendlineVisible = true;
+                } else {
+                    // 移除趨勢線
+                    myChart.data.datasets = myChart.data.datasets.slice(0, 1);
+                    waterFormulaLabel.style.display = 'none';
+                    toggleBtn.textContent = '顯示趨勢線';
+                    trendlineVisible = false;
+                }
+                
+                // 更新圖表
+                myChart.update();
+            });
+            
+            // 窗口調整大小時重新定位標籤
+            window.addEventListener('resize', function() {
+                if (trendlineVisible) {
+                    setTimeout(positionFormulaLabels, 100);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

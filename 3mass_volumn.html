@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>物質的體積和質量關係圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .copper-formula {
+            border-color: #B87333;
+        }
+        .aluminum-formula {
+            border-color: #A9A9A9;
+        }
+        .iron-formula {
+            border-color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+            <div id="copperFormulaLabel" class="formula-label copper-formula"></div>
+            <div id="aluminumFormulaLabel" class="formula-label aluminum-formula"></div>
+            <div id="ironFormulaLabel" class="formula-label iron-formula"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設置材料和數據
+            const materials = [
+                { name: '銅', density: 8.96, color: 'rgba(184, 115, 51, 0.7)', borderColor: 'rgba(184, 115, 51, 0.8)' },
+                { name: '鋁', density: 2.7, color: 'rgba(169, 169, 169, 0.7)', borderColor: 'rgba(169, 169, 169, 0.8)' },
+                { name: '鐵', density: 7.87, color: 'rgba(85, 85, 85, 0.7)', borderColor: 'rgba(85, 85, 85, 0.8)' }
+            ];
+            
+            // 生成體積數據點
+            const volumes = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+            
+            // 創建圖表的數據集
+            const datasets = [];
+            const allDataPoints = [];
+            
+            // 為每種材料創建數據集
+            materials.forEach(material => {
+                // 計算質量 (加入一些隨機誤差)
+                const masses = volumes.map(v => {
+                    const error = (Math.random() * 0.06 - 0.03); // ±3% 誤差
+                    return Math.round((v * material.density * (1 + error)) * 100) / 100;
+                });
+                
+                // 創建數據點
+                const dataPoints = volumes.map((v, i) => ({ x: v, y: masses[i] }));
+                allDataPoints.push(dataPoints);
+                
+                // 添加數據集
+                datasets.push({
+                    label: `${material.name}的質量與體積關係`,
+                    data: dataPoints,
+                    backgroundColor: material.color,
+                    pointRadius: 6
+                });
+            });
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // 創建圖表
+            const myChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '不同物質的質量與體積關係圖',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '體積 (cm³)'
+                            },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '質量 (g)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 計算每種材料的趨勢線斜率
+            const trendlines = [];
+            
+            materials.forEach((material, index) => {
+                const data = datasets[index].data;
+                let sumXY = 0, sumXX = 0;
+                data.forEach(point => {
+                    sumXY += point.x * point.y;
+                    sumXX += point.x * point.x;
+                });
+                const fittedDensity = Math.round((sumXY / sumXX) * 100) / 100;
+                
+                // 保存計算的密度值
+                material.fittedDensity = fittedDensity;
+                
+                // 創建趨勢線數據集
+                const maxVolume = Math.max(...volumes) * 1.1;
+                
+                trendlines.push({
+                    label: `${material.name}趨勢線`,
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: maxVolume, y: maxVolume * fittedDensity }
+                    ],
+                    type: 'line',
+                    borderColor: material.borderColor,
+                    borderWidth: 2,
+                    pointRadius: 0
+                });
+            });
+            
+            // 獲取公式標籤元素和按鈕
+            const copperFormulaLabel = document.getElementById('copperFormulaLabel');
+            const aluminumFormulaLabel = document.getElementById('aluminumFormulaLabel');
+            const ironFormulaLabel = document.getElementById('ironFormulaLabel');
+            const toggleBtn = document.getElementById('toggleBtn');
+            
+            // 設置公式文本
+            copperFormulaLabel.innerHTML = `m = ${materials[0].fittedDensity} × V`;
+            aluminumFormulaLabel.innerHTML = `m = ${materials[1].fittedDensity} × V`;
+            ironFormulaLabel.innerHTML = `m = ${materials[2].fittedDensity} × V`;
+            
+            // 標記趨勢線是否顯示
+            let trendlineVisible = false;
+            
+            // 定位公式標籤位置的函數 - 放在最後一個實驗數據點下方偏右
+            function positionFormulaLabels() {
+                // 獲取圖表的坐標轉換
+                const scales = myChart.scales;
+                
+                // 獲取每種材料的最後一個數據點
+                const copperLastPoint = allDataPoints[0][allDataPoints[0].length - 1];
+                const aluminumLastPoint = allDataPoints[1][allDataPoints[1].length - 1];
+                const ironLastPoint = allDataPoints[2][allDataPoints[2].length - 1];
+                
+                // 計算在圖表上的最後一個數據點的像素坐標
+                const copperPoint = {
+                    x: scales.x.getPixelForValue(copperLastPoint.x),
+                    y: scales.y.getPixelForValue(copperLastPoint.y)
+                };
+                
+                const aluminumPoint = {
+                    x: scales.x.getPixelForValue(aluminumLastPoint.x),
+                    y: scales.y.getPixelForValue(aluminumLastPoint.y)
+                };
+                
+                const ironPoint = {
+                    x: scales.x.getPixelForValue(ironLastPoint.x),
+                    y: scales.y.getPixelForValue(ironLastPoint.y)
+                };
+                
+                // 將標籤放在最後一個數據點下方偏右
+                // 銅的公式標籤
+                copperFormulaLabel.style.left = (copperPoint.x + 15) + 'px';
+                copperFormulaLabel.style.top = (copperPoint.y + 15) + 'px';
+                
+                // 鋁的公式標籤
+                aluminumFormulaLabel.style.left = (aluminumPoint.x + 15) + 'px';
+                aluminumFormulaLabel.style.top = (aluminumPoint.y + 15) + 'px';
+                
+                // 鐵的公式標籤
+                ironFormulaLabel.style.left = (ironPoint.x + 15) + 'px';
+                ironFormulaLabel.style.top = (ironPoint.y + 15) + 'px';
+            }
+            
+            toggleBtn.addEventListener('click', function() {
+                if (!trendlineVisible) {
+                    // 添加趨勢線到圖表
+                    trendlines.forEach(trendline => {
+                        myChart.data.datasets.push(trendline);
+                    });
+                    
+                    // 等待圖表更新後再定位標籤
+                    setTimeout(() => {
+                        positionFormulaLabels();
+                        copperFormulaLabel.style.display = 'block';
+                        aluminumFormulaLabel.style.display = 'block';
+                        ironFormulaLabel.style.display = 'block';
+                    }, 100);
+                    
+                    toggleBtn.textContent = '隱藏趨勢線';
+                    trendlineVisible = true;
+                } else {
+                    // 移除趨勢線
+                    myChart.data.datasets = myChart.data.datasets.slice(0, materials.length);
+                    copperFormulaLabel.style.display = 'none';
+                    aluminumFormulaLabel.style.display = 'none';
+                    ironFormulaLabel.style.display = 'none';
+                    toggleBtn.textContent = '顯示趨勢線';
+                    trendlineVisible = false;
+                }
+                
+                // 更新圖表
+                myChart.update();
+            });
+            
+            // 窗口調整大小時重新定位標籤
+            window.addEventListener('resize', function() {
+                if (trendlineVisible) {
+                    setTimeout(positionFormulaLabels, 100);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

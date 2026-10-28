@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>不同物質的溶解度與溫度關係圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .control-panel {
+            width: 90%;
+            max-width: 800px;
+            margin: 10px auto;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .checkbox-container input {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            margin-right: 8px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .kno3-color {
+            background-color: rgba(255, 99, 132, 0.2);
+            border: 2px solid rgba(255, 99, 132, 1);
+        }
+        .nacl-color {
+            background-color: rgba(54, 162, 235, 0.2);
+            border: 2px solid rgba(54, 162, 235, 1);
+        }
+        .caoh2-color {
+            background-color: rgba(75, 192, 192, 0.2);
+            border: 2px solid rgba(75, 192, 192, 1);
+        }
+        .checkbox-input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .checkmark {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            display: none;
+        }
+        .checkbox-input:checked ~ .checkmark {
+            display: block;
+        }
+        .kno3-checkmark {
+            background-color: rgba(255, 99, 132, 1);
+        }
+        .nacl-checkmark {
+            background-color: rgba(54, 162, 235, 1);
+        }
+        .caoh2-checkmark {
+            background-color: rgba(75, 192, 192, 1);
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>溶解度圖表：</strong> 這個圖表顯示不同物質在水中的溶解度隨溫度變化的關係。溶解度表示在指定溫度下，100克水中能溶解的最大物質量（克）。</p>
+        </div>
+        <div class="control-panel">
+            <span>選擇要顯示的物質：</span>
+            <label class="checkbox-container">
+                <span class="custom-checkbox kno3-color">
+                    <input type="checkbox" class="checkbox-input" id="kno3Checkbox" checked>
+                    <span class="checkmark kno3-checkmark"></span>
+                </span>
+                硝酸鉀 (KNO₃)
+            </label>
+            <label class="checkbox-container">
+                <span class="custom-checkbox nacl-color">
+                    <input type="checkbox" class="checkbox-input" id="naclCheckbox" checked>
+                    <span class="checkmark nacl-checkmark"></span>
+                </span>
+                氯化鈉 (NaCl)
+            </label>
+            <label class="checkbox-container">
+                <span class="custom-checkbox caoh2-color">
+                    <input type="checkbox" class="checkbox-input" id="caoh2Checkbox" checked>
+                    <span class="checkmark caoh2-checkmark"></span>
+                </span>
+                氫氧化鈣 (Ca(OH)₂)
+            </label>
+        </div>
+        <div class="chart-container">
+            <canvas id="solubilityChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設定溫度範圍
+            const temperatures = [20, 30, 40, 50, 60, 70, 80, 90];
+            
+            // 溶解度數據（每100克水中可溶解的克數）
+            const substances = [
+                {
+                    name: '硝酸鉀 (KNO₃)',
+                    color: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    // 硝酸鉀溶解度數據，溫度從20°C到90°C
+                    solubility: [31.6, 45.8, 61.3, 85.5, 110, 138, 169, 202]
+                },
+                {
+                    name: '氯化鈉 (NaCl)',
+                    color: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    // 食鹽溶解度數據，溫度從20°C到90°C
+                    solubility: [35.9, 36.3, 36.8, 37.2, 37.8, 38.4, 39.0, 39.8]
+                },
+                {
+                    name: '氫氧化鈣 (Ca(OH)₂)',
+                    color: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    // 氫氧化鈣溶解度數據，溫度從20°C到90°C（溶解度隨溫度升高而降低）
+                    solubility: [0.173, 0.160, 0.141, 0.121, 0.105, 0.080, 0.060, 0.042]
+                }
+            ];
+            
+            // 創建數據集
+            const datasets = substances.map(substance => {
+                return {
+                    label: substance.name,
+                    data: substance.solubility.map((solValue, index) => ({
+                        x: temperatures[index],
+                        y: solValue
+                    })),
+                    backgroundColor: substance.backgroundColor,
+                    borderColor: substance.borderColor,
+                    pointBackgroundColor: substance.borderColor,
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    tension: 0.4 // 平滑曲線
+                };
+            });
+            
+            // 獲取canvas元素
+            const ctx = document.getElementById('solubilityChart').getContext('2d');
+            
+            // 創建圖表
+            const solubilityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '不同物質的溶解度與溫度關係圖',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} g/100g水`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: '溫度 (°C)'
+                            },
+                            ticks: {
+                                stepSize: 10
+                            },
+                            min: 20,
+                            max: 90
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '溶解度 (g/100g水)'
+                            },
+                            min: 0
+                        }
+                    }
+                }
+            });
+            
+            // 更新函數：根據勾選狀態更新顯示的物質
+            function updateChart() {
+                const kno3Checked = document.getElementById('kno3Checkbox').checked;
+                const naclChecked = document.getElementById('naclCheckbox').checked;
+                const caoh2Checked = document.getElementById('caoh2Checkbox').checked;
+                
+                // 確保至少有一個物質被選中
+                if (!kno3Checked && !naclChecked && !caoh2Checked) {
+                    alert('請至少選擇一種物質！');
+                    // 檢查是哪個被取消，將其重新勾選
+                    if (this && this.id) {
+                        document.getElementById(this.id).checked = true;
+                    } else {
+                        document.getElementById('kno3Checkbox').checked = true;
+                    }
+                    return;
+                }
+                
+                // 創建新的數據集陣列
+                const activeDatasets = [];
+                if (kno3Checked) activeDatasets.push(datasets[0]);
+                if (naclChecked) activeDatasets.push(datasets[1]);
+                if (caoh2Checked) activeDatasets.push(datasets[2]);
+                
+                // 更新圖表
+                solubilityChart.data.datasets = activeDatasets;
+                solubilityChart.update();
+                
+                // 動態調整Y軸最大值，根據已選物質的最大溶解度
+                let maxSolubility = 0;
+                activeDatasets.forEach(dataset => {
+                    const datasetMax = Math.max(...dataset.data.map(point => point.y));
+                    if (datasetMax > maxSolubility) maxSolubility = datasetMax;
+                });
+                
+                // 為Y軸設置合適的最大值（上限增加20%，確保數據點不會太靠近頂部）
+                const yMax = Math.ceil(maxSolubility * 1.2);
+                solubilityChart.options.scales.y.max = yMax;
+                
+                // 如果只有氫氧化鈣被選中，則調整Y軸最大值以更好地顯示其低溶解度
+                if (caoh2Checked && !kno3Checked && !naclChecked) {
+                    solubilityChart.options.scales.y.max = 0.2;
+                }
+                
+                solubilityChart.update();
+            }
+            
+            // 為勾選框添加事件監聽器
+            document.getElementById('kno3Checkbox').addEventListener('change', updateChart);
+            document.getElementById('naclCheckbox').addEventListener('change', updateChart);
+            document.getElementById('caoh2Checkbox').addEventListener('change', updateChart);
+            
+            // 初始化圖表
+            updateChart();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <title>酸鹼滴定pH值變化圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        select, input {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 5px 0;
+        }
+        label {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        select#titrationType {
+            min-width: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>實驗設置：</strong> 模擬不同類型酸鹼滴定過程中的pH值變化（理想數據）。</p>
+            <p><strong>說明：</strong> 選擇滴定類型和濃度來觀察pH值如何隨滴定進行而變化。pH值變化最劇烈的地方即為當量點。</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="titrationType">滴定類型：</label>
+                <select id="titrationType">
+                    <option value="strongAcid-strongBase">強酸 + 強鹼</option>
+                    <option value="weakAcid-strongBase">弱酸 + 強鹼</option>
+                    <option value="strongAcid-weakBase">強酸 + 弱鹼</option>
+                    <option value="strongBase-strongAcid">強鹼 + 強酸</option>
+                    <option value="weakBase-strongAcid">弱鹼 + 強酸</option>
+                    <option value="strongBase-weakAcid">強鹼 + 弱酸</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="initialConcentration">初始溶液濃度 (mol/L)：</label>
+                <input type="number" id="initialConcentration" value="0.1" min="0.01" max="1" step="0.01">
+            </div>
+            
+            <div class="control-group">
+                <label for="titrantConcentration">滴定液濃度 (mol/L)：</label>
+                <input type="number" id="titrantConcentration" value="0.1" min="0.01" max="1" step="0.01">
+            </div>
+
+            <div class="control-group">
+                <label for="pointDensity">數據點密度：</label>
+                <select id="pointDensity">
+                    <option value="low">低</option>
+                    <option value="medium" selected="">中</option>
+                    <option value="high">高</option>
+                </select>
+            </div>
+        </div>
+        
+        <button id="generateBtn" class="toggle-btn">產生滴定曲線</button>
+        
+        <div class="chart-container">
+            <canvas id="phChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 獲取DOM元素
+            const generateBtn = document.getElementById('generateBtn');
+            const titrationType = document.getElementById('titrationType');
+            const initialConcentration = document.getElementById('initialConcentration');
+            const titrantConcentration = document.getElementById('titrantConcentration');
+            const pointDensity = document.getElementById('pointDensity');
+            
+            // 圖表實例變數
+            let phChart = null;
+            
+            // 計算pH值的函數 - 無誤差的理想數據
+            function calculatePH(titrationType, initialConc, titrantConc, volumeAdded) {
+                // 假設初始溶液體積為50mL
+                const initialVolume = 50;
+                // 計算初始溶液的物質的量
+                const initialMoles = initialConc * (initialVolume / 1000);
+                // 計算添加的滴定液的物質的量
+                const addedTitrantMoles = titrantConc * (volumeAdded / 1000);
+                
+                // 定義酸常數和鹼常數
+                const Ka = 1.8e-5; // 弱酸電離常數 (如醋酸)
+                const Kb = 1.8e-5; // 弱鹼電離常數 (如氨水)
+                const Kw = 1.0e-14; // 水的離子積
+                
+                // 根據滴定類型計算pH
+                switch(titrationType) {
+                    // 酸滴定鹼的情況
+                    case "strongAcid-strongBase":
+                        // 例如 HCl + NaOH
+                        if (volumeAdded === 0) {
+                            // 初始強酸溶液的pH
+                            return -Math.log10(initialConc);
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 過量酸階段
+                            const excessAcid = initialMoles - addedTitrantMoles;
+                            const pH = -Math.log10(excessAcid / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH)); // 限制在0-14範圍內
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (純水)
+                            return 7;
+                        } else {
+                            // 過量鹼階段
+                            const excessBase = addedTitrantMoles - initialMoles;
+                            const pH = 14 + Math.log10(excessBase / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH)); // 限制在0-14範圍內
+                        }
+                    
+                    case "weakAcid-strongBase":
+                        // 例如 CH3COOH + NaOH
+                        if (volumeAdded === 0) {
+                            // 初始弱酸溶液的pH
+                            // pH = -log(√(Ka*c))
+                            return -Math.log10(Math.sqrt(Ka * initialConc));
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 有剩餘弱酸和部分共軛鹼的情況
+                            const excessAcid = initialMoles - addedTitrantMoles;
+                            const conjugateBase = addedTitrantMoles;
+                            
+                            // 使用Henderson-Hasselbalch方程式
+                            // pH = pKa + log([A-]/[HA])
+                            const pH = -Math.log10(Ka) + Math.log10(conjugateBase / excessAcid);
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (弱酸的共軛鹼溶液)
+                            // pH = 7 + 1/2 * pKa
+                            const pH = 7 + 0.5 * (-Math.log10(Ka));
+                            return Math.max(0, Math.min(14, pH));
+                        } else {
+                            // 過量鹼階段
+                            const excessBase = addedTitrantMoles - initialMoles;
+                            const pH = 14 + Math.log10(excessBase / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH));
+                        }
+                    
+                    case "strongAcid-weakBase":
+                        // 例如 HCl + NH3
+                        if (volumeAdded === 0) {
+                            // 初始弱鹼溶液的pH
+                            // pH = 7 + 1/2 * (pKb + log(c))
+                            const pH = 7 + 0.5 * (-Math.log10(Kb) + Math.log10(initialConc));
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 有剩餘弱鹼和部分共軛酸的情況
+                            const excessBase = initialMoles - addedTitrantMoles;
+                            const conjugateAcid = addedTitrantMoles;
+                            
+                            // 使用Henderson-Hasselbalch方程式 (為共軛對)
+                            // pH = pKa + log([B]/[BH+]) = pKa + log([NH3]/[NH4+])
+                            const pKa = 14 - (-Math.log10(Kb));
+                            const pH = pKa + Math.log10(excessBase / conjugateAcid);
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (弱鹼的共軛酸溶液)
+                            // pH = 7 - 1/2 * pKb
+                            const pH = 7 - 0.5 * (-Math.log10(Kb));
+                            return Math.max(0, Math.min(14, pH));
+                        } else {
+                            // 過量酸階段
+                            const excessAcid = addedTitrantMoles - initialMoles;
+                            const pH = -Math.log10(excessAcid / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH));
+                        }
+
+                    // 鹼滴定酸的情況 (新增)
+                    case "strongBase-strongAcid":
+                        // 例如 NaOH + HCl
+                        if (volumeAdded === 0) {
+                            // 初始強鹼溶液的pH
+                            return 14 + Math.log10(initialConc);
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 過量鹼階段
+                            const excessBase = initialMoles - addedTitrantMoles;
+                            const pH = 14 + Math.log10(excessBase / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH)); // 限制在0-14範圍內
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (純水)
+                            return 7;
+                        } else {
+                            // 過量酸階段
+                            const excessAcid = addedTitrantMoles - initialMoles;
+                            const pH = -Math.log10(excessAcid / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH)); // 限制在0-14範圍內
+                        }
+
+                    case "weakBase-strongAcid":
+                        // 例如 NH3 + HCl
+                        if (volumeAdded === 0) {
+                            // 初始弱鹼溶液的pH
+                            // pH = 7 + 1/2 * (pKb + log(c))
+                            const pH = 7 + 0.5 * (-Math.log10(Kb) + Math.log10(initialConc));
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 有剩餘弱鹼和部分共軛酸的情況
+                            const excessBase = initialMoles - addedTitrantMoles;
+                            const conjugateAcid = addedTitrantMoles;
+                            
+                            // 使用Henderson-Hasselbalch方程式 (為共軛對)
+                            // pH = pKa + log([B]/[BH+]) = pKa + log([NH3]/[NH4+])
+                            const pKa = 14 - (-Math.log10(Kb));
+                            const pH = pKa + Math.log10(excessBase / conjugateAcid);
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (弱鹼的共軛酸溶液)
+                            // pH = 7 - 1/2 * pKb
+                            const pH = 7 - 0.5 * (-Math.log10(Kb));
+                            return Math.max(0, Math.min(14, pH));
+                        } else {
+                            // 過量酸階段
+                            const excessAcid = addedTitrantMoles - initialMoles;
+                            const pH = -Math.log10(excessAcid / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH));
+                        }
+
+                    case "strongBase-weakAcid":
+                        // 例如 NaOH + CH3COOH
+                        if (volumeAdded === 0) {
+                            // 初始強鹼溶液的pH
+                            return 14 + Math.log10(initialConc);
+                        } else if (addedTitrantMoles < initialMoles) {
+                            // 過量鹼和部分酸根離子
+                            const excessBase = initialMoles - addedTitrantMoles;
+                            const pH = 14 + Math.log10(excessBase / ((initialVolume + volumeAdded) / 1000));
+                            return Math.max(0, Math.min(14, pH));
+                        } else if (Math.abs(addedTitrantMoles - initialMoles) < 0.000001) {
+                            // 當量點 (純弱酸鹽溶液)
+                            // pH = 7 + 1/2 * pKa
+                            const pH = 7 + 0.5 * (-Math.log10(Ka));
+                            return Math.max(0, Math.min(14, pH));
+                        } else {
+                            // 過量弱酸階段
+                            const excessAcid = addedTitrantMoles - initialMoles;
+                            const totalVolume = (initialVolume + volumeAdded) / 1000;
+                            
+                            // 弱酸計算，得到pH
+                            const c = excessAcid / totalVolume;
+                            const pH = -Math.log10(Math.sqrt(Ka * c));
+                            return Math.max(0, Math.min(14, pH));
+                        }
+                }
+            }
+            
+            // 產生圖表的函數
+            function generateChart() {
+                const type = titrationType.value;
+                const initialConc = parseFloat(initialConcentration.value);
+                const titrantConc = parseFloat(titrantConcentration.value);
+                const density = pointDensity.value;
+                
+                // 計算當量點位置 (mL)
+                const equivalentVolume = (initialConc * 50) / titrantConc;
+                
+                // 生成數據點
+                const data = [];
+                
+                // 根據所選密度設定基本步進量
+                let baseStep;
+                switch(density) {
+                    case "low": baseStep = equivalentVolume / 10; break;
+                    case "medium": baseStep = equivalentVolume / 20; break;
+                    case "high": baseStep = equivalentVolume / 40; break;
+                    default: baseStep = equivalentVolume / 20;
+                }
+                
+                // 生成滴定曲線數據
+                // 從0mL開始，直到當量點的2倍
+                let step;
+                for (let v = 0; v <= equivalentVolume * 2; v += step) {
+                    // 在當量點附近增加數據密度
+                    if (v > equivalentVolume * 0.8 && v < equivalentVolume * 1.2) {
+                        step = baseStep / 4; // 當量點附近步進量減小
+                    } else {
+                        step = baseStep;
+                    }
+                    
+                    const pH = calculatePH(type, initialConc, titrantConc, v);
+                    data.push({x: v, y: pH});
+                }
+                
+                // 決定X軸標籤 (酸滴定鹼還是鹼滴定酸)
+                let xAxisLabel, chartTitle;
+                if (type.startsWith('strong') || type.startsWith('weak')) {
+                    // 初始溶液是酸，滴定液是鹼
+                    xAxisLabel = '添加鹼液體積 (mL)';
+                    chartTitle = `${getTitrationName(type)} pH滴定曲線`;
+                } else {
+                    // 初始溶液是鹼，滴定液是酸
+                    xAxisLabel = '添加酸液體積 (mL)';
+                    chartTitle = `${getTitrationName(type)} pH滴定曲線`;
+                }
+                
+                // 圖表配置
+                const chartConfig = {
+                    type: 'scatter',  // 使用散點圖而非線圖
+                    data: {
+                        datasets: [{
+                            label: '滴定數據點',
+                            data: data,
+                            backgroundColor: 'rgb(54, 162, 235)',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            showLine: false  // 確保不顯示連線
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `pH值: ${context.parsed.y.toFixed(2)} (加入 ${context.parsed.x.toFixed(1)} mL)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: xAxisLabel
+                                },
+                                min: 0,
+                                max: equivalentVolume * 2,
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'pH值'
+                                },
+                                min: 0,
+                                max: 14,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                // 清除之前的圖表（如果存在）
+                if (phChart) {
+                    phChart.destroy();
+                }
+                
+                // 繪製新圖表
+                const ctx = document.getElementById('phChart').getContext('2d');
+                phChart = new Chart(ctx, chartConfig);
+            }
+            
+            // 獲取滴定名稱的函數
+            function getTitrationName(type) {
+                switch(type) {
+                    case "strongAcid-strongBase": return "強酸-強鹼";
+                    case "weakAcid-strongBase": return "弱酸-強鹼";
+                    case "strongAcid-weakBase": return "強酸-弱鹼";
+                    case "strongBase-strongAcid": return "強鹼-強酸";
+                    case "weakBase-strongAcid": return "弱鹼-強酸";
+                    case "strongBase-weakAcid": return "強鹼-弱酸";
+                    default: return "酸鹼滴定";
+                }
+            }
+            
+            // 綁定按鈕事件
+            generateBtn.addEventListener('click', generateChart);
+            
+            // 當滴定類型改變時更新標籤
+            titrationType.addEventListener('change', function() {
+                // 更新濃度輸入欄位的標籤
+                const type = titrationType.value;
+                
+                // 確定初始溶液是酸還是鹼
+                const initialLabel = document.querySelector('label[for="initialConcentration"]');
+                const titrantLabel = document.querySelector('label[for="titrantConcentration"]');
+                
+                if (type.startsWith('strong') || type.startsWith('weak')) {
+                    // 酸性溶液被鹼滴定
+                    initialLabel.textContent = '初始酸溶液濃度 (mol/L)：';
+                    titrantLabel.textContent = '鹼滴定液濃度 (mol/L)：';
+                } else {
+                    // 鹼性溶液被酸滴定
+                    initialLabel.textContent = '初始鹼溶液濃度 (mol/L)：';
+                    titrantLabel.textContent = '酸滴定液濃度 (mol/L)：';
+                }
+            });
+            
+            // 初始生成圖表
+            generateChart();
+        });
+    </script>
+
+
+</body></html>

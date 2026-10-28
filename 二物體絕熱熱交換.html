@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>熱交換模擬實驗</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 800px;
+            text-align: left;
+            border-left: 4px solid #6c757d;
+            font-size: 14px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .toggle-btn:hover {
+            background-color: #45a049;
+        }
+        .formula-label {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .labelHigh {
+            border-color: rgb(255, 99, 132);
+        }
+        .labelLow {
+            border-color: rgb(54, 162, 235);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>實驗設置：</strong> 在絕熱條件下，觀察高溫物體和低溫物體接觸後的熱交換過程。每3分鐘測量一次溫度，共測量30分鐘。測量誤差約為±0.1°C。</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+            <div id="labelHigh" class="formula-label labelHigh"></div>
+            <div id="labelLow" class="formula-label labelLow"></div>
+            <div style="margin-top: 15px;">
+                <button id="toggleBtn" class="toggle-btn">顯示趨勢線</button>
+                <button id="reloadBtn" class="toggle-btn" style="background-color: #007bff;">重新實驗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變數
+        let tempChart = null;
+        let trendlineVisible = false;
+        
+        // 等待DOM完全加載
+        document.addEventListener('DOMContentLoaded', function() {
+            // 定義可能的熱容量比例
+            const heatCapacityRatios = [
+                { ratio: "1:3", high: 1, low: 3 },
+                { ratio: "1:2", high: 1, low: 2 },
+                { ratio: "1:1", high: 1, low: 1 },
+                { ratio: "2:1", high: 2, low: 1 },
+                { ratio: "3:1", high: 3, low: 1 }
+            ];
+            
+            // 設定實驗函數，會在頁面加載和點擊重新實驗按鈕時調用
+            function setupExperiment() {
+                // 隨機選擇熱容量比例
+                const selectedRatio = heatCapacityRatios[Math.floor(Math.random() * heatCapacityRatios.length)];
+                const heatCapacityHigh = selectedRatio.high;
+                const heatCapacityLow = selectedRatio.low;
+                
+                // 設定初始溫度 (高溫80°C，低溫20°C)
+                const initialTempHigh = 80;
+                const initialTempLow = 20;
+                
+                // 計算熱平衡溫度
+                // T_final = (C_high * T_high + C_low * T_low) / (C_high + C_low)
+                const equilibriumTemp = (heatCapacityHigh * initialTempHigh + heatCapacityLow * initialTempLow) / 
+                                      (heatCapacityHigh + heatCapacityLow);
+                
+                // 設定熱交換時間常數 (確保在30分鐘內達到熱平衡)
+                // 使用一個隨機但合理的時間常數，讓系統在10-20分鐘左右接近平衡
+                const timeConstant = 5 + Math.random() * 5; // 時間常數在5-10分鐘之間
+                
+                // 測量間隔和總時間
+                const interval = 3;     // 測量間隔：每3分鐘
+                const duration = 30;    // 測量總時間：30分鐘
+                
+                // 創建時間軸和溫度數據
+                const times = [];
+                const tempsHigh = [];
+                const tempsLow = [];
+                
+                for (let t = 0; t <= duration; t += interval) {
+                    times.push(t);
+                    
+                    // 計算指數衰減模型下的理論溫度
+                    // T_high(t) = T_equilibrium + (T_high_initial - T_equilibrium) * e^(-t/tau)
+                    // T_low(t) = T_equilibrium - (T_equilibrium - T_low_initial) * e^(-t/tau)
+                    const decayFactor = Math.exp(-t / timeConstant);
+                    const theoreticalTempHigh = equilibriumTemp + (initialTempHigh - equilibriumTemp) * decayFactor;
+                    const theoreticalTempLow = equilibriumTemp - (equilibriumTemp - initialTempLow) * decayFactor;
+                    
+                    // 添加測量誤差 (±0.1°C)
+                    const errorHigh = (Math.random() * 0.2 - 0.1);
+                    const errorLow = (Math.random() * 0.2 - 0.1);
+                    
+                    // 計算最終測量溫度並四捨五入到一位小數
+                    const tempHigh = Math.round((theoreticalTempHigh + errorHigh) * 10) / 10;
+                    const tempLow = Math.round((theoreticalTempLow + errorLow) * 10) / 10;
+                    
+                    tempsHigh.push(tempHigh);
+                    tempsLow.push(tempLow);
+                }
+                
+                // 建立趨勢線數據 (實際上是指數函數)
+                const trendPointsHigh = [];
+                const trendPointsLow = [];
+                const trendTimesCount = 100; // 使曲線更平滑
+                const trendTimeStep = duration / trendTimesCount;
+                
+                for (let i = 0; i <= trendTimesCount; i++) {
+                    const t = i * trendTimeStep;
+                    const decayFactor = Math.exp(-t / timeConstant);
+                    const trendTempHigh = equilibriumTemp + (initialTempHigh - equilibriumTemp) * decayFactor;
+                    const trendTempLow = equilibriumTemp - (equilibriumTemp - initialTempLow) * decayFactor;
+                    
+                    trendPointsHigh.push({ x: t, y: trendTempHigh });
+                    trendPointsLow.push({ x: t, y: trendTempLow });
+                }
+                
+                // 創建基本數據集
+                const datasetsHigh = {
+                    label: '高溫物體',
+                    data: times.map((t, i) => ({ x: t, y: tempsHigh[i] })),
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                };
+                
+                const datasetsLow = {
+                    label: '低溫物體',
+                    data: times.map((t, i) => ({ x: t, y: tempsLow[i] })),
+                    backgroundColor: 'rgb(54, 162, 235)',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                };
+                
+                // 創建趨勢線數據集
+                const trendLineDatasetHigh = {
+                    label: '高溫物體趨勢線',
+                    data: trendPointsHigh,
+                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    type: 'line'
+                };
+                
+                const trendLineDatasetLow = {
+                    label: '低溫物體趨勢線',
+                    data: trendPointsLow,
+                    borderColor: 'rgba(54, 162, 235, 0.8)',
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    type: 'line'
+                };
+                
+                // 獲取canvas元素
+                const ctx = document.getElementById('tempChart').getContext('2d');
+                
+                // 如果已經存在圖表，先銷毀
+                if (tempChart !== null) {
+                    tempChart.destroy();
+                }
+                
+                // 創建新圖表
+                tempChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [datasetsHigh, datasetsLow]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: '物體熱交換溫度變化 (每3分鐘測量)',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y}°C (${context.parsed.x}分鐘)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '時間 (分鐘)'
+                                },
+                                min: 0,
+                                max: 30,
+                                ticks: {
+                                    stepSize: 3
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '溫度 (°C)'
+                                },
+                                min: 10, // 確保可以看到所有數據
+                                max: 90,
+                                ticks: {
+                                    stepSize: 10
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // 設置趨勢線方程式文本 (四捨五入到2位小數)
+                const eqHigh = `T = ${equilibriumTemp.toFixed(1)} + ${(initialTempHigh - equilibriumTemp).toFixed(1)}e^(-t/${timeConstant.toFixed(1)})`;
+                const eqLow = `T = ${equilibriumTemp.toFixed(1)} - ${(equilibriumTemp - initialTempLow).toFixed(1)}e^(-t/${timeConstant.toFixed(1)})`;
+                
+                document.getElementById('labelHigh').innerHTML = eqHigh;
+                document.getElementById('labelLow').innerHTML = eqLow;
+                
+                // 定位公式標籤的函數
+                function positionLabels() {
+                    // 獲取圖表的坐標轉換
+                    const scales = tempChart.scales;
+                    
+                    // 計算標籤位置 (放在時間27-30分鐘附近)
+                    const x = scales.x.getPixelForValue(27);
+                    
+                    // 高溫標籤放在平衡溫度上方
+                    const yHigh = scales.y.getPixelForValue(equilibriumTemp + 5);
+                    // 低溫標籤放在平衡溫度下方
+                    const yLow = scales.y.getPixelForValue(equilibriumTemp - 5);
+                    
+                    // 設置標籤位置
+                    const labelHigh = document.getElementById('labelHigh');
+                    labelHigh.style.left = x + 'px';
+                    labelHigh.style.top = yHigh + 'px';
+                    
+                    const labelLow = document.getElementById('labelLow');
+                    labelLow.style.left = x + 'px';
+                    labelLow.style.top = yLow + 'px';
+                }
+                
+                // 重設趨勢線顯示狀態
+                trendlineVisible = false;
+                document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+                
+                // 隱藏標籤
+                document.getElementById('labelHigh').style.display = 'none';
+                document.getElementById('labelLow').style.display = 'none';
+                
+                // 更新趨勢線顯示函數
+                toggleTrendline = function() {
+                    trendlineVisible = !trendlineVisible;
+                    
+                    if (trendlineVisible) {
+                        // 添加趨勢線
+                        tempChart.data.datasets = [datasetsHigh, datasetsLow, trendLineDatasetHigh, trendLineDatasetLow];
+                        document.getElementById('toggleBtn').textContent = '隱藏趨勢線';
+                        
+                        // 顯示標籤
+                        setTimeout(() => {
+                            positionLabels();
+                            document.getElementById('labelHigh').style.display = 'block';
+                            document.getElementById('labelLow').style.display = 'block';
+                        }, 100);
+                    } else {
+                        // 移除趨勢線
+                        tempChart.data.datasets = [datasetsHigh, datasetsLow];
+                        document.getElementById('toggleBtn').textContent = '顯示趨勢線';
+                        
+                        // 隱藏標籤
+                        document.getElementById('labelHigh').style.display = 'none';
+                        document.getElementById('labelLow').style.display = 'none';
+                    }
+                    
+                    // 更新圖表
+                    tempChart.update();
+                };
+                
+                // 為按鈕添加事件監聽器
+                document.getElementById('toggleBtn').onclick = toggleTrendline;
+                
+                // 窗口調整大小時重新定位標籤
+                window.addEventListener('resize', function() {
+                    if (trendlineVisible) {
+                        setTimeout(positionLabels, 100);
+                    }
+                });
+            }
+            
+            // 初始化實驗
+            setupExperiment();
+            
+            // 為重新實驗按鈕添加事件監聽器
+            document.getElementById('reloadBtn').onclick = setupExperiment;
+        });
+    </script>
+</body>
+</html>
