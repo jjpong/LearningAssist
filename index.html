@@ -1,138 +1,421 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的程式與學習輔助工具列表</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>學習輔助工具列表</title>
 <style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #1d2433;
+    --muted: #5d6779;
+    --line: #e2e7f0;
+    --accent: #2563eb;
+    --accent-soft: #e8f0ff;
+    --shadow: 0 1px 3px rgba(20, 30, 60, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f141d;
+      --card: #182031;
+      --text: #e8edf6;
+      --muted: #9aa6bb;
+      --line: #2a344a;
+      --accent: #6ea0ff;
+      --accent-soft: #1f2d4d;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 40px;
-    background-color: #f4f7f6;
-    color: #333;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
     line-height: 1.6;
   }
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 56px; }
+  header h1 { margin: 0 0 4px; font-size: 1.7rem; }
+  header p { margin: 0; color: var(--muted); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 8px; }
+  .search {
+    flex: 1 1 240px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
   }
-  h1 {
-    color: #0056b3;
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2.2em;
+  .search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: .92rem;
+    cursor: pointer;
   }
-  ul {
-    list-style-type: none;
-    padding: 0;
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .count { color: var(--muted); font-size: .9rem; margin: 4px 0 0; }
+
+  section { margin-top: 32px; }
+  section h2 {
+    font-size: 1.15rem;
+    margin: 0 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
   }
-  li {
-    background-color: #e9f0f6;
-    margin-bottom: 12px;
-    padding: 15px 20px;
-    border-radius: 6px;
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
     display: flex;
-    align-items: center;
-    transition: background-color 0.3s ease;
+    flex-direction: column;
+    gap: 6px;
   }
-  li:hover {
-    background-color: #dbe4ee;
-  }
-  a {
+  .card .title { font-weight: 600; font-size: 1.02rem; color: var(--accent); text-decoration: none; }
+  .card .title:hover { text-decoration: underline; }
+  .card .desc { color: var(--muted); font-size: .9rem; margin: 0; flex: 1; }
+  .versions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .versions a {
+    font-size: .78rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
     text-decoration: none;
-    color: #007bff;
-    font-weight: bold;
-    font-size: 1.1em;
-    flex-grow: 1; /* Make the link take up available space */
   }
-  a:hover {
-    text-decoration: underline;
-    color: #0056b3;
+  .versions a:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: .72rem;
+    font-weight: 600;
+    vertical-align: 2px;
+    background: #f59e0b;
+    color: #fff;
   }
-  .no-files-message {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 20px;
-    border: 1px dashed #ccc;
-    border-radius: 5px;
-    margin-top: 30px;
-  }
+  .card .file { color: var(--muted); font-size: .76rem; margin: 0; word-break: break-all; }
+  .empty { display: none; text-align: center; color: var(--muted); padding: 40px 0; }
+  footer { margin-top: 40px; color: var(--muted); font-size: .85rem; text-align: center; }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <h1>我的程式與學習輔助工具列表</h1>
+    <p>概念圖、實驗步驟排序、數據分析、課堂互動與學習遊戲</p>
+  </header>
 
-<div class="container">
-  <h1>我的程式與學習輔助工具列表</h1>
+  <div class="toolbar">
+    <input id="q" class="search" type="search" placeholder="搜尋程式名稱、說明或檔名…" aria-label="搜尋程式">
+    <div id="chips" class="chips" role="group" aria-label="分類篩選"></div>
+  </div>
+  <p id="count" class="count"></p>
 
-  <ul id="file-list">
-    </ul>
+  <main id="list"></main>
+  <p id="empty" class="empty">找不到符合的程式，換個關鍵字試試。</p>
+
+  <footer>新上傳的程式會自動出現在「新加入」區；想整理分類或說明時，再到 index.html 的 PROGRAMS 陣列加一筆即可。</footer>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const fileList = document.getElementById('file-list');
+/*
+  ── 自動偵測新程式 ──
+  只要把新的 .html 上傳到 repo 根目錄，打開本頁時就會自動出現一張卡片：
+    • 卡片標題 = 該檔案的 <title>
+    • 說明     = 該檔案的 <meta name="description" content="…">（沒有就不顯示）
+    • 分類     = 該檔案的 <meta name="category" content="光與色彩">（沒有或對不上就放「新加入」）
+  想要正式整理時，再把它寫進下方 PROGRAMS 陣列（可合併多個版本、改標題說明）。
+  不想顯示的舊版檔案，加進 HIDDEN 陣列即可。
 
-  // **請在這裡手動列出所有你要顯示的 HTML 檔案名稱**
+  ── PROGRAMS 欄位 ──
+  cat   : 分類名稱（要與 CATEGORIES 其中之一相同）
+  title : 顯示名稱
+  desc  : 一句話說明
+  files : 檔名陣列；第一個是主要連結，其餘會顯示成「其他版本」小標籤
+*/
+// 放在 GitHub Pages 上時會自動判斷「哪個帳號/儲存庫/資料夾」，下面兩行只是判斷不出來時的預設值
+const DEFAULT_REPO = "jjpong/LearningAssist";
+const BRANCH = "main";
 
-  const htmlFiles = [
-    "PmindMapV10.html",
-    "classtools.html",
-    "cmap.html",
-    "cmapTesting.html", 
-    "conceptMap.html",
-    "conceptMap2.html",
-    "essayQuestion.html", 
-    "experiment_chart.html",
-    "graphy.html",
-    "sorty.html",
-    "wordleTWJH.html",   
-    "wordleTWJH2.html",
-    "化學反應速率與溫度的關係_實驗排序.html",
-    "單擺實驗步驟.html",
-    "單擺擺幅與週期關係實驗步驟排序題.html",
-    "單擺週期_實驗排序.html",
-    "地質事件排序.html",
-    "熱學_實驗排序.html"
-  ];
+const CATEGORIES = ["概念圖", "排序練習", "實驗數據與分析", "科學互動與遊戲", "課堂互動與 AI", "英語", "工具"];
+const NEW_CAT = "新加入";
 
-  if (htmlFiles.length === 0) {
-    fileList.innerHTML = '<li class="no-files-message">目前沒有其他 HTML 檔案被列出。請在 `index.html` 的 JavaScript 代碼中添加檔案名稱。</li>';
-    return;
+// 不要自動顯示的檔案（舊版本、測試檔等）
+const HIDDEN = [
+  "index.html"
+];
+
+const PROGRAMS = [
+  // ── 概念圖 ──
+  { cat: "概念圖", title: "概念圖製作工具", desc: "選擇章節概念與連接詞，拖曳建立概念圖，可匯出 PDF、PNG 或 draw.io。", files: ["conceptMap2.html", "PmindmapV10.html", "conceptMap.html", "cmap.html", "cmapTesting.html"] },
+  { cat: "概念圖", title: "化學反應概念圖", desc: "用化學反應單元的概念與連接詞製作概念圖。", files: ["cMapOfChemReaction.html"] },
+
+  // ── 排序練習 ──
+  { cat: "排序練習", title: "實驗步驟卡片產生器", desc: "教師輸入實驗主題與步驟，一鍵產生學生用的排序卡片網頁，可用 AI 生成迷思干擾項。", files: ["sorty.html"] },
+  { cat: "排序練習", title: "化學反應速率與溫度的關係", desc: "把實驗步驟卡片排成正確順序。", files: ["化學反應速率與溫度的關係_實驗排序.html"] },
+  { cat: "排序練習", title: "單擺週期", desc: "把單擺週期實驗的步驟卡片排成正確順序。", files: ["單擺週期_實驗排序.html"] },
+  { cat: "排序練習", title: "單擺擺角與週期關係", desc: "把探討擺角與週期關係的實驗步驟排序。", files: ["單擺擺角與週期關係實驗步驟排序.html"] },
+  { cat: "排序練習", title: "單擺實驗步驟", desc: "拖曳卡片，排出單擺實驗的步驟。", files: ["單擺實驗步驟.html"] },
+  { cat: "排序練習", title: "熱學", desc: "把熱學實驗的步驟卡片排成正確順序。", files: ["熱學_實驗排序.html"] },
+  { cat: "排序練習", title: "地質事件排序", desc: "拖曳卡片，排出地質事件發生的先後順序。", files: ["地質事件排序.html"] },
+
+  // ── 實驗數據與分析 ──
+  { cat: "實驗數據與分析", title: "實驗數據圖表工具", desc: "輸入多組實驗數據，畫出線性或對數圖並顯示迴歸直線與公式。", files: ["experiment_chart.html"] },
+  { cat: "實驗數據與分析", title: "實驗結果分析與發現學習工具", desc: "設定變因畫出圖表，寫下實驗結果，再請 AI 老師給回饋。", files: ["graphy.html"] },
+
+  // ── 科學互動與遊戲 ──
+  { cat: "科學互動與遊戲", title: "互動週期表", desc: "切換多種週期表版型，查看游離能、電負度、密度等性質。", files: ["EPtable.html"] },
+  { cat: "科學互動與遊戲", title: "元素配對大挑戰", desc: "拖曳卡片，配對元素的名稱、符號與性質。", files: ["元素配對.html"] },
+  { cat: "科學互動與遊戲", title: "化學元素霓虹貪食蛇", desc: "邊玩貪食蛇邊認識化學元素。", files: ["elementSnake.html"] },
+  { cat: "科學互動與遊戲", title: "恆星核融合 2048", desc: "從質子與中子開始融合，一路合成到鐵，認識恆星核融合。", files: ["fusion.html"] },
+  { cat: "科學互動與遊戲", title: "向量加減法", desc: "拖曳箭頭建立向量，觀察首尾相接作圖與合向量。", files: ["vector.html"] },
+
+  // ── 課堂互動與 AI ──
+  { cat: "課堂互動與 AI", title: "剛好學：課堂互動 so easy", desc: "教師建立教室發起是非、選擇、文字、繪圖等即時互動，學生輸入代碼加入。", files: ["classtools.html"] },
+  { cat: "課堂互動與 AI", title: "AI 互動實驗室", desc: "選擇實驗單元並登入，和 AI 夥伴一起進行實驗。", files: ["AiLabAssist.html"] },
+  { cat: "課堂互動與 AI", title: "申論題練習工具", desc: "學生作答申論題後由 AI 評分回饋，教師可管理單元與題目。", files: ["essayQuestion.html"] },
+
+  // ── 英語 ──
+  { cat: "英語", title: "國中英語 Wordle", desc: "用國中英語單字玩 Wordle 猜字遊戲。", files: ["wordleTWJH.html", "wordleTWJH2.html"] },
+
+  // ── 工具 ──
+  { cat: "工具", title: "縮時攝影製作器", desc: "用攝影機即時拍攝或上傳圖片，製作縮時影片。", files: ["timelapse.html", "timelapseX.html", "timelapse2.html"] }
+];
+
+/* ───────── 以下為顯示邏輯，一般不需修改 ───────── */
+const $ = id => document.getElementById(id);
+const href = f => encodeURIComponent(f);
+let activeCat = "全部";
+const AUTO = [];   // 自動偵測到的新程式
+
+function allCats() {
+  return AUTO.some(p => p.cat === NEW_CAT) ? [...CATEGORIES, NEW_CAT] : CATEGORIES;
+}
+
+function renderChips() {
+  const box = $("chips");
+  box.innerHTML = "";
+  ["全部", ...allCats()].forEach(name => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.textContent = name;
+    b.setAttribute("aria-pressed", String(name === activeCat));
+    b.onclick = () => { activeCat = name; renderChips(); render(); };
+    box.appendChild(b);
+  });
+}
+
+function render() {
+  const kw = $("q").value.trim().toLowerCase();
+  const list = $("list");
+  list.innerHTML = "";
+  let shown = 0;
+
+  allCats().forEach(cat => {
+    if (activeCat !== "全部" && activeCat !== cat) return;
+    const items = [...PROGRAMS, ...AUTO].filter(p =>
+      p.cat === cat &&
+      (!kw || (p.title + p.desc + p.files.join(" ")).toLowerCase().includes(kw))
+    );
+    if (!items.length) return;
+    shown += items.length;
+
+    const sec = document.createElement("section");
+    const h = document.createElement("h2");
+    h.textContent = cat;
+    sec.appendChild(h);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    items.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const a = document.createElement("a");
+      a.className = "title";
+      a.href = href(p.files[0]);
+      a.textContent = p.title;
+      if (p.auto) {
+        const b = document.createElement("span");
+        b.className = "badge";
+        b.textContent = "新";
+        a.appendChild(b);
+      }
+      card.appendChild(a);
+
+      const d = document.createElement("p");
+      d.className = "desc";
+      d.textContent = p.desc;
+      card.appendChild(d);
+
+      if (p.auto) {
+        const fn = document.createElement("p");
+        fn.className = "file";
+        fn.textContent = p.files[0];
+        card.appendChild(fn);
+      }
+
+      if (p.files.length > 1) {
+        const v = document.createElement("div");
+        v.className = "versions";
+        p.files.forEach(f => {
+          const va = document.createElement("a");
+          va.href = href(f);
+          va.textContent = f.replace(/\.html$/, "");
+          v.appendChild(va);
+        });
+        card.appendChild(v);
+      }
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    list.appendChild(sec);
+  });
+
+  $("count").textContent = "共 " + shown + " 個程式";
+  $("empty").style.display = shown ? "none" : "block";
+}
+
+/* ───────── 自動偵測新程式 ───────── */
+// 從網址判斷位置：https://帳號.github.io/儲存庫/資料夾/index.html
+function whereAmI() {
+  const host = location.hostname;
+  if (host.endsWith(".github.io")) {
+    const owner = host.slice(0, -".github.io".length);
+    const segs = location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    if (segs.length && /\.html?$/i.test(segs[segs.length - 1])) segs.pop();
+    if (segs.length) return { repo: owner + "/" + segs[0], folder: segs.slice(1).join("/") };
+    return { repo: owner + "/" + host, folder: "" };   // 個人主站 帳號.github.io
+  }
+  return { repo: DEFAULT_REPO, folder: "" };
+}
+const HERE = whereAmI();
+const LIST_CACHE_KEY = "lab-file-list:" + HERE.repo + "/" + HERE.folder;
+const LIST_CACHE_MS = 30 * 60 * 1000;   // 同一台電腦 30 分鐘內不重複查詢
+let EXISTING = null;   // 資料夾裡實際存在的檔案（查不到時為 null）
+
+function cacheGet(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+}
+function cacheSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+}
+
+// 取得 repo 根目錄所有 .html 檔名：先問 GitHub API（最即時），失敗再問 jsDelivr（不限次數）
+async function listRepoHtml() {
+  const c = cacheGet(LIST_CACHE_KEY);
+  if (c && Date.now() - c.t < LIST_CACHE_MS && Array.isArray(c.files)) return c.files;
+
+  let files = null;
+  try {
+    const dir = HERE.folder.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+    const r = await fetch(`https://api.github.com/repos/${HERE.repo}/contents/${dir}`);
+    if (r.ok) {
+      const data = await r.json();
+      files = data.filter(x => x.type === "file").map(x => x.name);
+    }
+  } catch (e) {}
+
+  if (!files) {
+    try {
+      const r = await fetch(`https://data.jsdelivr.com/v1/packages/gh/${HERE.repo}@${BRANCH}?structure=flat`);
+      if (r.ok) {
+        const data = await r.json();
+        const prefix = HERE.folder ? "/" + HERE.folder + "/" : "/";
+        files = data.files.map(x => x.name)
+          .filter(n => n.startsWith(prefix))
+          .map(n => n.slice(prefix.length))
+          .filter(n => !n.includes("/"));
+      }
+    } catch (e) {}
   }
 
-  // 排序檔案列表，讓它看起來更整齊 (可選)
-  htmlFiles.sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base' }));
+  if (!files) return null;
+  files = files.filter(n => /\.html?$/i.test(n));
+  cacheSet(LIST_CACHE_KEY, { t: Date.now(), files });
+  return files;
+}
 
+// 只讀新檔案的 <head>（大檔案也不會整個下載），取出標題、說明、分類
+async function readHead(file) {
+  const key = "lab-head:" + file;
+  const c = cacheGet(key);
+  if (c && Date.now() - c.t < LIST_CACHE_MS) return c.info;
 
-  htmlFiles.forEach(fileName => {
-    const listItem = document.createElement('li');
-    const anchor = document.createElement('a');
-    
-    // 連結的 href 值
-    let linkHref = fileName;
-    // 顯示的文字，預設為檔案名稱
-    let displayText = fileName;
+  let info = {};
+  try {
+    const r = await fetch(href(file));
+    if (r.ok) {
+      const reader = r.body.getReader();
+      const dec = new TextDecoder("utf-8");
+      let text = "";
+      while (text.length < 200000) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += dec.decode(value, { stream: true });
+        if (/<\/head>/i.test(text)) break;
+      }
+      reader.cancel().catch(() => {});
+      const doc = new DOMParser().parseFromString(text, "text/html");
+      const meta = n => (doc.querySelector(`meta[name="${n}"]`) || {}).content || "";
+      info = {
+        title: (doc.title || "").replace(/[‪-‮]/g, "").trim(),
+        desc: meta("description").trim(),
+        cat: meta("category").trim()
+      };
+    }
+  } catch (e) {}
+  cacheSet(key, { t: Date.now(), info });
+  return info;
+}
 
-    // 您可以在這裡添加邏輯來處理沒有 .html 副檔名的檔案
-    // 例如，如果 'cmapTesting' 其實應該連結到 'cmapTesting.html'
-    // 並且你希望列表中顯示為 'cmapTesting.html'
-    // if (!fileName.endsWith('.html')) {
-    //     linkHref = fileName + '.html';
-    //     displayText = fileName + '.html'; // 或者只顯示原始名稱
-    // }
+async function detectNewPrograms() {
+  const files = await listRepoHtml();
+  if (!files) return;   // 查不到清單（離線或被限流）就只顯示手動清單
 
-    anchor.href = linkHref; 
-    anchor.textContent = displayText; 
-    listItem.appendChild(anchor);
-    fileList.appendChild(listItem);
+  // 手動清單裡、但這個資料夾沒有的檔案就不顯示（把 index 複製到別的資料夾也不會出現壞連結）
+  EXISTING = new Set(files);
+  for (let i = PROGRAMS.length - 1; i >= 0; i--) {
+    PROGRAMS[i].files = PROGRAMS[i].files.filter(f => EXISTING.has(f));
+    if (!PROGRAMS[i].files.length) PROGRAMS.splice(i, 1);
+  }
+
+  const known = new Set([...HIDDEN, ...PROGRAMS.flatMap(p => p.files)]);
+  const fresh = files.filter(f => !known.has(f));
+  if (!fresh.length) { renderChips(); render(); return; }
+
+  const infos = await Promise.all(fresh.map(readHead));
+  fresh.forEach((f, i) => {
+    const info = infos[i];
+    AUTO.push({
+      auto: true,
+      cat: CATEGORIES.includes(info.cat) ? info.cat : NEW_CAT,
+      title: info.title || f.replace(/\.html?$/i, ""),
+      desc: info.desc || "",
+      files: [f]
+    });
   });
-});
-</script>
+  renderChips();
+  render();
+}
 
+$("q").addEventListener("input", render);
+renderChips();
+render();
+detectNewPrograms();
+</script>
 </body>
 </html>
