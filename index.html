@@ -114,7 +114,7 @@
 <div class="wrap">
   <header>
     <h1>我的程式與學習輔助工具列表</h1>
-    <p>概念圖、練習活動、科學遊戲與教師工具</p>
+    <p>概念圖、科學遊戲與教師工具</p>
   </header>
 
   <div class="toolbar">
@@ -149,7 +149,7 @@
 const DEFAULT_REPO = "jjpong/LearningAssist";
 const BRANCH = "main";
 
-const CATEGORIES = ["概念圖", "練習活動", "科學遊戲", "教師工具", "其他"];
+const CATEGORIES = ["概念圖", "科學遊戲", "教師工具", "其他"];
 const NEW_CAT = "新加入";
 
 // 不要自動顯示的檔案（舊版本、測試檔等）
@@ -163,14 +163,6 @@ const PROGRAMS = [
   { cat: "概念圖", title: "概念圖製作工具（draw.io 匯出版）", desc: "內建章節概念，可切換箭頭方向，匯出 draw.io、PDF、PNG。", files: ["cmapTesting.html"] },
   { cat: "概念圖", title: "化學反應概念圖", desc: "用化學反應單元的概念與連接詞製作概念圖。", files: ["cMapOfChemReaction.html"] },
 
-  // ── 練習活動 ──
-  { cat: "練習活動", title: "化學反應速率與溫度的關係", desc: "把實驗步驟卡片排成正確順序。", files: ["化學反應速率與溫度的關係_實驗排序.html"] },
-  { cat: "練習活動", title: "單擺週期", desc: "把單擺週期實驗的步驟卡片排成正確順序。", files: ["單擺週期_實驗排序.html"] },
-  { cat: "練習活動", title: "單擺擺角與週期關係", desc: "把探討擺角與週期關係的實驗步驟排序。", files: ["單擺擺角與週期關係實驗步驟排序.html"] },
-  { cat: "練習活動", title: "單擺實驗步驟", desc: "拖曳卡片，排出單擺實驗的步驟。", files: ["單擺實驗步驟.html"] },
-  { cat: "練習活動", title: "熱學", desc: "把熱學實驗的步驟卡片排成正確順序。", files: ["熱學_實驗排序.html"] },
-  { cat: "練習活動", title: "地質事件排序", desc: "拖曳卡片，排出地質事件發生的先後順序。", files: ["地質事件排序.html"] },
-  { cat: "練習活動", title: "申論題練習工具", desc: "學生作答申論題後由 AI 評分回饋，教師可管理單元與題目。", files: ["essayQuestion.html"] },
 
   // ── 科學遊戲 ──
   { cat: "科學遊戲", title: "互動週期表", desc: "切換多種週期表版型，查看游離能、電負度、密度等性質。", files: ["EPtable.html"] },
@@ -180,8 +172,6 @@ const PROGRAMS = [
 
   // ── 教師工具 ──
   { cat: "教師工具", title: "剛好學：課堂互動 so easy", desc: "教師建立教室發起是非、選擇、文字、繪圖等即時互動，學生輸入代碼加入。", files: ["classtools.html"] },
-  { cat: "教師工具", title: "實驗步驟卡片產生器", desc: "輸入實驗主題與步驟，一鍵產生學生用的排序卡片網頁，可用 AI 生成迷思干擾項。", files: ["sorty.html"] },
-  { cat: "教師工具", title: "閱讀測驗網頁程式 AI 提示詞生成器", desc: "產生用於 AI 製作閱讀測驗網頁的提示詞。", files: ["生成器V2.html"] },
   { cat: "教師工具", title: "物質的質量與體積關係圖", desc: "產生質量與體積的數據圖，可顯示趨勢線。", files: ["3mass_volumn.html"] },
   { cat: "教師工具", title: "不同物質的質量與體積關係圖", desc: "選擇水、銅、鋁、鐵，比較斜率看出密度差異。", files: ["4mass_volumn.html"] },
   { cat: "教師工具", title: "水在量筒中的質量與體積關係圖", desc: "產生水在量筒中的質量與體積數據圖。", files: ["waterMass_volumn_GC.html"] },
