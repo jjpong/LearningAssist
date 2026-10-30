@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>光路迷宮</title>
+<meta name="description" content="格子式反射折射解謎遊戲：用平面鏡、分光鏡、直角稜鏡與各種玻璃磚把雷射導進偵測器，六組 30 關，含必經點與電池限時關。">
+<meta name="category" content="科學遊戲">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: 光學桌（深色陽極鋁板）為主角，右側是器材抽屜；手機上抽屜移到桌下 */
+:root {
+  --room: #0e1219;
+  --table: #18202b;
+  --table-edge: #232d3b;
+  --hole: #0a0e14;
+  --rule: #2a3545;
+  --ink: #e2e8f0;
+  --muted: #8d9aae;
+  --laser: #ff3347;
+  --lit: #ffc94d;
+  --glass: #8fd3ff;
+  --brass: #c9a66b;
+  --ok: #6fd08c;
+  --btn: #222c3a;
+  --btn-hi: #2d394b;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { background: var(--room); color: var(--ink); }
+body { margin: 0; }
+body { font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 14px; }
+header.top h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: .08em; text-wrap: balance; }
+header.top h1 span { color: var(--laser); text-shadow: 0 0 14px rgba(255, 51, 71, .55); }
+header.top p { margin: 0; color: var(--muted); font-size: 14px; }
+.spec { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+.spec b { color: var(--ink); font-weight: 600; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+@media (max-width: 840px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.bench { position: relative; background: var(--table-edge); border-radius: 12px; padding: 10px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px rgba(0,0,0,.45); min-width: 0; }
+.bench-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 2px 4px 9px; flex-wrap: wrap; }
+.lvl-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.lvl-no { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.lvl-name { font-size: 19px; font-weight: 700; letter-spacing: .04em; }
+.status { font-family: var(--f-mono); font-size: 13px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+.status.on { color: var(--room); background: var(--lit); border-color: var(--lit); font-weight: 600; }
+.board-box { position: relative; display: flex; justify-content: center; }
+canvas#board { display: block; border-radius: 6px; touch-action: none; max-width: 100%; outline: none; }
+canvas#board:focus-visible { box-shadow: 0 0 0 2px var(--glass); }
+
+.win { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: rgba(14,18,25,.94);
+  border: 1px solid var(--lit); border-radius: 12px; padding: 18px 22px; text-align: center; width: min(300px, 86%);
+  box-shadow: 0 0 40px rgba(255, 201, 77, .25); }
+.win h2 { margin: 0 0 4px; font-size: 26px; font-weight: 900; color: var(--lit); letter-spacing: .12em; }
+.win p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.win .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+aside.drawer { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sec h3 { margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .14em; }
+.tray { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 840px) { .tray { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .tray { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.slot { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; background: var(--btn);
+  border: 1px solid var(--rule); color: var(--ink); font: inherit; cursor: grab; touch-action: none; text-align: left; min-width: 0; }
+.slot:hover { background: var(--btn-hi); }
+.slot.armed { border-color: var(--laser); box-shadow: 0 0 0 1px var(--laser) inset; }
+.slot:disabled { opacity: .38; cursor: not-allowed; }
+.slot canvas { width: 38px; height: 38px; flex: none; }
+.slot .nm { font-size: 14px; font-weight: 500; line-height: 1.25; min-width: 0; }
+.slot .ct { display: block; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
+.btn { font: inherit; font-size: 14px; color: var(--ink); background: var(--btn); border: 1px solid var(--rule);
+  border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--btn-hi); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.primary { background: var(--lit); color: var(--room); border-color: var(--lit); font-weight: 700; }
+.btn:focus-visible, .slot:focus-visible, .lv:focus-visible { outline: 2px solid var(--glass); outline-offset: 2px; }
+.tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.readout { font-family: var(--f-mono); font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 1.6em; }
+.readout b { color: var(--ink); font-weight: 600; }
+.desc { font-size: 14px; color: var(--ink); background: rgba(143, 211, 255, .06); border-left: 2px solid var(--glass);
+  padding: 8px 10px; border-radius: 0 6px 6px 0; }
+.desc small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.hint { font-size: 14px; color: var(--ink); margin-top: 8px; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; user-select: none; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--glass); }
+.levels { display: flex; flex-direction: column; gap: 10px; }
+.grp { display: flex; flex-direction: column; gap: 5px; padding: 8px; border-radius: 9px; border: 1px solid transparent; }
+.grp.cur { border-color: var(--rule); background: rgba(255,255,255,.02); }
+.grp-h { display: flex; align-items: baseline; gap: 8px; }
+.grp-n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.grp-t { font-size: 14px; font-weight: 700; flex: 1; min-width: 0; }
+.grp-p { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.grp-p.full { color: var(--lit); font-weight: 600; }
+.grp.final .grp-t { color: var(--laser); }
+.grp .tag { font-family: var(--f-mono); font-size: 11px; font-weight: 600; color: var(--room); background: var(--lit); border-radius: 4px; padding: 0 5px; margin-left: 4px; vertical-align: 1px; }
+.bar-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.batt { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.batt b { color: var(--ink); font-weight: 600; min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.batt #battSec { font-variant-numeric: tabular-nums; }
+.batt-cell { position: relative; width: 34px; height: 16px; border: 2px solid var(--muted); border-radius: 4px; padding: 1px; }
+.batt-cell::after { content: ""; position: absolute; right: -6px; top: 3px; width: 3px; height: 6px; background: var(--muted); border-radius: 0 2px 2px 0; }
+.batt-cell i { display: block; height: 100%; border-radius: 1px; background: var(--ok); transition: width .1s linear; }
+.batt-cell i.warn { background: var(--lit); }
+.batt-cell i.low { background: var(--laser); }
+.batt.low b { color: var(--laser); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+.gate { position: absolute; inset: 0; background: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; z-index: 5; }
+.gate.fail { animation: blackout .9s ease-out; }
+@keyframes blackout { 0% { background: rgba(0,0,0,0); } 30% { background: rgba(0,0,0,.6); } 45% { background: rgba(0,0,0,.2); } 100% { background: #000; } }
+.gate-in { max-width: 340px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.gate-ico { width: 56px; height: 28px; color: var(--ok); }
+.gate.fail .gate-ico { color: var(--laser); }
+.gate.fail .gate-charge { display: none; }
+.gate h2 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: .1em; color: var(--ink); }
+.gate.fail h2 { color: var(--laser); }
+.gate p { margin: 0; color: var(--muted); font-size: 14px; }
+.grp-b { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.lv { font-family: var(--f-mono); font-size: 13px; padding: 6px 0; border-radius: 7px; background: var(--btn);
+  border: 1px solid var(--rule); color: var(--ink); cursor: pointer; position: relative; }
+.lv:hover { background: var(--btn-hi); }
+.lv.cur { border-color: var(--ink); }
+.lv.done::after { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--lit); }
+.keys { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.keys kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--rule); border-radius: 4px; padding: 0 4px; color: var(--ink); }
+#ghost { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 50; opacity: .85; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>光路<span>迷宮</span></h1>
+    <p>把雷射光導進偵測器。從元件盒拖曳或點選放上光學桌，點一下元件就旋轉（鏡子每次 45°，玻璃磚每次 15°）。</p>
+    <span class="spec">n<sub>玻璃</sub> = <b>1.50</b>　θ<sub>c</sub> = <b>41.8°</b>　λ = <b>650 nm</b></span>
+  </header>
+
+  <div class="main">
+    <section class="bench" aria-label="光學桌">
+      <div class="bench-bar">
+        <div class="lvl-title"><span class="lvl-no" id="lvlNo">第 1 組</span><span class="lvl-name" id="lvlName"></span></div>
+        <div class="bar-r">
+          <span class="batt" id="batt" hidden aria-live="polite"><span class="batt-cell"><i id="battFill"></i></span><b id="battPct">100%</b><span id="battSec">60 秒</span></span>
+          <span class="status" id="status">偵測器 0/1</span>
+        </div>
+      </div>
+      <div class="board-box" id="boardBox">
+        <canvas id="board" tabindex="0" aria-label="遊戲格盤"></canvas>
+        <div class="gate" id="gate" hidden>
+          <div class="gate-in">
+            <svg class="gate-ico" viewBox="0 0 48 24" aria-hidden="true"><rect x="1" y="3" width="40" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="42" y="8" width="4" height="8" rx="1" fill="currentColor"/><rect class="gate-charge" x="4" y="6" width="34" height="12" rx="1.5" fill="currentColor"/></svg>
+            <h2 id="gateTitle">限時關卡</h2>
+            <p id="gateMsg"></p>
+            <button class="btn primary" id="gateBtn" type="button">開始</button>
+          </div>
+        </div>
+        <div class="win" id="win" hidden>
+          <h2 id="winTitle">通關</h2>
+          <p id="winMsg"></p>
+          <div class="row">
+            <button class="btn" id="winStay" type="button">再調整一下</button>
+            <button class="btn primary" id="winNext" type="button">下一關 →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="drawer">
+      <div class="sec">
+        <h3>元件盒</h3>
+        <div class="tray" id="tray"></div>
+      </div>
+
+      <div class="sec">
+        <h3>選取的元件</h3>
+        <div class="tools">
+          <button class="btn" id="rotL" type="button" disabled>↺ 逆轉</button>
+          <button class="btn" id="rotR" type="button" disabled>↻ 順轉</button>
+          <button class="btn" id="takeBack" type="button" disabled>收回</button>
+        </div>
+        <div class="readout" id="readout">尚未選取</div>
+      </div>
+
+      <div class="sec">
+        <div class="desc" id="desc"></div>
+      </div>
+
+      <div class="sec">
+        <h3>實驗設定</h3>
+        <div class="tools" style="flex-direction:column; align-items:flex-start; gap:10px">
+          <label class="toggle"><input type="checkbox" id="normals"> 顯示法線與入射角</label>
+          <div class="tools">
+            <button class="btn" id="hintBtn" type="button">看提示</button>
+            <button class="btn" id="resetBtn" type="button">清空桌面</button>
+            <button class="btn" id="solBtn" type="button">參考解答</button>
+          </div>
+        </div>
+        <div class="hint" id="hint" hidden></div>
+      </div>
+
+      <div class="sec">
+        <h3>關卡（每組五關）</h3>
+        <div class="levels" id="levels"></div>
+      </div>
+
+      <div class="sec keys">
+        拖曳元件可移動，拖出桌面即收回。<br>
+        鍵盤：<kbd>R</kbd> 順轉　<kbd>Shift</kbd>+<kbd>R</kbd> 逆轉　<kbd>Del</kbd> 收回　<kbd>Esc</kbd> 取消選取
+      </div>
+    </aside>
+  </div>
+</div>
+<canvas id="ghost" hidden></canvas>
+<script>
+// ===== 光學引擎：連續 2D 光線追跡（格子座標，1 格 = 1 單位；rot 以「度」為單位，順時針） =====
+const OPT = (() => {
+  const N_GLASS = 1.5;
+  const SZ = { mirrorHalf: 0.42, prismA: 0.36, semiR: 0.42, square: 0.68, rectL: 0.84, rectW: 0.40,
+    laserHalf: 0.32, targetR: 0.3, smallR: 0.07, checkR: 0.25 };
+  const EPS = 1e-6;
+  const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]]; // 右 下 左 上（螢幕座標，y 向下）
+
+  function rot(x, y, a) { const c = Math.cos(a), s = Math.sin(a); return [x * c - y * s, x * s + y * c]; }
+
+  function polySurfaces(pts, cx, cy, th, pid) {
+    const v = pts.map(([x, y]) => { const [rx, ry] = rot(x, y, th); return [cx + rx, cy + ry]; });
+    let gx = 0, gy = 0; v.forEach(p => { gx += p[0]; gy += p[1]; }); gx /= v.length; gy /= v.length;
+    return v.map((a, i) => {
+      const b = v[(i + 1) % v.length];
+      let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+      const L = Math.hypot(nx, ny); nx /= L; ny /= L;
+      if (nx * ((a[0] + b[0]) / 2 - gx) + ny * ((a[1] + b[1]) / 2 - gy) < 0) { nx = -nx; ny = -ny; }
+      return { k: 'seg', ax: a[0], ay: a[1], bx: b[0], by: b[1], nx, ny, mat: 'glass', pid };
+    });
+  }
+
+  function pieceSurfaces(p) {
+    const cx = p.c + 0.5, cy = p.r + 0.5, th = p.rot * Math.PI / 180, pid = p.id;
+    if (p.type === 'mirror' || p.type === 'splitter') {
+      const H = SZ.mirrorHalf, dx = Math.cos(th) * H, dy = Math.sin(th) * H;
+      return [{ k: 'seg', ax: cx - dx, ay: cy - dy, bx: cx + dx, by: cy + dy,
+        nx: -Math.sin(th), ny: Math.cos(th), mat: p.type === 'mirror' ? 'mirror' : 'split', pid }];
+    }
+    if (p.type === 'prism') { const A = SZ.prismA; return polySurfaces([[A, A], [-A, A], [A, -A]], cx, cy, th, pid); }
+    if (p.type === 'square') { const h = SZ.square / 2; return polySurfaces([[-h, -h], [h, -h], [h, h], [-h, h]], cx, cy, th, pid); }
+    if (p.type === 'rect') { const a = SZ.rectL / 2, b = SZ.rectW / 2; return polySurfaces([[-a, -b], [a, -b], [a, b], [-a, b]], cx, cy, th, pid); }
+    if (p.type === 'semi') {
+      const R = SZ.semiR, ux = Math.cos(th), uy = Math.sin(th), vx = -uy, vy = ux;
+      return [
+        { k: 'seg', ax: cx - R * vx, ay: cy - R * vy, bx: cx + R * vx, by: cy + R * vy, nx: -ux, ny: -uy, mat: 'glass', pid },
+        { k: 'arc', cx, cy, R, ux, uy, mat: 'glass', pid }
+      ];
+    }
+    return [];
+  }
+
+  function boxSurfaces(cx, cy, h, mat) {
+    const x0 = cx - h, x1 = cx + h, y0 = cy - h, y1 = cy + h;
+    return [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]]
+      .map(([ax, ay, bx, by]) => ({ k: 'seg', ax, ay, bx, by, nx: 0, ny: 0, mat }));
+  }
+
+  const targetPos = t => ({ x: t.c + 0.5 + (t.dx || 0), y: t.r + 0.5 + (t.dy || 0), R: t.small ? SZ.smallR : SZ.targetR });
+
+  function buildScene(level, pieces) {
+    const S = [];
+    for (const [c, r] of level.walls || []) S.push(...boxSurfaces(c + 0.5, r + 0.5, 0.5, 'block'));
+    const L = level.laser;
+    S.push(...boxSurfaces(L.c + 0.5, L.r + 0.5, SZ.laserHalf, 'block'));
+    level.targets.forEach((t, i) => { const q = targetPos(t); S.push({ k: 'circle', cx: q.x, cy: q.y, R: q.R, mat: 'target', id: i }); });
+    for (const p of pieces) S.push(...pieceSurfaces(p));
+    return S;
+  }
+
+  function hit(s, px, py, dx, dy) {
+    if (s.k === 'seg') {
+      const ex = s.bx - s.ax, ey = s.by - s.ay;
+      const den = dx * ey - dy * ex;
+      if (Math.abs(den) < 1e-12) return null;
+      const wx = s.ax - px, wy = s.ay - py;
+      const t = (wx * ey - wy * ex) / den;
+      const u = (wx * dy - wy * dx) / den;
+      if (t <= EPS || u < -1e-9 || u > 1 + 1e-9) return null;
+      return { t, nx: s.nx, ny: s.ny, edge: u < 1e-6 || u > 1 - 1e-6 };
+    }
+    const fx = px - s.cx, fy = py - s.cy;
+    const b = fx * dx + fy * dy, c = fx * fx + fy * fy - s.R * s.R;
+    const disc = b * b - c;
+    if (disc < 0) return null;
+    const sq = Math.sqrt(disc);
+    for (const t of [-b - sq, -b + sq]) {
+      if (t <= EPS) continue;
+      const qx = px + t * dx - s.cx, qy = py + t * dy - s.cy;
+      if (s.k === 'arc' && qx * s.ux + qy * s.uy <= 1e-7) continue;
+      return { t, nx: qx / s.R, ny: qy / s.R, edge: false };
+    }
+    return null;
+  }
+
+  function boundaryT(level, px, py, dx, dy) {
+    let t = Infinity;
+    if (dx > 1e-12) t = Math.min(t, (level.cols - px) / dx);
+    if (dx < -1e-12) t = Math.min(t, -px / dx);
+    if (dy > 1e-12) t = Math.min(t, (level.rows - py) / dy);
+    if (dy < -1e-12) t = Math.min(t, -py / dy);
+    return t;
+  }
+
+  const deg = r => r * 180 / Math.PI;
+
+  function trace(level, pieces) {
+    const S = buildScene(level, pieces);
+    const L = level.laser, [ldx, ldy] = DIRS[L.dir];
+    const segs = [], events = [], lit = new Set();
+    const stack = [{ x: L.c + 0.5 + ldx * (SZ.laserHalf + 0.01), y: L.r + 0.5 + ldy * (SZ.laserHalf + 0.01), dx: ldx, dy: ldy, a: 1, entry: null }];
+    let budget = 700;
+    while (stack.length && budget > 0) {
+      let ray = stack.pop();
+      for (let bounce = 0; bounce < 90 && budget > 0; bounce++, budget--) {
+        let best = null, bs = null;
+        for (const s of S) {
+          const h = hit(s, ray.x, ray.y, ray.dx, ray.dy);
+          if (h && (!best || h.t < best.t)) { best = h; bs = s; }
+        }
+        const tb = boundaryT(level, ray.x, ray.y, ray.dx, ray.dy);
+        const inG = !!ray.entry;
+        if (!best || tb < best.t) {
+          segs.push({ x1: ray.x, y1: ray.y, x2: ray.x + ray.dx * tb, y2: ray.y + ray.dy * tb, a: ray.a, inG });
+          break;
+        }
+        const qx = ray.x + ray.dx * best.t, qy = ray.y + ray.dy * best.t;
+        segs.push({ x1: ray.x, y1: ray.y, x2: qx, y2: qy, a: ray.a, inG });
+        if (bs.mat === 'block') break;
+        if (bs.mat === 'target') { lit.add(bs.id); break; }
+        let nx = best.nx, ny = best.ny;
+        if (bs.mat === 'mirror' || bs.mat === 'split') {
+          const dn = ray.dx * nx + ray.dy * ny;
+          const rx = ray.dx - 2 * dn * nx, ry = ray.dy - 2 * dn * ny;
+          const ai = deg(Math.acos(Math.min(1, Math.abs(dn))));
+          events.push({ x: qx, y: qy, nx, ny, type: bs.mat === 'mirror' ? 'reflect' : 'split', ai, ao: ai });
+          if (bs.mat === 'split') {
+            if (ray.a / 2 >= 1 / 64) stack.push({ ...ray, x: qx, y: qy, a: ray.a / 2 });
+            ray = { ...ray, x: qx, y: qy, dx: rx, dy: ry, a: ray.a / 2 };
+            if (ray.a < 1 / 64) break;
+          } else ray = { ...ray, x: qx, y: qy, dx: rx, dy: ry };
+          continue;
+        }
+        // 玻璃介面
+        if (best.edge) { events.push({ x: qx, y: qy, nx, ny, type: 'corner', ai: 0, ao: 0 }); break; }
+        let n1 = 1, n2 = N_GLASS, entering = true;
+        if (ray.dx * nx + ray.dy * ny > 0) { nx = -nx; ny = -ny; n1 = N_GLASS; n2 = 1; entering = false; }
+        const cosi = -(ray.dx * nx + ray.dy * ny), eta = n1 / n2;
+        const k = 1 - eta * eta * (1 - cosi * cosi);
+        const ai = deg(Math.acos(Math.min(1, cosi)));
+        if (k < 0) {
+          const rx = ray.dx + 2 * cosi * nx, ry = ray.dy + 2 * cosi * ny;
+          events.push({ x: qx, y: qy, nx, ny, type: 'tir', ai, ao: ai });
+          ray = { ...ray, x: qx, y: qy, dx: rx, dy: ry };
+        } else {
+          let tx = eta * ray.dx + (eta * cosi - Math.sqrt(k)) * nx, ty = eta * ray.dy + (eta * cosi - Math.sqrt(k)) * ny;
+          const Lt = Math.hypot(tx, ty); tx /= Lt; ty /= Lt;
+          const ao = deg(Math.asin(Math.min(1, eta * Math.sqrt(Math.max(0, 1 - cosi * cosi)))));
+          const ev = { x: qx, y: qy, nx, ny, type: 'refract', ai, ao, entering };
+          if (entering) {
+            ray = { ...ray, x: qx, y: qy, dx: tx, dy: ty, entry: { x: qx, y: qy, dx: ray.dx, dy: ray.dy } };
+          } else {
+            const en = ray.entry;
+            if (en) {
+              const dot = en.dx * tx + en.dy * ty;
+              if (dot > 0.99999) {
+                const shift = Math.abs(en.dx * (qy - en.y) - en.dy * (qx - en.x));
+                if (shift > 0.005) ev.shift = shift;
+              } else ev.dev = deg(Math.acos(Math.max(-1, Math.min(1, dot))));
+            }
+            ray = { ...ray, x: qx, y: qy, dx: tx, dy: ty, entry: null };
+          }
+          if (ai > 0.5 || ev.shift || ev.dev) events.push(ev);
+        }
+      }
+    }
+    // 必經點：任何一段光線離必經點中心夠近，就算經過
+    const passed = new Set();
+    (level.checks || []).forEach((k, i) => {
+      const px = k.c + 0.5, py = k.r + 0.5;
+      for (const s of segs) {
+        const dx = s.x2 - s.x1, dy = s.y2 - s.y1, L2 = dx * dx + dy * dy;
+        let t = L2 > 0 ? ((px - s.x1) * dx + (py - s.y1) * dy) / L2 : 0; t = Math.max(0, Math.min(1, t));
+        if (Math.hypot(s.x1 + t * dx - px, s.y1 + t * dy - py) < SZ.checkR) { passed.add(i); break; }
+      }
+    });
+    return { segs, events, lit, passed };
+  }
+
+  return { trace, pieceSurfaces, targetPos, SZ, N_GLASS, DIRS };
+})();
+// ===== 關卡資料（9×7 格；laser.dir: 0右 1下 2左 3上；rot 以度為單位，順時針） =====
+// 偵測器可加 dx/dy（偏離格子中心，單位：格）與 small:true（精密偵測器，半徑較小）
+const GROUPS = [
+  { name: '光的反射', desc: '平面鏡：入射角等於反射角' },
+  { name: '分光鏡', desc: '一道光分成反射與穿透兩道' },
+  { name: '全反射', desc: '入射角大於臨界角 41.8°，光完全反射' },
+  { name: '光的折射', desc: '斜射進出玻璃時偏折；平行玻璃磚使光側移' },
+  { name: '綜合挑戰', desc: '所有元件一起上場' },
+  { name: '限時挑戰', desc: '雷射靠電池供電，沒電前要點亮所有偵測器', timed: true },
+];
+const LEVELS = [
+  // ---------- 第 1 組：光的反射 ----------
+  {
+    name: '反射定律', cols: 9, rows: 7,
+    laser: { c: 0, r: 4, dir: 0 }, targets: [{ c: 5, r: 0 }],
+    walls: [[3, 0], [3, 1], [3, 2], [7, 4], [7, 5], [6, 6]],
+    inv: { mirror: 1 },
+    hint: '平面鏡轉成 45°，入射角 45° 等於反射角 45°，光就會轉 90°。點鏡子可以旋轉。',
+    sol: [{ type: 'mirror', c: 5, r: 4, rot: 135 }]
+  },
+  {
+    name: '繞過擋板', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 8, r: 5 }],
+    walls: [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [6, 3], [7, 3], [8, 3], [8, 0], [8, 1], [2, 5], [2, 6], [1, 4]],
+    inv: { mirror: 2 },
+    hint: '擋板中間有一個缺口，讓光從那裡穿過去。',
+    sol: [{ type: 'mirror', c: 5, r: 1, rot: 45 }, { type: 'mirror', c: 5, r: 5, rot: 45 }]
+  },
+  {
+    name: '鎖住的鏡子', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 1, r: 6 }],
+    walls: [[4, 6], [3, 3], [4, 3], [5, 3], [8, 4], [0, 4]],
+    fixed: [{ type: 'mirror', c: 7, r: 1, rot: 45 }], checks: [{ c: 7, r: 1 }],
+    inv: { mirror: 2 },
+    hint: '有虛線圈的格子是必經點，光一定要經過。鎖住的鏡子就在必經點上，它把光往下送，接著讓光往左，再往下。',
+    sol: [{ type: 'mirror', c: 7, r: 5, rot: 135 }, { type: 'mirror', c: 1, r: 5, rot: 135 }]
+  },
+  {
+    name: '三次轉彎', cols: 9, rows: 7,
+    laser: { c: 0, r: 6, dir: 0 }, targets: [{ c: 6, r: 0 }],
+    walls: [[6, 3], [7, 3], [8, 3], [5, 0], [1, 3], [3, 0], [4, 5]],
+    inv: { mirror: 3 },
+    hint: '偵測器的下方和左方都被擋住了，光只能從它正下方一兩格的地方轉上去。',
+    sol: [{ type: 'mirror', c: 2, r: 6, rot: 135 }, { type: 'mirror', c: 2, r: 2, rot: 135 }, { type: 'mirror', c: 6, r: 2, rot: 135 }]
+  },
+  {
+    name: '反射迷宮', cols: 9, rows: 7,
+    laser: { c: 8, r: 0, dir: 2 }, targets: [{ c: 0, r: 5 }],
+    walls: [[1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [7, 2], [8, 2], [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [4, 6]],
+    inv: { mirror: 4 },
+    hint: '沿著走廊一路折回去，每個轉角放一面鏡子。',
+    sol: [{ type: 'mirror', c: 0, r: 0, rot: 135 }, { type: 'mirror', c: 0, r: 3, rot: 45 }, { type: 'mirror', c: 8, r: 3, rot: 45 }, { type: 'mirror', c: 8, r: 5, rot: 135 }]
+  },
+  // ---------- 第 2 組：分光鏡 ----------
+  {
+    name: '一分為二', cols: 9, rows: 7,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 4, r: 0 }, { c: 8, r: 3 }],
+    walls: [[2, 1], [6, 1], [6, 5], [2, 5], [4, 6]],
+    inv: { splitter: 1 },
+    hint: '分光鏡讓一半的光穿透、一半的光反射，一道光可以同時點亮兩個偵測器。',
+    sol: [{ type: 'splitter', c: 4, r: 3, rot: 135 }]
+  },
+  {
+    name: '分光再轉彎', cols: 9, rows: 7,
+    laser: { c: 0, r: 5, dir: 0 }, targets: [{ c: 2, r: 0 }, { c: 8, r: 1 }],
+    walls: [[4, 0], [4, 1], [4, 2], [4, 3], [8, 4], [8, 5], [8, 6], [0, 0], [1, 2]],
+    inv: { splitter: 1, mirror: 2 },
+    hint: '先分光，穿透的那一道再用兩面鏡子送到右上角。',
+    sol: [{ type: 'splitter', c: 2, r: 5, rot: 135 }, { type: 'mirror', c: 6, r: 5, rot: 135 }, { type: 'mirror', c: 6, r: 1, rot: 135 }]
+  },
+  {
+    name: '三個目標', cols: 9, rows: 7,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 2, r: 0 }, { c: 5, r: 6 }, { c: 8, r: 3 }],
+    walls: [[0, 0], [4, 0], [4, 1], [7, 5], [7, 6], [3, 6], [8, 0]],
+    inv: { splitter: 2 },
+    hint: '每經過一次分光鏡，光的強度就剩一半，但仍能點亮偵測器。',
+    sol: [{ type: 'splitter', c: 2, r: 3, rot: 135 }, { type: 'splitter', c: 5, r: 3, rot: 45 }]
+  },
+  {
+    name: '左右開弓', cols: 9, rows: 7,
+    laser: { c: 4, r: 6, dir: 3 }, targets: [{ c: 0, r: 0 }, { c: 8, r: 0 }],
+    walls: [[2, 4], [6, 4], [6, 1], [2, 1], [8, 3]],
+    inv: { splitter: 1, mirror: 2 },
+    hint: '分光鏡只會把光反射到其中一側，另一個偵測器要靠穿透的那道光繞過去。',
+    sol: [{ type: 'splitter', c: 4, r: 3, rot: 45 }, { type: 'mirror', c: 0, r: 3, rot: 45 }, { type: 'mirror', c: 4, r: 0, rot: 135 }]
+  },
+  {
+    name: '四個偵測器', cols: 9, rows: 7,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 2, r: 0 }, { c: 4, r: 6 }, { c: 8, r: 1 }, { c: 8, r: 3 }],
+    walls: [[6, 0], [7, 0], [8, 0], [0, 6], [6, 5], [1, 1]],
+    inv: { splitter: 3, mirror: 1 },
+    hint: '一面分光鏡分出一道支線。右上角那個偵測器要多轉一次彎。',
+    sol: [{ type: 'splitter', c: 2, r: 3, rot: 135 }, { type: 'splitter', c: 4, r: 3, rot: 45 }, { type: 'splitter', c: 6, r: 3, rot: 135 }, { type: 'mirror', c: 6, r: 1, rot: 135 }]
+  },
+  // ---------- 第 3 組：全反射 ----------
+  {
+    name: '全反射稜鏡', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 6, r: 6 }],
+    walls: [[3, 3], [3, 4], [3, 5], [3, 6], [7, 0], [7, 1], [7, 2], [8, 4]],
+    inv: { prism: 1 },
+    hint: '光垂直射入稜鏡的直角邊，在斜邊上的入射角是 45°，大於臨界角 41.8°，會發生全反射。',
+    sol: [{ type: 'prism', c: 6, r: 1, rot: 90 }]
+  },
+  {
+    name: '折返', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 0, r: 5 }],
+    walls: [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [8, 0], [8, 3], [8, 6], [2, 6], [3, 4]],
+    inv: { prism: 2 },
+    hint: '兩個直角稜鏡各轉 90°，就能讓光掉頭。潛望鏡就是這樣做的。',
+    sol: [{ type: 'prism', c: 7, r: 1, rot: 90 }, { type: 'prism', c: 7, r: 5, rot: 180 }]
+  },
+  {
+    name: '半圓玻璃磚', cols: 9, rows: 7,
+    laser: { c: 0, r: 4, dir: 0 }, targets: [{ c: 6, r: 0 }],
+    walls: [[3, 0], [3, 1], [3, 2], [8, 3], [8, 4], [8, 5], [5, 6]],
+    inv: { semi: 1 },
+    hint: '光從弧面對準圓心射入不會偏折；在平面上入射角 45° 大於臨界角，會全反射。',
+    sol: [{ type: 'semi', c: 6, r: 4, rot: 225 }]
+  },
+  {
+    name: '接力', cols: 9, rows: 7,
+    laser: { c: 8, r: 6, dir: 2 }, targets: [{ c: 8, r: 0 }],
+    walls: [[0, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [8, 3], [8, 1], [5, 5], [4, 1]],
+    inv: { prism: 1, semi: 1 },
+    hint: '稜鏡和半圓玻璃磚都能靠全反射讓光轉 90°，想想各自要朝哪個方向。',
+    sol: [{ type: 'prism', c: 1, r: 6, rot: 270 }, { type: 'semi', c: 1, r: 0, rot: 45 }]
+  },
+  {
+    name: '臨界角', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 5, r: 6 }],
+    walls: [[5, 4], [7, 3], [8, 3], [0, 5], [1, 6], [8, 6]],
+    inv: { semi: 1 },
+    hint: '平面上的入射角只要大於 41.8° 就會全反射，不一定要 45°。試試 60°，光會斜斜地反射出去。',
+    sol: [{ type: 'semi', c: 2, r: 1, rot: 120 }]
+  },
+  // ---------- 第 4 組：光的折射 ----------
+  {
+    name: '平行玻璃磚', cols: 9, rows: 7,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 8, r: 3, dy: 0.15, small: true }],
+    walls: [[3, 1], [5, 5], [7, 0], [1, 6]],
+    inv: { square: 1 },
+    hint: '精密偵測器比格線低一點點。光斜斜穿過方形玻璃磚後，方向不變，但會平移一小段。',
+    sol: [{ type: 'square', c: 4, r: 3, rot: 30 }]
+  },
+  {
+    name: '越斜移越多', cols: 9, rows: 7,
+    laser: { c: 3, r: 6, dir: 3 }, targets: [{ c: 3, r: 0, dx: 0.22, small: true }],
+    walls: [[1, 2], [5, 2], [6, 5], [0, 0]],
+    inv: { rect: 1, square: 1 },
+    hint: '方形玻璃磚移得不夠遠。入射角越大、穿過的玻璃越厚，側移就越大。',
+    sol: [{ type: 'rect', c: 3, r: 3, rot: 60 }]
+  },
+  {
+    name: '偏折的光', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 8, r: 3 }],
+    walls: [[8, 2], [7, 4], [8, 4], [7, 5], [8, 5], [0, 5], [1, 6]],
+    inv: { semi: 1 },
+    hint: '偵測器不在格線上。讓光從空氣斜射進玻璃磚的平面，光會偏向法線。',
+    sol: [{ type: 'semi', c: 1, r: 1, rot: 45 }]
+  },
+  {
+    name: '稜鏡的折射', cols: 9, rows: 7,
+    laser: { c: 0, r: 1, dir: 0 }, targets: [{ c: 7, r: 4 }],
+    walls: [[7, 2], [8, 3], [4, 6], [2, 5], [0, 4]],
+    inv: { prism: 1 },
+    hint: '稜鏡不只能全反射。光從斜邊那一側斜射進去，會折射兩次，往下偏約 26°。',
+    sol: [{ type: 'prism', c: 1, r: 1, rot: 0 }]
+  },
+  {
+    name: '分光與折射', cols: 9, rows: 7,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 1, r: 0 }, { c: 8, r: 5 }],
+    walls: [[8, 4], [0, 1], [2, 1], [5, 0], [6, 6], [4, 6]],
+    inv: { splitter: 1, semi: 1 },
+    hint: '右下的偵測器要靠折射才打得到，玻璃磚的位置要剛好。',
+    sol: [{ type: 'splitter', c: 1, r: 3, rot: 135 }, { type: 'semi', c: 2, r: 3, rot: 45 }]
+  },
+  // ---------- 第 5 組：綜合挑戰 ----------
+  {
+    name: '總複習', cols: 9, rows: 7,
+    laser: { c: 8, r: 6, dir: 2 }, targets: [{ c: 1, r: 0 }, { c: 7, r: 0 }],
+    walls: [[4, 2], [5, 2], [6, 2], [8, 2], [8, 3], [0, 3], [2, 2], [2, 3], [3, 0], [5, 0]],
+    fixed: [{ type: 'mirror', c: 4, r: 6, rot: 45 }], checks: [{ c: 4, r: 6 }],
+    inv: { splitter: 1, mirror: 1, prism: 1, semi: 1 },
+    hint: '光一定要先經過鎖住的鏡子。接著分光，兩道光各自找路。',
+    sol: [{ type: 'splitter', c: 4, r: 5, rot: 45 }, { type: 'semi', c: 1, r: 5, rot: 315 }, { type: 'mirror', c: 4, r: 3, rot: 135 }, { type: 'prism', c: 7, r: 3, rot: 180 }]
+  },
+  {
+    name: '分光加側移', cols: 9, rows: 7,
+    laser: { c: 0, r: 5, dir: 0 }, targets: [{ c: 3, r: 0, dx: 0.15, small: true }, { c: 7, r: 0 }],
+    walls: [[5, 3], [1, 2], [8, 2], [5, 6], [0, 0]],
+    inv: { splitter: 1, square: 1, mirror: 1 },
+    hint: '左上是精密偵測器，比格線偏右一點。分光後往上的那道光，要先穿過斜放的方形玻璃磚。',
+    sol: [{ type: 'splitter', c: 3, r: 5, rot: 135 }, { type: 'square', c: 3, r: 3, rot: 30 }, { type: 'mirror', c: 7, r: 5, rot: 135 }]
+  },
+  {
+    name: '折射再反射', cols: 9, rows: 7,
+    laser: { c: 0, r: 0, dir: 0 }, targets: [{ c: 1, r: 4 }],
+    walls: [[1, 2], [3, 4], [8, 5], [6, 5], [7, 0]],
+    inv: { prism: 1, mirror: 1 },
+    hint: '偵測器的上方和右方都被擋住了。先讓稜鏡把光折射成斜線，再用鏡子把斜線反射回來。',
+    sol: [{ type: 'prism', c: 1, r: 0, rot: 0 }, { type: 'mirror', c: 5, r: 2, rot: 90 }]
+  },
+  {
+    name: '雙線任務', cols: 9, rows: 7,
+    laser: { c: 8, r: 1, dir: 2 }, targets: [{ c: 2, r: 6, dx: 0.21, small: true }, { c: 6, r: 6 }],
+    walls: [[5, 5], [5, 6], [6, 3], [7, 3], [0, 3]],
+    inv: { splitter: 1, prism: 1, rect: 1, semi: 1 },
+    hint: '一道光用稜鏡全反射後再側移，另一道光用半圓玻璃磚折射。',
+    sol: [{ type: 'splitter', c: 5, r: 1, rot: 135 }, { type: 'prism', c: 2, r: 1, rot: 0 }, { type: 'rect', c: 2, r: 4, rot: 120 }, { type: 'semi', c: 5, r: 2, rot: 45 }]
+  },
+  {
+    name: '終極挑戰', cols: 9, rows: 7,
+    laser: { c: 0, r: 0, dir: 0 }, targets: [{ c: 7, r: 2 }, { c: 8, r: 4, dy: 0.15, small: true }, { c: 2, r: 6, dx: 0.3, small: true }],
+    walls: [[7, 1], [4, 2], [5, 2], [0, 5], [6, 6], [8, 0]],
+    inv: { splitter: 2, prism: 1, square: 1, semi: 1 },
+    hint: '三道光、三種偏折：稜鏡折射、玻璃磚側移、半圓玻璃磚折射。光每分一次，強度就減半。',
+    sol: [{ type: 'splitter', c: 2, r: 0, rot: 45 }, { type: 'prism', c: 3, r: 0, rot: 0 }, { type: 'splitter', c: 2, r: 4, rot: 45 }, { type: 'square', c: 4, r: 4, rot: 30 }, { type: 'semi', c: 2, r: 5, rot: 45 }]
+  },
+  // ---------- 第 6 組：限時挑戰 ----------
+  {
+    name: '電池上場', cols: 9, rows: 7, timer: 60,
+    laser: { c: 0, r: 0, dir: 0 }, targets: [{ c: 8, r: 6 }], checks: [{ c: 4, r: 3 }],
+    walls: [[2, 2], [6, 4], [7, 1], [1, 5]],
+    inv: { mirror: 2 },
+    hint: '光要先穿過正中間的必經點，再轉去右下角。',
+    sol: [{ type: 'mirror', c: 4, r: 0, rot: 45 }, { type: 'mirror', c: 4, r: 6, rot: 45 }]
+  },
+  {
+    name: '分頭行動', cols: 9, rows: 7, timer: 60,
+    laser: { c: 8, r: 3, dir: 2 }, targets: [{ c: 0, r: 0 }, { c: 0, r: 6 }], checks: [{ c: 4, r: 5 }],
+    walls: [[6, 1], [2, 5], [6, 6], [2, 1]],
+    inv: { splitter: 1, mirror: 2 },
+    hint: '分光後，往下的那道光要經過必經點，再轉到左下角。',
+    sol: [{ type: 'splitter', c: 4, r: 3, rot: 135 }, { type: 'mirror', c: 4, r: 6, rot: 135 }, { type: 'mirror', c: 0, r: 3, rot: 45 }]
+  },
+  {
+    name: '全反射衝刺', cols: 9, rows: 7, timer: 50,
+    laser: { c: 0, r: 6, dir: 0 }, targets: [{ c: 8, r: 0 }], checks: [{ c: 4, r: 3 }],
+    walls: [[6, 2], [2, 1], [1, 4], [7, 5]],
+    inv: { prism: 1, semi: 1 },
+    hint: '一個稜鏡、一塊半圓玻璃磚，都用全反射轉 90°。光要經過中間的必經點。',
+    sol: [{ type: 'prism', c: 4, r: 6, rot: 180 }, { type: 'semi', c: 4, r: 0, rot: 45 }]
+  },
+  {
+    name: '折射倒數', cols: 9, rows: 7, timer: 50,
+    laser: { c: 0, r: 3, dir: 0 }, targets: [{ c: 1, r: 0, dx: 0.15, small: true }, { c: 8, r: 5 }],
+    walls: [[8, 4], [4, 1], [5, 6], [0, 5]],
+    inv: { splitter: 1, square: 1, semi: 1 },
+    hint: '往上的光要用方形玻璃磚側移，往右的光要用半圓玻璃磚折射。',
+    sol: [{ type: 'splitter', c: 1, r: 3, rot: 135 }, { type: 'square', c: 1, r: 1, rot: 30 }, { type: 'semi', c: 2, r: 3, rot: 45 }]
+  },
+  {
+    name: '最後一格電', cols: 9, rows: 7, timer: 75,
+    laser: { c: 4, r: 6, dir: 3 }, targets: [{ c: 0, r: 0 }, { c: 8, r: 0 }], checks: [{ c: 1, r: 3 }, { c: 7, r: 3 }],
+    walls: [[2, 1], [6, 1], [6, 5], [2, 6], [4, 0]],
+    inv: { splitter: 1, mirror: 3, prism: 1 },
+    hint: '兩個必經點都要經過：一道光走左邊，一道光走右邊。',
+    sol: [{ type: 'splitter', c: 4, r: 4, rot: 45 }, { type: 'mirror', c: 1, r: 4, rot: 45 }, { type: 'mirror', c: 1, r: 0, rot: 45 }, { type: 'prism', c: 4, r: 3, rot: 0 }, { type: 'mirror', c: 8, r: 3, rot: 135 }]
+  },
+];
+// ===== 遊戲介面 =====
+(function () {
+  const $ = s => document.querySelector(s);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const C = { table: css('--table'), hole: css('--hole'), rule: css('--rule'), laser: css('--laser'), lit: css('--lit'),
+    glass: css('--glass'), brass: css('--brass'), ink: css('--ink'), muted: css('--muted') };
+  const TYPES = {
+    mirror: { name: '平面鏡', mod: 180, step: 45, def: 45,
+      desc: '反射定律：入射角等於反射角。兩面都能反射。', tip: '轉成 45° 時，光會轉 90°。' },
+    splitter: { name: '分光鏡', mod: 180, step: 45, def: 45,
+      desc: '一半的光反射、一半的光穿透，每道光的強度變成原本的一半。', tip: '一道光可以分成兩道，去點亮兩個偵測器。' },
+    prism: { name: '直角稜鏡', mod: 360, step: 90, def: 0,
+      desc: '光垂直射入直角邊，在斜邊的入射角是 45°，大於臨界角 41.8°，發生全反射，轉 90°。', tip: '光從斜邊那一側斜射進去時，不會全反射，而是折射兩次而偏折。' },
+    semi: { name: '半圓玻璃磚', mod: 360, step: 15, def: 0,
+      desc: '對準圓心的光進出弧面時不偏折；到了平面，入射角小於 41.8° 折射，大於 41.8° 全反射。', tip: '每次旋轉 15°，可以比較 30° 和 45° 的差別。' },
+    square: { name: '方形玻璃磚', mod: 90, step: 15, def: 0,
+      desc: '光斜射穿過兩個平行面：進去時偏向法線，出來時偏離法線，出射光與入射光平行，但會側移。', tip: '垂直入射時光直接穿過；轉到正好 45° 時，光會打在稜角上散射掉。' },
+    rect: { name: '長方形玻璃磚', mod: 180, step: 15, def: 0,
+      desc: '和方形玻璃磚一樣會讓光側移。從薄的一面斜射穿過時，入射角可以更大，側移也更大。', tip: '側移的大小跟入射角和玻璃厚度有關。' },
+  };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STORE = 'optics-maze-v2';
+  const now = () => performance.now();
+
+  let st = { li: 0, pieces: [], sel: null, armed: null, normals: false, solved: new Set(), won: false, tm: null };
+  let nextId = 1, result = null, cs = 48, dpr = 1, bg = null, hover = null, drag = null;
+  const board = $('#board'), ctx = board.getContext('2d'), ghost = $('#ghost'), gctx = ghost.getContext('2d');
+  const L = () => LEVELS[st.li];
+
+  // ---------- storage ----------
+  function load() {
+    try { const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+      if (Array.isArray(d.solved)) st.solved = new Set(d.solved);
+      if (Number.isInteger(d.li) && d.li >= 0 && d.li < LEVELS.length) st.li = d.li;
+      st.normals = !!d.normals;
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify({ solved: [...st.solved], li: st.li, normals: st.normals })); } catch (e) {}
+  }
+
+  // ---------- level state ----------
+  function loadLevel(i, pieces) {
+    st.li = i; st.sel = null; st.armed = null; st.won = false;
+    st.pieces = (L().fixed || []).map(p => ({ ...p, id: nextId++, fixed: true }));
+    if (pieces) for (const p of pieces) if (!p.fixed) st.pieces.push({ ...p, id: nextId++ });
+    $('#hint').hidden = true; $('#hintBtn').textContent = '看提示';
+    $('#win').hidden = true;
+    st.tm = L().timer ? { state: pieces ? 'solution' : 'ready', dur: L().timer, left: L().timer } : null;
+    showGate(); updateBattery();
+    buildTray(); buildLevels(); resize(); retrace(); save();
+  }
+  // ---------- 限時關卡（電池） ----------
+  const locked = () => !!st.tm && (st.tm.state === 'ready' || st.tm.state === 'failed');
+  function showGate() {
+    const g = $('#gate'), tm = st.tm;
+    if (!tm || tm.state === 'running' || tm.state === 'won' || tm.state === 'solution') { g.hidden = true; g.classList.remove('fail'); return; }
+    g.hidden = false;
+    if (tm.state === 'ready') {
+      g.classList.remove('fail');
+      $('#gateTitle').textContent = '限時關卡';
+      $('#gateMsg').textContent = `雷射由電池供電。按下開始後，電池在 ${tm.dur} 秒內會漸漸沒電，光也會越來越暗。沒電之前要點亮所有偵測器${L().checks ? '，並經過所有必經點' : ''}。`;
+      $('#gateBtn').textContent = '開始';
+    } else {
+      g.classList.add('fail');
+      $('#gateTitle').textContent = '電池沒電了';
+      $('#gateMsg').textContent = '雷射熄滅，光學桌一片漆黑。重新挑戰會清空桌面、換上新電池。';
+      $('#gateBtn').textContent = '重新挑戰';
+    }
+  }
+  function startRun() {
+    st.pieces = (L().fixed || []).map(p => ({ ...p, id: nextId++, fixed: true }));
+    st.sel = null; st.armed = null; st.won = false; $('#win').hidden = true;
+    st.tm = { state: 'running', dur: L().timer, left: L().timer, t0: now() };
+    showGate(); buildTray(); retrace(); updateBattery(); board.focus({ preventScroll: true });
+  }
+  function failRun() {
+    st.tm.state = 'failed'; st.tm.left = 0; st.sel = null; st.armed = null;
+    if (drag) cancelDrag();
+    updateBattery(); buildTray(); updatePanel(); requestDraw();
+    showGate();
+  }
+  function power() {
+    const tm = st.tm; if (!tm) return 1;
+    if (tm.state === 'failed') return 0;
+    if (tm.state !== 'running' && tm.state !== 'won') return 1;
+    return Math.max(0, tm.left / tm.dur);
+  }
+  function updateBattery() {
+    const b = $('#batt'), tm = st.tm;
+    if (!tm) { b.hidden = true; return; }
+    b.hidden = false;
+    const f = tm.state === 'ready' || tm.state === 'solution' ? 1 : power();
+    const pct = Math.round(f * 100);
+    const fill = $('#battFill'); fill.style.width = pct + '%';
+    fill.className = f > .5 ? 'ok' : (f > .2 ? 'warn' : 'low');
+    $('#battPct').textContent = pct + '%';
+    $('#battSec').textContent = tm.state === 'solution' ? '解答模式' : `${Math.ceil(tm.state === 'ready' ? tm.dur : tm.left)} 秒`;
+    b.classList.toggle('low', tm.state === 'running' && f <= .2);
+  }
+  setInterval(() => {
+    const tm = st.tm; if (!tm || tm.state !== 'running') return;
+    tm.left = Math.max(0, tm.dur - (now() - tm.t0) / 1000);
+    updateBattery(); requestDraw();
+    if (tm.left <= 0) failRun();
+  }, 100);
+  const pieceAt = (c, r) => st.pieces.find(p => p.c === c && p.r === r);
+  const remaining = t => (L().inv[t] || 0) - st.pieces.filter(p => !p.fixed && p.type === t).length;
+  function placeable(c, r, ignoreId) {
+    const lv = L();
+    if (c < 0 || r < 0 || c >= lv.cols || r >= lv.rows) return false;
+    if (lv.walls.some(([x, y]) => x === c && y === r)) return false;
+    if (lv.laser.c === c && lv.laser.r === r) return false;
+    if (lv.targets.some(t => t.c === c && t.r === r)) return false;
+    const p = pieceAt(c, r);
+    return !p || p.id === ignoreId;
+  }
+  function retrace() {
+    result = OPT.trace(L(), st.pieces);
+    const n = result.lit.size, tot = L().targets.length, nc = (L().checks || []).length, pc = result.passed.size;
+    const s = $('#status'); s.textContent = `偵測器 ${n}/${tot}` + (nc ? ` · 必經 ${pc}/${nc}` : '');
+    const done = n === tot && pc === nc;
+    s.classList.toggle('on', done);
+    const tm = st.tm, credit = !tm || tm.state === 'running' || tm.state === 'won';
+    if (done && !st.won && tm && tm.state === 'solution') { st.won = true; }
+    else if (done && !st.won && credit) {
+      st.won = true; st.solved.add(st.li); save(); buildLevels();
+      if (tm && tm.state === 'running') { tm.left = Math.max(0, tm.dur - (now() - tm.t0) / 1000); tm.state = 'won'; updateBattery(); }
+      const used = st.pieces.filter(p => !p.fixed).length;
+      const gi = Math.floor(st.li / 5);
+      const gDone = [0, 1, 2, 3, 4].every(k => st.solved.has(gi * 5 + k));
+      const allDone = LEVELS.every((_, i) => st.solved.has(i));
+      $('#winTitle').textContent = allDone ? '全部通關' : (gDone ? `第 ${gi + 1} 組完成` : '通關');
+      $('#winMsg').textContent = `點亮 ${tot} 個偵測器，用了 ${used} 個元件。` + (tm ? `電池還剩 ${Math.round(power() * 100)}%（${(tm.dur - tm.left).toFixed(1)} 秒完成）。` : '') + (gDone && !allDone ? `「${GROUPS[gi].name}」五關都過了。` : '') + (allDone ? `${LEVELS.length} 關全部完成。` : '');
+      $('#winNext').textContent = st.li < LEVELS.length - 1 ? (st.li % 5 === 4 ? `前往第 ${gi + 2} 組 →` : '下一關 →') : '回到 1-1';
+      $('#win').hidden = false;
+    } else if (!done && st.won) { st.won = false; $('#win').hidden = true; }
+    updatePanel(); requestDraw();
+  }
+
+  // ---------- actions ----------
+  function place(type, c, r) {
+    if (locked() || remaining(type) <= 0 || !placeable(c, r)) return;
+    const p = { id: nextId++, type, c, r, rot: TYPES[type].def };
+    st.pieces.push(p); st.sel = p.id; st.armed = null; buildTray(); retrace();
+  }
+  function rotate(id, dir) {
+    const p = st.pieces.find(q => q.id === id); if (!p || p.fixed || locked()) return;
+    const T = TYPES[p.type]; p.rot = ((p.rot + dir * T.step) % T.mod + T.mod) % T.mod; retrace();
+  }
+  function takeBack(id) {
+    st.pieces = st.pieces.filter(p => p.id !== id || p.fixed);
+    if (st.sel === id) st.sel = null; buildTray(); retrace();
+  }
+  function move(id, c, r) { const p = st.pieces.find(q => q.id === id); if (p && placeable(c, r, id)) { p.c = c; p.r = r; } retrace(); }
+
+  // ---------- panel ----------
+  function buildTray() {
+    const tray = $('#tray'); tray.innerHTML = '';
+    for (const t of Object.keys(TYPES)) {
+      const total = L().inv[t] || 0; if (!total) continue;
+      const left = remaining(t);
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'slot' + (st.armed === t ? ' armed' : ''); b.dataset.type = t; b.disabled = left <= 0 || locked();
+      b.innerHTML = `<canvas width="76" height="76"></canvas><span class="nm">${TYPES[t].name}<span class="ct">剩 ${left} / ${total}</span></span>`;
+      b.setAttribute('aria-pressed', st.armed === t ? 'true' : 'false');
+      tray.appendChild(b);
+      const ic = b.querySelector('canvas').getContext('2d');
+      ic.scale(2, 2); drawPiece(ic, { type: t, rot: TYPES[t].def }, 19, 19, 38, {});
+      b.addEventListener('pointerdown', e => trayDown(e, t, b));
+      b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleArm(t); } });
+    }
+  }
+  function toggleArm(t) { if (locked()) return; st.armed = st.armed === t ? null : t; st.sel = null; buildTray(); updatePanel(); requestDraw(); }
+  function buildLevels() {
+    const box = $('#levels'); box.innerHTML = '';
+    GROUPS.forEach((g, gi) => {
+      const row = document.createElement('div'); row.className = 'grp' + (Math.floor(st.li / 5) === gi ? ' cur' : '') + (g.timed ? ' timed' : '') + (gi === 4 ? ' final' : '');
+      const done = [0, 1, 2, 3, 4].filter(k => st.solved.has(gi * 5 + k)).length;
+      row.innerHTML = `<div class="grp-h"><span class="grp-n">${gi + 1}</span><span class="grp-t">${g.name}${g.timed ? ' <span class="tag">電池</span>' : ''}</span><span class="grp-p${done === 5 ? ' full' : ''}">${done}/5</span></div>`;
+      const btns = document.createElement('div'); btns.className = 'grp-b';
+      for (let k = 0; k < 5; k++) {
+        const i = gi * 5 + k, lv = LEVELS[i];
+        const b = document.createElement('button'); b.type = 'button';
+        b.className = 'lv' + (i === st.li ? ' cur' : '') + (st.solved.has(i) ? ' done' : '');
+        b.textContent = `${gi + 1}-${k + 1}`; b.title = lv.name + (st.solved.has(i) ? '（已過關）' : '');
+        b.setAttribute('aria-label', `第 ${gi + 1} 組第 ${k + 1} 關 ${lv.name}${st.solved.has(i) ? '，已過關' : ''}`);
+        b.onclick = () => loadLevel(i); btns.appendChild(b);
+      }
+      row.appendChild(btns); box.appendChild(row);
+    });
+  }
+  function updatePanel() {
+    const lv = L();
+    const gi = Math.floor(st.li / 5); $('#lvlNo').textContent = `第 ${gi + 1} 組 ${GROUPS[gi].name} · ${gi + 1}-${st.li % 5 + 1}`;
+    $('#lvlName').textContent = lv.name;
+    $('#hint').textContent = lv.hint;
+    const sel = st.pieces.find(p => p.id === st.sel);
+    ['#rotL', '#rotR', '#takeBack'].forEach(s => $(s).disabled = !sel);
+    const stp = sel ? TYPES[sel.type].step : 45;
+    $('#rotL').textContent = `↺ 逆轉 ${stp}°`; $('#rotR').textContent = `↻ 順轉 ${stp}°`;
+    $('#readout').innerHTML = sel ? `<b>${TYPES[sel.type].name}</b>　角度 <b>${sel.rot}°</b>　位置 (${sel.c + 1}, ${sel.r + 1})`
+      : (st.armed ? `點桌面上的空格放置 <b>${TYPES[st.armed].name}</b>` : '尚未選取');
+    const t = sel ? sel.type : st.armed;
+    $('#desc').innerHTML = t ? `<b>${TYPES[t].name}</b>　${TYPES[t].desc}<small>${TYPES[t].tip}</small>`
+      : '選一個元件看它的光學原理。<small>鎖住（黃銅色底座）的元件不能移動。' + (lv.checks ? '虛線圈是必經點，光一定要經過它才算過關。' : '') + '</small>';
+    $('#normals').checked = st.normals;
+  }
+
+  // ---------- geometry / drawing ----------
+  function resize() {
+    const lv = L(), box = $('#boardBox');
+    const w = Math.max(240, box.clientWidth);
+    cs = Math.max(26, Math.min(72, Math.floor(w / lv.cols)));
+    dpr = Math.min(3, window.devicePixelRatio || 1);
+    board.width = cs * lv.cols * dpr; board.height = cs * lv.rows * dpr;
+    board.style.width = cs * lv.cols + 'px'; board.style.height = cs * lv.rows + 'px';
+    buildBg(); requestDraw();
+  }
+  function buildBg() {
+    const lv = L(); bg = document.createElement('canvas'); bg.width = board.width; bg.height = board.height;
+    const g = bg.getContext('2d'); g.scale(dpr, dpr);
+    const W = cs * lv.cols, H = cs * lv.rows;
+    g.fillStyle = C.table; g.fillRect(0, 0, W, H);
+    // brushed sheen
+    const sh = g.createLinearGradient(0, 0, W, H); sh.addColorStop(0, 'rgba(255,255,255,0.035)'); sh.addColorStop(.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(255,255,255,0.025)');
+    g.fillStyle = sh; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(255,255,255,0.045)'; g.lineWidth = 1;
+    for (let c = 1; c < lv.cols; c++) { g.beginPath(); g.moveTo(c * cs + .5, 0); g.lineTo(c * cs + .5, H); g.stroke(); }
+    for (let r = 1; r < lv.rows; r++) { g.beginPath(); g.moveTo(0, r * cs + .5); g.lineTo(W, r * cs + .5); g.stroke(); }
+    // tapped holes (M6 pattern)
+    for (let c = 0; c < lv.cols; c++) for (let r = 0; r < lv.rows; r++) {
+      const x = (c + .5) * cs, y = (r + .5) * cs;
+      g.fillStyle = C.hole; g.beginPath(); g.arc(x, y, cs * .085, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.07)'; g.beginPath(); g.arc(x, y + .5, cs * .085, .2, Math.PI - .2); g.stroke();
+    }
+    // beam blocks
+    for (const [c, r] of lv.walls) {
+      const x = c * cs, y = r * cs, p = cs * .06;
+      g.fillStyle = '#0c1016'; g.fillRect(x + p, y + p, cs - 2 * p, cs - 2 * p);
+      g.save(); g.beginPath(); g.rect(x + p, y + p, cs - 2 * p, cs - 2 * p); g.clip();
+      g.strokeStyle = 'rgba(255,255,255,0.06)'; g.lineWidth = 1.2;
+      for (let k = -cs; k < cs * 2; k += cs * .18) { g.beginPath(); g.moveTo(x + k, y); g.lineTo(x + k + cs, y + cs); g.stroke(); }
+      g.restore();
+      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 1; g.strokeRect(x + p + .5, y + p + .5, cs - 2 * p - 1, cs - 2 * p - 1);
+    }
+  }
+
+  function glassStyle(g, s) {
+    g.fillStyle = 'rgba(143,211,255,0.16)'; g.strokeStyle = 'rgba(190,232,255,0.9)'; g.lineWidth = Math.max(1.2, s * .03);
+  }
+  function drawPiece(g, p, x, y, s, o) {
+    const th = p.rot * Math.PI / 180, SZ = OPT.SZ;
+    g.save(); g.translate(x, y); if (o.alpha != null) g.globalAlpha = o.alpha;
+    // mount
+    if (p.fixed) { g.fillStyle = C.brass; g.beginPath(); g.arc(0, 0, s * .2, 0, 7); g.fill();
+      g.fillStyle = '#5a4a2e'; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4; g.beginPath(); g.arc(Math.cos(a) * s * .13, Math.sin(a) * s * .13, s * .025, 0, 7); g.fill(); } }
+    if (p.type === 'mirror' || p.type === 'splitter') {
+      g.rotate(th); const H = SZ.mirrorHalf * s;
+      if (p.type === 'mirror') {
+        const t = Math.max(3, s * .09);
+        const gr = g.createLinearGradient(0, -t / 2, 0, t / 2); gr.addColorStop(0, '#f4f7fb'); gr.addColorStop(.5, '#9aa6b5'); gr.addColorStop(1, '#eef2f7');
+        g.fillStyle = gr; g.fillRect(-H, -t / 2, 2 * H, t);
+        g.strokeStyle = 'rgba(0,0,0,.5)'; g.lineWidth = 1; g.strokeRect(-H, -t / 2, 2 * H, t);
+      } else {
+        const t = Math.max(3, s * .08);
+        g.fillStyle = 'rgba(143,211,255,0.28)'; g.fillRect(-H, -t / 2, 2 * H, t);
+        g.strokeStyle = 'rgba(200,236,255,0.95)'; g.lineWidth = Math.max(1, s * .022);
+        g.beginPath(); g.moveTo(-H, 0); g.lineTo(H, 0); g.stroke();
+        g.setLineDash([s * .06, s * .05]); g.strokeStyle = 'rgba(200,236,255,0.55)'; g.lineWidth = 1;
+        g.strokeRect(-H, -t / 2, 2 * H, t); g.setLineDash([]);
+      }
+      g.fillStyle = '#2b3442'; g.beginPath(); g.arc(0, 0, s * .055, 0, 7); g.fill();
+    } else if (p.type === 'prism') {
+      const A = SZ.prismA * s; g.rotate(th);
+      glassStyle(g, s); g.beginPath(); g.moveTo(A, A); g.lineTo(-A, A); g.lineTo(A, -A); g.closePath(); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(-A * .55, A * .78); g.lineTo(A * .78, -A * .55); g.stroke();
+    } else if (p.type === 'square' || p.type === 'rect') {
+      const w = p.type === 'square' ? SZ.square * s : SZ.rectL * s, h = p.type === 'square' ? SZ.square * s : SZ.rectW * s;
+      g.rotate(th); glassStyle(g, s);
+      g.beginPath(); g.rect(-w / 2, -h / 2, w, h); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(-w / 2 + s * .06, -h / 2 + s * .06); g.lineTo(w / 2 - s * .18, -h / 2 + s * .06); g.stroke();
+    } else if (p.type === 'semi') {
+      const R = SZ.semiR * s;
+      glassStyle(g, s); g.beginPath(); g.arc(0, 0, R, th - Math.PI / 2, th + Math.PI / 2); g.closePath(); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1; g.beginPath(); g.arc(0, 0, R * .72, th - .9, th + .2); g.stroke();
+      g.fillStyle = 'rgba(190,232,255,0.9)'; g.beginPath(); g.arc(0, 0, Math.max(1.2, s * .025), 0, 7); g.fill();
+    }
+    g.restore();
+  }
+  function drawLaser(g) {
+    const lv = L().laser, x = (lv.c + .5) * cs, y = (lv.r + .5) * cs;
+    g.save(); g.translate(x, y); g.rotate(lv.dir * Math.PI / 2);
+    g.fillStyle = '#2a313c'; g.strokeStyle = '#475263'; g.lineWidth = 1;
+    rr(g, -cs * .4, -cs * .22, cs * .7, cs * .44, cs * .06); g.fill(); g.stroke();
+    g.fillStyle = C.laser; g.fillRect(-cs * .3, -cs * .22, cs * .06, cs * .44);
+    g.fillStyle = '#11151b'; g.fillRect(cs * .3, -cs * .1, cs * .05, cs * .2);
+    g.fillStyle = C.laser; g.beginPath(); g.arc(cs * .33, 0, cs * .04, 0, 7); g.fill();
+    g.restore();
+    g.fillStyle = C.muted; g.font = `600 ${Math.max(8, cs * .17)}px ${css('--f-mono')}`; g.textAlign = 'center';
+  }
+  function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  function drawTargets(g, t) {
+    L().targets.forEach((tg, i) => {
+      const q = OPT.targetPos(tg), x = q.x * cs, y = q.y * cs, on = result && result.lit.has(i);
+      const R = q.R * cs;
+      if (tg.small) {
+        // 精密偵測器：底座在格子中心，感光孔偏離中心
+        const cx = (tg.c + .5) * cs, cy = (tg.r + .5) * cs;
+        g.fillStyle = '#2a313c'; g.strokeStyle = '#596579'; g.lineWidth = 1;
+        rr(g, cx - cs * .4, cy - cs * .4, cs * .8, cs * .8, cs * .1); g.fill(); g.stroke();
+        g.setLineDash([2, 3]); g.strokeStyle = 'rgba(226,232,240,0.35)';
+        g.beginPath(); g.moveTo(cx - cs * .4, cy); g.lineTo(cx + cs * .4, cy); g.moveTo(cx, cy - cs * .4); g.lineTo(cx, cy + cs * .4); g.stroke(); g.setLineDash([]);
+        if (on) {
+          const pulse = reduced ? 1 : .85 + .15 * Math.sin(t / 260);
+          const gl = g.createRadialGradient(x, y, 0, x, y, cs * .6); gl.addColorStop(0, `rgba(255,201,77,${.6 * pulse})`); gl.addColorStop(1, 'rgba(255,201,77,0)');
+          g.fillStyle = gl; g.beginPath(); g.arc(x, y, cs * .6, 0, 7); g.fill();
+          g.fillStyle = C.lit; g.beginPath(); g.arc(x, y, Math.max(2.5, R), 0, 7); g.fill();
+        } else {
+          g.fillStyle = '#05080c'; g.beginPath(); g.arc(x, y, Math.max(2.5, R), 0, 7); g.fill();
+          g.strokeStyle = 'rgba(255,201,77,0.8)'; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, Math.max(2.5, R) + 2, 0, 7); g.stroke();
+        }
+        g.fillStyle = C.muted; g.font = `600 ${Math.max(8, cs * .14)}px ${css('--f-mono')}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+        g.fillText('精密', cx, cy + cs * .36);
+        return;
+      }
+      g.fillStyle = '#2a313c'; g.beginPath(); g.arc(x, y, R + cs * .07, 0, 7); g.fill();
+      g.strokeStyle = '#596579'; g.lineWidth = 1; g.stroke();
+      if (on) {
+        const pulse = reduced ? 1 : .85 + .15 * Math.sin(t / 260);
+        const gl = g.createRadialGradient(x, y, 0, x, y, cs * .9); gl.addColorStop(0, `rgba(255,201,77,${.55 * pulse})`); gl.addColorStop(1, 'rgba(255,201,77,0)');
+        g.fillStyle = gl; g.beginPath(); g.arc(x, y, cs * .9, 0, 7); g.fill();
+        g.fillStyle = C.lit; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill();
+        g.fillStyle = '#fff8e0'; g.beginPath(); g.arc(x, y, R * .45, 0, 7); g.fill();
+      } else {
+        g.fillStyle = '#121820'; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill();
+        g.strokeStyle = 'rgba(255,201,77,0.45)'; g.lineWidth = 1.2;
+        g.beginPath(); g.arc(x, y, R * .6, 0, 7); g.stroke();
+        g.beginPath(); g.moveTo(x - R * .9, y); g.lineTo(x + R * .9, y); g.moveTo(x, y - R * .9); g.lineTo(x, y + R * .9); g.stroke();
+      }
+    });
+  }
+  function drawChecks(g) {
+    (L().checks || []).forEach((k, i) => {
+      const x = (k.c + .5) * cs, y = (k.r + .5) * cs, on = result && result.passed.has(i), R = cs * .44;
+      g.save();
+      if (on) {
+        g.strokeStyle = C.lit; g.lineWidth = 2; g.shadowColor = 'rgba(255,201,77,.6)'; g.shadowBlur = 8;
+        g.beginPath(); g.arc(x, y, R, 0, 7); g.stroke();
+      } else {
+        g.strokeStyle = 'rgba(226,232,240,0.7)'; g.lineWidth = 1.5; g.setLineDash([4, 4]);
+        g.beginPath(); g.arc(x, y, R, 0, 7); g.stroke(); g.setLineDash([]);
+      }
+      g.shadowBlur = 0; g.fillStyle = on ? C.lit : 'rgba(226,232,240,0.75)';
+      for (let q = 0; q < 4; q++) { // 四個方向的小三角，指向中心
+        const a = q * Math.PI / 2, px = x + Math.cos(a) * R, py = y + Math.sin(a) * R;
+        g.beginPath(); g.moveTo(px - Math.cos(a) * cs * .09, py - Math.sin(a) * cs * .09);
+        g.lineTo(px - Math.sin(a) * cs * .05, py + Math.cos(a) * cs * .05); g.lineTo(px + Math.sin(a) * cs * .05, py - Math.cos(a) * cs * .05); g.closePath(); g.fill();
+      }
+      g.restore();
+    });
+  }
+  function drawRays(g, t) {
+    if (!result) return;
+    let pw = power();
+    if (pw <= 0) return;
+    if (st.tm && st.tm.state === 'running') {
+      pw = .2 + .8 * pw;
+      if (pw < .36 && Math.random() < .25) pw *= .35 + .4 * Math.random(); // 快沒電時閃爍
+    }
+    g.save(); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round';
+    for (const s of result.segs) {
+      const a = (.35 + .65 * s.a) * pw;
+      g.strokeStyle = `rgba(255,40,60,${.16 * a})`; g.lineWidth = cs * .2;
+      g.beginPath(); g.moveTo(s.x1 * cs, s.y1 * cs); g.lineTo(s.x2 * cs, s.y2 * cs); g.stroke();
+      g.strokeStyle = `rgba(255,70,85,${.9 * a})`; g.lineWidth = Math.max(1.6, cs * .045);
+      g.stroke();
+      g.strokeStyle = `rgba(255,220,225,${.7 * a})`; g.lineWidth = Math.max(.8, cs * .015);
+      g.stroke();
+    }
+    if (!reduced) {
+      // 流動的亮點，顯示光的行進方向
+      g.setLineDash([cs * .12, cs * .5]); g.lineDashOffset = -(t / 16) % (cs * .62);
+      g.strokeStyle = `rgba(255,240,240,${.55 * pw})`; g.lineWidth = Math.max(1.4, cs * .04);
+      for (const s of result.segs) {
+        g.beginPath(); g.moveTo(s.x1 * cs, s.y1 * cs); g.lineTo(s.x2 * cs, s.y2 * cs); g.stroke();
+      }
+    }
+    g.restore();
+  }
+  function drawNormals(g) {
+    if (!st.normals || !result) return;
+    g.save(); g.font = `500 ${Math.max(9, cs * .2)}px ${css('--f-mono')}`; g.textBaseline = 'middle';
+    const placed = [];
+    for (const e of result.events) {
+      const x = e.x * cs, y = e.y * cs, L2 = cs * .42;
+      g.setLineDash([3, 3]); g.strokeStyle = 'rgba(220,232,245,0.8)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x - e.nx * L2, y - e.ny * L2); g.lineTo(x + e.nx * L2, y + e.ny * L2); g.stroke(); g.setLineDash([]);
+      let txt;
+      if (e.type === 'refract') {
+        txt = e.ai > 0.5 ? `${e.ai.toFixed(1)}°→${e.ao.toFixed(1)}°` : '';
+        if (e.shift) txt = `側移 ${e.shift.toFixed(2)} 格`;
+        else if (e.dev && e.ai <= 0.5) txt = `偏折 ${e.dev.toFixed(1)}°`;
+        if (!txt) continue;
+      } else if (e.type === 'tir') txt = `全反射 ${e.ai.toFixed(0)}°`;
+      else if (e.type === 'corner') txt = '邊角散射';
+      else txt = `${e.ai.toFixed(0)}°`;
+      const w = g.measureText(txt).width + 8, h = Math.max(14, cs * .3);
+      // 標籤沿法線或其垂直方向擺放，挑一個不跟其他標籤重疊的位置
+      const BW = board.width / dpr, BH = board.height / dpr;
+      const cand = [[-e.nx, -e.ny], [e.nx, e.ny], [-e.ny, e.nx], [e.ny, -e.nx]];
+      let lx, ly, found = false;
+      for (const k of [1.15, 1.9, 2.7]) {
+        for (const [ux, uy] of cand) {
+          let cx = x + ux * L2 * k, cy = y + uy * L2 * k;
+          cx = Math.min(Math.max(cx, w / 2 + 2), BW - w / 2 - 2); cy = Math.min(Math.max(cy, h / 2 + 2), BH - h / 2 - 2);
+          if (!placed.some(p => Math.abs(p.x - cx) < (p.w + w) / 2 + 2 && Math.abs(p.y - cy) < (p.h + h) / 2 + 1)) { lx = cx; ly = cy; found = true; break; }
+        }
+        if (found) break;
+      }
+      if (!found) { lx = Math.min(Math.max(x - e.nx * L2 * 1.15, w / 2 + 2), BW - w / 2 - 2); ly = Math.min(Math.max(y - e.ny * L2 * 1.15, h / 2 + 2), BH - h / 2 - 2); }
+      placed.push({ x: lx, y: ly, w, h });
+      g.fillStyle = 'rgba(10,14,20,0.85)'; rr(g, lx - w / 2, ly - h / 2, w, h, 4); g.fill();
+      g.fillStyle = e.type === 'tir' ? C.lit : (e.type === 'refract' ? C.glass : (e.type === 'corner' ? C.laser : C.ink));
+      g.textAlign = 'center'; g.fillText(txt, lx, ly + .5);
+    }
+    g.restore();
+  }
+
+  let rafPending = false;
+  function requestDraw() { if (reduced && !rafPending) { rafPending = true; requestAnimationFrame(t => { rafPending = false; draw(t); }); } }
+  function loop(t) { draw(t); requestAnimationFrame(loop); }
+
+  function draw(t) {
+    if (!bg) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, board.width, board.height); ctx.drawImage(bg, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawLaser(ctx);
+    // 放置預覽
+    const lv = L();
+    const showCell = (c, r, ok) => {
+      ctx.strokeStyle = ok ? 'rgba(143,211,255,0.75)' : 'rgba(255,51,71,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+      ctx.strokeRect(c * cs + 3, r * cs + 3, cs - 6, cs - 6); ctx.setLineDash([]);
+    };
+    if (drag && drag.moved && drag.cell) showCell(drag.cell.c, drag.cell.r, placeable(drag.cell.c, drag.cell.r, drag.id));
+    if (!drag && st.armed && hover && placeable(hover.c, hover.r)) {
+      showCell(hover.c, hover.r, true);
+      drawPiece(ctx, { type: st.armed, rot: TYPES[st.armed].def }, (hover.c + .5) * cs, (hover.r + .5) * cs, cs, { alpha: .4 });
+    }
+    drawChecks(ctx);
+    for (const p of st.pieces) {
+      if (drag && drag.moved && drag.id === p.id) continue;
+      drawPiece(ctx, p, (p.c + .5) * cs, (p.r + .5) * cs, cs, {});
+    }
+    drawTargets(ctx, t || 0);
+    drawRays(ctx, t || 0);
+    const sel = st.pieces.find(p => p.id === st.sel);
+    if (sel && !(drag && drag.moved)) {
+      const x = (sel.c + .5) * cs, y = (sel.r + .5) * cs;
+      ctx.strokeStyle = 'rgba(226,232,240,0.9)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.arc(x, y, cs * .48, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+      // 旋轉方向小箭頭
+      const a = -Math.PI / 4, R = cs * .48;
+      ctx.fillStyle = 'rgba(226,232,240,0.9)'; ctx.beginPath();
+      const ax = x + Math.cos(a) * R, ay = y + Math.sin(a) * R;
+      ctx.moveTo(ax + cs * .07, ay); ctx.lineTo(ax - cs * .04, ay - cs * .07); ctx.lineTo(ax - cs * .04, ay + cs * .07); ctx.closePath();
+      ctx.save(); ctx.translate(ax, ay); ctx.restore(); ctx.fill();
+    }
+    drawNormals(ctx);
+  }
+
+  // ---------- pointer ----------
+  function cellFrom(e) {
+    const r = board.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * L().cols, y = (e.clientY - r.top) / r.height * L().rows;
+    return { c: Math.floor(x), r: Math.floor(y), inside: x >= 0 && y >= 0 && x < L().cols && y < L().rows };
+  }
+  function showGhost(e, p) {
+    const s = cs; ghost.width = s * dpr; ghost.height = s * dpr; ghost.style.width = s + 'px'; ghost.style.height = s + 'px';
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0); gctx.clearRect(0, 0, s, s); drawPiece(gctx, p, s / 2, s / 2, s, {});
+    ghost.style.transform = `translate(${e.clientX - s / 2}px, ${e.clientY - s / 2}px)`; ghost.hidden = false;
+  }
+
+  board.addEventListener('pointerdown', e => {
+    if (locked()) return;
+    board.focus({ preventScroll: true });
+    const { c, r, inside } = cellFrom(e); if (!inside) return;
+    const p = pieceAt(c, r);
+    if (p && !p.fixed) {
+      drag = { mode: 'piece', id: p.id, type: p.type, rot: p.rot, x0: e.clientX, y0: e.clientY, moved: false, cell: null };
+      board.setPointerCapture(e.pointerId); return;
+    }
+    if (p && p.fixed) { st.sel = null; st.armed = null; buildTray(); updatePanel();
+      $('#desc').innerHTML = `<b>${TYPES[p.type].name}（鎖定）</b>　這個元件固定在桌上，不能移動或旋轉。<small>${TYPES[p.type].desc}</small>`; requestDraw(); return; }
+    if (st.armed && placeable(c, r)) { place(st.armed, c, r); return; }
+    st.sel = null; updatePanel(); requestDraw();
+  });
+  board.addEventListener('pointermove', e => {
+    if (drag && drag.mode === 'piece') { handleDragMove(e); return; }
+    if (e.pointerType === 'mouse') {
+      const { c, r, inside } = cellFrom(e); hover = inside ? { c, r } : null;
+      const p = inside && pieceAt(c, r);
+      board.style.cursor = p && !p.fixed ? 'grab' : (st.armed && inside && placeable(c, r) ? 'copy' : 'default');
+      requestDraw();
+    }
+  });
+  board.addEventListener('pointerleave', () => { if (!drag) { hover = null; requestDraw(); } });
+  board.addEventListener('pointerup', e => { if (drag && drag.mode === 'piece') endDrag(e); });
+  board.addEventListener('pointercancel', () => cancelDrag());
+
+  function handleDragMove(e) {
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 6) drag.moved = true;
+    if (!drag.moved) return;
+    const { c, r, inside } = cellFrom(e); drag.cell = inside ? { c, r } : null;
+    showGhost(e, { type: drag.type, rot: drag.rot }); requestDraw();
+  }
+  function endDrag(e) {
+    const d = drag; drag = null; ghost.hidden = true;
+    const { c, r, inside } = cellFrom(e);
+    if (d.mode === 'piece') {
+      if (!d.moved) { st.sel = d.id; rotate(d.id, 1); return; }
+      if (inside) { if (placeable(c, r, d.id)) { st.sel = d.id; move(d.id, c, r); } else requestDraw(); }
+      else takeBack(d.id);
+    } else {
+      if (!d.moved) { toggleArm(d.type); return; }
+      if (inside && placeable(c, r)) place(d.type, c, r); else requestDraw();
+    }
+  }
+  function cancelDrag() { drag = null; ghost.hidden = true; requestDraw(); }
+
+  function trayDown(e, t, btn) {
+    if (btn.disabled || locked()) return;
+    drag = { mode: 'new', type: t, rot: TYPES[t].def, x0: e.clientX, y0: e.clientY, moved: false, cell: null, id: null };
+    btn.setPointerCapture(e.pointerId);
+    const mv = ev => handleDragMove(ev);
+    const up = ev => { btn.removeEventListener('pointermove', mv); btn.removeEventListener('pointerup', up); btn.removeEventListener('pointercancel', cn); endDrag(ev); };
+    const cn = () => { btn.removeEventListener('pointermove', mv); btn.removeEventListener('pointerup', up); btn.removeEventListener('pointercancel', cn); cancelDrag(); };
+    btn.addEventListener('pointermove', mv); btn.addEventListener('pointerup', up); btn.addEventListener('pointercancel', cn);
+  }
+
+  // ---------- controls ----------
+  $('#rotL').onclick = () => rotate(st.sel, -1);
+  $('#rotR').onclick = () => rotate(st.sel, 1);
+  $('#takeBack').onclick = () => { if (!locked()) takeBack(st.sel); };
+  $('#gateBtn').onclick = () => startRun();
+  $('#normals').onchange = e => { st.normals = e.target.checked; save(); requestDraw(); };
+  $('#hintBtn').onclick = () => { const h = $('#hint'); h.hidden = !h.hidden; $('#hintBtn').textContent = h.hidden ? '看提示' : '收起提示'; };
+  $('#resetBtn').onclick = () => loadLevel(st.li);
+  let solArm = 0;
+  $('#solBtn').onclick = () => {
+    if (Date.now() - solArm > 2500) { solArm = Date.now(); $('#solBtn').textContent = '再按一次放上解答'; setTimeout(() => $('#solBtn').textContent = '參考解答', 2500); return; }
+    solArm = 0; $('#solBtn').textContent = '參考解答'; loadLevel(st.li, L().sol);
+  };
+  $('#winNext').onclick = () => loadLevel((st.li + 1) % LEVELS.length);
+  $('#winStay').onclick = () => { $('#win').hidden = true; };
+  board.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { st.sel = null; st.armed = null; buildTray(); updatePanel(); requestDraw(); return; }
+    if (!st.sel || locked()) return;
+    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); rotate(st.sel, e.shiftKey ? -1 : 1); }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); takeBack(st.sel); }
+  });
+  window.addEventListener('resize', () => resize());
+  if ('ResizeObserver' in window) new ResizeObserver(() => resize()).observe($('#boardBox'));
+
+  // ---------- boot ----------
+  function start(data) {
+    load();
+    if (data && Number.isInteger(data.li) && LEVELS[data.li]) { st.li = data.li; }
+    loadLevel(st.li, data && Array.isArray(data.pieces) ? data.pieces : null);
+    if (!reduced) requestAnimationFrame(loop);
+  }
+  start({});
+})();
+</script>
+</body>
+</html>
