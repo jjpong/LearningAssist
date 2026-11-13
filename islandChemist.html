@@ -102,7 +102,7 @@ const ITEMS={
  caco3:{n:'石灰石／貝殼',f:'CaCO3',c:'#e2dfd2',d:'主要成分都是碳酸鈣。大理石、蛋殼也是。'},
  sand:{n:'石英砂',f:'SiO2',c:'#e0c98a',d:'沙的主要成分是二氧化矽，熔點高達 1700 °C。'},
  quartz:{n:'石英',f:'SiO2',c:'#eef4f7',d:'無色透明的六角柱狀晶體，硬到能在玻璃上刮出痕跡。成分是二氧化矽，敲碎了就是石英砂。'},
- clay:{n:'黏土',f:'',c:'#a9713f',d:'濕的時候可以塑形，燒過會變硬。只有貝殼島的湖邊有。'},
+ clay:{n:'黏土',f:'',c:'#a9713f',d:'岩石風化成的細泥，濕的時候可以塑形，燒過會變硬。沉積在湖邊：貝殼島最多，其他島的湖邊也有一點。工具越好，一處能挖到的越多。'},
  ceramic:{n:'陶器（磚瓦）',f:'',c:'#c9703c',d:'燒硬的黏土。鍋子、罐子、磚和瓦，都是同一種東西。'},
  grain:{n:'穀物',f:'',c:'#d9b84a',d:'野生的穀粒。可以吃，也可以當種子種回田裡。'},
  flour:{n:'麵粉',f:'',c:'#f3ead6',d:'磨碎的穀物，主要成分是澱粉。'},
@@ -380,12 +380,12 @@ const QUESTS=[
  {ch:'第一章　火　｜　貝殼島',goal:'用紫甘藍煮出指示劑，滴進澄清石灰水',hint:'「草地上紫色的菜，和淡水一起放在火上煮，汁液會變成紫色——它遇到酸和鹼會變色。熟石灰再加水，取澄清的部分就是石灰水。以後每做出一種新的液體，都可以拿它來試試。」',done:F('ind_base')},
  {ch:'第一章　火　｜　貝殼島',goal:'配出澄清石灰水，再通入二氧化碳',hint:'「再配一份澄清石灰水。燒貝殼時罐子收集到的那瓶氣體，別丟。」',done:F('limewater_co2'),
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，就是貝殼。\n\n貝殼變成氣體和粉末，粉末變成溶液，溶液又變回貝殼。物質沒有消失，只是換了組合。\n\n筆記翻到下一頁：「這座島只有這些了。東北方有一座更大的島，那裡的石頭裡藏著別的東西。」'},
- {ch:'第二章　渡海',goal:'在沙灘上造一艘木筏',hint:'「站在沙灘上，建造選木筏。木頭 8、藤蔓纖維 4、食鹽 2。出發前多帶些黏土——那邊沒有。黏土和石頭挖完就沒了，省著用；樹砍了會慢慢長回來。」',done:A('raft')},
+ {ch:'第二章　渡海',goal:'在沙灘上造一艘木筏',hint:'「站在沙灘上，建造選木筏。木頭 8、藤蔓纖維 4、食鹽 2。出發前多帶些黏土——那邊的湖邊只有一點點。黏土和石頭挖完就沒了，省著用；樹砍了會慢慢長回來。」',done:A('raft')},
  {ch:'第二章　渡海',goal:'划向東北方的綠岩島',hint:'「走到木筏旁邊就能上去。上岸以後它會停在原地等你。淺色的海過得去，深色的海別硬闖。」',done:V(1),
   after:'綠岩島。\n\n岸邊的石縫裡塞著一個陶罐，裡面是筆記的第二章：\n\n「這裡的石頭，敲開來有的帶綠色、有的是深褐色。裡面藏著金屬。\n\n但陶窯的溫度不夠。你需要更好的燃料，和一座能把風灌進去的爐子。」'},
  {ch:'第三章　金屬　｜　綠岩島',goal:'蓋一座窯，把木頭放進「窯室」悶成木炭',hint:'「窯室裡放木頭，爐膛裡也要放木頭當燃料。放在哪裡，結果完全不同。」',done:F('charcoal')},
  {ch:'第三章　金屬　｜　綠岩島',goal:'在實驗桌用熟石灰、石英砂和水調出灰泥',hint:'「沙灘上的沙堆就是石英砂。石頭裡敲出來的石英，在實驗桌敲碎也行。」',done:F('mortar')},
- {ch:'第三章　金屬　｜　綠岩島',goal:'蓋一座鼓風爐',hint:'「黏土 4、灰泥 2、木頭 2、藤蔓纖維 2。黏土只有貝殼島的湖邊有。」',done:HAS('furnace'),
+ {ch:'第三章　金屬　｜　綠岩島',goal:'蓋一座鼓風爐',hint:'「黏土 4、灰泥 2、木頭 2、藤蔓纖維 2。黏土要到湖邊找：這座島只有一點，貝殼島比較多。」',done:HAS('furnace'),
   after:'爐子砌好了，旁邊接著一具風箱。\n\n筆記：「七千年前，有人把綠色的石頭和木炭一起丟進這樣的爐子，流出來的東西改變了世界。記得——風不能停。」'},
  {ch:'第三章　金屬　｜　綠岩島',goal:'把帶綠色礦脈的石頭敲開，和木炭一起進鼓風爐，煉出銅',hint:'「爐料放孔雀石和木炭，燃料也用木炭。點火後不停鼓風，要超過 1100 °C。」',done:F('smelt_cu')},
  {ch:'第三章　金屬　｜　綠岩島',goal:'找到深褐色礦脈的石頭，煉出錫',hint:'「做法和煉銅一樣，溫度低一點就行。」',done:F('smelt_sn')},
@@ -445,6 +445,8 @@ const rkey=ids=>ids.slice().sort().join('+');
 function advanceQuests(s){const msgs=[];while(s.quest<QUESTS.length&&QUESTS[s.quest].done(s)){const q=QUESTS[s.quest];if(q.after)msgs.push(q.after);s.quest++;}return msgs;}
 /* 背包：每種東西最多帶這麼多；多的要放進家裡的倉庫 */
 const BAGCAP=30;
+/* 黏土：工具越好挖得越深。徒手 8、青銅工具 10、鐵製工具 12 */
+const nodeYield=(s,type,base)=>type==='clay'?base+(s.abil.iron_tools?4:s.abil.bronze_tools?2:0):base;
 function stash(s,st,id,n){st.store=st.store||{};n=Math.min(n,s.inv[id]||0);if(n<=0)return 0;s.inv[id]-=n;st.store[id]=(st.store[id]||0)+n;return n;}
 function unstash(s,st,id,n){st.store=st.store||{};n=Math.min(n,st.store[id]||0,Math.max(0,BAGCAP-(s.inv[id]||0)));if(n<=0)return 0;st.store[id]-=n;s.inv[id]=(s.inv[id]||0)+n;return n;}
 /* 文明分數：學到的越多、科技越高，分數越高 */
@@ -593,6 +595,11 @@ function genWorld(seed){
  [[0,'wildgrain',6,[GRASS]],[1,'wildgrain',6,[GRASS]],[2,'wildgrain',4,[GRASS]],[0,'guano',3,[SAND]],[2,'guano',4,[SAND,ROCK]],[3,'guano',4,[SAND,ROCK]]].forEach(([ii,type,n,ok])=>
   pickTiles(ii,n,ok).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type,x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});}));
  const animals=[];[[0,'chicken',5,[GRASS]],[1,'cow',4,[GRASS]],[1,'chicken',3,[GRASS]],[3,'cow',2,[GRASS]]].forEach(([ii,type,n,ok])=>pickTiles(ii,n,ok).forEach(p=>animals.push({type,isl:ii,x:p[0]+.5,y:p[1]+.5,hx:p[0]+.5,hy:p[1]+.5})));
+ /* 其他島的湖邊也有少量黏土。放在最後才加，前面每個資源的編號都不變，舊存檔才不會亂掉 */
+ [[1,3],[2,2],[3,3]].forEach(([ii,n])=>{const I=ISLANDS[ii],c=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const t=tiles[y*W+x];if(owner[y*W+x]!==ii||t===SEA||t===LAKE||used.has(x+','+y))continue;
+   if(Math.hypot(x+.5-I.cx-I.lake[0],y+.5-I.cy-I.lake[1])<I.lake[2]+2.3)c.push([x,y]);}
+  for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
+  c.slice(0,n).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'clay',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
  return{W,H,tiles,owner,hc,nodes,animals,start:{x:I0.cx+.5,y:sy+.5},tower};
 }
 </script>
@@ -904,6 +911,7 @@ function fullWarn(id){warn('背包裡的'+ITEMS[id].n+'已經有 '+BAGCAP+' 份�
 function gain(id,n){if(bagFull(id)){fullWarn(id);return false;}n=Math.min(n,BAGCAP-(S.inv[id]||0));SFX.pick();S.inv[id]=(S.inv[id]||0)+n;toast('＋'+n+' '+ITEMS[id].n);after();return true;}
 function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)return false;
  if(bagFull(d.item)){fullWarn(d.item);return true;}
+ {const y=nodeYield(S,nd.type,d.n||1),room=BAGCAP-(S.inv[d.item]||0);if(!d.regrow&&room<y){warn('背包只放得下 '+room+' 份'+ITEMS[d.item].n+'，這裡有 '+y+' 份。先把一些存進家裡的倉庫再來採，才不會浪費。');return true;}}
  if(d.tool&&!S.abil[d.tool]){warn('這塊石頭太硬了，需要「'+BMAP[d.tool].n+'」才敲得開');return false;}
  hitCd=t+.32;P.swing=t+.25;P.ang=Math.atan2(nd.x+.5-P.x,nd.y+.5-P.y);nd.hits++;nd.wob=t+.25;live.push(nd);
  burst(nd.x+.5,hAt(nd.x+.5,nd.y+.5),nd.y+.5,d.rock?'#9a968f':PART[nd.type][PART[nd.type].length-1].c);
@@ -913,13 +921,13 @@ function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)ret
   else{nd.gone=true;S.gone[nd.id]=1;setNode(nd);if(!S.known._finite){S.known._finite=true;toast('這裡採完了。礦物和黏土不會再長出來，樹和植物才會。');}}
   if(d.rock&&!S.known[nd.type]){S.known[nd.type]=true;const it=ITEMS[d.item];storyQ.push(`<b>你把石頭敲開了。</b>\n\n裂開的地方是${d.vein}的——\n\n<b style="font-size:20px">${d.kn||it.n}　${fh(it.f)}</b>\n\n${it.d}\n\n<span class="muted">以後看到露出${d.vein}礦脈的石頭，你就認得了。</span>`);}
   if(nd.type==='wildgrain'&&!S.known._grain){S.known._grain=true;storyQ.push('你摘下一把野生的穀粒。\n\n筆記的夾頁：「別全部吃掉。翻一塊地，把它種回去。\n\n種下去以後長得慢，不一定是你偷懶——土裡缺的東西，眼睛看不出來。先用紫色的汁液測測土是酸是鹼，再想想火堆裡的灰、爛掉的草葉、海鳥留在岩石上的白色東西，各能補上什麼。」');}
-  gain(d.item,d.n||1);return true;}
+  {const y=nodeYield(S,nd.type,d.n||1);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('有了金屬工具，黏土挖得更深、更多。');}}return true;}
  setNode(nd);return false;}
 function nearWater(type){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(P.x)+dx,ty=Math.floor(P.y)+dy;if(tileAt(tx,ty)===type&&Math.hypot(tx+.5-P.x,ty+.5-P.y)<1.8)return true;}return false;}
 function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;if(bagFull(type===SEA?'seawater':'water')){fullWarn(type===SEA?'seawater':'water');return true;}SFX.water();gain(type===SEA?'seawater':'water',1);return true;}
 function nearestNode(){let best=null,bd=1.5;for(const n of nodes){const d=Math.hypot(n.x+.5-P.x,n.y+.5-P.y);if(d<bd&&!n.gone&&n.cd<=now()){bd=d;best=n;}}return best;}
 function nearStation(){let best=null,bd=1.3;for(const s of allStations()){const d=Math.hypot(s.x-P.x,s.y-P.y)-(SRAD[s.type]||.5);if(d<bd){bd=d;best=s;}}return best;}   /* 以「離牆多遠」來算，大房子才碰得到 */
-function interact(){const s=nearStation();if(s)return useStation(s);if(boatNear(2.4))return board();const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
+function interact(){const s=nearStation();if(s)return useStation(s);if(boatNear(2.4)>=0)return board(boatNear(2.4));const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();
  if(modalOpen){if(e.key==='Escape')closeModal();if(k===' '&&panel==='fire'){e.preventDefault();pump();}return;}
@@ -1001,7 +1009,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(t-farmT>500){const el=(t-farmT)/1000;farmT=t;for(const st of S.st)if(st.type==='field'&&st.done&&st.farm){const b=farmStage(st.farm);farmTick(st.farm,Math.min(el,2));st.farm.last=Date.now();if(farmStage(st.farm)!==b)syncStation(st);}}
  if(t-promptT>200){promptT=t;const s=nearStation(),n=nearestNode();let p='WASD／方向鍵移動　E 互動　或直接點地面';
   const an=!s&&nearAnimal();
-  if(!s&&boatNear(2.4))p='⛵ 你的船　按 E 上船';
+  if(!s&&boatNear(2.4)>=0)p='⛵ '+BOATN[S.boats[boatNear(2.4)].r]+'　按 E 上船';
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
   else if(n){const d=NODES[n.type],hp=d.hp||1;p=(d.tool&&!S.abil[d.tool])?'🔒 '+nodeName(n)+'　太硬了，需要'+BMAP[d.tool].n:'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
