@@ -331,6 +331,8 @@ const REACTIONS=[
  {id:'caco3_hcl',name:'石灰石加鹽酸',kind:'chem',at:'table',inputs:[['caco3','hcl']],out:{co2:1},eq:'CaCO3 + 2HCl -> CaCl2 + H2O + CO2',phen:'石頭表面冒出大量氣泡，慢慢變小。',use:'碳酸鹽遇到酸會放出二氧化碳。這也是實驗室製造二氧化碳的方法。',note:''},
  {id:'cuo_acid',name:'氧化銅加稀硫酸',kind:'chem',at:'table',inputs:[['cuo','h2so4']],out:{cuso4:1},eq:'CuO + H2SO4 -> CuSO4 + H2O',phen:'黑色粉末消失，溶液變成漂亮的藍色！',use:'金屬氧化物 + 酸 → 鹽 + 水。藍色來自銅離子。',note:'稍微加熱會反應得更快。'},
  {id:'fe_cuso4',name:'鐵放進硫酸銅溶液',kind:'chem',at:'table',col:'#bfe0c8',inputs:[['iron','cuso4']],out:{copper:1,vitriol:1},eq:'Fe + CuSO4 -> FeSO4 + Cu',phen:'鐵的表面長出一層紅色的銅，藍色溶液漸漸變成淺綠色。',use:'鐵比銅活潑，把銅從溶液裡「趕」了出來。古人叫它「膽水煉銅」。',note:''},
+ {id:'cu_hot_acid',name:'銅加硫酸加熱',kind:'chem',at:'heat',T:200,pot:1,inputs:[['copper','h2so4']],out:{cuso4:1},eq:'Cu + 2H2SO4 -> CuSO4 + SO2 + 2H2O',
+  phen:'一開始什麼事也沒有。水越煮越少，酸越來越濃，銅片表面開始冒出刺鼻的氣體，溶液慢慢變成藍色。',use:'冷的稀硫酸拿銅沒辦法；但加熱把水趕走以後，又濃又熱的硫酸能直接把銅氧化，生成硫酸銅，同時放出二氧化硫。',note:'這和「金屬把酸裡的氫趕出來」是不同的反應——冒出來的不是氫氣，是有毒的二氧化硫。現實中必須在抽風櫃裡做。'},
  {id:'fe_acid',name:'鐵加稀硫酸',kind:'chem',at:'table',col:'#cfe6d0',inputs:[['iron','h2so4']],out:{vitriol:1,h2:1},eq:'Fe + H2SO4 -> FeSO4 + H2',phen:'鐵的表面冒出氣泡，溶液變成淺綠色。',use:'活潑的金屬能把酸裡的氫趕出來，變成氫氣。',note:'1766 年卡文迪西就是這樣發現氫氣的。'},
  {id:'zn_acid',name:'鋅加稀硫酸',kind:'chem',at:'table',inputs:[['zinc','h2so4']],out:{znso4:1,h2:1},eq:'Zn + H2SO4 -> ZnSO4 + H2',phen:'鋅的表面劇烈冒泡，比鐵快得多。',use:'鋅比鐵更活潑，所以反應更快。實驗室常用這個方法製造氫氣。',note:''},
  {id:'zn_cuso4',name:'鋅放進硫酸銅溶液',kind:'chem',at:'table',inputs:[['zinc','cuso4']],out:{copper:1,znso4:1},eq:'Zn + CuSO4 -> ZnSO4 + Cu',phen:'鋅的表面長出紅色的銅，藍色溶液褪成無色。',use:'鋅比銅活潑。金屬活性：鋅 > 鐵 > 銅。',note:''},
@@ -356,7 +358,7 @@ const REACTIONS=[
  {id:'obs_outdoor',name:'在戶外發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'長黴、發臭',phen:'放在露天的東西被太陽曬、被雨淋，引來一堆果蠅，表面長出一層灰綠色的黴，聞起來又酸又臭。',use:'發酵是靠特定的微生物（酵母菌、醋酸菌）慢慢工作。戶外忽冷忽熱，別的黴菌和細菌也會跑進來搶著長。要在溫度穩定、乾淨、能蓋起來的地方做——到屋子裡的實驗桌再試一次。',note:''},
  {id:'obs_bread_out',lose:['risen'],name:'在露天的火上烤麵團',kind:'obs',at:'heat',T:180,outdoor:1,inputs:[['risen']],out:{},eqx:'外面焦了，裡面還是生的',phen:'朝火的那一面燒得焦黑，背面和中心卻還是黏黏的生麵團。',use:'露天的火只烤得到一面，熱一下子就散掉。烤麵包需要四面八方都熱的密閉空間——屋子裡的爐灶。',note:''},
  {id:'obs_flatbread',lose:['dough'],name:'沒發酵就拿去烤',kind:'obs',at:'heat',T:180,inputs:[['dough']],out:{},eqx:'又硬又扁',phen:'烤出來的東西硬得像石頭，裡面一個洞也沒有。',use:'少了發酵產生的二氧化碳，麵團撐不起來。先讓它放一放。',note:''},
- {id:'obs_cu_acid',name:'銅加稀硫酸',kind:'obs',at:'table',inputs:[['copper','h2so4']],out:{},eqx:'沒有變化',phen:'銅片靜靜躺在酸裡，一顆氣泡也沒有。',use:'銅的活性比氫小，沒辦法把酸裡的氫趕出來。鐵和鋅可以。',note:''},
+ {id:'obs_cu_acid',name:'銅加稀硫酸',kind:'obs',at:'table',inputs:[['copper','h2so4']],out:{},eqx:'沒有變化',phen:'銅片靜靜躺在酸裡，一顆氣泡也沒有。',use:'銅的活性比氫小，沒辦法把酸裡的氫趕出來。鐵和鋅可以。',note:'這是在常溫下。如果加熱呢？'},
  {id:'obs_water_elec',name:'直接電解淡水',kind:'obs',at:'cell',inputs:[['water']],out:{},eqx:'幾乎沒有變化',phen:'電極上幾乎看不到氣泡。',use:'純水幾乎不導電。需要先加入能解離出離子的物質（電解質），例如酸或鹼。',note:''},
  /* ===== 科技原理 ===== */
  {id:'tech_fire',name:'燃燒三要素',kind:'tech',inputs:[],out:{},eqx:'可燃物 ＋ 助燃物（氧氣）＋ 達到燃點',phen:'快速摩擦讓木屑升溫到燃點，冒煙、起火。',use:'三個要素缺一不可。柴越多，同時在燒的木頭越多，火就越熱；柴燒完，溫度就掉下來。',note:''},
@@ -419,7 +421,7 @@ const QUESTS=[
  {id:'q_distill',ch:'第三章　鐵與玻璃　｜　火山島',goal:'組一套玻璃蒸餾器',hint:'「玻璃 3、銅 1。銅是用來繞冷凝管的。」',done:A('distill'),
   after:'透明的器皿在火光下閃閃發亮。你第一次能「看見」反應在容器裡發生。\n\n筆記：「一千兩百年前，鍊金術士把一種藍綠色的晶體放進蒸餾器，得到了能溶解金屬的液體。」'},
  {id:'q_h2so4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'用蒸餾器從藍綠色的礦石裡製造硫酸',hint:'「鍊金術士叫它『礬油』。把藍綠色礦脈敲出來的晶體加熱，冒出來的氣體要有水接住。」',rx:['h2so4'],done:F('h2so4')},
- {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出藍色的硫酸銅溶液',hint:'「銅自己不怕稀硫酸。但銅的某種黑色粉末不一樣——你煉銅時見過它。沒有的話得回綠岩島。」',rx:['cuo_acid'],done:F('cuo_acid')},
+ {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出藍色的硫酸銅溶液',hint:'「銅自己不怕稀硫酸——至少冷的、稀的不怕。銅的某種黑色粉末就不一樣了，你煉銅時見過它。」',rx:['cuo_acid','cu_hot_acid'],done:s=>!!(s.found.cuo_acid||s.found.cu_hot_acid)},
  {id:'q_fe_cuso4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'把鐵放進藍色的硫酸銅溶液',hint:'「看看鐵的表面長出什麼。」',rx:['fe_cuso4'],done:F('fe_cuso4'),
   after:'鐵的表面長出了銅。\n\n沒有火，沒有爐子，一種金屬就把另一種金屬從水裡「趕」了出來。\n\n筆記在這裡畫了一個大大的問號：「為什麼是鐵趕走銅，而不是銅趕走鐵？金屬之間，有強弱之分。記住這件事。它是通往電的鑰匙。」'},
  {id:'q_compass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做一個指南針',hint:'「黑色、會吸鐵的磁鐵礦 1 份，鐵 1 份。」',done:A('compass')},
@@ -1423,7 +1425,7 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.1',VDATE='2026-11-14';
+const VERSION='1.2',VDATE='2026-11-14';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
