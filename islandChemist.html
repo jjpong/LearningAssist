@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>荒島化學家</title>
+<meta name="author" content="小p老師">
+<!-- 荒島化學家 © 2026 小p老師｜CC BY-NC-SA 4.0（姓名標示－非商業性－相同方式分享）https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant -->
 <style>
 *{box-sizing:border-box}
 :root{color-scheme:light}
@@ -99,7 +101,7 @@ sub{font-size:.72em}
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
-<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔</button></div>
+<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
 <div id="mask"><div id="modal"></div></div>
 
 <script id="logic">
@@ -1417,7 +1419,20 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
+const VERSION='1.0',VDATE='2026-11-14';
+function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
+ <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
+ <div class="savebox"><h4>設計理念</h4>
+ <b>探索與嘗試。</b>筆記只給線索，不給配方。該加什麼、要燒多熱、放在哪裡燒，要自己動手試。試錯了，材料會浪費，但筆記會記下你看到了什麼——失敗也是一種發現。<br>
+ <b>知識是累積出來的。</b>每做成一件事，它就變成你的配方、你的工具，讓下一件事變得可能。沒有陶鍋就煮不出鹽，沒有灰泥就砌不出爐子，沒有玻璃就做不出酸。<br>
+ <b>感受科技走過的路。</b>從學會用火到發明電池，人類花了大約四十萬年。希望你在這幾座島上，能感受到科學發現與科技是怎樣一點一點累積、慢慢往前走的。</div>
+ <div class="savebox"><h4>版本與授權</h4>
+ 版本　v${VERSION}（${VDATE}）<br>作者　小p老師<br>
+ 授權　© 2026 小p老師｜<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（姓名標示－非商業性－相同方式分享）<br>
+ <span class="muted">歡迎在課堂上使用、分享和改作：請標示作者、不作商業用途，改作後的作品請用同樣的方式分享。</span><br>
+ <span class="muted">3D 繪圖使用 three.js（MIT 授權）。</span></div>`;}
 function render(){
+ if(panel==='about')return openModal(aboutHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
  if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join(''):'';}).join(''):'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
  if(panel==='build'){const card=t=>{
@@ -1461,7 +1476,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
 });
 function namePrompt(next){panel='name';closeHook=()=>{if(!S.name)S.name='小化學家';hud();save();next();};
- openModal(`<div class="story">暴風雨過後，有人在沙灘上睜開了眼睛。\n\n在你開始之前，先告訴我——你叫什麼名字？</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="輸入你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0"><button class="btn" data-act="setname">開始冒險</button></p>`);
+ openModal(`<div class="story">暴風雨過後，有人在沙灘上睜開了眼睛。\n\n在你開始之前，先告訴我——你叫什麼名字？</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="輸入你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0"><button class="btn" data-act="setname">開始冒險</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
  setTimeout(()=>{const i=$('pname');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')$('modal').querySelector('[data-act=setname]').click();});}},30);}
 function intro(){storyQ.unshift('暴風雨過後，你在一片陌生的沙灘上醒來。\n\n船不見了。四周只有海，和遠方幾座看不清楚的島。\n\n沙灘上有一本被海水泡皺的筆記本，封面寫著：\n「'+S.name+'的漂流筆記・第一章」\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」');showStory();}
 hud();audioBtns();requestAnimationFrame(loop);
