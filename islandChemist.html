@@ -24,6 +24,8 @@ sub{font-size:.72em}
 #qlist .ql.dn{color:#8f8a78}
 #qlist .ql.cur{font-weight:700}
 #qlist .ql small{display:block;text-indent:0;color:#7a7462}
+#qlist .ql small.rcp{color:#3d6b3a}
+#quest .tried{margin-top:4px;color:#8a5a22}
 #quest button{font:inherit;font-size:12px;border:0;background:none;color:#8a5a22;text-decoration:underline;cursor:pointer;padding:0}
 #score{margin-top:7px;font-size:13px;font-weight:700;color:#4a3618}#score b{color:#c2571a}
 #abil{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
@@ -342,6 +344,7 @@ const REACTIONS=[
  {id:'obs_coal_iron',name:'用煤直接煉鐵',kind:'obs',at:'heat',inputs:[],out:{},eqx:'鐵 + 硫 → 脆鐵',phen:'鐵是煉出來了，但燒紅後一敲就裂成碎塊。',use:'煤裡含有硫。硫混進鐵裡，鐵在高溫下就會變脆（叫做「熱脆」）。所以幾百年來，人們明知道煤比木炭便宜，卻沒辦法拿它煉鐵——直到有人想到先把煤裡的硫趕走。',note:''},
  {id:'obs_pig_low',lose:['coke'],name:'溫度不夠的高爐料',kind:'obs',at:'heat',T:900,failOf:'pig_iron',inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{},eqx:'沒有鐵水流出來',phen:'爐料燒得通紅，卻沒有熔化。',use:'要讓鐵熔成鐵水得超過 1400 °C。舊的鼓風爐太矮、散熱太快；燃料也要用焦炭，而且風不能停。',note:''},
  {id:'obs_zn_open',lose:['zno','charcoal'],name:'沒有冷凝管的煉鋅',kind:'obs',at:'heat',T:950,failOf:'smelt_zn',failNeeds:1,inputs:[['zno','charcoal']],out:{},eqx:'沒有金屬留下',phen:'爐口冒出一陣藍白色的煙，爐底什麼也沒有。',use:'溫度是夠了，但鋅一生成就變成蒸氣飄走。得想辦法把蒸氣冷卻、接住。',note:''},
+ {id:'obs_waterglass',name:'只加天然鹼的玻璃',kind:'obs',at:'heat',T:1000,not:['caco3','quicklime'],lose:['sand','quartz','natron'],inputs:[['sand','natron'],['quartz','natron']],out:{},eqx:'SiO₂ + Na₂CO₃ → Na₂SiO₃ + CO₂（水玻璃）',phen:'沙子真的熔了，冷卻後是一團透明的東西——可是滴上水，表面就慢慢變黏、化開。',use:'天然鹼讓二氧化矽在比較低的溫度熔化，但生成的矽酸鈉會溶於水，叫做「水玻璃」。要讓玻璃不怕水，還得加進含鈣的東西。',note:'鈉鈣玻璃的三種原料：矽砂（主體）、純鹼（助熔）、石灰石（安定）。窗戶和瓶子到今天還是這個配方。'},
  {id:'obs_dirty',name:'沒洗手就發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'被雜菌污染：長黴、發臭',phen:'過了幾天，表面浮起一層灰綠色的毛，聞起來不是酒香，是餿味。整份都不能用了。',use:'手上有油汙，油汙裡藏著各種細菌和黴菌。它們跟著手進了罐子，長得比酵母菌還快。發酵的訣竅是「只讓想要的微生物長」——動手之前，先用肥皂把手洗乾淨。',note:'1847 年，醫師塞麥爾維斯發現：只要醫生接生前洗手，產婦的死亡率就大幅下降。那時還沒有人知道細菌。'},
  {id:'tech_wash',name:'肥皂為什麼洗得掉油',kind:'tech',inputs:[],out:{},eqx:'肥皂分子：親油端 ＋ 親水端',phen:'搓出泡沫，手上的油汙跟著水流走了。',use:'油和水不互溶，光用水沖不掉油。肥皂分子一端親油、一端親水：親油端插進油汙，親水端留在水裡，把油汙包成小顆粒帶走——連同躲在裡面的細菌。',note:'所以洗手要搓夠久，讓肥皂有時間把油汙包起來。'},
  {id:'obs_outdoor',name:'在戶外發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'長黴、發臭',phen:'放在露天的東西被太陽曬、被雨淋，引來一堆果蠅，表面長出一層灰綠色的黴，聞起來又酸又臭。',use:'發酵是靠特定的微生物（酵母菌、醋酸菌）慢慢工作。戶外忽冷忽熱，別的黴菌和細菌也會跑進來搶著長。要在溫度穩定、乾淨、能蓋起來的地方做——到屋子裡的實驗桌再試一次。',note:''},
@@ -381,69 +384,69 @@ const QUESTS=[
  {id:'q_campfire',ch:'第一章　火與渡海　｜　貝殼島',goal:'打開「建造」，在空地上堆一座營火',hint:'「面向一塊空地，選營火。木頭不夠的話，之後走過去按 E 再補。」',done:HAS('campfire')},
  {id:'q_fire',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到營火旁，添柴、點火',hint:'「柴越多，火越旺、燒得越久。看著溫度計，試試放 2 根和放 6 根差多少。」',done:A('fire'),
   after:'火光亮起來的那一刻，你鬆了一口氣。\n\n筆記上寫著：「人類學會用火，是四十萬年前的事。從火到電，我們走了四十萬年。你不用那麼久——但每一步都省不掉。」'},
- {id:'q_pottery',ch:'第一章　火與渡海　｜　貝殼島',goal:'到湖邊挖黏土，放進營火裡燒成陶',hint:'「火不夠旺，土坯只會變乾，不會變硬。要燒到 600 °C 以上，而且要撐得夠久——柴一次放 8 根以上試試。」',done:F('pottery'),
+ {id:'q_pottery',ch:'第一章　火與渡海　｜　貝殼島',goal:'到湖邊挖黏土，放進營火裡燒成陶',hint:'「火不夠旺，土坯只會變乾，不會變硬。要燒到 600 °C 以上，而且要撐得夠久——柴一次放 8 根以上試試。」',rx:['pottery'],done:F('pottery'),
   after:'土坯變成了磚紅色，敲起來鏗鏘作響。\n\n你有了第一個鍋子。從現在起，你可以在火上煮液體、用罐子裝氣體，也可以蓋陶窯和實驗桌了。'},
- {id:'q_evap',ch:'第一章　火與渡海　｜　貝殼島',goal:'用陶鍋在營火上煮海水，取得食鹽',hint:'「走到海邊按 E 裝海水。煮沸只需要 100 °C，一兩根柴就夠。」',done:F('evap'),
+ {id:'q_evap',ch:'第一章　火與渡海　｜　貝殼島',goal:'用陶鍋在營火上煮海水，取得食鹽',hint:'「走到海邊按 E 裝海水。煮沸只需要 100 °C，一兩根柴就夠。」',rx:['evap'],done:F('evap'),
   after:'水煮乾了，鍋底留下一層白色的結晶。\n\n筆記翻到下一頁：「火、陶、鹽——活下去需要的，這座島都給你了。但它只有這些。\n\n東北方有一座更大的島，那裡的石頭裡藏著別的東西。造一艘木筏吧。」'},
  {id:'q_raft',ch:'第一章　火與渡海　｜　貝殼島',goal:'在沙灘上造一艘木筏',hint:'「站在沙灘上，建造選木筏。木頭 8、藤蔓纖維 4、食鹽 2。出發前多帶些黏土——那邊的湖邊只有一點點。黏土和石頭挖完就沒了，省著用；樹砍了會慢慢長回來。」',done:A('raft')},
  {id:'q_1',ch:'第一章　火與渡海　｜　貝殼島',goal:'划向東北方的綠岩島',hint:'「走到木筏旁邊就能上去。上岸以後它會停在原地等你。淺色的海過得去，深色的海別硬闖。」',done:V(1),
   after:'綠岩島。\n\n岸邊的石縫裡塞著一個陶罐，裡面是筆記的第二章：\n\n「這裡的石頭，敲開來有的帶綠色、有的是深褐色。裡面藏著金屬。\n\n但營火的溫度不夠。你需要一座窯、更好的燃料，和一座能把風灌進去的爐子。\n\n爐子要用灰泥砌。山壁上灰白色的石頭和貝殼是同一種東西——燒過、加水、拌沙，就是灰泥。」'},
  {id:'q_kiln',ch:'第二章　金屬　｜　綠岩島',goal:'用黏土蓋一座陶窯',hint:'「黏土 6 份。營火的熱都散掉了，窯能把熱留住。這座島湖邊的黏土不多，不夠就回貝殼島挖。」',done:HAS('kiln')},
- {id:'q_calcine',ch:'第二章　金屬　｜　綠岩島',goal:'把石灰石（或貝殼）放進窯室，燒到它變質',hint:'「敲開灰白色礦脈的石頭就是石灰石，和貝殼是同一種東西。先在營火上試試也無妨——失敗也是一種發現。窯要燒到 850 °C，爐膛的柴至少 10 根。」',done:F('calcine')},
- {id:'q_slake',ch:'第二章　金屬　｜　綠岩島',goal:'蓋一張實驗桌，把生石灰加進淡水',hint:'「實驗桌要 4 根木頭。加水的時候小心燙。」',done:F('slake')},
- {id:'q_mortar',ch:'第二章　金屬　｜　綠岩島',goal:'在實驗桌用熟石灰、石英砂和水調出灰泥',hint:'「沙灘上的沙堆就是石英砂。石頭裡敲出來的石英，在實驗桌敲碎也行。」',done:F('mortar')},
- {id:'q_charcoal',ch:'第二章　金屬　｜　綠岩島',goal:'把木頭放進陶窯的「窯室」悶成木炭',hint:'「窯室裡放木頭，爐膛裡也要放木頭當燃料。放在哪裡，結果完全不同。」',done:F('charcoal')},
+ {id:'q_calcine',ch:'第二章　金屬　｜　綠岩島',goal:'把石灰石（或貝殼）燒成能做灰泥的「石灰」',hint:'「灰白色礦脈的石頭，和貝殼是同一種東西。火要夠熱，它才會變質——多熱？放在哪裡燒？自己試。失敗也是一種發現。」',rx:['calcine'],done:F('calcine')},
+ {id:'q_slake',ch:'第二章　金屬　｜　綠岩島',goal:'蓋一張實驗桌，把燒出來的生石灰變成熟石灰',hint:'「實驗桌要 4 根木頭。生石灰很『渴』。小心燙。」',rx:['slake'],done:F('slake')},
+ {id:'q_mortar',ch:'第二章　金屬　｜　綠岩島',goal:'調出能把磚石黏在一起的灰泥',hint:'「羅馬人用燒過的石頭、沙和水，把整座城黏起來。沙灘上的沙堆就是石英砂；石頭裡敲出來的石英，敲碎也行。」',rx:['mortar'],done:F('mortar')},
+ {id:'q_charcoal',ch:'第二章　金屬　｜　綠岩島',goal:'做出比木頭更好的燃料：木炭',hint:'「木頭直接燒只會變成灰。如果只給它熱、不給它空氣呢？陶窯有兩個放東西的地方。」',rx:['charcoal'],done:F('charcoal')},
  {id:'q_furnace',ch:'第二章　金屬　｜　綠岩島',goal:'蓋一座鼓風爐',hint:'「黏土 4、灰泥 2、木頭 2、藤蔓纖維 2。黏土要到湖邊找：這座島只有一點，貝殼島比較多。」',done:HAS('furnace'),
   after:'爐子砌好了，旁邊接著一具風箱。\n\n筆記：「七千年前，有人把綠色的石頭和木炭一起丟進這樣的爐子，流出來的東西改變了世界。記得——風不能停。」'},
- {id:'q_smelt_cu',ch:'第二章　金屬　｜　綠岩島',goal:'把帶綠色礦脈的石頭敲開，和木炭一起進鼓風爐，煉出銅',hint:'「爐料放孔雀石和木炭，燃料也用木炭。點火後不停鼓風，要超過 1100 °C。」',done:F('smelt_cu')},
- {id:'q_smelt_sn',ch:'第二章　金屬　｜　綠岩島',goal:'找到深褐色礦脈的石頭，煉出錫',hint:'「做法和煉銅一樣，溫度低一點就行。」',done:F('smelt_sn')},
- {id:'q_bronze',ch:'第二章　金屬　｜　綠岩島',goal:'把銅和錫一起放進爐子熔合',hint:'「純銅太軟，做不了斧頭。」',done:F('bronze')},
+ {id:'q_smelt_cu',ch:'第二章　金屬　｜　綠岩島',goal:'從帶綠色礦脈的石頭裡煉出銅',hint:'「綠色的石頭燒過會變黑——那還不是銅。要有東西把黑色粉末裡的氧搶走。溫度要很高，風不能停。」',rx:['smelt_cu'],done:F('smelt_cu')},
+ {id:'q_smelt_sn',ch:'第二章　金屬　｜　綠岩島',goal:'找到深褐色礦脈的石頭，煉出錫',hint:'「做法和煉銅一樣，溫度低一點就行。」',rx:['smelt_sn'],done:F('smelt_sn')},
+ {id:'q_bronze',ch:'第二章　金屬　｜　綠岩島',goal:'做出比銅更硬的金屬',hint:'「純銅太軟，做不了斧頭。你手上有兩種金屬。」',rx:['bronze'],done:F('bronze')},
  {id:'q_bronze_tools',ch:'第二章　金屬　｜　綠岩島',goal:'在「建造」裡打造青銅工具',hint:'「青銅 3、木頭 2。」',done:A('bronze_tools'),
   after:'青銅斧一揮，樹幹應聲而斷。\n\n筆記：「有了工具，才造得出真正的船，也蓋得出像樣的房子。\n\n有了屋頂，就能做些需要耐心的事——讓看不見的小東西替你把甘蔗汁變成酒、把麵團發起來。不過動手之前，先把手洗乾淨。記得火堆裡清出來的灰嗎？」'},
  {id:'q_sail',ch:'第二章　金屬　｜　綠岩島',goal:'在沙灘上造一艘帆船',hint:'「木頭 10、藤蔓纖維 6、青銅 2。」',done:A('sail'),
   after:'帆一張開，船就自己動了。\n\n筆記：「東南方那座冒煙的島，石頭是紅色和黑色的，湖邊結著白色的鹼。帶上黏土和灰泥，到那邊再蓋一座爐子。」'},
  {id:'q_2',ch:'第二章　金屬　｜　綠岩島',goal:'航向東南方的火山島',hint:'「現在你可以穿過比較深的海了。」',done:V(2),
   after:'火山島。黑色的沙灘，空氣裡有一點硫磺味。\n\n筆記的第三章被壓在一塊紅色的石頭下面：\n\n「鐵。玻璃。然後是酸。有了酸，化學才真正開始。」'},
- {id:'q_iron',ch:'第三章　鐵與玻璃　｜　火山島',goal:'敲開紅褐色或黑色礦脈的石頭，和木炭一起煉出鐵',hint:'「這裡的石頭很硬，要青銅工具才敲得開。煉鐵要 1200 °C 以上：燃料用木炭、放足量，鼓風一刻都不能停。」',done:s=>!!(s.found.smelt_fe||s.found.smelt_fe2)},
+ {id:'q_iron',ch:'第三章　鐵與玻璃　｜　火山島',goal:'從紅褐色或黑色礦脈的石頭裡煉出鐵',hint:'「這裡的石頭很硬，要青銅工具才敲得開。道理和煉銅一樣，但鐵抓氧抓得更緊——要更熱。」',rx:['smelt_fe','smelt_fe2'],done:s=>!!(s.found.smelt_fe||s.found.smelt_fe2)},
  {id:'q_iron_tools',ch:'第三章　鐵與玻璃　｜　火山島',goal:'打造鐵製工具',hint:'「鐵 3、木頭 2。」',done:A('iron_tools')},
- {id:'q_glass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'用石英砂、天然鹼和石灰石熔出玻璃',hint:'「先單獨燒石英砂試試看。湖邊白色的結晶是天然鹼。」',done:F('glass')},
+ {id:'q_glass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出透明的玻璃',hint:'「沙子的主要成分是二氧化矽，但它自己很難熔。古埃及的工匠發現，湖邊某種白色的東西能讓沙子在比較低的溫度熔化；可是那樣做出來的玻璃泡水會壞，還得再加一樣東西。」',rx:['glass'],done:F('glass')},
  {id:'q_distill',ch:'第三章　鐵與玻璃　｜　火山島',goal:'組一套玻璃蒸餾器',hint:'「玻璃 3、銅 1。銅是用來繞冷凝管的。」',done:A('distill'),
   after:'透明的器皿在火光下閃閃發亮。你第一次能「看見」反應在容器裡發生。\n\n筆記：「一千兩百年前，鍊金術士把一種藍綠色的晶體放進蒸餾器，得到了能溶解金屬的液體。」'},
- {id:'q_h2so4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'把綠礬和水放進蒸餾器，製造硫酸',hint:'「藍綠色礦脈的石頭。要燒到快 500 °C，柴放 8 根以上。」',done:F('h2so4')},
- {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'在實驗桌把氧化銅溶進稀硫酸',hint:'「孔雀石燒出來的黑色粉末。沒有的話得回綠岩島。」',done:F('cuo_acid')},
- {id:'q_fe_cuso4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'把鐵放進藍色的硫酸銅溶液',hint:'「看看鐵的表面長出什麼。」',done:F('fe_cuso4'),
+ {id:'q_h2so4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'用蒸餾器從藍綠色的礦石裡製造硫酸',hint:'「鍊金術士叫它『礬油』。把藍綠色礦脈敲出來的晶體加熱，冒出來的氣體要有水接住。」',rx:['h2so4'],done:F('h2so4')},
+ {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出藍色的硫酸銅溶液',hint:'「銅自己不怕稀硫酸。但銅的某種黑色粉末不一樣——你煉銅時見過它。沒有的話得回綠岩島。」',rx:['cuo_acid'],done:F('cuo_acid')},
+ {id:'q_fe_cuso4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'把鐵放進藍色的硫酸銅溶液',hint:'「看看鐵的表面長出什麼。」',rx:['fe_cuso4'],done:F('fe_cuso4'),
   after:'鐵的表面長出了銅。\n\n沒有火，沒有爐子，一種金屬就把另一種金屬從水裡「趕」了出來。\n\n筆記在這裡畫了一個大大的問號：「為什麼是鐵趕走銅，而不是銅趕走鐵？金屬之間，有強弱之分。記住這件事。它是通往電的鑰匙。」'},
  {id:'q_compass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做一個指南針',hint:'「黑色、會吸鐵的磁鐵礦 1 份，鐵 1 份。」',done:A('compass')},
  {id:'q_ship',ch:'第三章　鐵與玻璃　｜　火山島',goal:'在沙灘上造一艘遠洋帆船',hint:'「木頭 12、藤蔓纖維 6、鐵 4。出發前把硫酸、硫酸銅、銅、玻璃、木炭都備足。大船吃水深，回不了淺海——要回貝殼島、綠岩島，得換回帆船。」',done:A('ship'),
   after:'船造好了。\n\n筆記：「正北方，雷聲不斷的那座島。我在那裡蓋了一座塔，卻沒能點亮它。那裡的石頭裡，有最後一種你需要的金屬。」'},
  {id:'q_3',ch:'第三章　鐵與玻璃　｜　火山島',goal:'航向北方的雷鳴島',hint:'「最深的海，現在也攔不住你了。」',done:V(3),
   after:'雷鳴島。山頂矗立著一座沒有亮過的塔。\n\n筆記的最後一章：\n\n「閃電是天上的電。我想把它裝進罐子裡。\n\n我找到了那種金屬——它比鐵還活潑。可是它一煉出來就變成煙跑掉，我用盡方法都留不住。\n\n如果你有蒸餾器，也許你做得到。」'},
- {id:'q_coke',ch:'第四章　煤與電　｜　雷鳴島',goal:'敲開烏黑發亮的石頭，把它放進窯室悶成焦炭',hint:'「這座島的山壁裡夾著一種黑得發亮、點得著的石頭。直接拿它當燃料煉鐵，鐵會脆得一敲就碎——我試過了，你也可以試試。得先像悶木炭那樣把它悶過：窯室要到 1000 °C，爐膛燒木頭是不夠的。」',done:F('coke')},
+ {id:'q_coke',ch:'第四章　煤與電　｜　雷鳴島',goal:'把烏黑發亮的石頭變成能煉鐵的燃料',hint:'「這座島的山壁裡夾著一種黑得發亮、點得著的石頭。直接拿它當燃料煉鐵，鐵會脆得一敲就碎——我試過了，你也可以試試。想想木頭是怎麼變成木炭的。」',rx:['coke'],done:F('coke')},
  {id:'q_blast',ch:'第四章　煤與電　｜　雷鳴島',goal:'蓋一座高爐',hint:'「黏土 6、灰泥 4、鐵 4、藤蔓纖維 2。鐵是用來箍住爐身的。」',done:HAS('blast'),
   after:'爐子比你還高出一倍。\n\n筆記：「1709 年，一個英國鐵匠把悶過的煤倒進這樣的爐子。從那天起，鐵不再是一塊一塊敲出來的，而是像水一樣流出來。」'},
- {id:'q_pig_iron',ch:'第四章　煤與電　｜　雷鳴島',goal:'用鐵礦、焦炭和石灰石，在高爐裡煉出鐵水',hint:'「三樣都放進爐料，燃料也用焦炭，至少 8 份。超過 1400 °C 才會熔，鼓風不能停。」',done:F('pig_iron')},
- {id:'q_smelt_zn',ch:'第四章　煤與電　｜　雷鳴島',goal:'敲開淺藍色礦脈的石頭，煉出鋅',hint:'「要鐵製工具才敲得開。先燒成白色的氧化物，再和木炭一起進鼓風爐。你有蒸餾器，爐子會自動加裝冷凝管。」',done:F('smelt_zn')},
- {id:'q_zn_acid',ch:'第四章　煤與電　｜　雷鳴島',goal:'在實驗桌把鋅放進稀硫酸',hint:'「和鐵比比看，誰冒泡比較快？留下來的溶液也有用。」',done:F('zn_acid')},
+ {id:'q_pig_iron',ch:'第四章　煤與電　｜　雷鳴島',goal:'用高爐煉出像水一樣流動的鐵',hint:'「鐵礦和焦炭之外，還要一種能把礦石裡的砂石雜質帶走的石頭——你很早就認識它了。要比以前煉鐵更熱。」',rx:['pig_iron'],done:F('pig_iron')},
+ {id:'q_smelt_zn',ch:'第四章　煤與電　｜　雷鳴島',goal:'從淺藍色礦脈的石頭裡煉出鋅',hint:'「要鐵製工具才敲得開。前半和煉銅很像。但鋅很怪：還沒熔成一灘，就先變成蒸氣飄走了——得想辦法把蒸氣留下來。」',rx:['smelt_zn'],done:F('smelt_zn')},
+ {id:'q_zn_acid',ch:'第四章　煤與電　｜　雷鳴島',goal:'在實驗桌把鋅放進稀硫酸',hint:'「和鐵比比看，誰冒泡比較快？留下來的溶液也有用。」',rx:['zn_acid'],done:F('zn_acid')},
  {id:'q_elec',ch:'第四章　煤與電　｜　雷鳴島',goal:'組一個鋅銅電池',hint:'「鋅 2、銅 2、硫酸銅溶液 1、硫酸鋅溶液 1、食鹽 1（做鹽橋）。」',done:A('elec'),
   after:'導線兩端碰在一起時，跳出了一點小小的火花。\n\n四十萬年前的那堆營火，走到了這裡。\n\n筆記：「有了電，連水都可以拆開。」'},
- {id:'q_electro_water',ch:'第四章　煤與電　｜　雷鳴島',goal:'用電解槽把水拆成氫氣和氧氣',hint:'「先直接電解淡水試試。不行的話，想想什麼東西能幫水導電。」',done:F('electro_water')},
- {id:'q_steel',ch:'第四章　煤與電　｜　雷鳴島',goal:'把電解出來的氧氣吹進生鐵，煉成鋼',hint:'「生鐵太脆，撐不起燈座。把生鐵和氧氣一起放進高爐，燒到 1500 °C。氧氣不夠就多電解幾次水。」',done:F('steel')},
+ {id:'q_electro_water',ch:'第四章　煤與電　｜　雷鳴島',goal:'用電解槽把水拆成氫氣和氧氣',hint:'「先直接電解淡水試試。不行的話，想想什麼東西能幫水導電。」',rx:['electro_water'],done:F('electro_water')},
+ {id:'q_steel',ch:'第四章　煤與電　｜　雷鳴島',goal:'把又硬又脆的生鐵變成鋼',hint:'「生鐵脆，是因為裡面的碳太多。什麼氣體能把碳燒掉？你剛剛才把它從水裡拆出來。」',rx:['steel'],done:F('steel')},
  {id:'q_beacon',ch:'終章　光',goal:'把材料帶到山頂，點亮電燈信號塔',hint:'「走到塔旁邊按 E。銅 3（導線）、玻璃 1（燈罩）、木炭 1（燈絲）、鋼 2（燈架）。」',done:A('beacon'),
   after:'塔亮了。\n\n筆記的最後一頁只有一行字：\n「我沒能做完。希望撿到這本筆記的人，可以。」\n\n遠方的海面上，有一點燈光閃了三下，回應了你。\n\n——主線完成。四座島上還有沒發現的反應，圖鑑等你補齊。'},
  {id:'q_free',ch:'自由探索',goal:'把知識圖鑑補齊',hint:'「氧氣能讓什麼燒得更旺？酸和鹼碰在一起呢？甘蔗汁放著會怎樣？」',done:s=>false},
  /* ---- 支線：不做也不會卡住主線 ---- */
- {id:'s_ind',side:1,ch:'支線　石灰的循環',goal:'用紫甘藍煮出指示劑，滴進澄清石灰水',hint:'「草地上紫色的菜，和淡水一起放在火上煮，汁液會變成紫色——它遇到酸和鹼會變色。熟石灰再加水，取澄清的部分就是石灰水。以後每做出一種新的液體，都可以拿它來試試。」',done:F('ind_base')},
- {id:'s_co2',side:1,ch:'支線　石灰的循環',goal:'配出澄清石灰水，再通入二氧化碳',hint:'「再配一份澄清石灰水。燒石灰石時罐子收集到的那瓶氣體，別丟。」',done:F('limewater_co2'),
+ {id:'s_ind',side:1,ch:'支線　石灰的循環',goal:'找出一種遇到酸鹼會變色的汁液，拿石灰水試試',hint:'「草地上紫色的菜。把顏色煮出來。熟石灰再加水，取澄清的部分就是石灰水。以後每做出一種新的液體，都可以拿它來試試。」',rx:['ind_base'],done:F('ind_base')},
+ {id:'s_co2',side:1,ch:'支線　石灰的循環',goal:'把石灰水變回石頭',hint:'「石灰石燒的時候，有東西跑掉了。罐子接住的那瓶氣體，別丟。」',rx:['limewater_co2'],done:F('limewater_co2'),
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
- {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'用草木灰水和石灰水做出強鹼',hint:'「草木灰泡水，得到草木灰水。再加進澄清石灰水。」',done:F('causticize')},
+ {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
- {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'用椰子油和鹼煮出肥皂',hint:'「沙灘上的椰子樹。椰子放在火上熬出油，油和鹼性的灰水一起煮也行，只是要煮比較久；用強鹼會快得多。」',done:s=>!!(s.found.soap||s.found.soap_ash)},
+ {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰。弱的鹼要煮比較久。」',rx:['soap','soap_ash'],done:s=>!!(s.found.soap||s.found.soap_ash)},
  {id:'l_wash',line:'life',ch:'生活線　發酵與衛生',goal:'進屋，用肥皂和淡水把手洗乾淨',hint:'「進屋後按「洗手」。肥皂 1、淡水 1，洗一次可以做 3 次發酵。」',done:s=>!!s.known._washed,
   after:'手上的油汙被泡沫帶走了。\n\n筆記：「發酵，是請特定的微生物來工作。手沒洗乾淨，就等於把一群不請自來的雜菌一起放進罐子。」'},
- {id:'l_wine',line:'life',ch:'生活線　發酵與衛生',goal:'在室內實驗桌讓甘蔗汁發酵成酒',hint:'「甘蔗長在火山島的草地上。甘蔗加水榨成汁，放在室內靜置。沒洗手就動手，整罐都會發霉。」',done:F('ferment')},
- {id:'l_vinegar',line:'life',ch:'生活線　發酵與衛生',goal:'讓酒變成醋',hint:'「酒敞著口放在室內，醋酸菌會接手。一樣要先洗手。」',done:F('vinegar')},
- {id:'l_bread',line:'life',ch:'生活線　發酵與衛生',goal:'發麵團，再用爐灶烤成麵包',hint:'「穀物磨成麵粉，加水揉成麵團，在室內發酵，再進爐灶烤。爐灶要磚瓦屋以上才有。」',done:F('bread'),
+ {id:'l_wine',line:'life',ch:'生活線　發酵與衛生',goal:'在室內把甘蔗變成酒',hint:'「甘蔗長在火山島的草地上。先把甜味弄進水裡，然後——等。沒洗手就動手，整罐都會發霉。」',rx:['ferment'],done:F('ferment')},
+ {id:'l_vinegar',line:'life',ch:'生活線　發酵與衛生',goal:'讓酒變成醋',hint:'「酒敞著口放在室內，醋酸菌會接手。一樣要先洗手。」',rx:['vinegar'],done:F('vinegar')},
+ {id:'l_bread',line:'life',ch:'生活線　發酵與衛生',goal:'做出麵包',hint:'「野生的穀粒磨碎、加水、等它脹起來，再烤。爐灶要磚瓦屋以上才有。」',rx:['bread'],done:F('bread'),
   after:'麵包出爐了。\n\n酒、醋、麵包——三種食物，都是看不見的微生物做的。而讓它們成功的關鍵，是一塊肥皂。'}
 ];
 const MAINQ=QUESTS.filter(q=>!q.side&&!q.line),SIDEQ=QUESTS.filter(q=>q.side),LIFEQ=QUESTS.filter(q=>q.line==='life');
@@ -461,7 +464,7 @@ function sideAtoms(s){const t={};s.split(' + ').forEach(term=>{const m=/^(\d*)(.
 function isBalanced(eq){const [l,r]=eq.split(' -> ').map(sideAtoms);const ks=new Set([...Object.keys(l),...Object.keys(r)]);for(const k of ks)if(l[k]!==r[k])return false;return true;}
 
 /* ---------- 遊戲狀態與規則 ---------- */
-function newState(){return{v:3,name:'',qd:{},clean:0,inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
+function newState(){return{v:3,name:'',qd:{},clean:0,rs:{},thin:{},inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
 const rkey=ids=>ids.slice().sort().join('+');
 /* 任務是清單，不是單行道：任何時候達成條件就打勾。s.quest＝主線已完成幾項 */
 function advanceQuests(s){const msgs=[];if(!s.qd)s.qd={};for(const q of QUESTS){if(s.qd[q.id]||!q.done(s))continue;s.qd[q.id]=1;if(q.after)msgs.push(q.after);}
@@ -472,6 +475,23 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
 function loadState(j){const st=Object.assign(newState(),j);if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
+/* 成功以後，提示變成完整配方；成功以前，只列出「試過什麼」 */
+const ATN={heat:'放在火上燒',table:'實驗桌',cell:'電解槽',still:'蒸餾器'};
+function recipeOf(r){const c=[ATN[r.at]||''];if(r.closed)c.push('放進窯室（隔絕空氣）');if(r.T)c.push(r.T+' °C 以上');if(r.indoor)c.push('要在室內');if(r.clean)c.push('先洗手');
+ return r.inputs.slice(0,2).map(a=>a.map(i=>ITEMS[i].n).join('＋')).join('　或　')+(r.inputs.length>2?'　…':'')+'　→　'+(Object.keys(r.out).map(o=>ITEMS[o].n).join('＋')||r.name)+'｜'+c.filter(Boolean).join('、');}
+function questNotes(s,q){if(!q.rx)return{recipe:null,tried:[]};const rs=q.rx.map(id=>RMAP[id]),items=new Set(),ats=new Set();rs.forEach(r=>{ats.add(r.at);r.inputs.forEach(a=>a.forEach(i=>items.add(i)));});
+ const got=rs.filter(r=>s.found[r.id]);
+ const tried=REACTIONS.filter(o=>o.kind==='obs'&&s.found[o.id]&&(o.failOf?q.rx.includes(o.failOf):(o.inputs.length&&ats.has(o.at)&&o.inputs.every(a=>a.every(i=>items.has(i))))));
+ return{recipe:got.length?got.map(recipeOf):null,tried};}
+/* 保底：主線必需的礦物快不夠時，隔一陣子讓一處挖空的地方重新露出礦脈（量減半）。平常資源夠，就完全不會發生 */
+const RESERVE={clay:12,caco3:6,sand:6,quartz:4,malachite:4,cassiterite:4,hematite:6,magnetite:2,vitriol:4,natron:4,smithsonite:4,coal:6},RESPAWN=240;
+function safetyNet(s,nodes,dt,isl){const back=[];s.rs=s.rs||{};s.thin=s.thin||{};
+ for(const item in RESERVE){let have=s.inv[item]||0;for(const st of s.st)if(st.store)have+=st.store[item]||0;const goneL=[];
+  nodes.forEach((n,i)=>{const d=NODES[n.type];if(d.item!==item||d.regrow)return;if(s.gone[i])goneL.push(i);else have+=Math.ceil(nodeYield(s,n.type,d.n||1)*(s.thin[i]?.5:1));});
+  if(have>=RESERVE[item]||!goneL.length){delete s.rs[item];continue;}
+  s.rs[item]=(s.rs[item]==null?RESPAWN:s.rs[item])-dt;
+  if(s.rs[item]<=0){delete s.rs[item];let pick=goneL.find(i=>nodes[i].isl===isl);if(pick==null)pick=goneL[0];delete s.gone[pick];s.thin[pick]=1;back.push(pick);}}
+ return back;}
 /* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
  s.inv.soap--;s.inv.water--;s.clean=3;s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
@@ -562,7 +582,7 @@ function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],co
  const kinds=Object.keys(f.charge).filter(k=>f.charge[k]>0);
  for(const r of REACTIONS){if(r.kind!=='obs'||r.at!==at)continue;
   if(!r.inputs.some(a=>a.every(i=>f.charge[i]>=1))||f.peak<r.T)continue;if(r.outdoor&&f.indoor)continue;
-  if(r.alone&&kinds.length>1)continue;
+  if(r.alone&&kinds.length>1)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;
   if(r.failOf){const R=RMAP[r.failOf];if(R.closed&&!d.closed)continue;if(r.failNeeds){if(s.abil[R.needs]||f.peak<R.T)continue;}else if(f.peak>=R.T)continue;covered[r.failOf]=1;}
   const isNew=!s.found[r.id];s.found[r.id]=true;obs.push({r,isNew});
   if(r.lose)for(const id of r.lose)if(f.charge[id]>0){lost[id]=(lost[id]||0)+f.charge[id];f.charge[id]=0;}}   /* 失敗的代價：這些材料回不來了 */
@@ -942,10 +962,11 @@ let target=null,pending=null,targetT=0,waterCd=0,hitCd=0;const keys={};
 function nodeName(n){const d=NODES[n.type];if(d.rock)return S.known[n.type]?'岩石（'+d.vein+'礦脈：'+(d.kn||ITEMS[d.item].n)+'）':'岩石（露出一點'+d.vein+'）';return d.label||ITEMS[d.item].n;}
 const bagFull=id=>(S.inv[id]||0)>=BAGCAP;
 function fullWarn(id){warn('背包裡的'+ITEMS[id].n+'已經有 '+BAGCAP+' 份，帶不動了。先存一些到家裡的倉庫。');}
+const yieldOf=(nd,d)=>Math.ceil(nodeYield(S,nd.type,d.n||1)*(S.thin&&S.thin[nd.id]?.5:1));let netAcc=0;
 function gain(id,n){if(bagFull(id)){fullWarn(id);return false;}n=Math.min(n,BAGCAP-(S.inv[id]||0));SFX.pick();S.inv[id]=(S.inv[id]||0)+n;toast('＋'+n+' '+ITEMS[id].n);after();return true;}
 function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)return false;
  if(bagFull(d.item)){fullWarn(d.item);return true;}
- {const y=nodeYield(S,nd.type,d.n||1),room=BAGCAP-(S.inv[d.item]||0);if(!d.regrow&&room<y){warn('背包只放得下 '+room+' 份'+ITEMS[d.item].n+'，這裡有 '+y+' 份。先把一些存進家裡的倉庫再來採，才不會浪費。');return true;}}
+ {const y=yieldOf(nd,d),room=BAGCAP-(S.inv[d.item]||0);if(!d.regrow&&room<y){warn('背包只放得下 '+room+' 份'+ITEMS[d.item].n+'，這裡有 '+y+' 份。先把一些存進家裡的倉庫再來採，才不會浪費。');return true;}}
  if(d.tool&&!S.abil[d.tool]){warn('這塊石頭太硬了，需要「'+BMAP[d.tool].n+'」才敲得開');return false;}
  hitCd=t+.32;P.swing=t+.25;P.ang=Math.atan2(nd.x+.5-P.x,nd.y+.5-P.y);nd.hits++;nd.wob=t+.25;live.push(nd);
  burst(nd.x+.5,hAt(nd.x+.5,nd.y+.5),nd.y+.5,d.rock?'#9a968f':PART[nd.type][PART[nd.type].length-1].c);
@@ -955,7 +976,7 @@ function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)ret
   else{nd.gone=true;S.gone[nd.id]=1;setNode(nd);if(!S.known._finite){S.known._finite=true;toast('這裡採完了。礦物和黏土不會再長出來，樹和植物才會。');}}
   if(d.rock&&!S.known[nd.type]){S.known[nd.type]=true;const it=ITEMS[d.item];storyQ.push(`<b>你把石頭敲開了。</b>\n\n裂開的地方是${d.vein}的——\n\n<b style="font-size:20px">${d.kn||it.n}　${fh(it.f)}</b>\n\n${it.d}\n\n<span class="muted">以後看到露出${d.vein}礦脈的石頭，你就認得了。</span>`);}
   if(nd.type==='wildgrain'&&!S.known._grain){S.known._grain=true;storyQ.push('你摘下一把野生的穀粒。\n\n筆記的夾頁：「別全部吃掉。翻一塊地，把它種回去。\n\n種下去以後長得慢，不一定是你偷懶——土裡缺的東西，眼睛看不出來。先用紫色的汁液測測土是酸是鹼，再想想火堆裡的灰、爛掉的草葉、海鳥留在岩石上的白色東西，各能補上什麼。」');}
-  {const y=nodeYield(S,nd.type,d.n||1);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('有了金屬工具，黏土挖得更深、更多。');}}return true;}
+  {const y=yieldOf(nd,d);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('有了金屬工具，黏土挖得更深、更多。');}}return true;}
  setNode(nd);return false;}
 function nearWater(type){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(P.x)+dx,ty=Math.floor(P.y)+dy;if(tileAt(tx,ty)===type&&Math.hypot(tx+.5-P.x,ty+.5-P.y)<1.8)return true;}return false;}
 function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;if(bagFull(type===SEA?'seawater':'water')){fullWarn(type===SEA?'seawater':'water');return true;}SFX.water();gain(type===SEA?'seawater':'water',1);return true;}
@@ -1018,6 +1039,7 @@ function update(dt){
 /* --- 每一格畫面 --- */
 const marker=new G.Mesh(new G.RingGeometry(.25,.36,16),new G.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.85,side:G.DoubleSide}));marker.rotation.x=-Math.PI/2;scene.add(marker);
 function frame(t,dt){
+ netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});}
  const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,y=onSea?Math.sin(t/400)*.05:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:0;
  parkedG.forEach(g=>g.visible=false);S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;const g=parkedG[bt.r-1];g.visible=true;g.position.set(bt.x,Math.sin(t/400+1+i)*.05,bt.y);g.rotation.y=bt.a||0;});
@@ -1055,10 +1077,10 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
 
 /* --- 任務欄 --- */
 function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
- const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;$('qhint').textContent='筆記：'+q.hint;
+ const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;{const N=questNotes(S,q);$('qhint').innerHTML='筆記：'+q.hint+N.tried.map(o=>`<div class="tried">✎ 試過「${o.name}」：${o.phen}</div>`).join('');}
  const lifeOn=S.abil.bronze_tools||LIFEQ.some(x=>qd[x.id]),sideOn=!!qd.q_1;
  $('qmore').innerHTML=(V_.behind.length?'⚑ 前面還有 '+V_.behind.length+' 項沒做（翻筆記看清單）<br>':'')+(lifeOn&&V_.life?'🍞 生活線：'+V_.life.goal:'');
- {const row=(x,cur)=>`<div class="ql ${qd[x.id]?'dn':''} ${cur?'cur':''}">${qd[x.id]?'✔':'○'} ${x.goal}${cur&&x!==q?'<small>'+x.hint+'</small>':''}</div>`,sec=(t,qs,cur)=>`<div class="ql-h">${t}　${qs.filter(x=>qd[x.id]).length}/${qs.length}</div>`+qs.map(x=>row(x,x===cur)).join('');
+ {const row=(x,cur)=>{const N=questNotes(S,x);return `<div class="ql ${qd[x.id]?'dn':''} ${cur?'cur':''}">${qd[x.id]?'✔':'○'} ${x.goal}${N.recipe?N.recipe.map(t=>'<small class="rcp">配方：'+t+'</small>').join(''):(cur&&x!==q?'<small>'+x.hint+'</small>':'')+(x!==q?N.tried.map(o=>'<small>✎ 試過「'+o.name+'」</small>').join(''):'')}</div>`;},sec=(t,qs,cur)=>`<div class="ql-h">${t}　${qs.filter(x=>qd[x.id]).length}/${qs.length}</div>`+qs.map(x=>row(x,x===cur)).join('');
   const chs=[];MAINQ.forEach(x=>{if(x.id!=='q_free'&&!chs.includes(x.ch))chs.push(x.ch);});const upto=Math.max(chs.indexOf(q.ch),free?chs.length-1:0);
   let h=chs.slice(0,upto+1).map(c=>sec(c,MAINQ.filter(x=>x.ch===c),q)).join('');
   if(lifeOn)h+=sec(LIFEQ[0].ch,LIFEQ,V_.life);
