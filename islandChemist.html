@@ -209,7 +209,7 @@ const BUILD=[
  {id:'bronze_tools',n:'青銅工具',icon:'⛏️',era:'約西元前 3300 年',craft:1,req:['f:bronze'],need:{bronze:3,wood:2},grant:'bronze_tools',d:'敲得開更硬的石頭，也能把木頭加工成船板。',entry:'tech_bronze'},
  {id:'sail',n:'帆船',icon:'⛵',era:'約西元前 3000 年',dock:1,req:['bronze_tools','raft'],need:{wood:10,fiber:6,bronze:2},grant:'sail',d:'要蓋在沙灘上。可以航行到更遠的海域，淺海也進得去。',entry:'tech_sail'},
  {id:'iron_tools',n:'鐵製工具',icon:'🔨',era:'約西元前 1200 年',craft:1,req:[],need:{iron:3,wood:2},grant:'iron_tools',d:'敲得開最堅硬的岩石。',entry:'tech_iron'},
- {id:'still',n:'玻璃蒸餾器',icon:'⚗️',era:'約西元 800 年',req:['f:glass'],need:{glass:3,copper:1},grant:'distill',d:'燒瓶、冷凝管和接收瓶。有了它，鼓風爐也能加裝冷凝管。',entry:'tech_distill'},
+ {id:'still',n:'玻璃蒸餾器',icon:'⚗️',era:'約西元 800 年',inLab:1,req:['f:glass'],need:{glass:3,copper:1},grant:'distill',d:'燒瓶、冷凝管和接收瓶：把東西混合以後加熱，再把跑出來的蒸氣接住。要裝在屋裡的實驗室（木屋以上）。有了它，鼓風爐也能加裝冷凝管。',entry:'tech_distill'},
  {id:'compass',n:'指南針',icon:'🧭',era:'約西元 1100 年',craft:1,req:[],need:{magnetite:1,iron:1},grant:'compass',d:'看不到陸地也不會迷航。',entry:'tech_compass'},
  {id:'ship',n:'遠洋帆船',icon:'🚢',era:'約西元 1500 年',dock:1,req:['compass','sail'],need:{wood:12,fiber:6,iron:4},grant:'ship',d:'要蓋在海夠深的沙灘上（火山島）。可以穿越風浪最大的外海；但船身大、吃水深，進淺海會擱淺，所以原來的帆船要留著用。',entry:'tech_ship'},
  {id:'blast',n:'高爐',icon:'🏭',era:'西元 1709 年',req:['f:coke'],need:{clay:6,mortar:4,iron:4,fiber:2},d:'更高的爐身、用鐵箍加固。燒焦炭並持續鼓風，可以超過 1500 °C，讓鐵熔成鐵水流出來。',entry:'tech_blast'},
@@ -419,7 +419,7 @@ const QUESTS=[
  {id:'q_iron',ch:'第三章　鐵與玻璃　｜　火山島',goal:'從紅褐色或黑色礦脈的石頭裡煉出鐵',hint:'「這裡的石頭很硬，要青銅工具才敲得開。道理和煉銅一樣，但鐵抓氧抓得更緊——要更熱。」',rx:['smelt_fe','smelt_fe2'],done:s=>!!(s.found.smelt_fe||s.found.smelt_fe2)},
  {id:'q_iron_tools',ch:'第三章　鐵與玻璃　｜　火山島',goal:'打造鐵製工具',hint:'「鐵 3、木頭 2。」',done:A('iron_tools')},
  {id:'q_glass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出透明的玻璃',hint:'「沙子的主要成分是二氧化矽，但它自己很難熔。古埃及的工匠發現，湖邊某種白色的東西能讓沙子在比較低的溫度熔化；可是那樣做出來的玻璃泡水會壞，還得再加一樣東西。」',rx:['glass'],done:F('glass')},
- {id:'q_distill',ch:'第三章　鐵與玻璃　｜　火山島',goal:'組一套玻璃蒸餾器',hint:'「玻璃 3、銅 1。銅是用來繞冷凝管的。」',done:A('distill'),
+ {id:'q_distill',ch:'第三章　鐵與玻璃　｜　火山島',goal:'在屋裡的實驗室裝一套玻璃蒸餾器',hint:'「玻璃 3、銅 1，銅是用來繞冷凝管的。精細的玻璃器材要放在屋子裡——先蓋一間木屋，進屋安裝。」',done:A('distill'),
   after:'透明的器皿在火光下閃閃發亮。你第一次能「看見」反應在容器裡發生。\n\n筆記：「一千兩百年前，鍊金術士把一種藍綠色的晶體放進蒸餾器，得到了能溶解金屬的液體。」'},
  {id:'q_h2so4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'用蒸餾器從藍綠色的礦石裡製造硫酸',hint:'「鍊金術士叫它『礬油』。把藍綠色礦脈敲出來的晶體加熱，冒出來的氣體要有水接住。」',rx:['h2so4'],done:F('h2so4')},
  {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出藍色的硫酸銅溶液',hint:'「銅自己不怕稀硫酸——至少冷的、稀的不怕。銅的某種黑色粉末就不一樣了，你煉銅時見過它。」',rx:['cuo_acid','cu_hot_acid'],done:s=>!!(s.found.cuo_acid||s.found.cu_hot_acid)},
@@ -501,6 +501,10 @@ function safetyNet(s,nodes,dt,isl){const back=[];s.rs=s.rs||{};s.thin=s.thin||{}
   s.rs[item]=(s.rs[item]==null?RESPAWN:s.rs[item])-dt;
   if(s.rs[item]<=0){delete s.rs[item];let pick=goneL.find(i=>nodes[i].isl===isl);if(pick==null)pick=goneL[0];delete s.gone[pick];s.thin[pick]=1;back.push(pick);}}
  return back;}
+/* 蒸餾器裝在屋裡的實驗室 */
+function installStill(s,st){const d=BMAP.still,h=BMAP[st.type];if(st.still)return{err:'這間屋子已經有蒸餾器了。'};if(!h||!h.house||!(h.lab>=1))return{err:'草棚裡沒有實驗桌，放不了蒸餾器。要木屋以上。'};
+ if(!s.found.glass)return{err:'還不會做玻璃。'};const miss=Object.keys(d.need).filter(k=>(s.inv[k]||0)<d.need[k]);if(miss.length)return{err:'材料不夠：還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(d.need[k]-(s.inv[k]||0))).join('、')};
+ for(const k in d.need)s.inv[k]-=d.need[k];st.still=true;s.abil.distill=true;const isNew=!s.found[d.entry];s.found[d.entry]=true;return{ok:true,isNew};}
 /* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
  s.inv.soap--;s.inv.water--;s.clean=3;s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
@@ -1128,7 +1132,7 @@ function entryHTML(r){return `<div><span class="tag k-${r.kind}">${KIND[r.kind]}
  <div><span class="lbl">現象：</span>${r.phen}</div><div><span class="lbl">知識：</span>${r.use}</div>${r.note?`<div class="muted">🔍 真實世界：${r.note}</div>`:''}`;}
 
 /* ===== 設施：蓋、搬材料、使用 ===== */
-function place(type){const d=BMAP[type],x=P.x+Math.sin(P.ang)*1.7,y=P.y+Math.cos(P.ang)*1.7,t=tileAt(Math.floor(x),Math.floor(y));
+function place(type){if(BMAP[type].inLab)return toast('蒸餾器要裝在屋裡的實驗室：走進木屋以上的房子，按「安裝蒸餾器」。');const d=BMAP[type],x=P.x+Math.sin(P.ang)*1.7,y=P.y+Math.cos(P.ang)*1.7,t=tileAt(Math.floor(x),Math.floor(y));
  if(t===SEA||t===LAKE)return toast('這裡是水。面向一塊空地再蓋。');
  if(d.dock&&t!==SAND)return toast('船要在沙灘上造——走到沙灘、面向沙地再試一次。');
  if(d.dock&&!nearestSea(x,y,BOATT[type]))return toast(type==='ship'?'這附近的海太淺，遠洋帆船一下水就會擱淺。要到海比較深的島（火山島）的沙灘上造。':'這附近沒有這艘船能走的海。');
@@ -1289,12 +1293,13 @@ function openHome(st){homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=s
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
  <div class="row">${btn('store','📦 倉庫',true)}${btn('table','🧫 室內實驗桌',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
- <div class="row">${btn('still','⚗️ 蒸餾器',lab>=3&&S.abil.distill,lab>=3?'還沒掌握蒸餾':'樓房才有')}${btn('cell','⚡ 電解槽',lab>=3&&S.abil.elec,lab>=3?'還沒掌握電':'樓房才有')}</div>
+ <div class="row">${st.still||(lab>=3&&S.abil.distill)?btn('still','⚗️ 蒸餾器（混合後加熱）',true):btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${btn('cell','⚡ 電解槽',lab>=3&&S.abil.elec,lab>=3?'還沒掌握電':'樓房才有')}</div>
  <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}<span class="muted">　手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗'}　｜　洗一次要肥皂 1、淡水 1</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
 function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHome(st);};};
  if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 3 次發酵。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
+ if(act==='mkstill'){const r=installStill(S,st);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg='⚗️ 蒸餾器裝好了。實驗桌用來混合；要混合後加熱、把蒸氣接住，就用蒸餾器。'+(r.isNew?'<br>📖 圖鑑新增：'+RMAP.tech_distill.name:'');}after();hud();save();return openHome(st);}
  if(act==='store'){panel='store';return renderStore();}
  if(act==='table'){back();return openMix('table',true);}
  if(act==='cell'){back();return openMix('cell',true);}
@@ -1321,7 +1326,7 @@ function drawHome(){const cvs=$('hc');if(!cvs||!homeSt)return;const c=cvs.getCon
  c.fillStyle='#2b2a26';c.font='bold 12px sans-serif';c.textAlign='center';c.fillText('倉庫',192,180);
  if(lab>=1){c.fillStyle='#9a6b3c';c.fillRect(340,128,100,8);c.fillRect(346,136,7,30);c.fillRect(427,136,7,30);drawItem(c,'ceramic',362,116,10);c.fillStyle='#bfe6e6';c.fillRect(384,106,10,22);c.fillRect(400,112,14,16);c.fillStyle='#8e44ad';c.fillRect(401,118,12,10);c.fillStyle='#2b2a26';c.fillText('實驗桌',390,180);}
  if(lab>=2){c.fillStyle='#8a4a3a';c.fillRect(456,84,84,82);c.fillStyle='#1a120e';c.beginPath();c.moveTo(472,166);c.lineTo(472,128);c.quadraticCurveTo(498,104,524,128);c.lineTo(524,166);c.fill();c.fillStyle='#ff9a2e';c.beginPath();c.moveTo(484,166);c.quadraticCurveTo(498,134,512,166);c.fill();c.fillStyle='#6b3a2e';c.fillRect(488,40,20,46);c.fillStyle='#2b2a26';c.fillText('爐灶',498,180);}
- if(lab>=3){c.strokeStyle='#8fb8c8';c.lineWidth=2;c.beginPath();c.arc(352,62,12,0,7);c.stroke();c.beginPath();c.moveTo(352,50);c.lineTo(352,36);c.lineTo(392,36);c.lineTo(404,70);c.stroke();c.strokeRect(398,70,14,18);c.fillStyle='#c8a04a';c.fillRect(420,74,22,12);c.fillStyle='#2b2a26';c.font='10px sans-serif';c.fillText('蒸餾器・電池',392,100);}}
+ if(lab>=3||homeSt.still){c.strokeStyle='#8fb8c8';c.lineWidth=2;c.beginPath();c.arc(352,62,12,0,7);c.stroke();c.beginPath();c.moveTo(352,50);c.lineTo(352,36);c.lineTo(392,36);c.lineTo(404,70);c.stroke();c.strokeRect(398,70,14,18);c.fillStyle='#c8a04a';c.fillRect(420,74,22,12);c.fillStyle='#2b2a26';c.font='10px sans-serif';c.fillText('蒸餾器・電池',392,100);}}
 /* ===== 農田 ===== */
 let farmT=0,farmSt=null,farmMsg='',farmEnt=null;
 function openFarm(st){farmSt=st;farmMsg='';farmEnt=null;panel='farm';openModal(head('🌾 農田')+`<canvas class="scene" id="fc" width="560" height="250"></canvas><div id="fctl"></div>`);farmCtl();}
@@ -1427,7 +1432,7 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.3',VDATE='2026-11-14';
+const VERSION='1.4',VDATE='2026-11-14';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
@@ -1444,12 +1449,12 @@ function render(){
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
  if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join(''):'';}).join(''):'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
  if(panel==='build'){const card=t=>{
-   const done=t.craft||t.dock?S.abil[t.grant]:t.fixed?S.abil.beacon:false,n=S.st.filter(x=>x.type===t.id&&x.done).length,miss=t.req.filter(q=>!hasReq(S,q));
+   const done=t.craft||t.dock||t.inLab?S.abil[t.grant]:t.fixed?S.abil.beacon:false,n=S.st.filter(x=>x.type===t.id&&x.done).length,miss=t.req.filter(q=>!hasReq(S,q));
    const lst=o=>Object.keys(o).map(k=>{const v=S.inv[k]||0;return `<span class="${v>=o[k]?'ok':'no'}">${ITEMS[k].n} ${v}/${o[k]}</span>`;}).join('');
    const needs=`<div class="need">材料：${lst(t.need)}</div>`+(t.floor?`<div class="need muted">每加蓋一層：${Object.keys(t.floor).map(k=>ITEMS[k].n+' '+t.floor[k]).join('、')}</div>`:'');
    const ok=Object.keys(t.need).every(k=>(S.inv[k]||0)>=t.need[k]);
    return `<div class="tech ${done?'done':miss.length?'locked':''}"><div class="ic">${miss.length&&!done?'🔒':t.icon}</div><div class="body"><h4>${t.n}${done?'　✔':n?'　（已有 '+n+' 座）':''}<span class="era">${t.era}</span></h4><div>${t.d}</div>
-   ${done?'':miss.length?`<div class="muted">需要先${miss.map(reqName).join('、')}</div>`:t.fixed?needs+'<div class="muted">走到雷鳴島山頂的塔旁邊按 E。</div>':needs+(t.craft?`<button class="btn" style="margin-top:6px" data-craft="${t.id}" ${ok?'':'disabled'}>製作</button>`:`<button class="btn" style="margin-top:6px" data-place="${t.id}">蓋在我面前</button>`)}</div></div>`;};
+   ${done?'':miss.length?`<div class="muted">需要先${miss.map(reqName).join('、')}</div>`:t.fixed?needs+'<div class="muted">走到雷鳴島山頂的塔旁邊按 E。</div>':needs+(t.inLab?'<div class="muted">👉 要到屋裡的實驗室安裝：走進木屋以上的房子，按「安裝蒸餾器」。</div>':t.craft?`<button class="btn" style="margin-top:6px" data-craft="${t.id}" ${ok?'':'disabled'}>製作</button>`:`<button class="btn" style="margin-top:6px" data-place="${t.id}">蓋在我面前</button>`)}</div></div>`;};
   openModal(head('🔨 建造')+`<p class="muted" style="margin-top:0">東西會蓋在你面前的地上。材料不夠也可以先選位置，之後走過去按 E 把材料補上。從學會用火到發明電池，人類花了大約四十萬年。</p><h3>設施與工具</h3>`+BUILD.filter(t=>!t.house).map(card).join('')+`<h3>房子</h3><p class="muted" style="margin-top:0">蓋好以後走到門口按 E 可以進屋。屋裡有倉庫；房子越高級，室內的實驗設備越齊全，也能往上加蓋更多層。</p>`+BUILD.filter(t=>t.house).map(card).join(''));}
  if(panel==='codex'){const n=REACTIONS.filter(r=>S.found[r.id]).length;const sec=(k,title)=>{const L=REACTIONS.filter(r=>k.includes(r.kind));return `<h3>${title}（${L.filter(r=>S.found[r.id]).length}/${L.length}）</h3>`+L.map(r=>S.found[r.id]?`<div class="entry">${entryHTML(r)}</div>`:`<div class="entry lock">？？？　尚未發現</div>`).join('');};
   openModal(head(`📖 知識圖鑑　${n}/${REACTIONS.length}`)+(()=>{const sc=score(S),p=sc.parts;return `<div class="savebox"><h4>🏛 ${sc.era}　文明分數 ${sc.total}</h4>主線任務 ${p.main}（每個 20）　物質的變化 ${p.chem}（每條 10）　科技原理 ${p.tech}（每條 15）　失敗也是發現 ${p.obs}（每條 5）　認得的礦物 ${p.rocks}（每種 5）　房子 ${p.house}（越高級、越多層越高）</div>`;})()+sec(['tech'],'科技原理')+sec(['chem','phys'],'物質的變化')+sec(['obs'],'失敗也是發現'));}
