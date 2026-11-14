@@ -228,6 +228,8 @@ const reqName=q=>q.startsWith('f:')?'學會「'+RMAP[q.slice(2)].name+'」':q===
 /* ---------- 火的模型：溫度由「同時在燒的燃料量 × 燃料種類 × 空氣」決定 ---------- */
 /* 燃料：hv＝每份的火力；cap＝這種燃料的火焰最高能到幾度；life＝一份能燒多久。依冶金史的順序：木頭 < 木炭 ≈ 煤 < 焦炭 */
 const FUEL={wood:{hv:1,cap:1000,life:40},charcoal:{hv:1.35,cap:1350,life:60},coal:{hv:1.3,cap:1300,life:75},coke:{hv:1.5,cap:2000,life:85}},FUELS=Object.keys(FUEL);
+/* 蒸餾器的燒瓶也能當鍋子用：凡是「用鍋子煮」的反應（pot），在實驗室的蒸餾器上一樣做得成 */
+const atOK=(d,r)=>r.at===(d.at||'heat')||(d.at==='still'&&r.at==='heat'&&!!r.pot);
 const STN={
  campfire:{G:105,maxBurn:6,cap:700,scale:800,fuel:'柴堆',charge:'火上'},
  kiln:{G:125,maxBurn:8,cap:1050,scale:1200,closed:true,fuel:'爐膛（燃料）',charge:'窯室（材料）'},
@@ -576,7 +578,7 @@ function mixReact(s,ids,at,indoor){
 /* 火 */
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
 function eligible(f){const d=STN[f.type],at=d.at||'heat',L=[];
- for(const r of REACTIONS){if(r.at!==at||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L;}
+ for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L;}
 function fireTick(f,dt,s){const d=STN[f.type],ev=[];
  if(f.lit){let tot=0;for(const k of FUELS)tot+=f.fuel[k];
   if(tot<1){f.lit=false;for(const k of FUELS)f.fuel[k]=0;ev.push({t:'out'});}
@@ -597,7 +599,7 @@ function fireTick(f,dt,s){const d=STN[f.type],ev=[];
 /* 火熄了以後：哪些東西沒反應？為什麼？ */
 function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],covered={},lost={},why=[];
  const kinds=Object.keys(f.charge).filter(k=>f.charge[k]>0);
- for(const r of REACTIONS){if(r.kind!=='obs'||r.at!==at)continue;
+ for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;
   if(!r.inputs.some(a=>a.every(i=>f.charge[i]>=1))||f.peak<r.T)continue;if(r.outdoor&&f.indoor)continue;
   if(r.alone&&kinds.length>1)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;
   if(r.failOf){const R=RMAP[r.failOf];if(R.closed&&!d.closed)continue;if(r.failNeeds){if(s.abil[R.needs]||f.peak<R.T)continue;}else if(f.peak>=R.T)continue;covered[r.failOf]=1;}
@@ -1296,7 +1298,7 @@ function openHome(st){homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=s
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
  <div class="row">${btn('store','📦 倉庫',true)}${btn('table','🧫 室內實驗桌',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
- <div class="row">${st.still||(lab>=3&&S.abil.distill)?btn('still','⚗️ 蒸餾器（混合後加熱）',true):btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${st.cell||(lab>=3&&S.abil.elec)?btn('cell','⚡ 電池與電解槽',true):btn('mkcell','⚡ 安裝電池與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
+ <div class="row">${st.still||(lab>=3&&S.abil.distill)?btn('still','⚗️ 蒸餾器（混合後加熱、煮東西）',true):btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${st.cell||(lab>=3&&S.abil.elec)?btn('cell','⚡ 電池與電解槽',true):btn('mkcell','⚡ 安裝電池與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
  <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}<span class="muted">　手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗'}　｜　洗一次要肥皂 1、淡水 1</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
@@ -1435,7 +1437,7 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.5',VDATE='2026-11-14';
+const VERSION='1.6',VDATE='2026-11-14';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
