@@ -250,8 +250,12 @@ const REACTIONS=[
   phen:'熱水漸漸被染成紫色。',use:'花青素溶進熱水裡，就成了天然的酸鹼指示劑。',note:''},
  {id:'oil',name:'熬煮椰肉取油',kind:'phys',at:'heat',T:100,pot:1,inputs:[['coconut']],out:{oil:1},eqx:'椰肉 → 椰子油（分離）',
   phen:'鍋面浮出一層清澈的油。',use:'油的密度比水小，而且不溶於水，所以會浮在上面。',note:''},
- {id:'soap',name:'皂化反應',kind:'chem',at:'heat',T:90,pot:1,inputs:[['oil','koh']],out:{soap:1},eqx:'油脂 + 氫氧化鉀 → 脂肪酸鉀（肥皂）+ 甘油',
+ {id:'soap',name:'皂化反應',kind:'chem',at:'heat',T:90,pot:1,inputs:[['oil','koh'],['oil','naoh']],out:{soap:1},eqx:'油脂 + 強鹼（氫氧化鉀／氫氧化鈉）→ 脂肪酸鹽（肥皂）+ 甘油',
   phen:'邊煮邊攪，油和鹼液漸漸變成濃稠的糊狀，冷卻後凝成軟軟的皂。',use:'油脂和強鹼反應生成肥皂。肥皂分子一端親油、一端親水，能把油汙帶進水裡沖走。',note:'用氫氧化鉀做的是軟皂；用氫氧化鈉做的才是硬的肥皂塊。'},
+ {id:'soap_soda',name:'用天然鹼做肥皂',kind:'chem',at:'heat',T:90,pot:1,inputs:[['oil','natron','water']],out:{soap:1},eqx:'油脂 + 碳酸鈉溶液 → 脂肪酸鈉（肥皂）+ 甘油',
+  phen:'天然鹼溶進水裡，和油一起煮了很久，慢慢變稠；冷卻後凝成一塊比較硬的皂。',use:'碳酸鈉溶於水也是鹼性，同樣能讓油脂皂化。古埃及和兩河流域的人，就是用鹽湖邊的天然鹼和油脂做肥皂。',note:'鈉皂比鉀皂硬，可以切成塊；鹼性比氫氧化鈉弱，所以要煮比較久。'},
+ {id:'obs_casoap',name:'用石灰水煮油',kind:'obs',at:'heat',T:90,pot:1,lose:['oil','limewater','slaked'],inputs:[['oil','limewater'],['oil','slaked','water']],out:{},eqx:'油脂 + 氫氧化鈣 → 脂肪酸鈣（鈣皂，不溶於水）+ 甘油',
+  phen:'鍋裡結出一團灰白色、滑膩的渣，沉在水底。拿來搓手，一點泡沫也沒有。',use:'氫氧化鈣也是鹼，油脂一樣被皂化了；但生成的脂肪酸鈣不溶於水，起不了泡，洗不掉油。能當肥皂的，是溶於水的鈉皂和鉀皂。',note:'用含鈣、鎂多的「硬水」洗澡，肥皂會變成一層洗不掉的皂垢，就是同一種東西。'},
  {id:'soap_ash',name:'用草木灰水做肥皂',kind:'chem',at:'heat',T:90,pot:1,inputs:[['oil','lye']],out:{soap:1},eqx:'油脂 + 草木灰水（碳酸鉀溶液）→ 脂肪酸鉀（肥皂）+ 甘油',
   phen:'油和灰水一起煮很久，慢慢乳化變稠，冷卻後成了黃白色的軟皂。',use:'草木灰水含碳酸鉀，水解後是鹼性，也能讓油脂皂化。古人就是這樣用灰和動植物油做肥皂的。',note:'碳酸鉀的鹼性比氫氧化鉀弱，所以要煮得比較久；做出來的也是軟皂。'},
  {id:'malachite',name:'加熱孔雀石',kind:'chem',at:'heat',T:350,inputs:[['malachite']],out:{cuo:2,co2:1},eq:'Cu2(OH)2CO3 -> 2CuO + H2O + CO2',
@@ -443,7 +447,7 @@ const QUESTS=[
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
- {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰。弱的鹼要煮比較久。」',rx:['soap','soap_ash'],done:s=>!!(s.found.soap||s.found.soap_ash)},
+ {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰，或是鹽湖邊白色的結晶。不是每一種鹼都做得出能起泡的肥皂。」',rx:['soap','soap_ash','soap_soda'],done:s=>!!(s.found.soap||s.found.soap_ash||s.found.soap_soda)},
  {id:'l_wash',line:'life',ch:'生活線　發酵與衛生',goal:'進屋，用肥皂和淡水把手洗乾淨',hint:'「進屋後按「洗手」。肥皂 1、淡水 1，洗一次可以做 3 次發酵。」',done:s=>!!s.known._washed,
   after:'手上的油汙被泡沫帶走了。\n\n筆記：「發酵，是請特定的微生物來工作。手沒洗乾淨，就等於把一群不請自來的雜菌一起放進罐子。」'},
  {id:'l_wine',line:'life',ch:'生活線　發酵與衛生',goal:'在室內把甘蔗變成酒',hint:'「甘蔗長在火山島的草地上。先把甜味弄進水裡，然後——等。沒洗手就動手，整罐都會發霉。」',rx:['ferment'],done:F('ferment')},
@@ -1419,7 +1423,7 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.0',VDATE='2026-11-14';
+const VERSION='1.1',VDATE='2026-11-14';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
