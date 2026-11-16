@@ -1601,8 +1601,25 @@ let dirH=null,dirT=0,dirList=null,dirWait=false,saveMsg='';
 const pad=n=>String(n).padStart(2,'0');
 function saveName(){const d=new Date();return `荒島化學家2_${(S.name||'').replace(/[\\/:*?"<>|]/g,'')}_主線${S.quest}項_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;}
 function saveText(){S.px=P.x;S.py=P.y;return JSON.stringify({game:'island-chemist-2',v:3,savedAt:new Date().toISOString(),quest:S.quest,state:S});}
+/* 讀第一版的存檔：知識、能力、背包、任務全部保留；世界比較大，所以把房子、爐子、船依「在哪座島的哪個方位」搬到新地圖上 */
+const V1_ISL=[[30,80,15],[70,42,19],[120,78,20],[122,24,16]];let v1Note='';
+function convertV1(o){const st=JSON.parse(JSON.stringify(o)),fl=Math.floor;
+ const isl=(x,y)=>{let b=0,bd=1e9;V1_ISL.forEach((I,i)=>{const d=Math.hypot(x-I[0],y-I[1])/I[2];if(d<bd){bd=d;b=i;}});return b;};
+ const map=(x,y)=>{const i=isl(x,y),O=V1_ISL[i],N=ISLANDS[i],k=N.r/O[2];return{x:N.cx+(x-O[0])*k,y:N.cy+(y-O[1])*k,i};};
+ const taken=[],bad=t=>t===SEA||t===LAKE||t===RIVER||t===CRATER||t===ACID;
+ const snap=(x,y,rad,i)=>{let best=null,bd=1e9;for(let dy=-14;dy<=14;dy++)for(let dx=-14;dx<=14;dx++){const tx=fl(x)+dx,ty=fl(y)+dy;if(tx<1||ty<1||tx>=W-1||ty>=H-1||bad(tiles[ty*W+tx])||owner[ty*W+tx]!==i)continue;
+    const cx=tx+.5,cy=ty+.5;if(rad&&(nodes.some(n=>Math.hypot(n.x+.5-cx,n.y+.5-cy)<rad+.7)||taken.some(q=>Math.hypot(q.x-cx,q.y-cy)<rad+q.r+.5)||Math.hypot(WRECK.x-cx,WRECK.y-cy)<rad+2||Math.hypot(TOWER.x-cx,TOWER.y-cy)<rad+2))continue;
+    const d=Math.hypot(cx-x,cy-y);if(d<bd){bd=d;best={x:cx,y:cy};}}return best;};
+ let moved=0,lost=0;st.st=(st.st||[]).filter(b=>{if(!BMAP[b.type])return false;const m=map(b.x,b.y),r=SRAD[b.type]||.8,p=snap(m.x,m.y,r,m.i);if(!p){lost++;return false;}b.x=p.x;b.y=p.y;taken.push({x:p.x,y:p.y,r});moved++;return true;});
+ {const m=map(st.px==null?V1_ISL[0][0]:st.px,st.py==null?V1_ISL[0][1]+10:st.py),p=snap(m.x,m.y,0,m.i)||{x:world.start.x,y:world.start.y};st.px=p.x;st.py=p.y;}
+ const bs=(st.boats||[]).slice();st.boats=[];st.aboard=false;st.cur=-1;const keep=S;S=st;   /* shoreSea 會避開已經停好的船 */
+ bs.forEach(b=>{let i=isl(b.x,b.y);if(!boatOK(b.r,ISLANDS[i].rank))i=b.r===3?2:b.r===2?1:0;const p=shoreSea(i,b.r);if(p)st.boats.push({x:p.x,y:p.y,a:0,r:b.r});});S=keep;
+ st.gone={};st.thin={};st.rs={};delete st.badges;delete st.boat;
+ v1Note='已經把第一版的進度搬過來了：圖鑑、能力、背包、任務都保留。'+(moved?'房子和設施搬到了新地圖上對應的位置（'+moved+' 座）'+(lost?'，有 '+lost+' 座找不到地方放，沒有搬過來':'')+'。':'')+'船停在各島的岸邊。新世界的礦物和樹都是全新的。';return st;}
 function loadText(txt){let j;try{j=JSON.parse(txt);}catch(e){return '這不是存檔：內容讀不懂。';}
- if(!j||j.game!=='island-chemist-2'||!j.state||typeof j.state!=='object')return j&&j.game==='island-chemist'?'這是第一版（v1）的存檔。第二版的世界變大了，兩邊的進度不能互通。':'這不是《荒島化學家》第二版的存檔。';if(j.v!==3||j.state.v!==3)return '這份存檔的版本和現在的遊戲不合，沒辦法讀取。';
+ if(j&&j.game==='island-chemist'&&j.state&&typeof j.state==='object'){if(j.v!==3||j.state.v!==3||typeof j.state.inv!=='object'||!Array.isArray(j.state.st))return '這份第一版的存檔太舊或不完整，沒辦法搬過來。';
+  let c;try{c=convertV1(j.state);}catch(e){return '搬移第一版的存檔時出了問題：'+e.message;}applyState(c);save();SFX.done();setTimeout(()=>{storyQ.push(v1Note);if(!modalOpen)showStory();},500);return '';}
+ if(!j||j.game!=='island-chemist-2'||!j.state||typeof j.state!=='object')return '這不是《荒島化學家》的存檔。';if(j.v!==3||j.state.v!==3)return '這份存檔的版本和現在的遊戲不合，沒辦法讀取。';
  if(typeof j.state.inv!=='object'||!Array.isArray(j.state.st))return '存檔內容不完整。';
  applyState(j.state);SFX.done();return '';}
 function saveSay(m){saveMsg=m;if(panel==='save')render();else toast(m);}
@@ -1627,6 +1644,7 @@ function saveHTML(){const q=questView(S).cur;
  <div class="savebox"><h4>名字</h4><div class="row" style="align-items:center"><input id="rename" maxlength="10" value="${(S.name||'').replace(/"/g,'')}" style="font-size:16px;padding:6px 10px;width:14em;max-width:60%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"><button class="btn alt" data-act="sv-name">✏️ 改名字</button></div></div>
  <div class="savebox"><h4>存檔檔</h4>把進度存成一個檔案，可以放進你自己建的資料夾、隨身碟或雲端硬碟，換一台電腦也能接著玩。
   <div class="row"><button class="btn" data-act="sv-dl">⬇️ 下載存檔檔</button><span class="btn alt filebtn">📂 讀取存檔檔<input type="file" id="svfile" accept=".json,application/json"></span></div>
+  <div class="muted">第一版（v1）下載的存檔檔也可以直接讀進來，會自動搬到新的世界接著玩。</div>
   <div class="muted">讀取會蓋掉目前的進度。</div></div>`+
  (canDir?`<div class="savebox"><h4>存檔資料夾</h4>${dirH?`已連上資料夾「${SAVE_DIR}」。每 30 秒自動寫入「自動存檔.json」，也可以隨時另存一份。
    <div class="row"><button class="btn" data-act="sv-dirsave">💾 現在存一份</button><button class="btn alt" data-act="sv-dir">換一個資料夾</button></div>
@@ -1635,7 +1653,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.1',VDATE='2026-11-16';
+const VERSION='2.2',VDATE='2026-11-16';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1686,6 +1704,7 @@ $('mask').addEventListener('click',e=>{
  if(e.target===$('mask'))return closeModal();
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.act==='tab-tree'||d.act==='tab-badge'){treeTab=d.act==='tab-tree'?'tree':'badge';return render();}
+ if(d.act==='from-v1'){let err='';try{err=loadText(JSON.stringify({game:'island-chemist',v:3,state:JSON.parse(localStorage.getItem('island_chemist_v3'))}));}catch(e){err='讀不到第一版的進度。';}if(err)return toast(err);closeHook=null;closeModal();hud();return;}
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
  if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
  if(d.act==='close')return closeModal();
@@ -1710,7 +1729,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
 });
 function namePrompt(next){panel='name';closeHook=()=>{if(!S.name)S.name='小化學家';hud();save();next();};
- openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0"><button class="btn" data-act="setname">想起來了</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
+ openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0">${(()=>{try{const j=JSON.parse(localStorage.getItem('island_chemist_v3')||'null');return j&&j.v===3&&(j.quest>0||Object.keys(j.inv||{}).length)?`<button class="btn alt" data-act="from-v1" style="margin-right:8px">⏩ 接著玩第一版的進度${j.name?'（'+String(j.name).replace(/[<>&"]/g,'')+'）':''}</button>`:'';}catch(e){return '';}})()}<button class="btn" data-act="setname">想起來了</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
  setTimeout(()=>{const i=$('pname');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')$('modal').querySelector('[data-act=setname]').click();});}},30);}
 function intro(){storyQ.unshift('<b>'+S.name+'</b>。對，你叫'+S.name+'。\n\n你穿越到了一座荒島上。載你來的那艘船擱淺在不遠處的沙灘，船身裂開，再也開不了了。四周只有海，和遠方幾座看不清楚的島。\n\n原來那個世界的東西，一樣也沒跟過來。但你腦子裡的科學知識還在：火是怎麼燒起來的、石頭裡藏著什麼、一種物質怎樣變成另一種物質。\n\n只是——知道，和親手做出來，是兩回事。','沙灘上有一本被海水泡皺的筆記本，不是你的。封面寫著：\n「一個化學家的漂流筆記・第一章」\n\n看來在你之前，也有人到過這裡。\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」\n\n<span class="muted">先去看看那艘破船吧，也許還有能用的東西。</span>');showStory();}
 hud();audioBtns();requestAnimationFrame(loop);
