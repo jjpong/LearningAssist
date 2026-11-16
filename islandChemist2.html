@@ -77,6 +77,13 @@ sub{font-size:.72em}
 .tech .ic{font-size:28px;line-height:1;width:36px;text-align:center}
 .tech.done{border-color:#2f6f4f;background:#e9f5ec}
 .tech.locked{opacity:.6}
+.treewrap{overflow:auto;border:2px solid #d6c7a2;border-radius:10px;background:#fffdf6;padding:6px;max-height:62vh}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.badge{border:2px solid #d6c7a2;border-radius:10px;background:#f4efe2;padding:8px 10px;text-align:center;color:#9a927c}
+.badge.on{background:#fff6da;border-color:#c98a1c;color:#3d3a30}
+.badge .bi{font-size:26px;line-height:1.2}
+.badge b{display:block;font-size:14px}
+.badge small{display:block;font-size:11.5px;line-height:1.35;margin-top:2px}
 .tech .body{flex:1;font-size:14px;line-height:1.6}
 .tech h4{margin:0;font-size:16px}
 .era{font-size:12px;font-weight:400;color:#8a5a22;margin-left:8px}
@@ -101,7 +108,7 @@ sub{font-size:.72em}
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
-<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
+<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
 <div id="mask"><div id="modal"></div></div>
 
 <script id="logic">
@@ -542,7 +549,7 @@ function sideAtoms(s){const t={};s.split(' + ').forEach(term=>{const m=/^(\d*)(.
 function isBalanced(eq){const [l,r]=eq.split(' -> ').map(sideAtoms);const ks=new Set([...Object.keys(l),...Object.keys(r)]);for(const k of ks)if(l[k]!==r[k])return false;return true;}
 
 /* ---------- 遊戲狀態與規則 ---------- */
-function newState(){return{v:3,name:'',qd:{},clean:0,rs:{},thin:{},inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
+function newState(){return{v:3,name:'',qd:{},badges:{},clean:0,rs:{},thin:{},inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
 const rkey=ids=>ids.slice().sort().join('+');
 /* 任務是清單，不是單行道：任何時候達成條件就打勾。s.quest＝主線已完成幾項 */
 function advanceQuests(s){const msgs=[];if(!s.qd)s.qd={};for(const q of QUESTS){if(s.qd[q.id]||!q.done(s))continue;s.qd[q.id]=1;if(q.after)msgs.push(q.after);}
@@ -552,7 +559,7 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  const cur=MAINQ.find(q=>q.ch===ch&&!qd[q.id])||MAINQ.find((q,i)=>i>hi&&!qd[q.id])||MAINQ[MAINQ.length-1],ci=MAINQ.indexOf(cur),inCh=MAINQ.filter(q=>q.ch===cur.ch);
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
-function loadState(j){const st=Object.assign(newState(),j);if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
+function loadState(j){const st=Object.assign(newState(),j);if(!j.badges){st.badges={};st._quietBadges=true;}if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
  if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
 /* 成功以後，提示變成完整配方；成功以前，只列出「試過什麼」 */
 const ATN={heat:'放在火上燒',table:'實驗桌',cell:'電解槽',still:'蒸餾器'};
@@ -578,6 +585,49 @@ function installLab(s,st,id){const d=BMAP[id],h=BMAP[st.type];if(st[id])return{e
  const miss=Object.keys(d.need).filter(k=>(s.inv[k]||0)<d.need[k]);if(miss.length)return{err:'材料不夠：還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(d.need[k]-(s.inv[k]||0))).join('、')};
  for(const k in d.need)s.inv[k]-=d.need[k];st[id]=true;s.abil[d.grant]=true;const isNew=!s.found[d.entry];s.found[d.entry]=true;return{ok:true,isNew};}
 const installStill=(s,st)=>installLab(s,st,'still');
+/* 技能樹：每一項技術要靠前面的技術才做得出來。還沒摸到邊的顯示成問號，保留探索的樂趣 */
+const hasSt=(s,t)=>s.st.some(x=>x.type===t&&x.done),fnd=(s,...ids)=>ids.some(i=>s.found[i]);
+const SKILLS=[
+ {id:'axe',n:'舊鐵斧',i:'🪓',req:[],d:s=>s.abil.axe},{id:'fire',n:'用火',i:'🔥',req:['axe'],d:s=>s.abil.fire},{id:'pot',n:'陶器',i:'🏺',req:['fire'],d:s=>s.abil.pottery},
+ {id:'salt',n:'煮鹽',i:'🧂',req:['pot'],d:s=>fnd(s,'evap')},{id:'raft',n:'木筏',i:'🛶',req:['salt'],d:s=>s.abil.raft},
+ {id:'kiln',n:'陶窯',i:'🧱',req:['pot'],d:s=>hasSt(s,'kiln')},{id:'lime',n:'石灰',i:'⚪',req:['kiln'],d:s=>fnd(s,'calcine')},{id:'mortar',n:'灰泥',i:'🪣',req:['lime'],d:s=>fnd(s,'mortar')},
+ {id:'char',n:'木炭',i:'⬛',req:['kiln'],d:s=>fnd(s,'charcoal')},{id:'furn',n:'鼓風爐',i:'⚒️',req:['mortar','char'],d:s=>hasSt(s,'furnace')},
+ {id:'cu',n:'煉銅',i:'🟠',req:['furn'],d:s=>fnd(s,'smelt_cu')},{id:'sn',n:'煉錫',i:'⚪',req:['furn'],d:s=>fnd(s,'smelt_sn')},{id:'bronze',n:'青銅',i:'🟤',req:['cu','sn'],d:s=>fnd(s,'bronze')},
+ {id:'btool',n:'青銅工具',i:'⛏️',req:['bronze'],d:s=>s.abil.bronze_tools},{id:'sail',n:'帆船',i:'⛵',req:['btool','raft'],d:s=>s.abil.sail},
+ {id:'house',n:'蓋房子',i:'🏠',req:['btool'],d:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},{id:'soap',n:'肥皂',i:'🧼',req:['pot'],d:s=>fnd(s,'soap','soap_ash','soap_soda')},
+ {id:'wine',n:'釀酒',i:'🍶',req:['house','soap'],d:s=>fnd(s,'ferment')},{id:'bread',n:'麵包',i:'🍞',req:['wine'],d:s=>fnd(s,'bread')},
+ {id:'iron',n:'煉鐵',i:'⚙️',req:['btool','sail'],d:s=>fnd(s,'smelt_fe','smelt_fe2')},{id:'itool',n:'鐵製工具',i:'🔨',req:['iron'],d:s=>s.abil.iron_tools},{id:'ship',n:'遠洋帆船',i:'🚢',req:['itool','sail'],d:s=>s.abil.ship},
+ {id:'glass',n:'玻璃',i:'🔮',req:['furn','sail'],d:s=>fnd(s,'glass')},{id:'still',n:'蒸餾',i:'⚗️',req:['glass','house'],d:s=>s.abil.distill},{id:'acid',n:'硫酸',i:'🧪',req:['still'],d:s=>fnd(s,'h2so4')},
+ {id:'cuso4',n:'硫酸銅',i:'🔵',req:['acid','cu'],d:s=>fnd(s,'cuo_acid','cu_hot_acid','mal_acid')},
+ {id:'coke',n:'焦炭',i:'🪨',req:['ship','char'],d:s=>fnd(s,'coke')},{id:'blast',n:'高爐',i:'🏭',req:['coke','itool'],d:s=>hasSt(s,'blast')},{id:'pig',n:'生鐵',i:'🫕',req:['blast'],d:s=>fnd(s,'pig_iron')},
+ {id:'zn',n:'煉鋅',i:'🔩',req:['still','itool','ship'],d:s=>fnd(s,'smelt_zn')},{id:'elec',n:'電池',i:'🔋',req:['zn','cuso4'],d:s=>s.abil.elec},{id:'ely',n:'電解',i:'⚡',req:['elec'],d:s=>fnd(s,'electro_water')},
+ {id:'steel',n:'煉鋼',i:'🗡️',req:['pig','ely'],d:s=>fnd(s,'steel')},{id:'fil',n:'碳絲',i:'〰️',req:['kiln'],d:s=>fnd(s,'filament')},{id:'lamp',n:'電燈',i:'💡',req:['steel','fil','glass'],d:s=>s.abil.beacon},
+ {id:'wheel',n:'水車',i:'🎡',req:['itool'],d:s=>hasSt(s,'wheel')},{id:'mag',n:'雷擊磁化',i:'🧲',req:['itool','ship'],d:s=>!!s.known._magnet},{id:'gen',n:'發電機',i:'🌀',req:['mag','elec'],d:s=>s.abil.gen},
+ {id:'actc',n:'活性碳',i:'⚫',req:['char'],d:s=>fnd(s,'actcarbon')},{id:'mask',n:'防毒面具',i:'😷',req:['actc','glass'],d:s=>s.abil.mask},{id:'lake',n:'火山口酸湖',i:'🌋',req:['mask'],d:s=>!!s.known._acid},
+ {id:'lens',n:'透鏡',i:'🔍',req:['glass'],d:s=>fnd(s,'lens')},{id:'scope',n:'望遠鏡',i:'🔭',req:['lens'],d:s=>s.abil.scope},{id:'ball',n:'氫氣球',i:'🎈',req:['scope','ely'],d:s=>hasSt(s,'balloon')},
+ {id:'cloud',n:'雲頂島',i:'☁️',req:['ball'],d:s=>!!s.seen[4]},{id:'tart',n:'酒石晶體',i:'💎',req:['wine'],d:s=>fnd(s,'rochelle')},{id:'radio',n:'無線電',i:'📡',req:['gen','cloud','tart','lamp'],d:s=>s.abil.radio}];
+const SKMAP={};SKILLS.forEach(k=>SKMAP[k.id]=k);
+(function(){const dep=k=>k.t!=null?k.t:(k.t=k.req.length?1+Math.max(...k.req.map(r=>dep(SKMAP[r]))):0);SKILLS.forEach(dep);})();   /* 第幾層＝最長的前置鏈 */
+function skillState(s){const o={};for(const k of SKILLS)o[k.id]=k.d(s)?'done':k.req.every(r=>SKMAP[r].d(s))?'open':k.req.some(r=>SKMAP[r].d(s))?'near':'far';return o;}
+/* 徽章 */
+const nFound=(s,kind)=>REACTIONS.filter(r=>r.kind===kind&&s.found[r.id]).length;
+const BADGES=[
+ ['fire','🔥','第一把火','學會生火',s=>s.abil.fire],['pot','🏺','陶匠','燒出第一件陶器',s=>s.abil.pottery],['sea','🛶','出海','造出木筏',s=>s.abil.raft],
+ ['bronze','🟤','青銅時代','鑄出青銅',s=>s.found.bronze],['iron','⚙️','鐵器時代','煉出鐵',s=>fnd(s,'smelt_fe','smelt_fe2')],['glass','🔮','玻璃匠','熔出玻璃',s=>s.found.glass],
+ ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','組出電池',s=>s.abil.elec],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
+ ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
+ ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氫氣球抵達雲頂島',s=>!!s.seen[4]],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
+ ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
+ ['fail1','📝','失敗也是發現','累積 5 筆觀察紀錄',s=>nFound(s,'obs')>=5],['fail2','🧐','實驗狂','累積 15 筆觀察紀錄',s=>nFound(s,'obs')>=15],['fail3','🤯','什麼都要試一下','累積 25 筆觀察紀錄',s=>nFound(s,'obs')>=25],
+ ['chem1','📗','初級化學家','發現 15 種化學反應',s=>nFound(s,'chem')>=15],['chem2','📘','資深化學家','發現 35 種化學反應',s=>nFound(s,'chem')>=35],['chem3','📕','反應大師','發現 55 種化學反應',s=>nFound(s,'chem')>=55],
+ ['soap3','🧼','肥皂研究員','用三種不同的鹼做出肥皂',s=>['soap','soap_ash','soap_soda'].every(i=>s.found[i])],['clean','🙌','先洗手','洗過手再發酵成功',s=>s.known._washed&&s.found.ferment],
+ ['baker','🍞','麵包師','烤出麵包',s=>s.found.bread],['cola','🥤','最不必要的發明','調出可樂',s=>s.found.cola],['wheel','🎡','讓河替你工作','蓋好水車',s=>hasSt(s,'wheel')],
+ ['build','🏢','建築師','蓋出鋼筋混凝土樓房',s=>hasSt(s,'highrise')],['acidbase','🌈','酸鹼通','做過酸鹼中和，也看過指示劑變色',s=>fnd(s,'neutral','neutral2','neutral3')&&fnd(s,'ind_base','ind_acid')],
+ ['life','🌾','生活家','完成整條生活線',s=>LIFEQ.every(q=>s.qd&&s.qd[q.id])],['all','👑','文明重建者','完成全部主線任務',s=>MAINQ.filter(q=>q.id!=='q_free').every(q=>s.qd&&s.qd[q.id])]
+].map(b=>({id:b[0],icon:b[1],n:b[2],d:b[3],done:b[4]}));
+const RANKS=[[0,'漂流者'],[3,'見習生'],[7,'學徒'],[12,'工匠'],[17,'鍊金術士'],[22,'化學家'],[27,'大化學家'],[31,'文明重建者']];
+const rankOf=n=>RANKS.filter(r=>n>=r[0]).pop()[1];
+function checkBadges(s){s.badges=s.badges||{};const got=[];for(const b of BADGES){if(s.badges[b.id])continue;let ok=false;try{ok=!!b.done(s);}catch(e){}if(ok){s.badges[b.id]=1;got.push(b);}}return got;}
 /* 避雷針：掛上鐵棒，等雷打下來就成了磁鐵 */
 function rodUse(s,st){if(st.mag){st.mag=false;st.bar=false;s.inv.magnet=(s.inv.magnet||0)+1;s.known._magnet=true;const isNew=!s.found.tech_magnet;s.found.tech_magnet=true;return{took:true,isNew};}
  if(st.bar)return{wait:true};if(!(s.inv.iron>0))return{err:'要先有一根鐵，才能掛上去。'};s.inv.iron--;st.bar=true;return{hung:true};}
@@ -1221,7 +1271,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(dirH&&t-dirT>30000){dirT=t;dirSave(false);}requestAnimationFrame(loop);}
 
 /* --- 任務欄 --- */
-function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
+function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
  const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;{const N=questNotes(S,q);$('qhint').innerHTML='筆記：'+q.hint+N.tried.map(o=>`<div class="tried">✎ 試過「${o.name}」：${o.phen}</div>`).join('');}
  const lifeOn=S.abil.bronze_tools||LIFEQ.some(x=>qd[x.id]),sideOn=!!qd.q_1;
  $('qmore').innerHTML=(V_.behind.length?'⚑ 前面還有 '+V_.behind.length+' 項沒做（翻筆記看清單）<br>':'')+(lifeOn&&V_.life?'🍞 生活線：'+V_.life.goal:'');
@@ -1235,7 +1285,8 @@ function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化�
  $('abil').innerHTML=[['🔥 火',S.abil.fire],['🏺 陶器',S.abil.pottery],['🧱 陶窯',has('kiln')],['⚒️ 鼓風爐',has('furnace')],['🏭 高爐',has('blast')],['⚗️ 蒸餾',S.abil.distill],['⚡ 電',S.abil.elec]].map(a=>`<span class="${a[1]?'on':''}">${a[0]}</span>`).join('');}
 $('qtoggle').onclick=()=>$('quest').classList.toggle('open');
 let storyQ=[];
-function after(){const m=advanceQuests(S);if(m.length){storyQ.push(...m);$('quest').classList.remove('open');}hud();save();if(storyQ.length&&!modalOpen)showStory();}
+function badgeToast(){const q=S._quietBadges;delete S._quietBadges;const g=checkBadges(S);if(!g.length||q)return;SFX.discover();toast(g.length>2?'🏅 一口氣拿到 '+g.length+' 枚徽章！（打開「技能・徽章」看看）':'🏅 獲得徽章：'+g.map(b=>b.icon+' '+b.n).join('、'));}
+function after(){const m=advanceQuests(S);badgeToast();if(m.length){storyQ.push(...m);$('quest').classList.remove('open');}hud();save();if(storyQ.length&&!modalOpen)showStory();}
 
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
@@ -1373,6 +1424,15 @@ function drawItem(c,id,x,y,r){c.save();c.translate(x,y);c.scale(r/11,r/11);c.lin
   case 'egg':case 'boiledegg':c.beginPath();c.ellipse(0,0,8,10.5,0,0,7);c.fillStyle=id==='egg'?'#f3e3cf':'#fffdf5';c.fill();c.strokeStyle='#a8927a';c.stroke();if(id==='boiledegg')blob(0,2,4,'#f2c84a');else line([[-3,-5],[-4,1]],'#fff',1.5);break;
   case 'curd':poly([[-12,8],[10,8],[12,-2],[-6,-8]],'#f2d98a','#a88a3a');[[-3,2,1.6],[4,3,2],[1,-3,1.3]].forEach(q=>blob(q[0],q[1],q[2],'#d9bb5a'));break;
   case 'concrete':c.fillStyle='#b4b6b2';c.fillRect(-11,-8,22,16);c.strokeStyle='#6f716d';c.strokeRect(-11,-8,22,16);[[-5,-3],[3,2],[6,-4],[-2,4]].forEach(q=>blob(q[0],q[1],1.4,'#8a8c88'));break;
+  case 'actcarbon':poly([[-11,6],[-9,-6],[-1,-10],[9,-7],[12,3],[6,10],[-4,10]],'#2a2a2e','#000');[[-5,-3,1.3],[1,-5,1],[5,1,1.4],[-3,4,1.1],[0,0,.9],[7,-3,.9],[-7,2,.8],[3,6,1],[-1,-8,.7],[8,5,.8]].forEach(h=>blob(h[0],h[1],h[2],'#8a8a92'));break;
+  case 'filament':c.strokeStyle='#26262a';c.lineWidth=1.8;c.beginPath();c.moveTo(-10,9);c.bezierCurveTo(-12,-14,-2,-14,-3,2);c.bezierCurveTo(-4,12,6,12,5,-2);c.bezierCurveTo(4,-14,13,-12,10,9);c.stroke();c.lineWidth=1;blob(-10,9,1.6,'#555');blob(10,9,1.6,'#555');break;
+  case 'magnet':c.lineWidth=6.5;c.lineCap='butt';c.strokeStyle='#b8bcc2';c.beginPath();c.moveTo(-7,9);c.lineTo(-7,-1);c.arc(0,-1,7,Math.PI,0);c.lineTo(7,9);c.stroke();c.strokeStyle='#c8362f';c.beginPath();c.moveTo(-7,9);c.lineTo(-7,3);c.stroke();c.strokeStyle='#2f5fc8';c.beginPath();c.moveTo(7,9);c.lineTo(7,3);c.stroke();c.lineWidth=1;line([[-12,-6],[-10,-9]],'#f2c230',1.4);line([[12,-6],[10,-9]],'#f2c230',1.4);line([[0,-13],[0,-10.5]],'#f2c230',1.4);break;
+  case 'lens':c.globalAlpha=.85;c.beginPath();c.ellipse(0,0,5,11,0,0,7);c.fillStyle='#cfeef5';c.fill();c.globalAlpha=1;c.strokeStyle='#5d98a8';c.stroke();line([[-2,-6],[-2.6,3]],'#fff',1.5);line([[-13,-5],[-5,-3]],'#f2c230',1.2);line([[-13,0],[-5,0]],'#f2c230',1.2);line([[-13,5],[-5,3]],'#f2c230',1.2);line([[5,-3],[13,0]],'#f2c230',1.2);line([[5,3],[13,0]],'#f2c230',1.2);break;
+  case 'tartar':poly([[-11,9],[-9,1],[-5,4],[-3,-4],[1,2],[4,-7],[7,1],[10,-2],[12,9]],'#d9c7b0','#8f7c62');line([[-5,4],[-4,9]],'#b5a288');line([[1,2],[2,9]],'#b5a288');line([[7,1],[7,9]],'#b5a288');break;
+  case 'rochelle':c.globalAlpha=.9;poly([[0,-12],[8,-5],[8,5],[0,12],[-8,5],[-8,-5]],'#eaf6fa','#7fb0c0');c.globalAlpha=1;line([[0,-12],[0,12]],'#b7d9e3');line([[-8,-5],[0,-1],[8,-5]],'#b7d9e3');line([[-4,-6],[-4,2]],'#fff',1.6);break;
+  case 'caramel':c.beginPath();c.moveTo(-11,3);c.bezierCurveTo(-12,-6,-3,-9,1,-5);c.bezierCurveTo(6,-10,13,-4,11,3);c.bezierCurveTo(10,10,-9,10,-11,3);c.closePath();c.fillStyle='#8a4513';c.fill();c.strokeStyle='#4a2308';c.stroke();line([[-6,-2],[-1,-3]],'#d9954a',1.8);line([[4,-3],[7,-1]],'#d9954a',1.4);break;
+  case 'cola':poly([[-5,11],[-6,-2],[-3,-7],[-3,-12],[3,-12],[3,-7],[6,-2],[5,11]],'#3d1c0a','#1c0c03');poly([[-3,-12],[3,-12],[3,-10],[-3,-10]],'#c8362f');line([[-3,-2],[-3,7]],'#8a5a3a',1.4);[[1,5,1],[2,0,.8],[-1,-4,.7],[3,8,.7]].forEach(b=>{c.beginPath();c.arc(b[0],b[1],b[2],0,7);c.strokeStyle='#e8c9a0';c.stroke();});break;
+  case 'galena':poly([[-10,-2],[-2,-8],[8,-5],[8,6],[0,11],[-10,7]],'#9aa3ad','#4d545c');poly([[-10,-2],[-2,-8],[8,-5],[0,1]],'#c9d0d8','#4d545c');line([[0,1],[0,11]],'#4d545c');line([[-6,-3],[1,-6]],'#fff',1.5);poly([[3,3],[6,2],[6,6],[3,7]],'#b3bac2','#4d545c');break;
   default:blob(0,0,10,ITEMS[id].c,dk);}
  c.restore();}
 function heatColor(T){const st=[[25,[58,42,34]],[450,[90,30,20]],[650,[170,40,20]],[850,[230,90,25]],[1050,[250,160,40]],[1250,[255,220,110]],[1500,[255,250,225]]];
@@ -1575,7 +1635,23 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.0',VDATE='2026-11-16';
+const VERSION='2.1',VDATE='2026-11-16';
+let treeTab='tree';
+function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
+ const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
+ if(treeTab==='badge'){const nx=RANKS.find(r=>r[0]>nb);
+  return head('🏅 技能・徽章')+tabs+`<div class="savebox"><h4>稱號：${rankOf(nb)}</h4><div class="muted">${nx?'再拿 '+(nx[0]-nb)+' 枚徽章，晉級為「'+nx[1]+'」。':'已經是最高的稱號了。'}　晉級之路：${RANKS.map(r=>(nb>=r[0]?'<b>':'')+r[1]+(nb>=r[0]?'</b>':'')).join(' → ')}</div></div>
+  <div class="badges">${BADGES.map(b=>{const on=S.badges&&S.badges[b.id];return `<div class="badge ${on?'on':''}"><div class="bi">${on?b.icon:'🔒'}</div><b>${on?b.n:'？？？'}</b><small>${b.d}</small></div>`;}).join('')}</div>`;}
+ /* 技能樹：依前置鏈長度分層，由左到右 */
+ const tiers=[];SKILLS.forEach(k=>(tiers[k.t]=tiers[k.t]||[]).push(k));const BW=92,BH=46,GX=34,GY=10,rows=Math.max(...tiers.map(t=>t.length)),Wd=tiers.length*(BW+GX)+10,Hd=rows*(BH+GY)+10,pos={};
+ tiers.forEach((t,ti)=>{const off=(rows-t.length)*(BH+GY)/2;t.forEach((k,ri)=>pos[k.id]={x:5+ti*(BW+GX),y:5+off+ri*(BH+GY)});});
+ let ln='',bx='';const COL={done:['#e9f5ec','#2f6f4f','#1f4f37'],open:['#fff6da','#c98a1c','#6b4a0c'],near:['#f4efe2','#b9ad92','#8d8572'],far:['#efebe0','#d2cab6','#b0a892']};
+ SKILLS.forEach(k=>k.req.forEach(r=>{const a=pos[r],b=pos[k.id],on=st[r]==='done'&&st[k.id]==='done',x1=a.x+BW,y1=a.y+BH/2,x2=b.x,y2=b.y+BH/2,mx=(x1+x2)/2;if(st[k.id]==='far'&&st[r]!=='done')return;
+  ln+=`<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${on?'#2f6f4f':st[r]==='done'?'#c98a1c':'#cfc6ae'}" stroke-width="${on?2.4:1.6}" ${on?'':'stroke-dasharray="4 3"'}/>`;}));
+ SKILLS.forEach(k=>{const p=pos[k.id],v=st[k.id],c=COL[v],show=v==='done'||v==='open';
+  bx+=`<g><rect x="${p.x}" y="${p.y}" width="${BW}" height="${BH}" rx="9" fill="${c[0]}" stroke="${c[1]}" stroke-width="${v==='far'?1:2}"/><text x="${p.x+BW/2}" y="${p.y+19}" text-anchor="middle" font-size="16">${show?k.i:v==='near'?'❔':''}</text><text x="${p.x+BW/2}" y="${p.y+37}" text-anchor="middle" font-size="12" font-weight="${v==='done'?700:400}" fill="${c[2]}">${show?k.n:v==='near'?'？？？':''}</text></g>`;});
+ return head('🏅 技能・徽章')+tabs+`<div class="muted" style="margin-bottom:6px"><span style="color:#1f4f37">■ 已掌握</span>　<span style="color:#c98a1c">■ 現在可以挑戰</span>　<span style="color:#8d8572">■ 還差一點（？？？）</span>　往右捲動可以看到更後面的技術。</div>
+ <div class="treewrap"><svg width="${Wd}" height="${Hd}" viewBox="0 0 ${Wd} ${Hd}" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">${ln}${bx}</svg></div>`;}
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>第二版多了什麼</h4>島和海都放大了一倍多，礦要走遠一點才找得到。新增小河與水車、火山口的酸湖、雷擊磁化與發電機、透鏡與望遠鏡、氫氣球，以及第五章「遠方」和新的結局。</div>
@@ -1590,6 +1666,7 @@ function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <span class="muted">3D 繪圖使用 three.js（MIT 授權）。</span></div>`;}
 function render(){
  if(panel==='about')return openModal(aboutHTML());
+ if(panel==='tree')return openModal(treeHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
  if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join(''):'';}).join(''):'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
  if(panel==='build'){const card=t=>{
@@ -1608,6 +1685,7 @@ $('bar').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if
 $('mask').addEventListener('click',e=>{
  if(e.target===$('mask'))return closeModal();
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.act==='tab-tree'||d.act==='tab-badge'){treeTab=d.act==='tab-tree'?'tree':'badge';return render();}
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
  if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
  if(d.act==='close')return closeModal();
