@@ -101,7 +101,7 @@ sub{font-size:.72em}
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
-<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
+<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
 <div id="mask"><div id="modal"></div></div>
 
 <script id="logic">
@@ -393,7 +393,9 @@ const RMAP={};REACTIONS.forEach(r=>RMAP[r.id]=r);
 
 const F=id=>s=>!!s.found[id],A=id=>s=>!!s.abil[id],V=i=>s=>!!s.seen[i],HAS=t=>s=>s.st.some(x=>x.type===t&&x.done);
 const QUESTS=[
- {id:'q_wood',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到樹旁邊，砍樹蒐集 3 個木頭',hint:'「靠近樹按 E（或點它），要砍好幾下。天黑以前，一定要先有火。」',done:s=>(s.inv.wood||0)>=3||s.st.length>0},
+ {id:'q_wreck',ch:'第一章　火與渡海　｜　貝殼島',goal:'到沙灘上那艘破船找找有沒有能用的東西',hint:'「船就擱淺在你醒來的地方往西幾步。走到旁邊按 E（或點它）。空著手，什麼也做不了。」',done:s=>!!s.known._wreck||!!s.abil.axe,
+  after:'一把斧頭。\n\n它又舊又鈍，卻是你和這座島之間的第一樣工具。\n\n人類花了幾十萬年才學會把石頭綁在木棍上。你不必從那裡開始——但接下來的每一步，都得自己走。'},
+ {id:'q_wood',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到樹旁邊，用斧頭砍樹，蒐集 3 個木頭',hint:'「靠近樹按 E（或點它），要砍好幾下。天黑以前，一定要先有火。」',done:s=>(s.inv.wood||0)>=3||s.st.length>0},
  {id:'q_campfire',ch:'第一章　火與渡海　｜　貝殼島',goal:'打開「建造」，在空地上堆一座營火',hint:'「面向一塊空地，選營火。木頭不夠的話，之後走過去按 E 再補。」',done:HAS('campfire')},
  {id:'q_fire',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到營火旁，添柴、點火',hint:'「柴越多，火越旺、燒得越久。看著溫度計，試試放 2 根和放 6 根差多少。」',done:A('fire'),
   after:'火光亮起來的那一刻，你鬆了一口氣。\n\n筆記上寫著：「人類學會用火，是四十萬年前的事。從火到電，我們走了四十萬年。你不用那麼久——但每一步都省不掉。」'},
@@ -487,7 +489,8 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  const cur=MAINQ.find(q=>q.ch===ch&&!qd[q.id])||MAINQ.find((q,i)=>i>hi&&!qd[q.id])||MAINQ[MAINQ.length-1],ci=MAINQ.indexOf(cur),inCh=MAINQ.filter(q=>q.ch===cur.ch);
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
-function loadState(j){const st=Object.assign(newState(),j);if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
+function loadState(j){const st=Object.assign(newState(),j);if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
+ if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
 /* 成功以後，提示變成完整配方；成功以前，只列出「試過什麼」 */
 const ATN={heat:'放在火上燒',table:'實驗桌',cell:'電解槽',still:'蒸餾器'};
 function recipeOf(r){const c=[ATN[r.at]||''];if(r.closed)c.push('放進窯室（隔絕空氣）');if(r.T)c.push(r.T+' °C 以上');if(r.indoor)c.push('要在室內');if(r.clean)c.push('先洗手');
@@ -514,9 +517,11 @@ function installLab(s,st,id){const d=BMAP[id],h=BMAP[st.type];if(st[id])return{e
 const installStill=(s,st)=>installLab(s,st,'still');
 /* 破船：第一次翻找可以拿到一點東西；線索隨時可以回來看 */
 const WRECK_LOOT={wood:2,fiber:4};
+/* 砍樹、敲石頭都要工具。第一把是破船上那把缺了口的小斧頭 */
+const toolFor=d=>d.tool||(d.hp>1?'axe':null),TOOLN={axe:'斧頭'};
 const WRECK_CLUES=[['🔩 船釘','固定船板的銅釘，泡過海水的地方長出一層綠色的鏽。'],['⚓ 鐵錨','鏽成紅褐色，一碰就掉屑。原本銀灰色的鐵，放久了會變成這樣。'],['🪢 纜繩','大部分都爛了。只有長年泡在鹽水裡的那一段，還結實得很。'],
  ['🪟 舷窗碎片','透明的玻璃碎片，斷口摸起來卻和沙子一樣粗。'],['🪨 壓艙石','船底壓艙用的灰白色石頭，上面黏著貝殼——兩者的顏色和質地，幾乎分不出來。'],['📜 航海日誌的殘頁','「……東北方有一座較大的島，山壁露出灰白和翠綠的顏色。更遠的東南方，有一座會冒煙的山……」後面的字被海水泡糊了。']];
-function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
+function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;s.abil.axe=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
 /* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
  s.inv.soap--;s.inv.water--;s.clean=3;s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
@@ -1004,7 +1009,7 @@ function gain(id,n){if(bagFull(id)){fullWarn(id);return false;}n=Math.min(n,BAGC
 function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)return false;
  if(bagFull(d.item)){fullWarn(d.item);return true;}
  {const y=yieldOf(nd,d),room=BAGCAP-(S.inv[d.item]||0);if(!d.regrow&&room<y){warn('背包只放得下 '+room+' 份'+ITEMS[d.item].n+'，這裡有 '+y+' 份。先把一些存進家裡的倉庫再來採，才不會浪費。');return true;}}
- if(d.tool&&!S.abil[d.tool]){warn('這塊石頭太硬了，需要「'+BMAP[d.tool].n+'」才敲得開');return false;}
+ {const tl=toolFor(d);if(tl&&!S.abil[tl]){warn(tl==='axe'?'空手'+(d.rock?'敲不開石頭':'砍不動樹')+'。沙灘上那艘破船裡，也許有能用的工具。':'這塊石頭太硬了，舊斧頭只會彈回來。需要「'+BMAP[tl].n+'」才敲得開');return false;}}
  hitCd=t+.32;P.swing=t+.25;P.ang=Math.atan2(nd.x+.5-P.x,nd.y+.5-P.y);nd.hits++;nd.wob=t+.25;live.push(nd);
  burst(nd.x+.5,hAt(nd.x+.5,nd.y+.5),nd.y+.5,d.rock?'#9a968f':PART[nd.type][PART[nd.type].length-1].c);
  d.rock?SFX.rock():(d.hp>1?SFX.chop():0);
@@ -1106,7 +1111,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
-  else if(n){const d=NODES[n.type],hp=d.hp||1;p=(d.tool&&!S.abil[d.tool])?'🔒 '+nodeName(n)+'　太硬了，需要'+BMAP[d.tool].n:'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
+  else if(n){const d=NODES[n.type],hp=d.hp||1;p=(toolFor(d)&&!S.abil[toolFor(d)])?'🔒 '+nodeName(n)+(toolFor(d)==='axe'?'　需要工具（去破船找找）':'　太硬了，需要'+BMAP[toolFor(d)].n):'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
   else if(nearWater(LAKE))p='💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
   $('prompt').textContent=p;}
  audioTick();
@@ -1162,9 +1167,9 @@ function place(type){if(BMAP[type].inLab)return toast(BMAP[type].n+'要裝在屋
  if(d.dock&&!nearestSea(x,y,BOATT[type]))return toast(type==='ship'?'這附近的海太淺，遠洋帆船一下水就會擱淺。要到海比較深的島（火山島）的沙灘上造。':'這附近沒有這艘船能走的海。');
  if(allStations().some(s=>Math.hypot(s.x-x,s.y-y)<1.8)||nodes.some(n=>!n.gone&&n.cd<=now()&&Math.hypot(n.x+.5-x,n.y+.5-y)<.9))return toast('這裡太擠了。把旁邊的樹砍掉、或把石頭和沙堆清掉，就有空地了。');
  const st={type,x,y,isl:owner[Math.floor(y)*W+Math.floor(x)],have:{},done:false};S.st.push(st);syncStation(st);closeModal();useStation(st);}
-function openWreck(){panel='wreck';SFX.ui();const got=lootWreck(S);if(got){SFX.done();hud();save();}
+function openWreck(){panel='wreck';SFX.ui();const got=lootWreck(S);if(got){SFX.done();closeHook=()=>after();}
  openModal(head('🚢 擱淺的破船')+`<div class="story" style="margin-bottom:10px">這就是載你來的那艘船。龍骨斷了，船艙進了半艙的沙。它哪裡也去不了了。</div>
- ${got?`<div class="result new"><b>你在船艙裡翻出一些還能用的東西：</b>${Object.keys(got).map(k=>ITEMS[k].n+' ×'+got[k]).join('、')}（拆下來的船板和纜繩）</div>`:'<div class="muted">能拆的都拆了。剩下的只有這些看得到、帶不走的東西。</div>'}
+ ${got?`<div class="result new"><b>你在船艙裡翻出一些還能用的東西：</b><br>🪓 <b>一把破舊的小斧頭</b>——斧刃撞缺了一角，又鏽又鈍。砍樹、敲開一般的石頭還行；碰到真正堅硬的礦石，大概只會彈回來。<br>${Object.keys(got).map(k=>ITEMS[k].n+' ×'+got[k]).join('、')}（拆下來的船板和纜繩）</div>`:'<div class="muted">能拆的都拆了。剩下的只有這些看得到、帶不走的東西。</div>'}
  <h3>仔細看看這艘船</h3>${WRECK_CLUES.map(c=>`<div class="entry" style="padding:8px 12px"><b>${c[0]}</b>　${c[1]}</div>`).join('')}
  <div class="muted">這些東西本身幫不上忙。但它們是用什麼做的、後來變成了什麼樣子——也許值得記在心裡。</div>`);}
 function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.type];
@@ -1433,9 +1438,9 @@ function loadText(txt){let j;try{j=JSON.parse(txt);}catch(e){return '這不是�
  applyState(j.state);SFX.done();return '';}
 function saveSay(m){saveMsg=m;if(panel==='save')render();else toast(m);}
 async function saveDownload(){const data=saveText(),name=saveName(),dl=await DLP;
- if(dl){try{await dl.save({filename:name,data});saveSay('✅ 存檔檔已交給瀏覽器下載：'+name);}catch(e){saveSay(e&&e.code==='declined'?'已取消下載。':'這裡沒辦法下載檔案，請改用下面的「存檔碼」。');}return;}
- if(window.claude)return saveSay('這裡沒辦法下載檔案，請改用下面的「存檔碼」。');
- try{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);saveSay('✅ 已下載：'+name+'。把它搬進你的存檔資料夾就可以了。');}catch(e){saveSay('下載失敗，請改用下面的「存檔碼」。');}}
+ if(dl){try{await dl.save({filename:name,data});saveSay('✅ 存檔檔已交給瀏覽器下載：'+name);}catch(e){saveSay(e&&e.code==='declined'?'已取消下載。':'這裡沒辦法下載檔案，請換用電腦版的 Chrome 或 Edge 再試一次。');}return;}
+ if(window.claude)return saveSay('這裡沒辦法下載檔案，請換用電腦版的 Chrome 或 Edge 再試一次。');
+ try{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);saveSay('✅ 已下載：'+name+'。把它搬進你的存檔資料夾就可以了。');}catch(e){saveSay('下載失敗，請換用電腦版的 Chrome 或 Edge 再試一次。');}}
 /* 存檔資料夾（只有 Chrome／Edge、而且遊戲不是嵌在別的網頁裡才能用） */
 const idb=(mode,fn)=>new Promise(res=>{try{const o=indexedDB.open('island_chemist',1);o.onupgradeneeded=()=>o.result.createObjectStore('kv');o.onerror=()=>res(null);
  o.onsuccess=()=>{try{const tx=o.result.transaction('kv',mode),r=fn(tx.objectStore('kv'));tx.oncomplete=()=>res(r&&r.result);tx.onerror=()=>res(null);}catch(e){res(null);}};}catch(e){res(null);}});
@@ -1448,8 +1453,9 @@ async function dirRefresh(){if(!dirH)return;try{const L=[];for await(const [n,h]
 async function dirLoad(name){try{const f=await (await dirH.getFileHandle(name)).getFile(),err=loadText(await f.text());if(err)return saveSay(err);closeModal();toast('已讀取：'+name);}catch(e){saveSay('讀不到這個檔案。');}}
 if(canDir)idb('readonly',st=>st.get('dir')).then(async h=>{if(!h)return;try{if((await h.queryPermission({mode:'readwrite'}))==='granted'){dirH=h;dirRefresh();}else dirWait=true;}catch(e){}});
 function saveHTML(){const q=questView(S).cur;
- return head('💾 存檔')+(saveMsg?`<div class="result" style="margin:0 0 10px">${saveMsg}</div>`:'')+
+ return head('💾 存檔・讀檔・改名字')+(saveMsg?`<div class="result" style="margin:0 0 10px">${saveMsg}</div>`:'')+
  `<div class="savebox"><h4>目前進度</h4>${q.ch}　主線 ${S.quest}/${MAINQ.length-1}　圖鑑 ${REACTIONS.filter(r=>S.found[r.id]).length}/${REACTIONS.length}<div class="muted">遊戲每隔幾秒就會自動存在這個瀏覽器裡。換電腦、換瀏覽器或清除瀏覽紀錄，這份自動存檔就不見了——所以才需要下面的存檔檔。</div></div>
+ <div class="savebox"><h4>名字</h4><div class="row" style="align-items:center"><input id="rename" maxlength="10" value="${(S.name||'').replace(/"/g,'')}" style="font-size:16px;padding:6px 10px;width:14em;max-width:60%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"><button class="btn alt" data-act="sv-name">✏️ 改名字</button></div></div>
  <div class="savebox"><h4>存檔檔</h4>把進度存成一個檔案，可以放進你自己建的資料夾、隨身碟或雲端硬碟，換一台電腦也能接著玩。
   <div class="row"><button class="btn" data-act="sv-dl">⬇️ 下載存檔檔</button><span class="btn alt filebtn">📂 讀取存檔檔<input type="file" id="svfile" accept=".json,application/json"></span></div>
   <div class="muted">讀取會蓋掉目前的進度。</div></div>`+
@@ -1459,9 +1465,8 @@ function saveHTML(){const q=questView(S).cur;
    :`選一個位置（例如「文件」），遊戲會在裡面建立「${SAVE_DIR}」資料夾，之後自動把進度寫進去。
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
- `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
-  <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.7',VDATE='2026-11-16';
+ '';}
+const VERSION='1.8',VDATE='2026-11-16';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
@@ -1493,6 +1498,7 @@ $('bar').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if
 $('mask').addEventListener('click',e=>{
  if(e.target===$('mask'))return closeModal();
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
  if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
@@ -1511,8 +1517,6 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='sv-re')return dirReconnect();
  if(d.act==='sv-dirsave')return dirSave(true);
  if(d.svload)return dirLoad(d.svload);
- if(d.act==='sv-copy'){const t=saveText();const ta=$('svtext');if(ta){ta.value=t;ta.select();}try{navigator.clipboard.writeText(t).then(()=>toast('存檔碼已複製')).catch(()=>toast('已把存檔碼放進下面的框，請手動複製'));}catch(e){toast('已把存檔碼放進下面的框，請手動複製');}return;}
- if(d.act==='sv-paste'){const err=loadText(($('svtext')||{}).value||'');if(err)saveSay(err);else{closeModal();toast('已讀取存檔碼');}return;}
  if(d.place)return place(d.place);
  if(d.craft){const t=BMAP[d.craft],st={type:t.id,have:{},done:false};if(deliver(S,st).done){SFX.done();toast(t.icon+' '+t.n+' 完成！');storyQ.push(...advanceQuests(S));hud();save();if(storyQ.length){panel=null;showStory();}else render();}return;}
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
