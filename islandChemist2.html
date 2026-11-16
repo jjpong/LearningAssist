@@ -1665,7 +1665,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.4',VDATE='2026-11-16';
+const VERSION='2.5',VDATE='2026-11-16';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1685,7 +1685,7 @@ function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,n
 /* ===== 英雄榜與人數統計 =====
    LB_URL 是老師自己的 Google 試算表（Apps Script 網路應用程式）的網址。留空＝完全不記錄、不顯示英雄榜。
    只送出：隨機代號、玩家自己取的名字、版本、主線進度、章節、分數、時代、徽章數。不含任何帳號或裝置資料。 */
-const LB_URL='',LB_VER='2';
+const LB_URL='https://script.google.com/macros/s/AKfycbwYLRvrwR5g7P5cFab6Nl2kXt5TXxj9mrjat07TbahfiUfhmZtQqISyJU_WMg3p2W7-nQ/exec',LB_VER='2';
 const lbOn=()=>!!LB_URL;
 function lbId(){if(!S.pid){const a=new Uint8Array(16);(window.crypto||window.msCrypto).getRandomValues(a);S.pid=Array.from(a,b=>('0'+b.toString(16)).slice(-2)).join('');}return S.pid;}
 function lbPayload(){const sc=score(S),ch=questView(S).cur.ch.split('　｜')[0].trim();return{id:lbId(),name:S.name||'小化學家',ver:LB_VER,quest:S.quest,ch,score:sc.total,era:sc.era,badges:Object.keys(S.badges||{}).length,gv:VERSION};}
