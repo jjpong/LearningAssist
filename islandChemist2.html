@@ -222,6 +222,7 @@ const BUILD=[
  {id:'table',n:'實驗桌',icon:'🧫',era:'',req:['pottery'],need:{wood:4},d:'擺上陶缽和陶罐：混合、溶解、過濾都在這裡做。'},
  {id:'raft',n:'木筏',icon:'🛶',era:'約 1 萬年前',dock:1,req:['pottery'],need:{wood:8,fiber:4,salt:2},grant:'raft',d:'要蓋在沙灘上。造好後會停在岸邊，走過去才能上船；可以渡過淺海。鹽用來醃糧食，陶罐用來裝淡水。',entry:'tech_raft'},
  {id:'furnace',n:'鼓風爐',icon:'⚒️',era:'約西元前 5000 年',req:['f:charcoal'],need:{clay:4,mortar:2,wood:2,fiber:2},d:'高高的爐身加上風箱。一邊燒一邊鼓風，可以超過 1200 °C。',entry:'tech_furnace'},
+ {id:'bucket',n:'木桶',icon:'🪣',era:'約西元前 2500 年',craft:1,req:['bronze_tools'],need:{wood:4,fiber:2},grant:'bucket',d:'把木板削得服服貼貼，再用纖維箍緊，就不會漏水。提一桶水抵得上跑好幾趟——一次可以裝 5 份。',entry:'tech_bucket'},
  {id:'bronze_tools',n:'青銅工具',icon:'⛏️',era:'約西元前 3300 年',craft:1,req:['f:bronze'],need:{bronze:3,wood:2},grant:'bronze_tools',d:'敲得開更硬的石頭，也能把木頭加工成船板。',entry:'tech_bronze'},
  {id:'sail',n:'帆船',icon:'⛵',era:'約西元前 3000 年',dock:1,req:['bronze_tools','raft'],need:{wood:10,fiber:6,bronze:2},grant:'sail',d:'要蓋在沙灘上。可以航行到更遠的海域，淺海也進得去。',entry:'tech_sail'},
  {id:'iron_tools',n:'鐵製工具',icon:'🔨',era:'約西元前 1200 年',craft:1,req:[],need:{iron:3,wood:2},grant:'iron_tools',d:'敲得開最堅硬的岩石。',entry:'tech_iron'},
@@ -406,6 +407,7 @@ const REACTIONS=[
  {id:'obs_cu_acid',name:'銅加稀硫酸',kind:'obs',at:'table',inputs:[['copper','h2so4']],out:{},eqx:'沒有變化',phen:'銅片靜靜躺在酸裡，一顆氣泡也沒有。',use:'銅的活性比氫小，沒辦法把酸裡的氫趕出來。鐵和鋅可以。',note:'這是在常溫下。如果加熱呢？'},
  {id:'obs_water_elec',name:'直接電解淡水',kind:'obs',at:'cell',inputs:[['water']],out:{},eqx:'幾乎沒有變化',phen:'電極上幾乎看不到氣泡。',use:'純水幾乎不導電。需要先加入能解離出離子的物質（電解質），例如酸或鹼。',note:''},
  /* ===== 科技原理 ===== */
+ {id:'tech_bucket',name:'木桶',kind:'tech',inputs:[],out:{},eqx:'木板吸水膨脹 → 縫隙密合',phen:'剛箍好的桶子會滲水。泡一陣子以後，一滴也不漏了。',use:'木頭吸了水會膨脹，板子和板子擠在一起，把縫堵死。箍得越緊越不漏。要把木板削得平整，得有金屬工具。',note:'在塑膠出現以前的幾千年，水、酒、油、醃菜，全是用木桶裝的。'},
  {id:'tech_fire',name:'燃燒三要素',kind:'tech',inputs:[],out:{},eqx:'可燃物 ＋ 助燃物（氧氣）＋ 達到燃點',phen:'快速摩擦讓木屑升溫到燃點，冒煙、起火。',use:'三個要素缺一不可。柴越多，同時在燒的木頭越多，火就越熱；柴燒完，溫度就掉下來。',note:''},
  {id:'tech_kiln',name:'為什麼窯比營火熱',kind:'tech',inputs:[],out:{},eqx:'同樣的柴，把熱留住',phen:'窯壁摸起來燙手，但裡面比外面熱得多。',use:'營火的熱大部分散到空氣裡。黏土窯壁不容易傳熱，把熱關在裡面，同樣的木頭能燒到更高的溫度。',note:''},
  {id:'tech_raft',name:'出海需要什麼',kind:'tech',inputs:[],out:{},eqx:'浮力 ＋ 淡水 ＋ 不會壞的食物',phen:'木頭綁成的筏子穩穩浮在水面上。',use:'木頭的密度比水小所以會浮。鹽能讓食物裡的微生物脫水，食物就不容易腐敗。海水不能喝，所以要用陶罐裝淡水。',note:''},
@@ -521,7 +523,7 @@ const QUESTS=[
  {id:'s_co2',side:1,ch:'支線　石灰的循環',goal:'把石灰水變回石頭',hint:'「石灰石燒的時候，有東西從爐口跑掉了，抓不住。但同一種氣體，你身上就有。」',rx:['breath','limewater_co2'],done:s=>!!(s.found.breath||s.found.limewater_co2),
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
- {id:'s_wheel',side:1,ch:'支線　讓河替你工作',goal:'在河邊蓋一座水車',hint:'「綠岩島和火山島各有一條從湖流到海的小河。木頭 10、藤蔓纖維 4、鐵 2。蓋好以後，把爐子蓋在它附近。」',done:HAS('wheel')},
+ {id:'s_wheel',side:1,ch:'支線　讓河替你工作',goal:'在河邊蓋一座水車',hint:'「綠岩島和火山島各有一條從湖流到海的小河。木頭 10、藤蔓纖維 4、鐵 2。蓋好以後，把爐子蓋在它附近。在水車旁邊取水，一次就能裝滿。」',done:HAS('wheel')},
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
  {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰，或是鹽湖邊白色的結晶。不是每一種鹼都做得出能起泡的肥皂。」',rx:['soap','soap_ash','soap_soda'],done:s=>!!(s.found.soap||s.found.soap_ash||s.found.soap_soda)},
@@ -650,7 +652,12 @@ function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和
 /* 背包：每種東西最多帶這麼多；多的要放進家裡的倉庫 */
 const BAGCAP=30;
 /* 黏土：工具越好挖得越深。徒手 8、青銅工具 10、鐵製工具 12 */
-const nodeYield=(s,type,base)=>type==='clay'?base+(s.abil.iron_tools?4:s.abil.bronze_tools?2:0):base;
+const toolLv=s=>s.abil.iron_tools?2:s.abil.bronze_tools?1:0;
+const nodeYield=(s,type,base)=>type==='clay'?base+toolLv(s)*2:type==='tree'?base+toolLv(s):base;   /* 樹：舊斧 4、青銅 5、鐵 6 */
+/* 要敲幾下：好工具省力。舊鐵斧 3 下、青銅工具 2 下、鐵製工具 1 下 */
+const hitsNeed=(s,d)=>Math.max(1,(d.hp||1)-((d.hp||1)>1?toolLv(s):0));
+/* 一次能裝多少水：徒手 1、陶罐 2、木桶 5 */
+const waterYield=s=>s.abil.bucket?5:s.abil.pottery?2:1;
 function stash(s,st,id,n){st.store=st.store||{};n=Math.min(n,s.inv[id]||0);if(n<=0)return 0;s.inv[id]-=n;st.store[id]=(st.store[id]||0)+n;return n;}
 function unstash(s,st,id,n){st.store=st.store||{};n=Math.min(n,st.store[id]||0,Math.max(0,BAGCAP-(s.inv[id]||0)));if(n<=0)return 0;st.store[id]-=n;s.inv[id]=(s.inv[id]||0)+n;return n;}
 /* 文明分數：學到的越多、科技越高，分數越高 */
@@ -994,7 +1001,7 @@ Object.keys(PART).forEach(type=>{const list=nodes.filter(n=>n.type===type);list.
  inst[type]=PART[type].map(p=>{const m=new G.InstancedMesh(p.g,new G.MeshLambertMaterial({color:p.c,flatShading:true}),list.length);scene.add(m);return m;});});
 function setNode(n){const t=now(),w=n.wob&&t<n.wob?1+Math.sin((n.wob-t)*40)*.12:1,hp=NODES[n.type].hp||1;
  /* 採完的礦物消失；樹和植物從小苗慢慢長回原來的大小 */
- const k=n.gone?.0001:n.cd>t?Math.max(.0001,Math.pow(1-(n.cd-t)/(n.rg||1),2)*.9):1-.18*n.hits/hp,s=n.sc*k;V3.set(n.x+.5,hAt(n.x+.5,n.y+.5),n.y+.5);Q.setFromAxisAngle(UP,n.rot);SC.set(s*w,s/w,s*w);M4.compose(V3,Q,SC);
+ const k=n.gone?.0001:n.cd>t?Math.max(.0001,Math.pow(1-(n.cd-t)/(n.rg||1),2)*.9):1-.18*Math.min(1,n.hits/hp),s=n.sc*k;V3.set(n.x+.5,hAt(n.x+.5,n.y+.5),n.y+.5);Q.setFromAxisAngle(UP,n.rot);SC.set(s*w,s/w,s*w);M4.compose(V3,Q,SC);
  inst[n.type].forEach(m=>{m.setMatrixAt(n.i,M4);m.instanceMatrix.needsUpdate=true;});}
 nodes.forEach((n,i)=>{n.id=i;if(S.gone[i])n.gone=true;});nodes.forEach(setNode);let live=[];
 
@@ -1155,16 +1162,16 @@ function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)ret
  hitCd=t+.32;P.swing=t+.25;P.ang=Math.atan2(nd.x+.5-P.x,nd.y+.5-P.y);nd.hits++;nd.wob=t+.25;live.push(nd);
  burst(nd.x+.5,hAt(nd.x+.5,nd.y+.5),nd.y+.5,d.rock?'#9a968f':PART[nd.type][PART[nd.type].length-1].c);
  d.rock?SFX.rock():(d.hp>1?SFX.chop():0);
- if(nd.hits>=(d.hp||1)){nd.hits=0;d.rock?SFX.crack():(d.hp>1?SFX.fall():0);
+ if(nd.hits>=hitsNeed(S,d)){nd.hits=0;d.rock?SFX.crack():(d.hp>1?SFX.fall():0);
   if(d.regrow){nd.rg=d.regrow*(.8+Math.random()*.4);nd.cd=t+nd.rg;}
   else{nd.gone=true;S.gone[nd.id]=1;setNode(nd);if(!S.known._finite){S.known._finite=true;toast('這裡採完了。礦物和黏土不會再長出來，樹和植物才會。');}}
   if(d.rock&&!S.known[nd.type]){S.known[nd.type]=true;const it=ITEMS[d.item];storyQ.push(`<b>你把石頭敲開了。</b>\n\n裂開的地方是${d.vein}的——\n\n<b style="font-size:20px">${d.kn||it.n}　${fh(it.f)}</b>\n\n${it.d}\n\n<span class="muted">以後看到露出${d.vein}礦脈的石頭，你就認得了。</span>`);}
   if(nd.type==='wildgrain'&&!S.known._grain){S.known._grain=true;storyQ.push('你摘下一把野生的穀粒。\n\n筆記的夾頁：「別全部吃掉。翻一塊地，把它種回去。\n\n種下去以後長得慢，不一定是你偷懶——土裡缺的東西，眼睛看不出來。先用紫色的汁液測測土是酸是鹼，再想想火堆裡的灰、爛掉的草葉、海鳥留在岩石上的白色東西，各能補上什麼。」');}
-  {const y=yieldOf(nd,d);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('有了金屬工具，黏土挖得更深、更多。');}}return true;}
+  {const y=yieldOf(nd,d);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('工具越好，一次採到的越多。');}}return true;}
  setNode(nd);return false;}
 function nearWater(type){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(P.x)+dx,ty=Math.floor(P.y)+dy,tt=tileAt(tx,ty);if((tt===type||(type===LAKE&&tt===RIVER))&&Math.hypot(tx+.5-P.x,ty+.5-P.y)<1.8)return true;}return false;}
 function takeAcid(){if(!nearWater(ACID))return false;if(now()<waterCd)return true;waterCd=now()+.6;if(bagFull('h2so4')){fullWarn('h2so4');return true;}SFX.water();gain('h2so4',2);if(!S.known._acid){S.known._acid=true;S.found.tech_acidlake=true;SFX.discover();}after();return true;}
-function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;if(bagFull(type===SEA?'seawater':'water')){fullWarn(type===SEA?'seawater':'water');return true;}SFX.water();gain(type===SEA?'seawater':'water',1);return true;}
+function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;if(bagFull(type===SEA?'seawater':'water')){fullWarn(type===SEA?'seawater':'water');return true;}SFX.water();{const it=type===SEA?'seawater':'water',room=BAGCAP-(S.inv[it]||0),byWheel=type===LAKE&&S.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-P.x,w.y-P.y)<5);gain(it,Math.min(room,byWheel?room:waterYield(S)));if(byWheel&&!S.known._wheelwater){S.known._wheelwater=true;toast('🎡 水車把水打了上來，一次就裝滿了。');}}return true;}
 function nearestNode(){let best=null,bd=1.5;for(const n of nodes){const d=Math.hypot(n.x+.5-P.x,n.y+.5-P.y);if(d<bd&&!n.gone&&n.cd<=now()){bd=d;best=n;}}return best;}
 function nearStation(){let best=null,bd=1.3;for(const s of allStations()){const d=Math.hypot(s.x-P.x,s.y-P.y)-(SRAD[s.type]||.5);if(d<bd){bd=d;best=s;}}return best;}   /* 以「離牆多遠」來算，大房子才碰得到 */
 function interact(){const s=nearStation();if(s)return useStation(s);if(boatNear(2.4)>=0)return board(boatNear(2.4));const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeAcid()||takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
@@ -1262,7 +1269,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
-  else if(n){const d=NODES[n.type],hp=d.hp||1;p=(toolFor(d)&&!S.abil[toolFor(d)])?'🔒 '+nodeName(n)+(toolFor(d)==='axe'?'　需要工具（去破船找找）':'　太硬了，需要'+BMAP[toolFor(d)].n):'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
+  else if(n){const d=NODES[n.type],hp=hitsNeed(S,d);p=(toolFor(d)&&!S.abil[toolFor(d)])?'🔒 '+nodeName(n)+(toolFor(d)==='axe'?'　需要工具（去破船找找）':'　太硬了，需要'+BMAP[toolFor(d)].n):'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
   else if(nearWater(ACID))p='🧪 酸湖　按 E 用陶罐舀硫酸';
   else if(nearWater(LAKE))p='💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
   $('prompt').textContent=p;}
@@ -1653,7 +1660,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.2',VDATE='2026-11-16';
+const VERSION='2.3',VDATE='2026-11-16';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
