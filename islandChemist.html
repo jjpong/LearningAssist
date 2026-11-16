@@ -246,7 +246,7 @@ const REACTIONS=[
   phen:'火焰、濃煙，最後只剩下一小撮灰白色的灰。',use:'燃燒是劇烈的氧化。木頭大部分變成氣體飄走了，留下的灰含有碳酸鉀。',note:''},
  {id:'pottery',name:'把黏土燒成陶',kind:'chem',at:'heat',T:600,not:['caco3','quicklime'],inputs:[['clay']],out:{ceramic:1},grant:'pottery',eqx:'黏土 —(600 °C 以上)→ 陶',
   phen:'土坯由灰褐色變成磚紅色，敲起來鏗鏘作響，泡水也不會再化開。',use:'高溫讓黏土顆粒失去結晶水並互相熔結，變成新的物質——這是化學變化，回不去了。從此你有了鍋子和罐子。',note:'最早的陶器就是直接在火堆裡燒出來的。'},
- {id:'evap',name:'煮海水取鹽',kind:'phys',at:'heat',T:100,pot:1,inputs:[['seawater']],out:{salt:1},eqx:'海水 → 食鹽 + 水蒸氣',
+ {id:'evap',name:'煮海水取鹽',kind:'phys',at:'heat',T:100,pot:1,inputs:[['seawater'],['brine']],out:{salt:1},eqx:'海水 → 食鹽 + 水蒸氣',
   phen:'水沸騰、越來越少，鍋底出現白色晶體。',use:'水變成水蒸氣離開，食鹽留下來，沒有產生新物質。',note:'真實的海水含鹽約 3.5%，要煮掉很多水才有一點鹽。'},
  {id:'indicator',name:'萃取紫甘藍指示劑',kind:'phys',at:'heat',T:80,pot:1,inputs:[['cabbage','water']],out:{indicator:3},eqx:'紫甘藍 + 熱水 → 紫色汁液（萃取）',
   phen:'熱水漸漸被染成紫色。',use:'花青素溶進熱水裡，就成了天然的酸鹼指示劑。',note:''},
@@ -308,7 +308,7 @@ const REACTIONS=[
  {id:'limewater',name:'配製澄清石灰水',kind:'phys',at:'table',inputs:[['slaked','water']],out:{limewater:1},eqx:'熟石灰 + 水 → 澄清石灰水（溶解）',phen:'攪拌後液體混濁，靜置後取上層澄清液。',use:'氫氧化鈣只微溶於水，所以要取上層澄清的部分。',note:''},
  {id:'breath',name:'對石灰水吹氣',kind:'chem',at:'table',ppt:1,inputs:[['limewater']],out:{caco3:1},eq:'Ca(OH)2 + CO2 -> CaCO3 + H2O',phen:'用一根空心的草莖，對著澄清的石灰水慢慢吹氣。吹著吹著，水變得白白濁濁的。',use:'你呼出來的氣體裡有二氧化碳，它和石灰水反應，生成不溶於水的碳酸鈣——和貝殼、石灰石是同一種東西。',note:'燒石灰石時從爐口散掉的，也是二氧化碳。吸進去的空氣裡很少，呼出來的卻變多了：身體裡也在進行某種「燃燒」。'},
  {id:'limewater_co2',name:'二氧化碳通入石灰水',kind:'chem',at:'table',ppt:1,inputs:[['limewater','co2']],out:{caco3:1},eq:'Ca(OH)2 + CO2 -> CaCO3 + H2O',phen:'澄清的石灰水變成白色混濁！',use:'這是檢驗二氧化碳的方法。白色沉澱就是碳酸鈣——和貝殼是同一種物質，繞了一圈又回來了。',note:''},
- {id:'mortar',name:'調製灰泥',kind:'phys',at:'table',inputs:[['slaked','sand','water']],out:{mortar:2},eqx:'熟石灰 + 石英砂 + 水 → 灰泥（混合）',phen:'攪成黏稠的灰白色泥漿。',use:'調的時候只是混合。但抹上牆之後，熟石灰會吸收空氣中的二氧化碳，慢慢變回堅硬的碳酸鈣——那就是化學變化了。',note:'羅馬人和古代中國的城牆都用它。'},
+ {id:'mortar',name:'調製灰泥',kind:'phys',at:'table',inputs:[['slaked','sand','water'],['quicklime','sand','water']],out:{mortar:2},eqx:'熟石灰 + 石英砂 + 水 → 灰泥（混合）',phen:'攪成黏稠的灰白色泥漿。',use:'調的時候只是混合。但抹上牆之後，熟石灰會吸收空氣中的二氧化碳，慢慢變回堅硬的碳酸鈣——那就是化學變化了。',note:'羅馬人和古代中國的城牆都用它。'},
  {id:'crush',name:'把石英敲碎',kind:'phys',at:'table',inputs:[['quartz']],out:{sand:2},eqx:'石英 → 石英砂（敲碎）',phen:'透明的晶體碎成一堆白色的細砂。',use:'只是顆粒變小，成分還是二氧化矽——沒有產生新物質，這是物理變化。',note:''},
  {id:'concrete',name:'拌混凝土',kind:'chem',at:'table',hot:1,inputs:[['cement','sand','water']],out:{concrete:2},eqx:'水泥 + 水 → 水合矽酸鈣（硬化）',phen:'灰色的泥漿慢慢變稠、發熱，最後硬得像石頭，再泡水也不會散。',use:'水泥不是「乾了」才變硬，而是和水發生化學反應（水化），所以在水裡也能凝固。這和灰泥不一樣——灰泥是靠吸收空氣中的二氧化碳。',note:'反應會放熱。大型水壩灌漿時，還得埋冷卻水管幫它降溫。'},
  {id:'flour',name:'把穀物磨成粉',kind:'phys',at:'table',inputs:[['grain']],out:{flour:1},eqx:'穀物 → 麵粉（磨碎）',phen:'穀粒在石頭上磨成白色的細粉。',use:'只是顆粒變小，成分沒有變——物理變化。',note:''},
@@ -336,6 +336,16 @@ const REACTIONS=[
  {id:'fe_cuso4',name:'鐵放進硫酸銅溶液',kind:'chem',at:'table',col:'#bfe0c8',inputs:[['iron','cuso4']],out:{copper:1,vitriol:1},eq:'Fe + CuSO4 -> FeSO4 + Cu',phen:'鐵的表面長出一層紅色的銅，藍色溶液漸漸變成淺綠色。',use:'鐵比銅活潑，把銅從溶液裡「趕」了出來。古人叫它「膽水煉銅」。',note:''},
  {id:'cu_hot_acid',name:'銅加硫酸加熱',kind:'chem',at:'heat',T:200,pot:1,inputs:[['copper','h2so4']],out:{cuso4:1},eq:'Cu + 2H2SO4 -> CuSO4 + SO2 + 2H2O',
   phen:'一開始什麼事也沒有。水越煮越少，酸越來越濃，銅片表面開始冒出刺鼻的氣體，溶液慢慢變成藍色。',use:'冷的稀硫酸拿銅沒辦法；但加熱把水趕走以後，又濃又熱的硫酸能直接把銅氧化，生成硫酸銅，同時放出二氧化硫。',note:'這和「金屬把酸裡的氫趕出來」是不同的反應——冒出來的不是氫氣，是有毒的二氧化硫。現實中必須在抽風櫃裡做。'},
+ {id:'unslake',name:'加熱熟石灰',kind:'chem',at:'heat',T:520,inputs:[['slaked']],out:{quicklime:1},eq:'Ca(OH)2 -> CaO + H2O',phen:'白色粉末冒出水氣，變得更乾、更輕。',use:'熟石灰加熱到五百多度會把水吐出來，變回生石灰。加水變熟石灰、加熱變回生石灰——這個反應可以來回走。',note:'所以灰泥砌的爐子，內壁其實一直在失水、吸水之間循環。'},
+ {id:'dry_lime',name:'煮乾石灰水',kind:'phys',at:'heat',T:100,pot:1,not:['oil'],inputs:[['limewater']],out:{slaked:1},eqx:'澄清石灰水 → 水蒸氣 + 熟石灰（析出）',phen:'水煮乾了，鍋底留下一層薄薄的白色粉末。',use:'石灰水是熟石灰溶在水裡。把水趕走，溶質就留下來——和煮海水得到食鹽是同一個道理。',note:'氫氧化鈣很難溶，所以留下來的粉末只有一點點。'},
+ {id:'roast_vitriol',name:'在火上直接燒綠礬',kind:'chem',at:'heat',T:480,inputs:[['vitriol']],out:{hematite:1},eqx:'硫酸亞鐵 —(加熱)→ 氧化鐵 + 二氧化硫 + 三氧化硫',phen:'藍綠色的晶體先變白，再變成紅褐色的粉末，同時冒出嗆鼻的白煙，一下就散掉了。',use:'綠礬受熱分解，留下的紅色粉末是氧化鐵（鐵紅），和赤鐵礦是同一種東西。真正值錢的是那陣白煙——可惜在敞開的火上，它全跑掉了。',note:'如果能把那陣煙接住、讓它溶進水裡呢？'},
+ {id:'carb_acid',name:'碳酸鹽遇到酸',kind:'chem',at:'table',inputs:[['natron','vinegar'],['natron','hcl'],['natron','h2so4'],['lye','vinegar'],['lye','hcl'],['lye','h2so4']],out:{co2:1},eqx:'碳酸鹽 + 酸 → 鹽 + 水 + 二氧化碳',phen:'一碰到酸就嘶嘶作響，冒出大量氣泡。',use:'天然鹼是碳酸鈉，草木灰水裡是碳酸鉀，貝殼是碳酸鈣——名字裡有「碳酸」的，遇到酸都會放出二氧化碳。',note:'這是檢驗碳酸鹽最簡單的方法。'},
+ {id:'obs_caco3_h2so4',name:'石灰石加稀硫酸',kind:'obs',at:'table',inputs:[['caco3','h2so4']],out:{},eqx:'CaCO₃ + H₂SO₄ → CaSO₄（微溶，包住表面）+ H₂O + CO₂',phen:'冒了幾個氣泡，很快就停了。石頭表面蓋上一層白白的東西。',use:'反應生成的硫酸鈣很難溶於水，像一層殼包住石灰石，酸碰不到裡面，反應就停了。換成鹽酸或醋就不會這樣。',note:'所以實驗室製二氧化碳用的是鹽酸，不用硫酸。'},
+ {id:'neutral3',name:'酸鹼中和',kind:'chem',at:'table',hot:1,inputs:[['h2so4','limewater'],['hcl','limewater'],['vinegar','limewater'],['h2so4','koh'],['hcl','koh'],['vinegar','koh'],['h2so4','naoh'],['vinegar','naoh'],['vinegar','lye']],out:{},eqx:'酸 + 鹼 → 鹽 + 水',phen:'兩種液體倒在一起，杯子微微發熱。看起來還是一杯水，但酸不再酸、鹼不再滑了。',use:'酸和鹼會互相抵消，生成鹽和水，並放出熱。先滴幾滴紫甘藍指示劑再混合，可以看到顏色一路變回紫色。',note:'硫酸加石灰水會出現白色混濁，那是難溶的硫酸鈣（石膏）。'},
+ {id:'metal_hcl',name:'金屬與稀鹽酸',kind:'chem',at:'table',inputs:[['iron','hcl'],['zinc','hcl']],out:{h2:1},eqx:'活潑金屬 + 鹽酸 → 金屬的氯化物 + 氫氣',phen:'金屬表面冒出氣泡，慢慢變小。鋅冒得比鐵快得多。',use:'和稀硫酸一樣，鹽酸裡的氫也會被比氫活潑的金屬趕出來。',note:'銅放進鹽酸裡，一樣沒有動靜。'},
+ {id:'mal_acid',name:'孔雀石加稀硫酸',kind:'chem',at:'table',inputs:[['malachite','h2so4']],out:{cuso4:2,co2:1},eq:'Cu2(OH)2CO3 + 2H2SO4 -> 2CuSO4 + CO2 + 3H2O',phen:'綠色的石頭冒著氣泡溶進酸裡，溶液變成漂亮的藍色。',use:'孔雀石是鹼式碳酸銅：有「碳酸」，所以遇酸冒二氧化碳；有銅，所以溶液變藍。不必先燒成氧化銅，酸可以直接把銅「泡」出來。',note:'現代的銅礦場有一大部分就是用酸把銅從礦石裡淋洗出來，再用電把銅鍍回來。'},
+ {id:'obs_ash_heat',name:'把草木灰再燒一次',kind:'obs',at:'heat',T:600,alone:1,inputs:[['ash']],out:{},eqx:'（碳酸鉀很耐熱，沒有分解）',phen:'灰還是灰。燒得通紅，冷了以後一點也沒變。',use:'草木灰的主要成分是碳酸鉀。同樣是碳酸鹽，貝殼裡的碳酸鈣八百多度就分解了，碳酸鉀卻要到一千兩百度以上——不是每一種碳酸鹽都燒得動。',note:'天然鹼（碳酸鈉）也一樣耐熱。'},
+ {id:'obs_seawater',name:'用海水代替淡水',kind:'obs',at:'none',inputs:[],out:{},eqx:'（反應照樣發生，但鹽留在成品裡）',phen:'看起來和用淡水做的差不多。可是乾了以後，表面浮出一層白白的鹽霜，摸起來潮潮的。',use:'海水每一百份裡大約有三份半的鹽。水參加反應或蒸發以後，鹽全留在成品裡：灰泥會吸潮、鬆掉，溶液不純，吃的東西鹹得不能入口。',note:'生石灰加海水一樣會發熱變成熟石灰，只是裡面混了鹽，不能用了。化學實驗講究「純」，就是這個原因。'},
  {id:'fe_acid',name:'鐵加稀硫酸',kind:'chem',at:'table',col:'#cfe6d0',inputs:[['iron','h2so4']],out:{vitriol:1,h2:1},eq:'Fe + H2SO4 -> FeSO4 + H2',phen:'鐵的表面冒出氣泡，溶液變成淺綠色。',use:'活潑的金屬能把酸裡的氫趕出來，變成氫氣。',note:'1766 年卡文迪西就是這樣發現氫氣的。'},
  {id:'zn_acid',name:'鋅加稀硫酸',kind:'chem',at:'table',inputs:[['zinc','h2so4']],out:{znso4:1,h2:1},eq:'Zn + H2SO4 -> ZnSO4 + H2',phen:'鋅的表面劇烈冒泡，比鐵快得多。',use:'鋅比鐵更活潑，所以反應更快。實驗室常用這個方法製造氫氣。',note:''},
  {id:'zn_cuso4',name:'鋅放進硫酸銅溶液',kind:'chem',at:'table',inputs:[['zinc','cuso4']],out:{copper:1,znso4:1},eq:'Zn + CuSO4 -> ZnSO4 + Cu',phen:'鋅的表面長出紅色的銅，藍色溶液褪成無色。',use:'鋅比銅活潑。金屬活性：鋅 > 鐵 > 銅。',note:''},
@@ -581,6 +591,8 @@ function mixReact(s,ids,at,indoor){
  if(!ids.length)return{err:'先放入材料。'};
  for(const id of ids)if(!(s.inv[id]>0))return{err:ITEMS[id].n+' 不夠了。'};
  const k=rkey(ids);let r=REACTIONS.find(r=>r.at===at&&r.inputs.some(a=>rkey(a)===k));
+ if(!r&&at==='table'&&ids.includes('seawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='seawater'?'water':i));   /* 拿海水當淡水用：反應會發生，但成品混了鹽，整份報廢 */
+  if(REACTIONS.some(x=>x.at==='table'&&x.kind!=='obs'&&x.id!=='brine'&&x.inputs.some(a=>rkey(a)===k2))){r=RMAP.obs_seawater;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}}
  if(!r){const lq=at==='table'?ids.filter(i=>LIQ.has(i)&&i!=='water'):[];if(lq.length>=2){lq.forEach(i=>s.inv[i]--);return{none:true,lost:lq};}return{none:true};}   /* 兩種溶液混在一起就分不開了 */
  if(r.indoor&&!indoor){r=RMAP.obs_outdoor;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}   /* 該在室內做的事拿到戶外做：整份壞掉 */
  if(r.clean&&!(s.clean>0)){r=RMAP.obs_dirty;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}   /* 沒洗手就發酵：被雜菌污染 */
@@ -1466,7 +1478,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='1.9',VDATE='2026-11-16';
+const VERSION='1.10',VDATE='2026-11-16';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
