@@ -394,7 +394,7 @@ const RMAP={};REACTIONS.forEach(r=>RMAP[r.id]=r);
 const F=id=>s=>!!s.found[id],A=id=>s=>!!s.abil[id],V=i=>s=>!!s.seen[i],HAS=t=>s=>s.st.some(x=>x.type===t&&x.done);
 const QUESTS=[
  {id:'q_wreck',ch:'第一章　火與渡海　｜　貝殼島',goal:'到沙灘上那艘破船找找有沒有能用的東西',hint:'「船就擱淺在你醒來的地方往西幾步。走到旁邊按 E（或點它）。空著手，什麼也做不了。」',done:s=>!!s.known._wreck||!!s.abil.axe,
-  after:'一把斧頭。\n\n它又舊又鈍，卻是你和這座島之間的第一樣工具。\n\n人類花了幾十萬年才學會把石頭綁在木棍上。你不必從那裡開始——但接下來的每一步，都得自己走。'},
+  after:'一把鐵斧。\n\n它又舊又鈍，卻是你和這座島之間的第一樣工具——也是這片海上唯一的一塊鐵。它是怎麼從石頭變成鐵的？你知道道理，但還沒有親手做過。\n\n人類花了幾十萬年才學會把石頭綁在木棍上。你不必從那裡開始——但接下來的每一步，都得自己走。'},
  {id:'q_wood',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到樹旁邊，用斧頭砍樹，蒐集 3 個木頭',hint:'「靠近樹按 E（或點它），要砍好幾下。天黑以前，一定要先有火。」',done:s=>(s.inv.wood||0)>=3||s.st.length>0},
  {id:'q_campfire',ch:'第一章　火與渡海　｜　貝殼島',goal:'打開「建造」，在空地上堆一座營火',hint:'「面向一塊空地，選營火。木頭不夠的話，之後走過去按 E 再補。」',done:HAS('campfire')},
  {id:'q_fire',ch:'第一章　火與渡海　｜　貝殼島',goal:'走到營火旁，添柴、點火',hint:'「柴越多，火越旺、燒得越久。看著溫度計，試試放 2 根和放 6 根差多少。」',done:A('fire'),
@@ -518,7 +518,7 @@ const installStill=(s,st)=>installLab(s,st,'still');
 /* 破船：第一次翻找可以拿到一點東西；線索隨時可以回來看 */
 const WRECK_LOOT={wood:2,fiber:4};
 /* 砍樹、敲石頭都要工具。第一把是破船上那把缺了口的小斧頭 */
-const toolFor=d=>d.tool||(d.hp>1?'axe':null),TOOLN={axe:'斧頭'};
+const toolFor=d=>d.tool||(d.hp>1?'axe':null),TOOLN={axe:'舊鐵斧'};
 const WRECK_CLUES=[['🔩 船釘','固定船板的銅釘，泡過海水的地方長出一層綠色的鏽。'],['⚓ 鐵錨','鏽成紅褐色，一碰就掉屑。原本銀灰色的鐵，放久了會變成這樣。'],['🪢 纜繩','大部分都爛了。只有長年泡在鹽水裡的那一段，還結實得很。'],
  ['🪟 舷窗碎片','透明的玻璃碎片，斷口摸起來卻和沙子一樣粗。'],['🪨 壓艙石','船底壓艙用的灰白色石頭，上面黏著貝殼——兩者的顏色和質地，幾乎分不出來。'],['📜 航海日誌的殘頁','「……東北方有一座較大的島，山壁露出灰白和翠綠的顏色。更遠的東南方，有一座會冒煙的山……」後面的字被海水泡糊了。']];
 function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;s.abil.axe=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
@@ -1009,7 +1009,7 @@ function gain(id,n){if(bagFull(id)){fullWarn(id);return false;}n=Math.min(n,BAGC
 function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)return false;
  if(bagFull(d.item)){fullWarn(d.item);return true;}
  {const y=yieldOf(nd,d),room=BAGCAP-(S.inv[d.item]||0);if(!d.regrow&&room<y){warn('背包只放得下 '+room+' 份'+ITEMS[d.item].n+'，這裡有 '+y+' 份。先把一些存進家裡的倉庫再來採，才不會浪費。');return true;}}
- {const tl=toolFor(d);if(tl&&!S.abil[tl]){warn(tl==='axe'?'空手'+(d.rock?'敲不開石頭':'砍不動樹')+'。沙灘上那艘破船裡，也許有能用的工具。':'這塊石頭太硬了，舊斧頭只會彈回來。需要「'+BMAP[tl].n+'」才敲得開');return false;}}
+ {const tl=toolFor(d);if(tl&&!S.abil[tl]){warn(tl==='axe'?'空手'+(d.rock?'敲不開石頭':'砍不動樹')+'。沙灘上那艘破船裡，也許有能用的工具。':'這塊石頭太硬了，又鏽又鈍的舊鐵斧只會彈回來。需要「'+BMAP[tl].n+'」才敲得開');return false;}}
  hitCd=t+.32;P.swing=t+.25;P.ang=Math.atan2(nd.x+.5-P.x,nd.y+.5-P.y);nd.hits++;nd.wob=t+.25;live.push(nd);
  burst(nd.x+.5,hAt(nd.x+.5,nd.y+.5),nd.y+.5,d.rock?'#9a968f':PART[nd.type][PART[nd.type].length-1].c);
  d.rock?SFX.rock():(d.hp>1?SFX.chop():0);
@@ -1169,7 +1169,7 @@ function place(type){if(BMAP[type].inLab)return toast(BMAP[type].n+'要裝在屋
  const st={type,x,y,isl:owner[Math.floor(y)*W+Math.floor(x)],have:{},done:false};S.st.push(st);syncStation(st);closeModal();useStation(st);}
 function openWreck(){panel='wreck';SFX.ui();const got=lootWreck(S);if(got){SFX.done();closeHook=()=>after();}
  openModal(head('🚢 擱淺的破船')+`<div class="story" style="margin-bottom:10px">這就是載你來的那艘船。龍骨斷了，船艙進了半艙的沙。它哪裡也去不了了。</div>
- ${got?`<div class="result new"><b>你在船艙裡翻出一些還能用的東西：</b><br>🪓 <b>一把破舊的小斧頭</b>——斧刃撞缺了一角，又鏽又鈍。砍樹、敲開一般的石頭還行；碰到真正堅硬的礦石，大概只會彈回來。<br>${Object.keys(got).map(k=>ITEMS[k].n+' ×'+got[k]).join('、')}（拆下來的船板和纜繩）</div>`:'<div class="muted">能拆的都拆了。剩下的只有這些看得到、帶不走的東西。</div>'}
+ ${got?`<div class="result new"><b>你在船艙裡翻出一些還能用的東西：</b><br>🪓 <b>一把舊鐵斧</b>——從原來的世界帶來的。斧刃撞缺了一角，又鏽又鈍。砍樹、敲開一般的石頭還行；碰到真正堅硬的礦石，大概只會彈回來。<br>${Object.keys(got).map(k=>ITEMS[k].n+' ×'+got[k]).join('、')}（拆下來的船板和纜繩）</div>`:'<div class="muted">能拆的都拆了。剩下的只有這些看得到、帶不走的東西。</div>'}
  <h3>仔細看看這艘船</h3>${WRECK_CLUES.map(c=>`<div class="entry" style="padding:8px 12px"><b>${c[0]}</b>　${c[1]}</div>`).join('')}
  <div class="muted">這些東西本身幫不上忙。但它們是用什麼做的、後來變成了什麼樣子——也許值得記在心裡。</div>`);}
 function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.type];
@@ -1466,7 +1466,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='1.8',VDATE='2026-11-16';
+const VERSION='1.9',VDATE='2026-11-16';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
