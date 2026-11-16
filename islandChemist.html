@@ -970,7 +970,7 @@ function bumpAt(nx,ny){const t=now(),tx=Math.floor(nx),ty=Math.floor(ny);   /* �
 const parkedG=[1,2,3].map(r=>{const g=new G.Group();g.add(boatModel(r));g.scale.setScalar(1.25);g.visible=false;scene.add(g);return g;});
 function nearestSea(x,y,r){let best=null,bd=1e9;for(let dy=-9;dy<=9;dy++)for(let dx=-9;dx<=9;dx++){const tx=Math.floor(x)+dx,ty=Math.floor(y)+dy;if(tileAt(tx,ty)===SEA&&boatOK(r,rankAt(tx,ty))&&!(S.boats||[]).some(b=>Math.hypot(b.x-tx-.5,b.y-ty-.5)<1.6)){const d=Math.hypot(tx+.5-x,ty+.5-y);if(d<bd){bd=d;best={x:tx+.5,y:ty+.5,a:0};}}}return best;}
 function shoreSea(isl,r){const I=ISLANDS[isl];if(!boatOK(r,I.rank))return null;let best=null,bd=1e9;   /* 某座島岸邊的一格海 */
- for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SEA||owner[y*W+x]!==isl)continue;if(![[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===SAND))continue;
+ for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SEA||owner[y*W+x]!==isl)continue;if(![[1,0],[-1,0],[0,1],[0,-1]].some(d=>{const j=(y+d[1])*W+x+d[0];return tiles[j]===SAND&&landLab[j]===mainLab[isl];}))continue;
   if((S.boats||[]).some(b=>Math.hypot(b.x-x-.5,b.y-y-.5)<1.6))continue;const d=Math.hypot(x-I.cx,y-I.cy-I.r);if(d<bd){bd=d;best={x:x+.5,y:y+.5,a:0};}}return best;}
 function launch(st){const i=S.st.indexOf(st);if(i>=0)S.st.splice(i,1);const g=stObj.get(st);if(g){scene.remove(g);stObj.delete(st);}
  const r=BOATT[st.type],p=nearestSea(st.x,st.y,r)||{x:st.x,y:st.y,a:0};S.boats.push({x:p.x,y:p.y,a:0,r});
@@ -987,6 +987,22 @@ function fixBoat(){const fl=Math.floor,sea=tileAt(fl(P.x),fl(P.y))===SEA,here=ra
  if(sea){let bi=-1,bd=1e9;S.boats.forEach((b,i)=>{if(!boatOK(b.r,here))return;const d=Math.hypot(b.x-P.x,b.y-P.y);if(d<bd){bd=d;bi=i;}});
   if(bi>=0){S.cur=bi;S.aboard=true;S.boats[bi].x=P.x;S.boats[bi].y=P.y;}}
  S.st=S.st.filter(x=>{if(BMAP[x.type].dock&&x.done){const g=stObj.get(x);if(g){scene.remove(g);stObj.delete(x);}return false;}return true;});}
+/* 陸塊編號：用來判斷「船停的地方，人走不走得到」。外海的小沙洲和本島是不同的陸塊 */
+const landLab=new Int32Array(W*H).fill(-1),landN=[];
+for(let i=0;i<W*H;i++){if(tiles[i]===SEA||landLab[i]>=0)continue;const id=landN.length,q=[i];landLab[i]=id;let n=0;
+ while(q.length){const c=q.pop();n++;const x=c%W,y=(c/W)|0;for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+d[0],ny=y+d[1];if(nx<0||ny<0||nx>=W||ny>=H)continue;const j=ny*W+nx;if(tiles[j]!==SEA&&landLab[j]<0){landLab[j]=id;q.push(j);}}}landN.push(n);}
+const mainLab=ISLANDS.map((I,ii)=>{const c={};let b=-1;for(let i=0;i<W*H;i++)if(landLab[i]>=0&&owner[i]===ii){const l=landLab[i];c[l]=(c[l]||0)+1;if(b<0||c[l]>c[b])b=l;}return b;});
+function boatLabs(b){const o=[],bx=Math.floor(b.x),by=Math.floor(b.y);for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const x=bx+dx,y=by+dy;if(x<0||y<0||x>=W||y>=H)continue;const l=landLab[y*W+x];if(l>=0&&!o.includes(l)&&Math.hypot(x+.5-b.x,y+.5-b.y)<=2.2)o.push(l);}return o;}
+function shoreNear(lab,r,px,py,skip){let best=null,bd=1e9;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SEA||!boatOK(r,rankAt(x,y)))continue;
+  if(![[1,0],[-1,0],[0,1],[0,-1]].some(d=>landLab[(y+d[1])*W+x+d[0]]===lab))continue;if(S.boats.some(b=>b!==skip&&Math.hypot(b.x-x-.5,b.y-y-.5)<1.6))continue;
+  const d=Math.hypot(x+.5-px,y+.5-py);if(d<bd){bd=d;best={x:x+.5,y:y+.5};}}return best;}
+/* 保險：人在陸地上，可是走得到的岸邊一艘船都沒有（船被放到外海的小沙洲旁邊之類）→ 把船帶回來，不讓遊戲卡死 */
+function rescueBoat(){if(S.aboard||!S.boats.length)return false;const lab=landLab[Math.floor(P.y)*W+Math.floor(P.x)];if(lab==null||lab<0)return false;
+ if(S.boats.some(b=>boatLabs(b).includes(lab)))return false;
+ const put=b=>{const p=shoreNear(lab,b.r,P.x,P.y,b);if(!p)return false;b.x=p.x;b.y=p.y;b.a=0;return true;};let n=0;
+ S.boats.forEach(b=>{if(!boatLabs(b).some(l=>landN[l]>=40)&&put(b))n++;});   /* 停在小沙洲旁或漂在外海的，全部帶回來 */
+ if(!n){const o=S.boats.slice().sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));for(const b of o)if(put(b)){n=1;break;}}
+ if(n)save();return n>0;}
 fixBoat();
 /* 把一份存檔（或全新的狀態）套用到眼前的世界 */
 function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clear();S=loadState(st);
@@ -1104,7 +1120,7 @@ function update(dt){
 /* --- 每一格畫面 --- */
 const marker=new G.Mesh(new G.RingGeometry(.25,.36,16),new G.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.85,side:G.DoubleSide}));marker.rotation.x=-Math.PI/2;scene.add(marker);
 function frame(t,dt){
- netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});}
+ netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
  const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,y=onSea?Math.sin(t/400)*.05:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:0;
  parkedG.forEach(g=>g.visible=false);S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;const g=parkedG[bt.r-1];g.visible=true;g.position.set(bt.x,Math.sin(t/400+1+i)*.05,bt.y);g.rotation.y=bt.a||0;});
@@ -1490,7 +1506,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='1.14',VDATE='2026-11-16';
+const VERSION='1.15',VDATE='2026-11-16';
 /* ===== 英雄榜與人數統計 =====
    LB_URL 是老師自己的 Google 試算表（Apps Script 網路應用程式）的網址。留空＝完全不記錄、不顯示英雄榜。
    只送出：隨機代號、玩家自己取的名字、版本、主線進度、章節、分數、時代、徽章數。不含任何帳號或裝置資料。 */
