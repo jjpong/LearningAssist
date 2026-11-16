@@ -229,14 +229,14 @@ const reqName=q=>q.startsWith('f:')?'學會「'+RMAP[q.slice(2)].name+'」':q===
 /* 燃料：hv＝每份的火力；cap＝這種燃料的火焰最高能到幾度；life＝一份能燒多久。依冶金史的順序：木頭 < 木炭 ≈ 煤 < 焦炭 */
 const FUEL={wood:{hv:1,cap:1000,life:40},charcoal:{hv:1.35,cap:1350,life:60},coal:{hv:1.3,cap:1300,life:75},coke:{hv:1.5,cap:2000,life:85}},FUELS=Object.keys(FUEL);
 /* 蒸餾器的燒瓶也能當鍋子用：凡是「用鍋子煮」的反應（pot），在實驗室的蒸餾器上一樣做得成 */
-const atOK=(d,r)=>r.at===(d.at||'heat')||(d.at==='still'&&r.at==='heat'&&!!r.pot);
+const atOK=(d,r)=>(r.at===(d.at||'heat')&&!(r.pot&&!d.pot))||(d.at==='still'&&r.at==='heat'&&!!r.pot);   /* 鍋子放不進窯和冶煉爐 */
 const STN={
- campfire:{G:105,maxBurn:6,cap:700,scale:800,fuel:'柴堆',charge:'火上'},
+ campfire:{G:105,maxBurn:6,cap:700,scale:800,pot:true,fuel:'柴堆',charge:'火上'},
  kiln:{G:125,maxBurn:8,cap:1050,scale:1200,closed:true,fuel:'爐膛（燃料）',charge:'窯室（材料）'},
  furnace:{G:115,maxBurn:8,cap:1380,scale:1500,closed:true,bellows:true,fuel:'燃料',charge:'爐料（礦石等）'},
  blast:{G:120,maxBurn:10,cap:1900,scale:2000,closed:true,bellows:true,fuel:'燃料',charge:'爐料（鐵礦、焦炭、石灰石）'},
- still:{G:90,maxBurn:6,cap:650,scale:700,closed:true,at:'still',fuel:'爐火（燃料）',charge:'燒瓶'},
- stove:{G:80,maxBurn:5,cap:420,scale:500,fuel:'灶膛（燃料）',charge:'烤盤與鍋子'}
+ still:{G:90,maxBurn:6,cap:650,scale:700,closed:true,at:'still',pot:true,fuel:'爐火（燃料）',charge:'燒瓶'},
+ stove:{G:80,maxBurn:5,cap:420,scale:500,pot:true,fuel:'灶膛（燃料）',charge:'烤盤與鍋子'}
 };
 
 /* at：在哪裡做；T：需要的最低溫度（°C）；closed：需要隔絕空氣；pot：需要陶器；needs：需要的器材；eq 會被程式檢查是否平衡 */
@@ -356,6 +356,8 @@ const REACTIONS=[
  {id:'obs_pig_low',lose:['coke'],name:'溫度不夠的高爐料',kind:'obs',at:'heat',T:900,failOf:'pig_iron',inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{},eqx:'沒有鐵水流出來',phen:'爐料燒得通紅，卻沒有熔化。',use:'要讓鐵熔成鐵水得超過 1400 °C。舊的鼓風爐太矮、散熱太快；燃料也要用焦炭，而且風不能停。',note:''},
  {id:'obs_zn_open',lose:['zno','charcoal'],name:'沒有冷凝管的煉鋅',kind:'obs',at:'heat',T:950,failOf:'smelt_zn',failNeeds:1,inputs:[['zno','charcoal']],out:{},eqx:'沒有金屬留下',phen:'爐口冒出一陣藍白色的煙，爐底什麼也沒有。',use:'溫度是夠了，但鋅一生成就變成蒸氣飄走。得想辦法把蒸氣冷卻、接住。',note:''},
  {id:'obs_waterglass',name:'只加天然鹼的玻璃',kind:'obs',at:'heat',T:1000,not:['caco3','quicklime'],lose:['sand','quartz','natron'],inputs:[['sand','natron'],['quartz','natron']],out:{},eqx:'SiO₂ + Na₂CO₃ → Na₂SiO₃ + CO₂（水玻璃）',phen:'沙子真的熔了，冷卻後是一團透明的東西——可是滴上水，表面就慢慢變黏、化開。',use:'天然鹼讓二氧化矽在比較低的溫度熔化，但生成的矽酸鈉會溶於水，叫做「水玻璃」。要讓玻璃不怕水，還得加進含鈣的東西。',note:'鈉鈣玻璃的三種原料：矽砂（主體）、純鹼（助熔）、石灰石（安定）。窗戶和瓶子到今天還是這個配方。'},
+ {id:'obs_potdry',name:'把鍋子放進冶煉爐',kind:'obs',at:'none',inputs:[],out:{},eqx:'太熱了：一下就滾乾、燒焦',phen:'窯和鼓風爐是用來把熱悶在裡面的。鍋子一放進去，裡面的東西劈啪亂濺，一下子就滾乾、燒焦，什麼也沒留下。',use:'加熱不是越熱越好。煮東西只需要讓水保持在沸騰附近；冶煉爐動輒上千度，適合石頭和金屬，不適合鍋子裡的東西。要煮，就用營火、爐灶，或實驗室的蒸餾器。',note:'選對加熱的工具，和選對材料一樣重要。'},
+ {id:'obs_oil_cold',name:'油和鹼在常溫下混合',kind:'obs',at:'table',failOf:'soap_ash',inputs:[['oil','lye'],['oil','koh'],['oil','naoh'],['oil','natron','water'],['oil','natron'],['oil','limewater'],['oil','slaked','water']],out:{},eqx:'（反應太慢，幾乎看不出變化）',phen:'油浮在上面，清清楚楚分成兩層。用力攪一攪，變得有點混濁；放著不動，又慢慢分開了。',use:'油和鹼確實會反應，但在常溫下慢得幾乎看不出來。想讓一個反應變快，你已經知道最常用的辦法。',note:'材料沒有壞，撈起來還能再用。'},
  {id:'obs_dirty',name:'沒洗手就發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'被雜菌污染：長黴、發臭',phen:'過了幾天，表面浮起一層灰綠色的毛，聞起來不是酒香，是餿味。整份都不能用了。',use:'手上有油汙，油汙裡藏著各種細菌和黴菌。它們跟著手進了罐子，長得比酵母菌還快。發酵的訣竅是「只讓想要的微生物長」——動手之前，先用肥皂把手洗乾淨。',note:'1847 年，醫師塞麥爾維斯發現：只要醫生接生前洗手，產婦的死亡率就大幅下降。那時還沒有人知道細菌。'},
  {id:'tech_wash',name:'肥皂為什麼洗得掉油',kind:'tech',inputs:[],out:{},eqx:'肥皂分子：親油端 ＋ 親水端',phen:'搓出泡沫，手上的油汙跟著水流走了。',use:'油和水不互溶，光用水沖不掉油。肥皂分子一端親油、一端親水：親油端插進油汙，親水端留在水裡，把油汙包成小顆粒帶走——連同躲在裡面的細菌。',note:'所以洗手要搓夠久，讓肥皂有時間把油汙包起來。'},
  {id:'obs_outdoor',name:'在戶外發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'長黴、發臭',phen:'放在露天的東西被太陽曬、被雨淋，引來一堆果蠅，表面長出一層灰綠色的黴，聞起來又酸又臭。',use:'發酵是靠特定的微生物（酵母菌、醋酸菌）慢慢工作。戶外忽冷忽熱，別的黴菌和細菌也會跑進來搶著長。要在溫度穩定、乾淨、能蓋起來的地方做——到屋子裡的實驗桌再試一次。',note:''},
@@ -510,6 +512,11 @@ function installLab(s,st,id){const d=BMAP[id],h=BMAP[st.type];if(st[id])return{e
  const miss=Object.keys(d.need).filter(k=>(s.inv[k]||0)<d.need[k]);if(miss.length)return{err:'材料不夠：還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(d.need[k]-(s.inv[k]||0))).join('、')};
  for(const k in d.need)s.inv[k]-=d.need[k];st[id]=true;s.abil[d.grant]=true;const isNew=!s.found[d.entry];s.found[d.entry]=true;return{ok:true,isNew};}
 const installStill=(s,st)=>installLab(s,st,'still');
+/* 破船：第一次翻找可以拿到一點東西；線索隨時可以回來看 */
+const WRECK_LOOT={wood:2,fiber:4};
+const WRECK_CLUES=[['🔩 船釘','固定船板的銅釘，泡過海水的地方長出一層綠色的鏽。'],['⚓ 鐵錨','鏽成紅褐色，一碰就掉屑。原本銀灰色的鐵，放久了會變成這樣。'],['🪢 纜繩','大部分都爛了。只有長年泡在鹽水裡的那一段，還結實得很。'],
+ ['🪟 舷窗碎片','透明的玻璃碎片，斷口摸起來卻和沙子一樣粗。'],['🪨 壓艙石','船底壓艙用的灰白色石頭，上面黏著貝殼——兩者的顏色和質地，幾乎分不出來。'],['📜 航海日誌的殘頁','「……東北方有一座較大的島，山壁露出灰白和翠綠的顏色。更遠的東南方，有一座會冒煙的山……」後面的字被海水泡糊了。']];
+function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
 /* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
  s.inv.soap--;s.inv.water--;s.clean=3;s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
@@ -599,6 +606,9 @@ function fireTick(f,dt,s){const d=STN[f.type],ev=[];
 /* 火熄了以後：哪些東西沒反應？為什麼？ */
 function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],covered={},lost={},why=[];
  const kinds=Object.keys(f.charge).filter(k=>f.charge[k]>0);
+ if(!d.pot&&at==='heat'&&f.peak>=120){let hit=false;for(const r of REACTIONS){if(!r.pot||r.at!=='heat')continue;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));if(!a)continue;hit=true;
+   for(const id of a)if(f.charge[id]>0){lost[id]=(lost[id]||0)+f.charge[id];f.charge[id]=0;}}
+  if(hit){const r=RMAP.obs_potdry,isNew=!s.found[r.id];s.found[r.id]=true;obs.push({r,isNew});}}   /* 把鍋子塞進窯或冶煉爐：一下就燒乾 */
  for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;
   if(!r.inputs.some(a=>a.every(i=>f.charge[i]>=1))||f.peak<r.T)continue;if(r.outdoor&&f.indoor)continue;
   if(r.alone&&kinds.length>1)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;
@@ -673,7 +683,12 @@ function genWorld(seed){
    if(Math.hypot(x+.5-I.cx-I.lake[0],y+.5-I.cy-I.lake[1])<I.lake[2]+2.3)c.push([x,y]);}
   for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
   c.slice(0,n).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'clay',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
- return{W,H,tiles,owner,hc,nodes,animals,start:{x:I0.cx+.5,y:sy+.5},tower};
+ /* 起點旁邊擱淺的破船：找一格離起點 3～6 格、沒有東西的沙地（不動用亂數，其他東西的位置都不變） */
+ let wreck=null,wb=1e9;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SAND||owner[y*W+x]!==0||used.has(x+','+y))continue;const d=Math.hypot(x-I0.cx,y-sy);if(d<3||d>7)continue;
+   let near=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(used.has((x+dx)+','+(y+dy)))near++;
+   const sc=Math.abs(d-4)+near*2+([[1,0],[-1,0],[0,1],[0,-1]].some(q=>tiles[(y+q[1])*W+x+q[0]]===SEA)?0:1.5);if(sc<wb){wb=sc;wreck={x,y};}}
+ if(!wreck)wreck={x:I0.cx+3,y:sy};
+ return{W,H,tiles,owner,hc,nodes,animals,start:{x:I0.cx+.5,y:sy+.5},tower,wreck};
 }
 </script>
 <script>
@@ -909,11 +924,14 @@ function syncStation(st){let g=stObj.get(st);const hd=BMAP[st.type].house,fd=st.
  const p=st.done?1:buildProgress(st);g.scale.set(1.3,1.3*(.12+.88*p),1.3);if(g.flame)g.flame.visible=st.done&&!!S.abil.fire;}
 function farmCatchUp(){for(const st of S.st)if(st.type==='field'&&st.done){if(!st.farm)st.farm=farmInit(st.isl);const el=st.farm.last?Math.min(300,(Date.now()-st.farm.last)/1000):0;for(let k=0;k<el;k+=2)farmTick(st.farm,2);st.farm.last=Date.now();}}
 farmCatchUp();S.st.forEach(syncStation);
+{const g=boatModel(3);g.scale.setScalar(1.6);g.rotation.set(.12,.9,.42);const wx=world.wreck.x+.5,wy=world.wreck.y+.5;g.position.set(wx,hAt(wx,wy)-.18,wy);
+ g.traverse(o=>{if(o.material&&o.material.color){o.material=o.material.clone();o.material.color.multiplyScalar(.62);}});scene.add(g);}
 const TOWER={type:'tower',x:world.tower.x+.5,y:world.tower.y+.5,get have(){return S.tower;},get done(){return !!S.abil.beacon;},set done(v){}};
-const allStations=()=>S.st.concat([TOWER]);
+const WRECK={type:'wreck',x:world.wreck.x+.5,y:world.wreck.y+.5,done:true};
+const allStations=()=>S.st.concat([TOWER,WRECK]);
 /* --- 擋路：樹、石頭、設施都不能穿過去 --- */
 const BLOCK={coal:.5,tree:.36,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
-const SRAD={field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
+const SRAD={wreck:1.5,field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
 const nodeGrid=new Map();nodes.forEach(n=>nodeGrid.set(n.y*W+n.x,n));
 function bumpAt(nx,ny){const t=now(),tx=Math.floor(nx),ty=Math.floor(ny);   /* 只擋「越走越近」，所以萬一卡在裡面也走得出來 */
  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const n=nodeGrid.get((ty+dy)*W+tx+dx);if(!n||n.gone||n.cd>t)continue;const r=BLOCK[n.type];if(!r)continue;
@@ -1086,6 +1104,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
   const an=!s&&nearAnimal();
   if(!s&&boatNear(2.4)>=0)p='⛵ '+BOATN[S.boats[boatNear(2.4)].r]+'　按 E 上船';
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
+  else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
   else if(n){const d=NODES[n.type],hp=d.hp||1;p=(d.tool&&!S.abil[d.tool])?'🔒 '+nodeName(n)+'　太硬了，需要'+BMAP[d.tool].n:'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
   else if(nearWater(LAKE))p='💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
@@ -1143,7 +1162,12 @@ function place(type){if(BMAP[type].inLab)return toast(BMAP[type].n+'要裝在屋
  if(d.dock&&!nearestSea(x,y,BOATT[type]))return toast(type==='ship'?'這附近的海太淺，遠洋帆船一下水就會擱淺。要到海比較深的島（火山島）的沙灘上造。':'這附近沒有這艘船能走的海。');
  if(allStations().some(s=>Math.hypot(s.x-x,s.y-y)<1.8)||nodes.some(n=>!n.gone&&n.cd<=now()&&Math.hypot(n.x+.5-x,n.y+.5-y)<.9))return toast('這裡太擠了。把旁邊的樹砍掉、或把石頭和沙堆清掉，就有空地了。');
  const st={type,x,y,isl:owner[Math.floor(y)*W+Math.floor(x)],have:{},done:false};S.st.push(st);syncStation(st);closeModal();useStation(st);}
-function useStation(st){const d=BMAP[st.type];
+function openWreck(){panel='wreck';SFX.ui();const got=lootWreck(S);if(got){SFX.done();hud();save();}
+ openModal(head('🚢 擱淺的破船')+`<div class="story" style="margin-bottom:10px">這就是載你來的那艘船。龍骨斷了，船艙進了半艙的沙。它哪裡也去不了了。</div>
+ ${got?`<div class="result new"><b>你在船艙裡翻出一些還能用的東西：</b>${Object.keys(got).map(k=>ITEMS[k].n+' ×'+got[k]).join('、')}（拆下來的船板和纜繩）</div>`:'<div class="muted">能拆的都拆了。剩下的只有這些看得到、帶不走的東西。</div>'}
+ <h3>仔細看看這艘船</h3>${WRECK_CLUES.map(c=>`<div class="entry" style="padding:8px 12px"><b>${c[0]}</b>　${c[1]}</div>`).join('')}
+ <div class="muted">這些東西本身幫不上忙。但它們是用什麼做的、後來變成了什麼樣子——也許值得記在心裡。</div>`);}
+function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.type];
  if(!st.done){const miss=d.req.filter(q=>!hasReq(S,q));if(miss.length)return warn('還不行。需要先'+miss.map(reqName).join('、'));
   const r=deliver(S,st);if(st!==TOWER)syncStation(st);const a=Object.keys(r.added).map(k=>ITEMS[k].n+'×'+r.added[k]).join('、');
   if(r.done){SFX.done();burst(st.x,hAt(st.x,st.y),st.y,'#ffe9a8');toast(d.icon+' '+d.n+' 完成了！');if(d.dock)launch(st);if(d.house){st.floors=1;syncStation(st);}}
@@ -1437,7 +1461,7 @@ function saveHTML(){const q=questView(S).cur;
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  `<div class="savebox"><h4>存檔碼</h4>下載不能用的時候的備案：把整段文字複製起來，貼到記事本存好；要讀取時再貼回來。
   <div class="row"><button class="btn alt" data-act="sv-copy">📋 複製存檔碼</button><button class="btn alt" data-act="sv-paste">讀取貼上的存檔碼</button></div><textarea id="svtext" placeholder="把存檔碼貼在這裡，再按「讀取貼上的存檔碼」"></textarea></div>`;}
-const VERSION='1.6',VDATE='2026-11-14';
+const VERSION='1.7',VDATE='2026-11-16';
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>設計理念</h4>
@@ -1494,9 +1518,9 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
 });
 function namePrompt(next){panel='name';closeHook=()=>{if(!S.name)S.name='小化學家';hud();save();next();};
- openModal(`<div class="story">暴風雨過後，有人在沙灘上睜開了眼睛。\n\n在你開始之前，先告訴我——你叫什麼名字？</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="輸入你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0"><button class="btn" data-act="setname">開始冒險</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
+ openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0"><button class="btn" data-act="setname">想起來了</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
  setTimeout(()=>{const i=$('pname');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')$('modal').querySelector('[data-act=setname]').click();});}},30);}
-function intro(){storyQ.unshift('暴風雨過後，你在一片陌生的沙灘上醒來。\n\n船不見了。四周只有海，和遠方幾座看不清楚的島。\n\n沙灘上有一本被海水泡皺的筆記本，封面寫著：\n「'+S.name+'的漂流筆記・第一章」\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」');showStory();}
+function intro(){storyQ.unshift('<b>'+S.name+'</b>。對，你叫'+S.name+'。\n\n你穿越到了一座荒島上。載你來的那艘船擱淺在不遠處的沙灘，船身裂開，再也開不了了。四周只有海，和遠方幾座看不清楚的島。\n\n原來那個世界的東西，一樣也沒跟過來。但你腦子裡的科學知識還在：火是怎麼燒起來的、石頭裡藏著什麼、一種物質怎樣變成另一種物質。\n\n只是——知道，和親手做出來，是兩回事。','沙灘上有一本被海水泡皺的筆記本，不是你的。封面寫著：\n「一個化學家的漂流筆記・第一章」\n\n看來在你之前，也有人到過這裡。\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」\n\n<span class="muted">先去看看那艘破船吧，也許還有能用的東西。</span>');showStory();}
 hud();audioBtns();requestAnimationFrame(loop);
 const go=()=>{if(S.quest===0&&!Object.keys(S.inv).length&&!S.st.length)intro();else after();};
 if(!S.name)namePrompt(go);else go();
