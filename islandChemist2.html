@@ -77,6 +77,10 @@ sub{font-size:.72em}
 .tech .ic{font-size:28px;line-height:1;width:36px;text-align:center}
 .tech.done{border-color:#2f6f4f;background:#e9f5ec}
 .tech.locked{opacity:.6}
+table.lb{width:100%;border-collapse:collapse;font-size:13.5px}
+table.lb th,table.lb td{padding:5px 7px;border-bottom:1px solid #e3d8ba;text-align:left;white-space:nowrap}
+table.lb th{color:#8a5a22;font-size:12px}
+table.lb tr.me td{background:#fff3c4;font-weight:700}
 .treewrap{overflow:auto;border:2px solid #d6c7a2;border-radius:10px;background:#fffdf6;padding:6px;max-height:62vh}
 .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .badge{border:2px solid #d6c7a2;border-radius:10px;background:#f4efe2;padding:8px 10px;text-align:center;color:#9a927c}
@@ -108,7 +112,7 @@ sub{font-size:.72em}
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
-<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
+<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="lb" id="lbbtn" style="display:none">🏆 英雄榜</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
 <div id="mask"><div id="modal"></div></div>
 
 <script id="logic">
@@ -551,7 +555,7 @@ function sideAtoms(s){const t={};s.split(' + ').forEach(term=>{const m=/^(\d*)(.
 function isBalanced(eq){const [l,r]=eq.split(' -> ').map(sideAtoms);const ks=new Set([...Object.keys(l),...Object.keys(r)]);for(const k of ks)if(l[k]!==r[k])return false;return true;}
 
 /* ---------- 遊戲狀態與規則 ---------- */
-function newState(){return{v:3,name:'',qd:{},badges:{},clean:0,rs:{},thin:{},inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
+function newState(){return{v:3,name:'',pid:'',share:null,qd:{},badges:{},clean:0,rs:{},thin:{},inv:{},abil:{},found:{},seen:{0:true},known:{},gone:{},side:{},st:[],tower:{},boats:[],cur:-1,aboard:false,quest:0,px:null,py:null};}
 const rkey=ids=>ids.slice().sort().join('+');
 /* 任務是清單，不是單行道：任何時候達成條件就打勾。s.quest＝主線已完成幾項 */
 function advanceQuests(s){const msgs=[];if(!s.qd)s.qd={};for(const q of QUESTS){if(s.qd[q.id]||!q.done(s))continue;s.qd[q.id]=1;if(q.after)msgs.push(q.after);}
@@ -1116,7 +1120,7 @@ function fixBoat(){const fl=Math.floor,sea=tileAt(fl(P.x),fl(P.y))===SEA,here=ra
 fixBoat();
 /* 把一份存檔（或全新的狀態）套用到眼前的世界 */
 function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clear();S=loadState(st);
- P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];
+ P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name)setTimeout(()=>{if(!modalOpen)askShare();},900);
  nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i];setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
  const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];hud();save();}
 
@@ -1293,7 +1297,7 @@ function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化�
 $('qtoggle').onclick=()=>$('quest').classList.toggle('open');
 let storyQ=[];
 function badgeToast(){const q=S._quietBadges;delete S._quietBadges;const g=checkBadges(S);if(!g.length||q)return;SFX.discover();toast(g.length>2?'🏅 一口氣拿到 '+g.length+' 枚徽章！（打開「技能・徽章」看看）':'🏅 獲得徽章：'+g.map(b=>b.icon+' '+b.n).join('、'));}
-function after(){const m=advanceQuests(S);badgeToast();if(m.length){storyQ.push(...m);$('quest').classList.remove('open');}hud();save();if(storyQ.length&&!modalOpen)showStory();}
+function after(){const m=advanceQuests(S);badgeToast();lbSend();if(m.length){storyQ.push(...m);$('quest').classList.remove('open');}hud();save();if(storyQ.length&&!modalOpen)showStory();}
 
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
@@ -1649,6 +1653,7 @@ function saveHTML(){const q=questView(S).cur;
  return head('💾 存檔・讀檔・改名字')+(saveMsg?`<div class="result" style="margin:0 0 10px">${saveMsg}</div>`:'')+
  `<div class="savebox"><h4>目前進度</h4>${q.ch}　主線 ${S.quest}/${MAINQ.length-1}　圖鑑 ${REACTIONS.filter(r=>S.found[r.id]).length}/${REACTIONS.length}<div class="muted">遊戲每隔幾秒就會自動存在這個瀏覽器裡。換電腦、換瀏覽器或清除瀏覽紀錄，這份自動存檔就不見了——所以才需要下面的存檔檔。</div></div>
  <div class="savebox"><h4>名字</h4><div class="row" style="align-items:center"><input id="rename" maxlength="10" value="${(S.name||'').replace(/"/g,'')}" style="font-size:16px;padding:6px 10px;width:14em;max-width:60%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"><button class="btn alt" data-act="sv-name">✏️ 改名字</button></div></div>
+ ${lbOn()?`<div class="savebox"><h4>紀錄與英雄榜</h4><div class="row" style="align-items:center"><button class="btn alt" data-act="sv-share">${S.share===true?'☑ 記錄中（按一下關閉並刪除我的紀錄）':'☐ 沒有記錄（按一下開啟）'}</button></div><div class="muted" style="font-size:12.5px;line-height:1.6;margin-top:6px">${LB_NOTE}</div></div>`:''}
  <div class="savebox"><h4>存檔檔</h4>把進度存成一個檔案，可以放進你自己建的資料夾、隨身碟或雲端硬碟，換一台電腦也能接著玩。
   <div class="row"><button class="btn" data-act="sv-dl">⬇️ 下載存檔檔</button><span class="btn alt filebtn">📂 讀取存檔檔<input type="file" id="svfile" accept=".json,application/json"></span></div>
   <div class="muted">第一版（v1）下載的存檔檔也可以直接讀進來，會自動搬到新的世界接著玩。</div>
@@ -1660,7 +1665,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.3',VDATE='2026-11-16';
+const VERSION='2.4',VDATE='2026-11-16';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1677,6 +1682,29 @@ function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,n
   bx+=`<g><rect x="${p.x}" y="${p.y}" width="${BW}" height="${BH}" rx="9" fill="${c[0]}" stroke="${c[1]}" stroke-width="${v==='far'?1:2}"/><text x="${p.x+BW/2}" y="${p.y+19}" text-anchor="middle" font-size="16">${show?k.i:v==='near'?'❔':''}</text><text x="${p.x+BW/2}" y="${p.y+37}" text-anchor="middle" font-size="12" font-weight="${v==='done'?700:400}" fill="${c[2]}">${show?k.n:v==='near'?'？？？':''}</text></g>`;});
  return head('🏅 技能・徽章')+tabs+`<div class="muted" style="margin-bottom:6px"><span style="color:#1f4f37">■ 已掌握</span>　<span style="color:#c98a1c">■ 現在可以挑戰</span>　<span style="color:#8d8572">■ 還差一點（？？？）</span>　往右捲動可以看到更後面的技術。</div>
  <div class="treewrap"><svg width="${Wd}" height="${Hd}" viewBox="0 0 ${Wd} ${Hd}" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">${ln}${bx}</svg></div>`;}
+/* ===== 英雄榜與人數統計 =====
+   LB_URL 是老師自己的 Google 試算表（Apps Script 網路應用程式）的網址。留空＝完全不記錄、不顯示英雄榜。
+   只送出：隨機代號、玩家自己取的名字、版本、主線進度、章節、分數、時代、徽章數。不含任何帳號或裝置資料。 */
+const LB_URL='',LB_VER='2';
+const lbOn=()=>!!LB_URL;
+function lbId(){if(!S.pid){const a=new Uint8Array(16);(window.crypto||window.msCrypto).getRandomValues(a);S.pid=Array.from(a,b=>('0'+b.toString(16)).slice(-2)).join('');}return S.pid;}
+function lbPayload(){const sc=score(S),ch=questView(S).cur.ch.split('　｜')[0].trim();return{id:lbId(),name:S.name||'小化學家',ver:LB_VER,quest:S.quest,ch,score:sc.total,era:sc.era,badges:Object.keys(S.badges||{}).length,gv:VERSION};}
+let lbLast=-1e9,lbSig='';
+function lbPost(o){try{fetch(LB_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(o)}).catch(()=>{});}catch(e){}}
+function lbSend(force){if(!lbOn()||S.share!==true||!S.name)return;const p=lbPayload(),sig=[p.name,p.quest,p.score,p.badges].join('|');if(!force&&(sig===lbSig||now()-lbLast<45))return;lbSig=sig;lbLast=now();lbPost(p);}
+function lbForget(){if(lbOn()&&S.pid)lbPost({id:S.pid,del:true});lbSig='';}
+const LB_NOTE='這個遊戲會記錄你<b>取的名字</b>和<b>遊戲進度</b>（玩到第幾章、分數、徽章數），用來統計有多少人在玩，並顯示在大家都看得到的「英雄榜」上。不會記錄帳號、真實姓名或其他個人資料——所以<b>請不要用真實的全名</b>。不想被記錄，把勾勾取消就好，隨時可以在「存檔・讀檔」裡更改。';
+function askShare(next){panel='share';closeHook=()=>{if(S.share==null)S.share=false;save();next&&next();};
+ openModal(`<h2 style="margin-top:0">📣 關於紀錄與英雄榜</h2><div class="story" style="white-space:normal">${LB_NOTE}</div><p style="text-align:right;margin:14px 0 0"><button class="btn alt" data-act="share-no" style="margin-right:8px">不要記錄我</button><button class="btn" data-act="share-yes">好，讓我上榜</button></p>`);}
+let lbData=null,lbErr='',lbBusy=false;
+function lbLoad(){if(!lbOn())return;lbBusy=true;lbErr='';fetch(LB_URL+(LB_URL.includes('?')?'&':'?')+'top=100&t='+Date.now()).then(r=>r.json()).then(j=>{lbData=j;lbBusy=false;if(panel==='lb')render();}).catch(()=>{lbBusy=false;lbErr='連不上英雄榜。可能是網路的關係，或是這個頁面不允許連到外面（請改用 GitHub 上的版本）。';if(panel==='lb')render();});}
+function lbHTML(){const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let body;if(lbErr)body=`<div class="result">${lbErr}</div>`;else if(!lbData)body='<div class="muted">讀取中……</div>';
+ else{const L=lbData.top||[],me=S.pid&&lbData.me!==undefined?lbData.me:null;
+  body=`<div class="savebox">目前共有 <b>${e(lbData.total)}</b> 位化學家登上英雄榜${lbData.byVer?'（第一版 '+e(lbData.byVer['1']||0)+' 位、第二版 '+e(lbData.byVer['2']||0)+' 位）':''}。${S.share===true?'':'<br><span class="muted">你目前沒有開啟紀錄，所以不在榜上。可以到「存檔・讀檔」開啟。</span>'}</div>
+  <table class="lb"><tr><th>#</th><th>名字</th><th>文明分數</th><th>時代</th><th>進度</th><th>徽章</th><th>版本</th></tr>${L.map((r,i)=>`<tr class="${r.name===S.name&&r.score===score(S).total?'me':''}"><td>${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td>${e(r.name)}</td><td><b>${e(r.score)}</b></td><td>${e(r.era)}</td><td>${e(r.ch)}</td><td>${e(r.badges)}</td><td>${e(r.ver)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">還沒有人上榜。你可以是第一個。</td></tr>'}</table>
+  <div class="muted" style="margin-top:6px">榜上只有名字和遊戲進度。每隔一小段時間更新一次。</div>`;}
+ return head('🏆 英雄榜')+body+`<p style="margin:10px 0 0"><button class="btn alt" data-act="lb-reload" ${lbBusy?'disabled':''}>🔄 重新整理</button></p>`;}
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
  <div class="savebox"><h4>第二版多了什麼</h4>島和海都放大了一倍多，礦要走遠一點才找得到。新增小河與水車、火山口的酸湖、雷擊磁化與發電機、透鏡與望遠鏡、氫氣球，以及第五章「遠方」和新的結局。</div>
@@ -1691,6 +1719,7 @@ function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <span class="muted">3D 繪圖使用 three.js（MIT 授權）。</span></div>`;}
 function render(){
  if(panel==='about')return openModal(aboutHTML());
+ if(panel==='lb')return openModal(lbHTML());
  if(panel==='tree')return openModal(treeHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
  if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join(''):'';}).join(''):'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
@@ -1705,15 +1734,18 @@ function render(){
  if(panel==='codex'){const n=REACTIONS.filter(r=>S.found[r.id]).length;const sec=(k,title)=>{const L=REACTIONS.filter(r=>k.includes(r.kind));return `<h3>${title}（${L.filter(r=>S.found[r.id]).length}/${L.length}）</h3>`+L.map(r=>S.found[r.id]?`<div class="entry">${entryHTML(r)}</div>`:`<div class="entry lock">？？？　尚未發現</div>`).join('');};
   openModal(head(`📖 知識圖鑑　${n}/${REACTIONS.length}`)+(()=>{const sc=score(S),p=sc.parts;return `<div class="savebox"><h4>🏛 ${sc.era}　文明分數 ${sc.total}</h4>主線任務 ${p.main}（每個 20）　物質的變化 ${p.chem}（每條 10）　科技原理 ${p.tech}（每條 15）　失敗也是發現 ${p.obs}（每條 5）　認得的礦物 ${p.rocks}（每種 5）　房子 ${p.house}（越高級、越多層越高）</div>`;})()+sec(['tech'],'科技原理')+sec(['chem','phys'],'物質的變化')+sec(['obs'],'失敗也是發現'));}
 }
-function openPanel(p){panel=p;SFX.ui();if(p==='save'){saveMsg='';if(dirH)dirRefresh().then(()=>{if(panel==='save')render();});}render();}
+function openPanel(p){panel=p;SFX.ui();if(p==='lb'){lbSend(true);lbLoad();}if(p==='save'){saveMsg='';if(dirH)dirRefresh().then(()=>{if(panel==='save')render();});}render();}
 $('bar').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)openPanel(b.dataset.open);});
 $('mask').addEventListener('click',e=>{
  if(e.target===$('mask'))return closeModal();
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.act==='tab-tree'||d.act==='tab-badge'){treeTab=d.act==='tab-tree'?'tree':'badge';return render();}
  if(d.act==='from-v1'){let err='';try{err=loadText(JSON.stringify({game:'island-chemist',v:3,state:JSON.parse(localStorage.getItem('island_chemist_v3'))}));}catch(e){err='讀不到第一版的進度。';}if(err)return toast(err);closeHook=null;closeModal();hud();return;}
+ if(d.act==='share-yes'||d.act==='share-no'){S.share=d.act==='share-yes';if(S.share)lbSend(true);return closeModal();}
+ if(d.act==='lb-reload'){lbLoad();return render();}
+ if(d.act==='sv-share'){S.share=!(S.share===true);if(S.share){lbSend(true);saveMsg='✅ 已開啟紀錄，你會出現在英雄榜上。';}else{lbForget();saveMsg='✅ 已關閉紀錄，並請伺服器刪掉你在英雄榜上的資料。';}save();return render();}
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
- if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
+ if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';if(lbOn()){const c=$('pshare');S.share=c?!!c.checked:false;}return closeModal();}
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
  if(d.add)return fireAdd(d.add,+(d.n||1));
@@ -1736,12 +1768,13 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
 });
 function namePrompt(next){panel='name';closeHook=()=>{if(!S.name)S.name='小化學家';hud();save();next();};
- openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0">${(()=>{try{const j=JSON.parse(localStorage.getItem('island_chemist_v3')||'null');return j&&j.v===3&&(j.quest>0||Object.keys(j.inv||{}).length)?`<button class="btn alt" data-act="from-v1" style="margin-right:8px">⏩ 接著玩第一版的進度${j.name?'（'+String(j.name).replace(/[<>&"]/g,'')+'）':''}</button>`:'';}catch(e){return '';}})()}<button class="btn" data-act="setname">想起來了</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
+ openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0">${(()=>{try{const j=JSON.parse(localStorage.getItem('island_chemist_v3')||'null');return j&&j.v===3&&(j.quest>0||Object.keys(j.inv||{}).length)?`<button class="btn alt" data-act="from-v1" style="margin-right:8px">⏩ 接著玩第一版的進度${j.name?'（'+String(j.name).replace(/[<>&"]/g,'')+'）':''}</button>`:'';}catch(e){return '';}})()}<button class="btn" data-act="setname">想起來了</button></p>${lbOn()?`<div class="savebox" style="margin-top:12px;font-size:13px;line-height:1.6"><label style="display:block;font-weight:700;margin-bottom:4px"><input type="checkbox" id="pshare" checked> 記錄我的進度，並顯示在英雄榜</label>${LB_NOTE}</div>`:''}<p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
  setTimeout(()=>{const i=$('pname');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')$('modal').querySelector('[data-act=setname]').click();});}},30);}
 function intro(){storyQ.unshift('<b>'+S.name+'</b>。對，你叫'+S.name+'。\n\n你穿越到了一座荒島上。載你來的那艘船擱淺在不遠處的沙灘，船身裂開，再也開不了了。四周只有海，和遠方幾座看不清楚的島。\n\n原來那個世界的東西，一樣也沒跟過來。但你腦子裡的科學知識還在：火是怎麼燒起來的、石頭裡藏著什麼、一種物質怎樣變成另一種物質。\n\n只是——知道，和親手做出來，是兩回事。','沙灘上有一本被海水泡皺的筆記本，不是你的。封面寫著：\n「一個化學家的漂流筆記・第一章」\n\n看來在你之前，也有人到過這裡。\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」\n\n<span class="muted">先去看看那艘破船吧，也許還有能用的東西。</span>');showStory();}
 hud();audioBtns();requestAnimationFrame(loop);
 const go=()=>{if(S.quest===0&&!Object.keys(S.inv).length&&!S.st.length)intro();else after();};
-if(!S.name)namePrompt(go);else go();
+if(lbOn())$('lbbtn').style.display='';
+if(!S.name)namePrompt(go);else if(lbOn()&&S.share==null)askShare(go);else go();
 </script>
 </body>
 </html>
