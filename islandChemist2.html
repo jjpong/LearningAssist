@@ -1665,7 +1665,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.5',VDATE='2026-11-16';
+const VERSION='2.6',VDATE='2026-11-16';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1693,17 +1693,23 @@ let lbLast=-1e9,lbSig='';
 function lbPost(o){try{fetch(LB_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(o)}).catch(()=>{});}catch(e){}}
 function lbSend(force){if(!lbOn()||S.share!==true||!S.name)return;const p=lbPayload(),sig=[p.name,p.quest,p.score,p.badges].join('|');if(!force&&(sig===lbSig||now()-lbLast<45))return;lbSig=sig;lbLast=now();lbPost(p);}
 function lbForget(){if(lbOn()&&S.pid)lbPost({id:S.pid,del:true});lbSig='';}
-const LB_NOTE='這個遊戲會記錄你<b>取的名字</b>和<b>遊戲進度</b>（玩到第幾章、分數、徽章數），用來統計有多少人在玩，並顯示在大家都看得到的「英雄榜」上。不會記錄帳號、真實姓名或其他個人資料——所以<b>請不要用真實的全名</b>。不想被記錄，把勾勾取消就好，隨時可以在「存檔・讀檔」裡更改。';
+const LB_NOTE='這個遊戲會記錄你<b>取的名字</b>和<b>遊戲進度</b>（玩到第幾章、分數、徽章數），用來統計有多少人在玩，並讓你的進度出現在「英雄榜」上。在榜上，別人看到的你是一個匿名的動物代號（例如「好奇的水獺」），看不到你取的名字。不會記錄帳號、真實姓名或其他個人資料——不過還是<b>請不要用真實的全名</b>。不想被記錄，把勾勾取消就好，隨時可以在「存檔・讀檔」裡更改。';
 function askShare(next){panel='share';closeHook=()=>{if(S.share==null)S.share=false;save();next&&next();};
  openModal(`<h2 style="margin-top:0">📣 關於紀錄與英雄榜</h2><div class="story" style="white-space:normal">${LB_NOTE}</div><p style="text-align:right;margin:14px 0 0"><button class="btn alt" data-act="share-no" style="margin-right:8px">不要記錄我</button><button class="btn" data-act="share-yes">好，讓我上榜</button></p>`);}
 let lbData=null,lbErr='',lbBusy=false;
+/* 英雄榜上別人一律顯示成匿名的動物（由代號算出來，同一個人每次都是同一隻），只有自己看得到自己取的名字 */
+const LB_ADJ=['好奇的','勤勞的','冷靜的','大膽的','細心的','愛睏的','樂觀的','認真的','害羞的','頑皮的','機靈的','沉穩的','熱血的','悠哉的','固執的','愛笑的','專注的','勇敢的','溫柔的','謹慎的','飛快的','慢吞吞的','閃亮的','神祕的'];
+const LB_ANI=['水獺','石虎','黑熊','藍鵲','穿山甲','梅花鹿','獼猴','山羌','飛鼠','白鷺','海龜','章魚','企鵝','貓頭鷹','狐狸','松鼠','刺蝟','樹懶','水豚','河馬','貓熊','無尾熊','海豹','鯨魚','海豚','鸚鵡','變色龍','螃蟹','蜜蜂','螢火蟲','蝸牛','壁虎'];
+function lbHash(t){let h=2166136261;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+const lbTag=id=>('0000000'+lbHash('tag:'+id).toString(16)).slice(-8);
+function lbAlias(key){const h=lbHash(key);return LB_ADJ[h%LB_ADJ.length]+LB_ANI[(h>>>8)%LB_ANI.length];}
 function lbLoad(){if(!lbOn())return;lbBusy=true;lbErr='';fetch(LB_URL+(LB_URL.includes('?')?'&':'?')+'top=100&t='+Date.now()).then(r=>r.json()).then(j=>{lbData=j;lbBusy=false;if(panel==='lb')render();}).catch(()=>{lbBusy=false;lbErr='連不上英雄榜。可能是網路的關係，或是這個頁面不允許連到外面（請改用 GitHub 上的版本）。';if(panel==='lb')render();});}
 function lbHTML(){const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let body;if(lbErr)body=`<div class="result">${lbErr}</div>`;else if(!lbData)body='<div class="muted">讀取中……</div>';
- else{const L=lbData.top||[],me=S.pid&&lbData.me!==undefined?lbData.me:null;
+ else{const L=lbData.top||[],myTag=S.pid?lbTag(S.pid):'',myScore=score(S).total,mine=r=>S.share===true&&(r.tag?r.tag===myTag:(r.name===S.name&&r.score===myScore));
   body=`<div class="savebox">目前共有 <b>${e(lbData.total)}</b> 位化學家登上英雄榜${lbData.byVer?'（第一版 '+e(lbData.byVer['1']||0)+' 位、第二版 '+e(lbData.byVer['2']||0)+' 位）':''}。${S.share===true?'':'<br><span class="muted">你目前沒有開啟紀錄，所以不在榜上。可以到「存檔・讀檔」開啟。</span>'}</div>
-  <table class="lb"><tr><th>#</th><th>名字</th><th>文明分數</th><th>時代</th><th>進度</th><th>徽章</th><th>版本</th></tr>${L.map((r,i)=>`<tr class="${r.name===S.name&&r.score===score(S).total?'me':''}"><td>${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td>${e(r.name)}</td><td><b>${e(r.score)}</b></td><td>${e(r.era)}</td><td>${e(r.ch)}</td><td>${e(r.badges)}</td><td>${e(r.ver)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">還沒有人上榜。你可以是第一個。</td></tr>'}</table>
-  <div class="muted" style="margin-top:6px">榜上只有名字和遊戲進度。每隔一小段時間更新一次。</div>`;}
+  <table class="lb"><tr><th>#</th><th>名字</th><th>文明分數</th><th>時代</th><th>進度</th><th>徽章</th><th>版本</th></tr>${L.map((r,i)=>`<tr class="${mine(r)?'me':''}"><td>${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td>${mine(r)?e(S.name)+'（你）':e(lbAlias(r.tag||('n:'+r.name+'|'+r.ver)))}</td><td><b>${e(r.score)}</b></td><td>${e(r.era)}</td><td>${e(r.ch)}</td><td>${e(r.badges)}</td><td>${e(r.ver)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">還沒有人上榜。你可以是第一個。</td></tr>'}</table>
+  <div class="muted" style="margin-top:6px">榜上其他人都以匿名的動物代號顯示，只有你看得到自己取的名字。每隔一小段時間更新一次。</div>`;}
  return head('🏆 英雄榜')+body+`<p style="margin:10px 0 0"><button class="btn alt" data-act="lb-reload" ${lbBusy?'disabled':''}>🔄 重新整理</button></p>`;}
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
