@@ -177,6 +177,8 @@ const ITEMS={
  smithsonite:{n:'菱鋅礦',f:'ZnCO3',c:'#9fc6e6',d:'含鋅的礦石，主要成分是碳酸鋅。'},
  zno:{n:'氧化鋅',f:'ZnO',c:'#f7f7f2',d:'白色粉末。'},
  zinc:{n:'鋅',f:'Zn',c:'#aab4bd',d:'銀灰色金屬，比鐵和銅都活潑。沸點只有 907 °C。'},
+ potassium:{n:'鉀',f:'K',c:'#c6c2d6',d:'銀白色、軟得可以用刀切的金屬。極度活潑，碰到水就起火，平常要泡在油裡保存。'},
+ sodium:{n:'鈉',f:'Na',c:'#d9dde0',d:'銀白色的軟金屬，和鉀是同一族。碰到水會劇烈反應。'},
  znso4:{n:'硫酸鋅溶液',f:'ZnSO4',c:'#e8eef2',d:'無色溶液。'},
  brine:{n:'食鹽水',f:'NaCl',c:'#cfe6f5',d:'食鹽溶於水形成的溶液，可以導電。'},
  naoh:{n:'氫氧化鈉溶液',f:'NaOH',c:'#e4dff0',d:'強鹼，有腐蝕性。'},
@@ -190,10 +192,10 @@ const GAS=new Set(['co2','h2','o2','cl2']);
 const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
 /* 背包的分類 */
 const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','water','seawater']],
- ['礦物',['caco3','sand','quartz','natron','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite']],['金屬',['copper','tin','bronze','iron','pigiron','steel','zinc','badiron']],
+ ['礦物',['caco3','sand','quartz','natron','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite']],['金屬',['copper','tin','bronze','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
  ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh']],['氣體',['co2','h2','o2','cl2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
-const CHEM=[['金屬（元素）',['copper','tin','iron','zinc']],['非金屬（元素）',['charcoal','coke','h2','o2','cl2']],
+const CHEM=[['金屬（元素）',['copper','tin','iron','zinc','potassium','sodium']],['非金屬（元素）',['charcoal','coke','h2','o2','cl2']],
  ['氧化物',['water','co2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
  ['酸',['carbonic','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh']],
  ['鹽',['salt','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano']],
@@ -218,7 +220,7 @@ const BUILD=[
  {id:'compass',n:'指南針',icon:'🧭',era:'約西元 1100 年',craft:1,req:[],need:{magnetite:1,iron:1},grant:'compass',d:'看不到陸地也不會迷航。',entry:'tech_compass'},
  {id:'ship',n:'遠洋帆船',icon:'🚢',era:'約西元 1500 年',dock:1,req:['compass','sail'],need:{wood:12,fiber:6,iron:4},grant:'ship',d:'要蓋在海夠深的沙灘上（火山島）。可以穿越風浪最大的外海；但船身大、吃水深，進淺海會擱淺，所以原來的帆船要留著用。',entry:'tech_ship'},
  {id:'blast',n:'高爐',icon:'🏭',era:'西元 1709 年',req:['f:coke'],need:{clay:6,mortar:4,iron:4,fiber:2},d:'更高的爐身、用鐵箍加固。燒焦炭並持續鼓風，可以超過 1500 °C，讓鐵熔成鐵水流出來。',entry:'tech_blast'},
- {id:'cell',n:'鋅銅電池與電解槽',icon:'⚡',era:'西元 1800 年',inLab:2,req:['distill'],need:{zinc:2,copper:2,cuso4:1,znso4:1,salt:1},grant:'elec',d:'鋅片、銅片、兩種溶液和鹽橋。接上電極就能電解。溶液怕髒、電極怕潮，要裝在磚瓦屋以上的實驗室裡。',entry:'tech_elec'},
+ {id:'cell',n:'伏打堆與電解槽',icon:'⚡',era:'西元 1800 年',inLab:2,req:['distill'],need:{zinc:2,copper:2,salt:1,fiber:1},grant:'elec',d:'一片鋅、一片銅、一塊浸了鹽水的布，疊起來就有電。先疊兩層，之後可以再往上加：疊得越高，電壓越高。電極怕潮，要裝在磚瓦屋以上的實驗室裡。',entry:'tech_elec'},
  {id:'field',n:'農田',icon:'🌾',era:'約 1 萬年前',req:[],need:{wood:2,fiber:2},d:'翻鬆一塊地、圍上籬笆。種子、水、肥料和土壤的酸鹼，都會決定收成。',entry:'tech_field'},
  {id:'hut',n:'草棚',icon:'⛺',era:'約 1 萬年前',house:1,lab:0,maxF:1,req:[],need:{wood:4,fiber:4},d:'幾根木頭搭起骨架，鋪上藤蔓和葉子。屋裡有倉庫，可以把背包放不下的東西存起來。',entry:'tech_hut'},
  {id:'cabin',n:'木屋',icon:'🏠',era:'約西元前 3000 年',house:1,lab:1,maxF:2,req:['bronze_tools'],need:{wood:12,fiber:2},floor:{wood:8},d:'有了金屬工具，才能把原木削平、開出榫頭接起來。屋裡多了室內實驗桌：釀酒、做醋、發麵團這些怕風吹日曬的事，要在這裡做。最高 2 層。',entry:'tech_cabin'},
@@ -357,11 +359,15 @@ const REACTIONS=[
  {id:'brine',name:'配製食鹽水',kind:'phys',at:'table',inputs:[['salt','water']],out:{brine:1},eqx:'食鹽 + 水 → 食鹽水（溶解）',phen:'白色晶體消失在水中。',use:'食鹽在水中解離成鈉離子和氯離子，所以能導電，是電解質。',note:''},
  {id:'neutral2',name:'鹽酸加氫氧化鈉',kind:'chem',at:'table',hot:1,inputs:[['hcl','naoh']],out:{salt:1},eq:'HCl + NaOH -> NaCl + H2O',phen:'混合後溫度上升，把水蒸乾，留下白色晶體——是食鹽。',use:'酸鹼中和：酸 + 鹼 → 鹽 + 水，並且放熱。兩種有腐蝕性的東西，變成了可以吃的鹽。',note:''},
  /* ===== 電解槽 ===== */
- {id:'electro_water',name:'電解水',kind:'chem',at:'cell',back:1,inputs:[['water','h2so4'],['water','naoh'],['water','koh'],['water','natron'],['water','lye'],['water','limewater'],['h2so4'],['naoh'],['koh'],['lye'],['limewater']],out:{h2:2,o2:1},eq:'2H2O -> 2H2 + O2',phen:'兩極都冒出氣泡，負極的氣體體積是正極的 2 倍。',use:'水被電分解成氫氣和氧氣，體積比 2：1。',note:'加進去的酸、鹼（或碳酸鈉這類鹽）只是幫助導電，沒有被消耗，所以會還給你。但不是每種電解質都這樣——換成食鹽或鹽酸，正極出來的就不是氧氣了。1800 年，伏打電堆發明後幾個星期，就有人完成了這個實驗。'},
- {id:'electro_brine',name:'電解食鹽水',kind:'chem',at:'cell',inputs:[['brine'],['seawater'],['water','salt'],['water','brine']],out:{naoh:1,h2:1,cl2:1},eq:'2NaCl + 2H2O -> 2NaOH + H2 + Cl2',phen:'兩極都冒出氣泡，其中一邊的氣體是黃綠色、有刺鼻味。',use:'氯鹼工業：漂白水、鹽酸、做肥皂用的氫氧化鈉都從這裡來。',note:'氯氣有毒！現實中只能在通風櫥裡進行。'},
- {id:'electro_cuso4',name:'電解硫酸銅溶液',kind:'chem',at:'cell',inputs:[['cuso4'],['water','cuso4']],out:{copper:1,o2:1,h2so4:1},eq:'2CuSO4 + 2H2O -> 2Cu + O2 + 2H2SO4',phen:'負極長出一層紅色的銅，正極冒出氣泡，藍色慢慢變淡。',use:'電可以把溶液裡的銅離子變回金屬銅。電鍍和精煉銅都用這個原理。',note:'這是使用碳棒電極的情況。'},
- {id:'electro_hcl',name:'電解鹽酸',kind:'chem',at:'cell',inputs:[['hcl'],['water','hcl']],out:{h2:1,cl2:1},eq:'2HCl -> H2 + Cl2',phen:'負極冒出無色的氣泡，正極冒出黃綠色、有刺鼻味的氣體。',use:'鹽酸被電拆成氫氣和氯氣，正好是「氯化氫」這個名字裡的兩種元素。',note:'和電解稀硫酸比一比：同樣是酸，硫酸根留在水裡不動，氯離子卻會在正極變成氯氣。氯氣有毒！'},
- {id:'electro_znso4',name:'電解硫酸鋅溶液',kind:'chem',at:'cell',inputs:[['znso4'],['water','znso4']],out:{zinc:1,o2:1,h2so4:1},eq:'2ZnSO4 + 2H2O -> 2Zn + O2 + 2H2SO4',phen:'負極慢慢長出一層銀灰色的鋅，也夾著一些小氣泡；正極冒出氣泡。',use:'現代的鋅大多就是這樣電解出來的，不必再把鋅燒成蒸氣。',note:'鋅比氫活潑，照理說負極應該先冒氫氣。但氫氣在鋅的表面很難生成，所以鋅還是鍍得出來，只是效率不到百分之百。'},
+ {id:'electro_water',name:'電解水',kind:'chem',at:'cell',V:2,back:1,inputs:[['water','h2so4'],['water','naoh'],['water','koh'],['water','natron'],['water','lye'],['water','limewater'],['h2so4'],['naoh'],['koh'],['lye'],['limewater']],out:{h2:2,o2:1},eq:'2H2O -> 2H2 + O2',phen:'兩極都冒出氣泡，負極的氣體體積是正極的 2 倍。',use:'水被電分解成氫氣和氧氣，體積比 2：1。',note:'加進去的酸、鹼（或碳酸鈉這類鹽）只是幫助導電，沒有被消耗，所以會還給你。但不是每種電解質都這樣——換成食鹽或鹽酸，正極出來的就不是氧氣了。1800 年，伏打電堆發明後幾個星期，就有人完成了這個實驗。'},
+ {id:'electro_brine',name:'電解食鹽水',kind:'chem',at:'cell',V:3,inputs:[['brine'],['seawater'],['water','salt'],['water','brine']],out:{naoh:1,h2:1,cl2:1},eq:'2NaCl + 2H2O -> 2NaOH + H2 + Cl2',phen:'兩極都冒出氣泡，其中一邊的氣體是黃綠色、有刺鼻味。',use:'氯鹼工業：漂白水、鹽酸、做肥皂用的氫氧化鈉都從這裡來。',note:'氯氣有毒！現實中只能在通風櫥裡進行。'},
+ {id:'electro_cuso4',name:'電解硫酸銅溶液',kind:'chem',at:'cell',V:1,inputs:[['cuso4'],['water','cuso4']],out:{copper:1,o2:1,h2so4:1},eq:'2CuSO4 + 2H2O -> 2Cu + O2 + 2H2SO4',phen:'負極長出一層紅色的銅，正極冒出氣泡，藍色慢慢變淡。',use:'電可以把溶液裡的銅離子變回金屬銅。電鍍和精煉銅都用這個原理。',note:'這是使用碳棒電極的情況。'},
+ {id:'electro_hcl',name:'電解鹽酸',kind:'chem',at:'cell',V:2,inputs:[['hcl'],['water','hcl']],out:{h2:1,cl2:1},eq:'2HCl -> H2 + Cl2',phen:'負極冒出無色的氣泡，正極冒出黃綠色、有刺鼻味的氣體。',use:'鹽酸被電拆成氫氣和氯氣，正好是「氯化氫」這個名字裡的兩種元素。',note:'和電解稀硫酸比一比：同樣是酸，硫酸根留在水裡不動，氯離子卻會在正極變成氯氣。氯氣有毒！'},
+ {id:'electro_znso4',name:'電解硫酸鋅溶液',kind:'chem',at:'cell',V:3,inputs:[['znso4'],['water','znso4']],out:{zinc:1,o2:1,h2so4:1},eq:'2ZnSO4 + 2H2O -> 2Zn + O2 + 2H2SO4',phen:'負極慢慢長出一層銀灰色的鋅，也夾著一些小氣泡；正極冒出氣泡。',use:'現代的鋅大多就是這樣電解出來的，不必再把鋅燒成蒸氣。',note:'鋅比氫活潑，照理說負極應該先冒氫氣。但氫氣在鋅的表面很難生成，所以鋅還是鍍得出來，只是效率不到百分之百。'},
+ {id:'molten_koh',name:'電解熔融的氫氧化鉀',kind:'chem',at:'still',open:1,T:400,V:6,inputs:[['koh']],out:{potassium:1,o2:1},eq:'4KOH -> 4K + O2 + 2H2O',phen:'水先煮乾，剩下的白色固體熔成一灘透明的液體。接上電極，負極冒出一顆顆銀亮的小珠子，有的一碰到空氣就噗地燒出紫色的火焰。',use:'在水溶液裡，電只會把水拆開，鉀始終留在水裡。把水趕走、讓它自己熔化，電才終於把鉀抓出來。鉀太活潑，碳搶不走它的氧，只有電辦得到。',note:'1807 年，戴維用兩百多片金屬板疊成的大電池，電解熔融的苛性鉀（氫氧化鉀），第一次看見金屬鉀。據說他高興得在實驗室裡跳起舞來。幾天後，他用同樣的方法從苛性鈉得到了鈉。'},
+ {id:'molten_naoh',name:'電解熔融的氫氧化鈉',kind:'chem',at:'still',open:1,T:350,V:6,inputs:[['naoh']],out:{sodium:1,o2:1},eq:'4NaOH -> 4Na + O2 + 2H2O',phen:'水煮乾後，白色固體熔成透明的液體。接上電極，負極浮出銀亮的小珠子，偶爾竄出黃色的火焰。',use:'和鉀一樣，鈉也只能用電從熔化的化合物裡抓出來。',note:'這個方法後來成了工業製鈉的做法。現在改成電解熔融的食鹽，但那需要 800 °C 以上的爐子。'},
+ {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
+ {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
  {id:'obs_clay',name:'火不夠旺的土坯',kind:'obs',at:'heat',T:150,failOf:'pottery',inputs:[['clay']],out:{},eqx:'只是乾了',phen:'土坯變乾、變硬了一點，但丟進水裡又化成一攤泥。',use:'只是水分蒸發（物理變化），黏土還是黏土。要讓它真的變成陶，溫度得再高——多放些木頭，讓火更旺。',note:''},
  {id:'obs_lime_fire',name:'溫度不夠的貝殼',kind:'obs',at:'heat',T:300,failOf:'calcine',inputs:[['caco3']],out:{},eqx:'沒有變化',phen:'被燻黑了，但敲開來還是原本的樣子。',use:'溫度不夠。營火的熱都散到空氣裡了——得用能把熱留住的窯，而且柴要夠多。',note:''},
@@ -385,6 +391,10 @@ const REACTIONS=[
  {id:'obs_salt_solid',name:'電解固體食鹽',kind:'obs',at:'cell',inputs:[['salt']],out:{},eqx:'沒有變化',phen:'電極插在鹽粒裡，什麼事也沒發生。',use:'食鹽是電解質，但固體裡的離子被固定住、不能移動，所以不導電。要先溶進水裡。',note:''},
  {id:'obs_weak_elec',name:'電解醋或碳酸水',kind:'obs',at:'cell',inputs:[['vinegar'],['carbonic'],['water','vinegar'],['water','carbonic']],out:{},eqx:'氣泡又少又慢',phen:'兩極只有稀稀落落的小氣泡，比加了硫酸的水慢得多。',use:'醋酸和碳酸是弱酸，溶在水裡只有一小部分變成離子，導電能力差。這種叫弱電解質。',note:''},
  {id:'obs_nonelec',name:'電解糖水或酒精',kind:'obs',at:'cell',inputs:[['juice'],['ethanol'],['water','juice'],['water','ethanol']],out:{},eqx:'沒有變化',phen:'電極上一顆氣泡也沒有。',use:'糖和酒精溶在水裡還是一個個完整的分子，不會變成離子，所以不導電。這種叫非電解質。',note:'能不能導電，要看溶進水裡的東西會不會變成離子，和它溶不溶得進水沒有關係。'},
+ {id:'obs_lowvolt',name:'電壓不夠的電解',kind:'obs',at:'cell',inputs:[],out:{},eqx:'沒有變化',phen:'電極上沒有動靜，頂多冒出一兩顆氣泡就停了。',use:'每一種物質要被電拆開，都有一個最低的電壓。電壓不夠，離子就是不肯在電極上放手。把伏打堆再疊高一些。',note:'不同的東西需要的電壓不一樣：銅離子最好說話，水和酸其次，食鹽水更高，熔化的強鹼最難。'},
+ {id:'obs_no_cond',name:'沒接冷凝管就加熱',kind:'obs',at:'still',inputs:[],out:{},eqx:'蒸氣散到空氣裡',phen:'瓶口不斷冒出白煙，瓶裡的東西越來越少，卻什麼也沒接到。',use:'加熱會讓容易變成氣體的成分先跑出來。沒有冷凝管把蒸氣變回液體，它就全散到空氣裡了。',note:''},
+ {id:'obs_melt_only',name:'只加熱、不通電的強鹼',kind:'obs',at:'still',inputs:[],out:{},eqx:'熔化 → 冷卻後又凝固',phen:'水煮乾後，白色的固體熔成透明的液體；火一熄，又凝回白色的固體。',use:'熔化只是物理變化。再怎麼加熱，它也不會自己分開。要拆開它，得靠別的力量。',note:''},
+ {id:'obs_no_melt',name:'想把食鹽或草木灰燒熔',kind:'obs',at:'still',needElec:1,T:550,inputs:[['salt'],['ash'],['natron']],out:{},eqx:'沒有熔化',phen:'燒到發紅，還是一粒一粒的固體。電極插在裡面，什麼事也沒發生。',use:'食鹽要 801 °C、草木灰裡的碳酸鉀要 891 °C 才會熔化，實驗桌上的小爐子辦不到。有沒有含著同一種金屬、卻容易熔化得多的東西？',note:''},
  /* ===== 科技原理 ===== */
  {id:'tech_bucket',name:'木桶',kind:'tech',inputs:[],out:{},eqx:'木板吸水膨脹 → 縫隙密合',phen:'剛箍好的桶子會滲水。泡一陣子以後，一滴也不漏了。',use:'木頭吸了水會膨脹，板子和板子擠在一起，把縫堵死。箍得越緊越不漏。要把木板削得平整，得有金屬工具。',note:'在塑膠出現以前的幾千年，水、酒、油、醃菜，全是用木桶裝的。'},
  {id:'tech_fire',name:'燃燒三要素',kind:'tech',inputs:[],out:{},eqx:'可燃物 ＋ 助燃物（氧氣）＋ 達到燃點',phen:'快速摩擦讓木屑升溫到燃點，冒煙、起火。',use:'三個要素缺一不可。柴越多，同時在燒的木頭越多，火就越熱；柴燒完，溫度就掉下來。',note:''},
@@ -398,7 +408,7 @@ const REACTIONS=[
  {id:'tech_distill',name:'蒸餾',kind:'tech',inputs:[],out:{},eqx:'加熱 → 汽化 → 冷卻 → 凝結',phen:'蒸氣通過繞成螺旋的銅管，在另一端滴成液體。',use:'沸點不同的物質會先後變成蒸氣，藉此可以把混合物分開。玻璃透明又不怕酸，從此可以安全地處理強酸。',note:''},
  {id:'tech_compass',name:'磁化',kind:'tech',inputs:[],out:{},eqx:'磁鐵礦 ＋ 鐵針 → 磁針',phen:'用磁鐵礦順著同一個方向摩擦鐵針，把針懸起來，它總是指著同一個方向。',use:'磁鐵礦天然帶有磁性，能把鐵磁化。地球本身就是一個大磁鐵，所以磁針會指向南北。',note:''},
  {id:'tech_ship',name:'鐵釘與生鏽',kind:'tech',inputs:[],out:{},eqx:'鐵 ＋ 氧氣 ＋ 水 → 鐵鏽',phen:'沒上油的鐵釘，泡過海水幾天就長出紅褐色的鏽。',use:'生鏽是緩慢的氧化，需要氧氣和水，鹽分會讓它更快。所以船上的鐵件要塗油，把空氣和水隔開。',note:'船越大，沉在水面下的部分（吃水）越深：浮力要等於船重，船越重就得排開越多的水。所以大船進不了淺海。'},
- {id:'tech_elec',name:'鋅銅電池的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　正極 Cu²⁺ + 2e⁻ → Cu',phen:'鋅片泡在硫酸鋅溶液、銅片泡在硫酸銅溶液，中間用鹽橋相連。導線一接上，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流。化學能轉換成了電能。鋅是負極，銅是正極，鹽橋讓兩邊的電荷保持平衡。',note:'你之前把鋅直接丟進硫酸銅溶液，也是同一個反應——只是那時電子沒有經過導線，能量變成熱散掉了。'},
+ {id:'tech_elec',name:'伏打堆的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　電子經導線流向銅片',phen:'一片鋅、一片銅，中間夾一塊浸了鹽水的布。這樣一組一組往上疊，兩端接上導線，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流，化學能就變成了電能。每一層大約 1 伏特，疊幾層電壓就是幾倍。鋅片會一點一點被吃掉，用久了要換；銅片不會。',note:'1800 年，伏打把鋅片、銀片和浸了鹽水的紙板疊成一堆，做出史上第一個能持續供電的電池。消息傳開後才幾個星期，就有人用它把水拆開了。'},
  {id:'tech_field',name:'農業的開始',kind:'tech',inputs:[],out:{},eqx:'採集 → 種植',phen:'把吃剩的穀粒埋進土裡，過一陣子長出了一樣的植物。',use:'大約一萬年前，人類開始自己種糧食。有了穩定的食物，才有人能專心去燒陶、煉銅。',note:''},
  {id:'farm_min',name:'最小因子定律',kind:'tech',inputs:[],out:{},eqx:'收成取決於最缺的那一樣',phen:'木桶能裝多少水，由最短的那塊木板決定。',use:'植物需要氮、磷、鉀、水和合適的酸鹼。其中一樣不夠，其他的再多也沒用。施肥前要先知道缺的是什麼。',note:'1840 年德國化學家李比希提出，現代肥料工業從這裡開始。'},
  {id:'farm_ph',name:'測量土壤的酸鹼',kind:'tech',inputs:[],out:{},eqx:'土 + 水 + 指示劑 → 顏色',phen:'把一點土泡在水裡，滴進紫甘藍指示劑，看顏色就知道土是酸還是鹼。',use:'大多數作物喜歡接近中性、略偏酸的土。太酸或太鹼，養分就算在土裡，根也吸收不到。',note:''},
@@ -463,7 +473,7 @@ const QUESTS=[
  {id:'q_pig_iron',ch:'第四章　煤與電　｜　雷鳴島',goal:'用高爐煉出像水一樣流動的鐵',hint:'「鐵礦和焦炭之外，還要一種能把礦石裡的砂石雜質帶走的石頭——你很早就認識它了。要比以前煉鐵更熱。」',rx:['pig_iron'],done:F('pig_iron')},
  {id:'q_smelt_zn',ch:'第四章　煤與電　｜　雷鳴島',goal:'從淺藍色礦脈的石頭裡煉出鋅',hint:'「要鐵製工具才敲得開。前半和煉銅很像。但鋅很怪：還沒熔成一灘，就先變成蒸氣飄走了——得想辦法把蒸氣留下來。」',rx:['smelt_zn'],done:F('smelt_zn')},
  {id:'q_zn_acid',ch:'第四章　煤與電　｜　雷鳴島',goal:'在實驗桌把鋅放進稀硫酸',hint:'「和鐵比比看，誰冒泡比較快？留下來的溶液也有用。」',rx:['zn_acid'],done:F('zn_acid')},
- {id:'q_elec',ch:'第四章　煤與電　｜　雷鳴島',goal:'在屋裡的實驗室組一個鋅銅電池',hint:'「鋅 2、銅 2、硫酸銅溶液 1、硫酸鋅溶液 1、食鹽 1（做鹽橋）。這麼嬌貴的東西，木屋的桌子放不了——要磚瓦屋以上：磚瓦 8、灰泥 3、木頭 4。」',done:A('elec'),
+ {id:'q_elec',ch:'第四章　煤與電　｜　雷鳴島',goal:'在屋裡的實驗室疊一座伏打堆',hint:'「一片鋅、一片銅、一塊浸了鹽水的布，一層一層往上疊：鋅 2、銅 2、食鹽 1、藤蔓纖維 1。這麼嬌貴的東西，木屋的桌子放不了——要磚瓦屋以上：磚瓦 8、灰泥 3、木頭 4。」',done:A('elec'),
   after:'導線兩端碰在一起時，跳出了一點小小的火花。\n\n四十萬年前的那堆營火，走到了這裡。\n\n筆記：「有了電，連水都可以拆開。」'},
  {id:'q_electro_water',ch:'第四章　煤與電　｜　雷鳴島',goal:'用電解槽把水拆成氫氣和氧氣',hint:'「先直接電解淡水試試。不行的話，想想什麼東西能幫水導電。」',rx:['electro_water'],done:F('electro_water')},
  {id:'q_steel',ch:'第四章　煤與電　｜　雷鳴島',goal:'把又硬又脆的生鐵變成鋼',hint:'「生鐵脆，是因為裡面的碳太多。什麼氣體能把碳燒掉？你剛剛才把它從水裡拆出來。」',rx:['steel'],done:F('steel')},
@@ -475,6 +485,7 @@ const QUESTS=[
  {id:'s_co2',side:1,ch:'支線　石灰的循環',goal:'把石灰水變回石頭',hint:'「石灰石燒的時候，有東西從爐口跑掉了，抓不住。但同一種氣體，你身上就有。」',rx:['breath','limewater_co2'],done:s=>!!(s.found.breath||s.found.limewater_co2),
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
+ {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。把水趕走，讓它自己熔化，再接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
  {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰，或是鹽湖邊白色的結晶。不是每一種鹼都做得出能起泡的肥皂。」',rx:['soap','soap_ash','soap_soda'],done:s=>!!(s.found.soap||s.found.soap_ash||s.found.soap_soda)},
@@ -510,7 +521,8 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  const cur=MAINQ.find(q=>q.ch===ch&&!qd[q.id])||MAINQ.find((q,i)=>i>hi&&!qd[q.id])||MAINQ[MAINQ.length-1],ci=MAINQ.indexOf(cur),inCh=MAINQ.filter(q=>q.ch===cur.ch);
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
-function loadState(j){const st=Object.assign(newState(),j);if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
+function loadState(j){const st=Object.assign(newState(),j);if(st.abil&&st.abil.elec&&!st.pile)st.pile={n:3,life:3*PLIFE};   /* 舊存檔：原本的電池換成三層的伏打堆 */
+ if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
  if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
 /* 成功以後，提示變成完整配方；成功以前，只列出「試過什麼」 */
 const ATN={heat:'放在火上燒',table:'實驗桌',cell:'電解槽',still:'蒸餾器'};
@@ -531,10 +543,19 @@ function safetyNet(s,nodes,dt,isl){const back=[];s.rs=s.rs||{};s.thin=s.thin||{}
  return back;}
 /* 蒸餾器裝在屋裡的實驗室 */
 const LABNEED={1:'木屋',2:'磚瓦屋'};
+/* 伏打堆：一層（鋅＋銅＋鹽水布）約 1 伏特；每電解一次吃掉一點鋅。有發電機就不必再靠它 */
+const PMAX=8,PLIFE=5,GENV=12;
+const pileOf=s=>{if(s.abil.elec&&!s.pile)s.pile={n:2,life:2*PLIFE};return s.pile;};
+function voltOf(s){if(s.abil.gen)return GENV;const p=pileOf(s);return p&&p.life>0?p.n:0;}
+function pileUse(s){const p=pileOf(s);if(!s.abil.gen&&p&&p.life>0)p.life--;}
+function pileAdd(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};if(p.n>=PMAX)return{err:'最多疊 '+PMAX+' 層，再高就要倒了。'};if(!(s.inv.zinc>=1&&s.inv.copper>=1))return{err:'加一層要鋅 1、銅 1。'};s.inv.zinc--;s.inv.copper--;p.n++;p.life+=PLIFE;return{ok:true};}
+function pileFix(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};const z=Math.ceil((p.n*PLIFE-p.life)/PLIFE);if(z<=0)return{err:'鋅片都還好好的，不用換。'};
+ const need={zinc:z,salt:1,water:1},miss=Object.keys(need).filter(k=>(s.inv[k]||0)<need[k]);if(miss.length)return{err:'換鋅片要鋅 '+z+'、食鹽 1、淡水 1。還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(need[k]-(s.inv[k]||0))).join('、')};
+ for(const k in need)s.inv[k]-=need[k];p.life=p.n*PLIFE;return{ok:true,z};}
 function installLab(s,st,id){const d=BMAP[id],h=BMAP[st.type];if(st[id])return{err:'這間屋子已經有'+d.n+'了。'};if(!h||!h.house||!(h.lab>=d.inLab))return{err:'這間屋子的實驗室不夠好，放不了'+d.n+'。要'+LABNEED[d.inLab]+'以上。'};
  const mreq=d.req.filter(q=>!hasReq(s,q));if(mreq.length)return{err:'還不會做：要先'+mreq.map(reqName).join('、')+'。'};
  const miss=Object.keys(d.need).filter(k=>(s.inv[k]||0)<d.need[k]);if(miss.length)return{err:'材料不夠：還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(d.need[k]-(s.inv[k]||0))).join('、')};
- for(const k in d.need)s.inv[k]-=d.need[k];st[id]=true;s.abil[d.grant]=true;const isNew=!s.found[d.entry];s.found[d.entry]=true;return{ok:true,isNew};}
+ for(const k in d.need)s.inv[k]-=d.need[k];st[id]=true;s.abil[d.grant]=true;pileOf(s);const isNew=!s.found[d.entry];s.found[d.entry]=true;return{ok:true,isNew};}
 const installStill=(s,st)=>installLab(s,st,'still');
 /* 破船：第一次翻找可以拿到一點東西；線索隨時可以回來看 */
 const WRECK_LOOT={wood:2,fiber:4};
@@ -610,6 +631,8 @@ function mixReact(s,ids,at,indoor){
  if(!r&&at==='table'&&ids.includes('seawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='seawater'?'water':i));   /* 拿海水當淡水用：反應會發生，但成品混了鹽，整份報廢 */
   if(REACTIONS.some(x=>x.at==='table'&&x.kind!=='obs'&&x.id!=='brine'&&x.inputs.some(a=>rkey(a)===k2))){r=RMAP.obs_seawater;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}}
  if(!r){const lq=at==='table'?ids.filter(i=>LIQ.has(i)&&i!=='water'):[];if(lq.length>=2){lq.forEach(i=>s.inv[i]--);return{none:true,lost:lq};}return{none:true};}   /* 兩種溶液混在一起就分不開了 */
+ if(at==='cell'&&r.kind!=='obs'){const v=voltOf(s);if(v<=0)return{err:pileOf(s)?'伏打堆的鋅片已經被吃光了。回屋裡換上新的鋅片再來。':'還沒有電源。'};
+  if(v<(r.V||1)){const R=RMAP.obs_lowvolt,isNew=!s.found[R.id];s.found[R.id]=true;return{r:R,isNew,volt:v};}pileUse(s);}
  if(r.indoor&&!indoor){r=RMAP.obs_outdoor;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}   /* 該在室內做的事拿到戶外做：整份壞掉 */
  if(r.clean&&!(s.clean>0)){r=RMAP.obs_dirty;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}   /* 沒洗手就發酵：被雜菌污染 */
  if(r.clean)s.clean--;
@@ -618,7 +641,7 @@ function mixReact(s,ids,at,indoor){
 /* 火 */
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
 function eligible(f){const d=STN[f.type],at=d.at||'heat',L=[];
- for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
+ for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.V&&!f.elec)continue;if(r.at==='still'&&!r.open&&f.cond===false)continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
 function fireTick(f,dt,s){const d=STN[f.type],ev=[];
  if(f.lit){let tot=0;for(const k of FUELS)tot+=f.fuel[k];
   if(tot<1){f.lit=false;for(const k of FUELS)f.fuel[k]=0;ev.push({t:'out'});}
@@ -628,9 +651,9 @@ function fireTick(f,dt,s){const d=STN[f.type],ev=[];
  if(!f.lit){f.Teq=25;f.power=0;}
  f.T+=(f.Teq-f.T)*(1-Math.exp(-dt/(f.lit?2.5:6)));f.peak=Math.max(f.peak,f.T);f.bell=Math.max(0,f.bell-dt*.2);
  for(const r of eligible(f)){
-  if(f.T<r.T||(r.needs&&!s.abil[r.needs])||(r.pot&&!s.abil.pottery)){f.prog[r.id]=0;continue;}
+  if(f.T<r.T||(r.needs&&!s.abil[r.needs])||(r.pot&&!s.abil.pottery)||(r.V&&voltOf(s)<r.V)){f.prog[r.id]=0;continue;}
   f.prog[r.id]=(f.prog[r.id]||0)+dt/3;
-  if(f.prog[r.id]>=1){f.prog[r.id]=0;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));a.forEach(i=>f.charge[i]--);
+  if(f.prog[r.id]>=1){f.prog[r.id]=0;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));a.forEach(i=>f.charge[i]--);if(r.V)pileUse(s);
    let R=r,out=r.out;if(r.sulfur&&(f.sulf>.3||a.includes('coal'))){R=RMAP.obs_coal_iron;out={badiron:1};}   /* 燒過生煤：硫混進鐵裡 */
    for(const o in out){if(o==='co2')continue;   /* 爐火裡生成的二氧化碳直接從爐口散掉，接不住 */
     const tgt=GAS.has(o)?f.out:f.charge;tgt[o]=(tgt[o]||0)+out[o];f.made[o]=1;}
@@ -642,7 +665,12 @@ function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],co
  if(!d.pot&&at==='heat'&&f.peak>=120){let hit=false;for(const r of REACTIONS){if(!r.pot||r.at!=='heat')continue;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));if(!a)continue;hit=true;
    for(const id of a)if(f.charge[id]>0){lost[id]=(lost[id]||0)+f.charge[id];f.charge[id]=0;}}
   if(hit){const r=RMAP.obs_potdry,isNew=!s.found[r.id];s.found[r.id]=true;obs.push({r,isNew});}}   /* 把鍋子塞進窯或冶煉爐：一下就燒乾 */
- for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;
+ const keepL={};if(d.at==='still')for(const r of REACTIONS){if(!r.V||r.at!=='still')continue;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));if(!a)continue;a.forEach(i=>keepL[i]=1);   /* 強鹼煮乾了還在，不算浪費 */
+  if(f.peak<r.T)continue;const R=!f.elec?RMAP.obs_melt_only:(voltOf(s)<r.V?RMAP.obs_lowvolt:null);if(R)covered[r.id]=1;if(R&&!obs.some(o=>o.r===R)){const isNew=!s.found[R.id];s.found[R.id]=true;obs.push({r:R,isNew});}}
+ if(d.at==='still'&&f.cond===false){let hit=false;for(const r of REACTIONS){if(r.at!=='still'||r.open||r.V||r.kind==='obs'||f.peak<r.T)continue;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));if(!a)continue;hit=true;
+   for(const id of a)if(f.charge[id]>0){lost[id]=(lost[id]||0)+f.charge[id];f.charge[id]=0;}}
+  if(hit){const R=RMAP.obs_no_cond,isNew=!s.found[R.id];s.found[R.id]=true;obs.push({r:R,isNew});}}   /* 沒接冷凝管就加熱：蒸氣全散掉 */
+ for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;if(r.needElec&&!f.elec)continue;
   if(!r.inputs.some(a=>a.every(i=>f.charge[i]>=1))||f.peak<r.T)continue;if(r.outdoor&&f.indoor)continue;
   if(r.alone&&kinds.length>1)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;
   if(r.failOf){const R=RMAP[r.failOf];if(R.closed&&!d.closed)continue;if(r.failNeeds){if(s.abil[R.needs]||f.peak<R.T)continue;}else if(f.peak>=R.T)continue;covered[r.failOf]=1;}
@@ -653,7 +681,7 @@ function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],co
   hints.push(f.peak<r.T?`${a}：沒有明顯變化。最高只燒到 ${Math.round(f.peak/10)*10} °C——也許要更熱。`:`${a}：溫度到了，但撐得不夠久就降下來了。燃料再多放一些。`);}
  /* 沒有參與任何反應、卻被留在火上的東西：液體煮乾，會燒的東西燒焦 */
  if(at==='heat'){const busy=new Set();for(const r of eligible(f))r.inputs.forEach(a=>{if(a.every(i=>f.charge[i]>=1))a.forEach(i=>busy.add(i));});
-  for(const id of Object.keys(f.charge)){const n=Math.floor(f.charge[id]+1e-6);if(n<=0||busy.has(id)||f.made[id])continue;   /* 這次燒出來的成品不算 */
+  for(const id of Object.keys(f.charge)){const n=Math.floor(f.charge[id]+1e-6);if(n<=0||busy.has(id)||f.made[id]||keepL[id])continue;   /* 這次燒出來的成品不算 */
    if(LIQ.has(id)&&f.peak>=120){lost[id]=(lost[id]||0)+n;f.charge[id]=0;why.push(ITEMS[id].n+'煮乾了');}
    else if(ORG.has(id)&&f.peak>=300){lost[id]=(lost[id]||0)+n;f.charge[id]=0;why.push(ITEMS[id].n+'燒焦了（超過 300 °C）');}}}
  return{obs,hints,lost,why};}
@@ -1225,15 +1253,15 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
  if(st===TOWER)return toast('信號塔亮著。');
  if(d.house)return openHome(st);
  if(st.type==='field')return openFarm(st);
- if(STN[st.type])return openFire(st.type);openMix(st.type==='cell'?'cell':'table');}
+ bench.on=false;if(STN[st.type])return openFire(st.type);openMix(st.type==='cell'?'cell':'table');}
 
 /* ===== 火：營火、陶窯、鼓風爐、蒸餾器共用 ===== */
 let fire=null,fz='fuel',flog=[],fent=null,fsum=false,ffast=false,fpart=[],fseen=false;
 function openFire(type,indoor){fire=newFire(type,indoor);fz='fuel';flog=['把燃料和材料放進去，然後點火。'];fent=null;fsum=false;ffast=false;fpart=[];fseen=false;panel='fire';
- openModal(head(type==='stove'?'🔥 爐灶（室內）':BMAP[type].icon+' '+BMAP[type].n+(indoor?'（室內）':''))+`<canvas class="scene" id="sc" width="560" height="330"></canvas><div id="ctl"></div>`);fireCtl();}
+ openModal(head(bench.on?'🧪 實驗桌（室內）':type==='stove'?'🔥 爐灶（室內）':BMAP[type].icon+' '+BMAP[type].n+(indoor?'（室內）':''))+`<canvas class="scene" id="sc" width="560" height="330"></canvas><div id="ctl"></div>`);fireCtl();}
 function fireCtl(){if(!$('ctl'))return;const d=STN[fire.type],fuelZone=fz==='fuel',list=have().filter(id=>fuelZone?!!FUEL[id]:true);
  const known=fire.lit&&eligible(fire).length&&eligible(fire).every(r=>S.found[r.id]);
- $('ctl').innerHTML=`<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
+ $('ctl').innerHTML=`${benchBar()}<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
  ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:chemGroups(list,one);})()}
  <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}
  ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>${fent?`<div class="result ${fent.isNew?'new':''}">${fent.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(fent.r)}</div>`:''}`;}
@@ -1288,7 +1316,7 @@ function drawItem(c,id,x,y,r){c.save();c.translate(x,y);c.scale(r/11,r/11);c.lin
   case 'quicklime':poly([[-12,8],[-10,-3],[-2,-8],[2,2],[-1,9]],'#f3efe2','#a8a08a');poly([[0,9],[3,-5],[10,-4],[12,8]],'#fbf8ee','#a8a08a');line([[-7,-1],[-3,5]],'#c9c2ae');break;
   case 'slaked':pile('#eeeadb','#ffffff');break;case 'zno':pile('#f7f7f2','#cfcfc8');break;case 'ash':pile('#b9b4aa','#e6e2da');break;case 'cuo':pile('#1c1c1c','#4a4a4a');break;case 'mortar':pile('#cfc8b4','#8f8a7a');break;
   case 'salt':[[-9,2,8],[1,-7,7],[3,3,7]].forEach(q=>{c.fillStyle='#fff';c.fillRect(q[0],q[1],q[2],q[2]);c.strokeStyle='#9aa7b0';c.strokeRect(q[0],q[1],q[2],q[2]);});break;
-  case 'copper':ingot('#c8743a','#f2b48a');break;case 'tin':ingot('#c9ced2','#ffffff');break;case 'bronze':ingot('#b08d57','#e6cc96');break;case 'zinc':ingot('#9aa8b5','#dfe9f2');break;
+  case 'copper':ingot('#c8743a','#f2b48a');break;case 'tin':ingot('#c9ced2','#ffffff');break;case 'bronze':ingot('#b08d57','#e6cc96');break;case 'zinc':ingot('#9aa8b5','#dfe9f2');break;case 'potassium':ingot('#b9b3d0','#f1eeff');break;case 'sodium':ingot('#cfd4d8','#ffffff');break;
   case 'coal':poly([[-12,8],[-10,-6],[-2,-10],[10,-7],[12,6],[3,10]],'#121216','#000');[[-9,-2,8,-4],[-10,3,10,1],[-6,7,9,5]].forEach(q=>line([[q[0],q[1]],[q[2],q[3]]],'#3a3a44'));line([[-6,-6],[2,-8]],'#c9c9d6',1.6);line([[3,-1],[9,-2]],'#9a9aa8',1.4);break;
   case 'coke':poly([[-11,7],[-10,-5],[-3,-10],[8,-8],[12,2],[7,10],[-3,10]],'#77777d','#2f2f33');[[-5,-3,2.2],[2,-5,1.6],[5,2,2.4],[-3,4,1.8],[0,0,1.2],[8,-3,1.2]].forEach(h=>blob(h[0],h[1],h[2],'#35353a'));break;
   case 'pigiron':ingot('#4f5357','#7e848a');[[-6,4],[0,5],[5,3]].forEach(q=>blob(q[0],q[1],1.1,'#2a2d30'));break;
@@ -1366,18 +1394,32 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
 
 /* ===== 進屋：倉庫、室內實驗室、加蓋 ===== */
 let homeSt=null,homeMsg='';
-function openHome(st){homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
+/* 實驗桌：桌上要架什麼裝置，由玩家決定 */
+let bench={on:false,fire:false,cond:true,elec:false,still:false,cell:false};
+const hasStill=st=>!!(st.still||(BMAP[st.type].lab>=3&&S.abil.distill)),hasCell=st=>!!(st.cell||(BMAP[st.type].lab>=3&&S.abil.elec));
+function powerText(){return S.abil.gen?'🌀 發電機供電：電壓又高又穩，不必換鋅片':pileOf(S)?`伏打堆 ${S.pile.n} 層（約 ${S.pile.life>0?S.pile.n:0} 伏特）｜鋅片還能撐 ${S.pile.life} 次電解`:'還沒有電源';}
+function openBench(st){bench={on:true,fire:false,cond:true,elec:false,still:hasStill(st),cell:hasCell(st)};benchGo();}
+function benchGo(){if(bench.fire){openFire('still',true);fire.cond=bench.cond;fire.elec=bench.elec;flog=['桌上架了：爐火'+(bench.cond?'、冷凝管':'')+(bench.elec?'、電極':'')+'。把燃料和材料放進去，然後點火。'];fireCtl();}else openMix(bench.elec?'cell':'table',true);}
+const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'混合';
+function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class="cond ${bench[k]&&ok?'sel':''}" data-bench="${k}" ${ok?'':'disabled'}>${label}</button>`;
+ return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
+function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
+ bench[k]=!bench[k];SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
+function openHome(st){bench.on=false;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
  const need=d.floor&&fl<d.maxF?Object.keys(d.floor).map(k=>{const have=(st.fl&&st.fl[k]||0)+(S.inv[k]||0);return `<span class="${have>=d.floor[k]?'ok':'no'}">${ITEMS[k].n} ${Math.min(have,d.floor[k])}/${d.floor[k]}</span>`;}).join(''):'';
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
- <div class="row">${btn('store','📦 倉庫',true)}${btn('table','🧫 室內實驗桌',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
- <div class="row">${st.still||(lab>=3&&S.abil.distill)?btn('still','⚗️ 蒸餾器（混合後加熱、煮東西）',true):btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${st.cell||(lab>=3&&S.abil.elec)?btn('cell','⚡ 電池與電解槽',true):btn('mkcell','⚡ 安裝電池與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
+ <div class="row">${btn('store','📦 倉庫',true)}${btn('bench','🧪 實驗桌（混合・加熱・蒸餾・電解）',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
+ <div class="row" style="align-items:center">${hasStill(st)?'<span class="muted">⚗️ 蒸餾器已安裝　</span>':btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${hasCell(st)?'':btn('mkcell','⚡ 安裝伏打堆與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
+ ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${S.abil.gen||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*PLIFE,'還不用換')}</div>`:''}
  <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}<span class="muted">　手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗'}　｜　洗一次要肥皂 1、淡水 1</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
 function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHome(st);};};
  if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 3 次發酵。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
- if(act==='mkstill'||act==='mkcell'){const id=act==='mkstill'?'still':'cell',r=installLab(S,st,id);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=(id==='still'?'⚗️ 蒸餾器裝好了。實驗桌用來混合；要混合後加熱、把蒸氣接住，就用蒸餾器。':'⚡ 電池和電解槽裝好了。把電極接上，看看電能把什麼東西拆開。')+(r.isNew?'<br>📖 圖鑑新增：'+RMAP[BMAP[id].entry].name:'');}after();hud();save();return openHome(st);}
+ if(act==='mkstill'||act==='mkcell'){const id=act==='mkstill'?'still':'cell',r=installLab(S,st,id);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=(id==='still'?'⚗️ 蒸餾器裝好了。到實驗桌把「爐火」架上去就能加熱，再加上「冷凝管」就能蒸餾。':'⚡ 伏打堆疊好了（2 層）。到實驗桌把「電極」架上去，看看電能把什麼東西拆開。疊得越高，電壓越高。')+(r.isNew?'<br>📖 圖鑑新增：'+RMAP[BMAP[id].entry].name:'');}after();hud();save();return openHome(st);}
+ if(act==='bench'){back();return openBench(st);}
+ if(act==='pileadd'||act==='pilefix'){const r=act==='pileadd'?pileAdd(S):pileFix(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=act==='pileadd'?'⚡ 伏打堆加高了一層，現在 '+S.pile.n+' 層。':'🔁 換上了新的鋅片和鹽水，伏打堆又有力了。';}hud();save();return openHome(st);}
  if(act==='store'){panel='store';return renderStore();}
  if(act==='table'){back();return openMix('table',true);}
  if(act==='cell'){back();return openMix('cell',true);}
@@ -1404,7 +1446,7 @@ function drawHome(){const cvs=$('hc');if(!cvs||!homeSt)return;const c=cvs.getCon
  c.fillStyle='#2b2a26';c.font='bold 12px sans-serif';c.textAlign='center';c.fillText('倉庫',192,180);
  if(lab>=1){c.fillStyle='#9a6b3c';c.fillRect(340,128,100,8);c.fillRect(346,136,7,30);c.fillRect(427,136,7,30);drawItem(c,'ceramic',362,116,10);c.fillStyle='#bfe6e6';c.fillRect(384,106,10,22);c.fillRect(400,112,14,16);c.fillStyle='#8e44ad';c.fillRect(401,118,12,10);c.fillStyle='#2b2a26';c.fillText('實驗桌',390,180);}
  if(lab>=2){c.fillStyle='#8a4a3a';c.fillRect(456,84,84,82);c.fillStyle='#1a120e';c.beginPath();c.moveTo(472,166);c.lineTo(472,128);c.quadraticCurveTo(498,104,524,128);c.lineTo(524,166);c.fill();c.fillStyle='#ff9a2e';c.beginPath();c.moveTo(484,166);c.quadraticCurveTo(498,134,512,166);c.fill();c.fillStyle='#6b3a2e';c.fillRect(488,40,20,46);c.fillStyle='#2b2a26';c.fillText('爐灶',498,180);}
- if(lab>=3||homeSt.still||homeSt.cell){c.strokeStyle='#8fb8c8';c.lineWidth=2;c.beginPath();c.arc(352,62,12,0,7);c.stroke();c.beginPath();c.moveTo(352,50);c.lineTo(352,36);c.lineTo(392,36);c.lineTo(404,70);c.stroke();c.strokeRect(398,70,14,18);c.fillStyle='#c8a04a';c.fillRect(420,74,22,12);c.fillStyle='#2b2a26';c.font='10px sans-serif';c.fillText('蒸餾器・電池',392,100);}}
+ if(lab>=3||homeSt.still||homeSt.cell){c.strokeStyle='#8fb8c8';c.lineWidth=2;c.beginPath();c.arc(352,62,12,0,7);c.stroke();c.beginPath();c.moveTo(352,50);c.lineTo(352,36);c.lineTo(392,36);c.lineTo(404,70);c.stroke();c.strokeRect(398,70,14,18);c.fillStyle='#c8a04a';c.fillRect(420,74,22,12);c.fillStyle='#2b2a26';c.font='10px sans-serif';c.fillText('蒸餾器・伏打堆',392,100);}}
 /* ===== 農田 ===== */
 let farmT=0,farmSt=null,farmMsg='',farmEnt=null;
 function openFarm(st){farmSt=st;farmMsg='';farmEnt=null;panel='farm';openModal(head('🌾 農田')+`<canvas class="scene" id="fc" width="560" height="250"></canvas><div id="fctl"></div>`);farmCtl();}
@@ -1442,7 +1484,7 @@ function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=ha
  if(R){if(R.err)res=`<div class="result fail">${R.err}</div>`;else if(R.none)res=`<div class="result fail">沒有觀察到明顯的變化。換個組合試試？${R.lost?`<br><b>💨 ${R.lost.map(k=>ITEMS[k].n).join('和')}混在一起，已經分不開，浪費掉了。</b>`:''}<div class="muted">（遊戲只收錄部分反應，沒反應不一定代表現實中也沒有。）</div></div>`;
   else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
  const keepScroll=$('modal').scrollTop;
- openModal(head((cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>
+ openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
  ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗——發酵前先回屋裡洗手'}</div>`:''}
  <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':'')):'<span class="muted">背包是空的。</span>'}
  <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'🥄 混合'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
@@ -1511,7 +1553,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='1.16',VDATE='2026-11-17';
+const VERSION='1.17',VDATE='2026-11-17';
 /* ===== 英雄榜與人數統計 =====
    LB_URL 是老師自己的 Google 試算表（Apps Script 網路應用程式）的網址。留空＝完全不記錄、不顯示英雄榜。
    只送出：隨機代號、玩家自己取的名字、版本、主線進度、章節、分數、時代、徽章數。不含任何帳號或裝置資料。 */
@@ -1587,6 +1629,7 @@ $('mask').addEventListener('click',e=>{
  if(d.item){const i=mix.sel.indexOf(d.item);mix.res=null;if(i>=0)mix.sel.splice(i,1);else if(mix.sel.length<3)mix.sel.push(d.item);else toast('最多放 3 種材料');return renderMix();}
  if(d.act==='mix'){mix.shown=mix.sel.slice();mix.res=mixReact(S,mix.sel,mix.at,mix.indoor);mix.t0=performance.now();{const R=mix.res;if(mix.at==='cell'&&!R.err)SFX.zap();if(R.lost)SFX.deny();if(R.r){if(Object.keys(R.r.out).some(k=>GAS.has(k)))SFX.bubble();if(R.r.hot)SFX.hiss();R.isNew?SFX.discover():SFX.react();}else SFX.ui();}storyQ.push(...advanceQuests(S));hud();save();renderMix();$('modal').scrollTop=0;return;}
  if(d.home==='back'){homeMsg='';return openHome(homeSt);}
+ if(d.bench)return benchToggle(d.bench);
  if(d.home)return homeDo(d.home);
  if(d.stash||d.take){const id=d.stash||d.take,n=+(d.n||1),m=d.stash?stash(S,homeSt,id,n):unstash(S,homeSt,id,n);if(m)SFX.place();else if(d.take)toast('背包裡的'+ITEMS[id].n+'已經滿 '+BAGCAP+' 份了');hud();save();return renderStore();}
  if(d.farm)return farmDo(d.farm);
