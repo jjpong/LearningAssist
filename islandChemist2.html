@@ -182,6 +182,11 @@ const ITEMS={
  steel:{n:'鋼',f:'Fe',c:'#cfd6dc',d:'把生鐵裡多餘的碳燒掉後得到的鐵碳合金，又硬又韌。'},
  badiron:{n:'脆鐵（含硫）',f:'',c:'#6b6558',d:'用煤直接煉出來的鐵。裡面混進了硫，燒紅時一敲就裂，做不了工具。'},
  natron:{n:'天然鹼',f:'Na2CO3',c:'#f6eee8',d:'鹽湖邊結晶出來的碳酸鈉，俗稱蘇打。'},
+ sodawater:{n:'鹼湖水',f:'',c:'#a9d6cf',d:'火山島湖裡的水，溶著大量碳酸鈉，摸起來滑滑的，嚐起來又苦又澀。不是淡水。'},
+ acidlake:{n:'酸湖水',f:'',c:'#9fdcc9',d:'火山口舀來的混合酸：硫酸、鹽酸都有，還溶著鐵和硫磺。'},
+ sulfur:{n:'硫磺',f:'S',c:'#e3cf3a',d:'火山口噴氣孔旁結出來的黃色結晶。容易燃燒，燒起來有刺鼻的臭味。'},
+ so2:{n:'二氧化硫',f:'SO2',c:'#ece8c4',d:'無色、有刺鼻臭味的有毒氣體。是造成酸雨的元兇之一。'},
+ h2so3:{n:'亞硫酸',f:'H2SO3',c:'#f1efd2',d:'二氧化硫溶在水裡形成的弱酸，很不穩定，一加熱就把二氧化硫吐回來。'},
  glass:{n:'玻璃',f:'',c:'#bfe6e6',d:'透明、不怕酸鹼，是做化學實驗器材的好材料。'},
  vitriol:{n:'綠礬',f:'FeSO4',c:'#5fc9b0',d:'藍綠色的晶體，硫酸亞鐵。古代鍊金術士用它製造硫酸。'},
  h2so4:{n:'稀硫酸',f:'H2SO4',c:'#f5efc0',d:'強酸，有腐蝕性。現實中必須戴護目鏡與手套。'},
@@ -201,23 +206,25 @@ const ITEMS={
  naoh:{n:'氫氧化鈉溶液',f:'NaOH',c:'#e4dff0',d:'強鹼，有腐蝕性。'},
  h2:{n:'氫氣',f:'H2',c:'#f2d5d5',d:'最輕的氣體，可燃。'},
  o2:{n:'氧氣',f:'O2',c:'#d5e6f2',d:'助燃的氣體。'},
- cl2:{n:'氯氣',f:'Cl2',c:'#d6e38a',d:'黃綠色、有刺激性臭味的有毒氣體。現實中只能在通風櫥中由專業人員處理。'}
+ cl2:{n:'氯氣',f:'Cl2',c:'#d6e38a',d:'黃綠色、有刺激性臭味的有毒氣體。現實中只能在通風櫥中由專業人員處理。'},
+ clwater:{n:'氯水',f:'',c:'#eef3be',d:'氯氣溶在水裡，淡淡的黃綠色。含有鹽酸和次氯酸，能漂白、能殺菌。'},
+ bleach:{n:'漂白水',f:'NaClO',c:'#f3f6e2',d:'次氯酸鈉溶液。強力殺菌、漂白。絕對不能和酸性的清潔劑混用。'}
 };
-const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh']);
-const GAS=new Set(['co2','h2','o2','cl2']);
+const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3']);
+const GAS=new Set(['co2','h2','o2','cl2','so2']);
 /* 會燒焦的東西：放在火上卻沒有發生該有的反應，超過 300 °C 就毀了 */
 const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
 /* 背包的分類 */
 const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','water','seawater']],
- ['礦物',['caco3','sand','quartz','natron','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
- ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola']],['氣體',['co2','h2','o2','cl2']]];
+ ['礦物',['caco3','sand','quartz','natron','sulfur','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
+ ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3']],['氣體',['co2','h2','o2','cl2','so2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
-const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['charcoal','coke','actcarbon','filament','h2','o2','cl2']],
- ['氧化物',['water','co2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
- ['酸',['carbonic','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh']],
- ['鹽',['salt','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle']],
+const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','h2','o2','cl2']],
+ ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
+ ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh']],
+ ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle']],
  ['有機化合物',['ethanol','oil','soap']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
- ['溶液（混合物）',['seawater','indicator','juice','wine','milk','cola']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
+ ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
  ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
 const KIND={chem:'化學變化',phys:'物理變化',obs:'觀察紀錄',tech:'科技原理'};
 const AT={heat:'用火加熱',table:'實驗桌（常溫）',still:'蒸餾器',cell:'電解槽'};
@@ -393,6 +400,26 @@ const REACTIONS=[
  {id:'zn_cuso4',name:'鋅放進硫酸銅溶液',kind:'chem',at:'table',inputs:[['zinc','cuso4']],out:{copper:1,znso4:1},eq:'Zn + CuSO4 -> ZnSO4 + Cu',phen:'鋅的表面長出紅色的銅，藍色溶液褪成無色。',use:'鋅比銅活潑。金屬活性：鋅 > 鐵 > 銅。',note:''},
  {id:'brine',name:'配製食鹽水',kind:'phys',at:'table',inputs:[['salt','water']],out:{brine:1},eqx:'食鹽 + 水 → 食鹽水（溶解）',phen:'白色晶體消失在水中。',use:'食鹽在水中解離成鈉離子和氯離子，所以能導電，是電解質。',note:''},
  {id:'neutral2',name:'鹽酸加氫氧化鈉',kind:'chem',at:'table',hot:1,inputs:[['hcl','naoh']],out:{salt:1},eq:'HCl + NaOH -> NaCl + H2O',phen:'混合後溫度上升，把水蒸乾，留下白色晶體——是食鹽。',use:'酸鹼中和：酸 + 鹼 → 鹽 + 水，並且放熱。兩種有腐蝕性的東西，變成了可以吃的鹽。',note:''},
+ {id:'clwater',name:'氯氣溶進水裡',kind:'chem',at:'table',inputs:[['cl2','water']],out:{clwater:1},eq:'Cl2 + H2O -> HCl + HClO',phen:'黃綠色的氣體慢慢溶進水裡，水變成淡淡的黃綠色，聞起來像游泳池。',use:'氯氣有一部分和水反應，變成鹽酸和次氯酸。這個反應可以倒回去，所以水裡同時有氯氣、鹽酸和次氯酸。次氯酸能漂白、能殺菌。',note:'自來水加氯消毒，就是利用這個反應。'},
+ {id:'ind_clwater',name:'指示劑遇到氯水',kind:'chem',at:'table',col:'#f2efe6',inputs:[['indicator','clwater'],['indicator','bleach']],out:{},eqx:'先變色，接著褪成無色',phen:'紫色的汁液先變了色，幾秒鐘後顏色越來越淡，最後幾乎變成透明的水。',use:'一般的酸或鹼只會讓指示劑「變色」，換個酸鹼就能變回來。次氯酸卻是把色素分子拆壞了，顏色再也回不來——這就是「漂白」。',note:'所以用氯水或漂白水測酸鹼，是測不準的。'},
+ {id:'bleach',name:'製作漂白水',kind:'chem',at:'table',inputs:[['cl2','naoh']],out:{bleach:1},eq:'Cl2 + 2NaOH -> NaClO + NaCl + H2O',phen:'黃綠色的氣體通進氫氧化鈉溶液，顏色消失了，溶液帶著一股熟悉的消毒水味。',use:'氯氣和鹼反應，生成次氯酸鈉，就是家用漂白水的主要成分。電解食鹽水正好同時得到氯氣和氫氧化鈉——兩個產物湊在一起，就是一瓶漂白水。',note:'回屋裡用它消毒發酵罐，比洗手更能防止雜菌污染。'},
+ {id:'bleach_acid',name:'漂白水遇到酸',kind:'chem',at:'table',inputs:[['bleach','hcl'],['bleach','vinegar']],out:{cl2:1},eq:'NaClO + 2HCl -> NaCl + Cl2 + H2O',phen:'溶液冒出氣泡，一股刺鼻的黃綠色氣體湧了出來！',use:'漂白水碰到酸，次氯酸根會變回氯氣跑出來。氯氣有毒，吸進去會傷害呼吸道。',note:'⚠️ 家裡的漂白水絕對不能和浴廁清潔劑（含鹽酸）混用，每年都有人因此中毒。'},
+ {id:'tech_bleach',name:'漂白水為什麼能殺菌',kind:'tech',inputs:[],out:{},eqx:'次氯酸根 → 破壞細菌的細胞',phen:'用稀釋的漂白水把發酵罐、木杓和桌面泡過一遍，再用清水沖乾淨。',use:'漂白水裡的次氯酸根是很強的氧化劑，會破壞細菌的細胞膜和酵素。肥皂是把細菌連同油汙一起帶走，漂白水是直接把細菌殺死，所以效果撐得更久。但它也會傷皮膚，所以拿來消毒器具，不拿來洗手。',note:'自來水廠和游泳池用的，也是含氯的消毒劑。'},
+ {id:'distill_soda',name:'蒸餾鹼湖水',kind:'phys',at:'still',T:100,inputs:[['sodawater']],out:{water:1,natron:1},eqx:'鹼湖水 —(蒸餾)→ 淡水 ＋ 天然鹼（碳酸鈉）',phen:'燒瓶裡的湖水沸騰，冷凝管滴下清澈的淡水；燒瓶底留下一層白色的結晶。',use:'水會變成水蒸氣，碳酸鈉不會。蒸氣冷凝回來就是淡水，碳酸鈉留在燒瓶裡——和蒸餾海水得到淡水和食鹽是同一個道理。',note:'這座湖沒有出口，水只能蒸發，鹼就越積越濃。坦尚尼亞火山腳下的納特龍湖就是這樣，「natron」這個字就從那裡來。'},
+ {id:'boil_soda',name:'煮乾鹼湖水',kind:'phys',at:'heat',T:100,pot:1,defer:['distill_soda'],inputs:[['sodawater']],out:{natron:1},eqx:'鹼湖水 → 天然鹼 ＋ 水蒸氣',phen:'水越煮越少，鍋底結出一層白色、摸起來滑滑的結晶。',use:'水蒸發掉了，溶在裡面的碳酸鈉留了下來。湖邊那一圈白色的結晶，也是太陽這樣曬出來的。',note:''},
+ {id:'ind_soda',name:'指示劑檢驗鹼湖水',kind:'chem',at:'table',col:'#3f8f7a',inputs:[['indicator','sodawater']],out:{},eqx:'紫色 → 藍綠色（鹼性）',phen:'紫色的汁液變成了藍綠色。',use:'鹼湖水裡溶著碳酸鈉，是鹼性的。火山灰裡的鈉在水裡慢慢風化成碳酸鈉，湖又沒有出口，鹼就越積越多。',note:''},
+ {id:'distill_acidlake',name:'蒸餾酸湖水',kind:'phys',at:'still',T:110,inputs:[['acidlake']],out:{hcl:1,h2so4:1},eqx:'酸湖水 —(蒸餾)→ 鹽酸（先揮發、被冷凝接住）＋ 稀硫酸（留在燒瓶裡）',phen:'加熱沒多久，冷凝管先滴下刺鼻的液體——是鹽酸。燒瓶裡剩下的，是不太會揮發的稀硫酸。',use:'氯化氫很容易揮發，一加熱就跟著水蒸氣跑出來；硫酸幾乎不揮發，留在原地。利用沸點不同，就能把混在一起的兩種酸分開。',note:'這和「食鹽加硫酸蒸餾出鹽酸」是同一個道理：不揮發的酸留下，揮發的酸跑出來。'},
+ {id:'boil_acidlake',name:'沒接冷凝管就煮酸湖水',kind:'phys',at:'heat',T:110,pot:1,defer:['distill_acidlake'],inputs:[['acidlake']],out:{h2so4:1},eqx:'酸湖水 → 稀硫酸 ＋（鹽酸散到空氣裡）',phen:'鍋子冒出刺鼻的白霧，嗆得你直咳嗽。剩下的液體比原本更酸、更黏稠。',use:'鹽酸揮發掉了，沒有冷凝管接住；硫酸不揮發，留在鍋子裡。',note:'想要連鹽酸一起留下，得接上冷凝管。'},
+ {id:'ind_acidlake',name:'指示劑檢驗酸湖水',kind:'chem',at:'table',col:'#d0305a',inputs:[['indicator','acidlake']],out:{},eqx:'紫色 → 鮮紅色（強酸性）',phen:'紫色的汁液一下子變成鮮紅色。',use:'酸湖水裡有硫酸和鹽酸，都是強酸。',note:'山腳下的湖會讓同一種汁液變成藍綠色。'},
+ {id:'acid_soda',name:'酸湖水倒進鹼湖水',kind:'chem',at:'table',inputs:[['acidlake','sodawater']],out:{co2:1},eqx:'硫酸、鹽酸 ＋ 碳酸鈉 → 鈉鹽 ＋ 水 ＋ 二氧化碳',phen:'兩罐湖水一碰到，就嘶嘶地冒出大量氣泡，最後變成一罐溫和的鹹水。',use:'酸遇到碳酸鹽，會放出二氧化碳，酸和鹼也互相抵消了。山頂的酸和山腳的鹼，在你手上中和了。',note:''},
+ {id:'burn_s',name:'硫在空氣中燃燒',kind:'chem',at:'still',open:1,T:250,defer:['burn_s_o2'],inputs:[['sulfur']],out:{so2:1},eq:'S + O2 -> SO2',phen:'黃色的硫磺熔成褐色的液體，冒出淡藍色、很小的火焰，還有一股刺鼻的臭味。',use:'硫和空氣裡的氧結合，變成二氧化硫。空氣裡的氧不多，火焰又小又淡。',note:'現實中要在通風櫥裡做，二氧化硫有毒。'},
+ {id:'burn_s_o2',name:'硫在氧氣中燃燒',kind:'chem',at:'still',open:1,T:250,inputs:[['sulfur','o2']],out:{so2:1},eq:'S + O2 -> SO2',phen:'硫磺一伸進氧氣裡，立刻燒出明亮的藍紫色火焰！',use:'和在空氣中燒是同一個反應，產物也一樣。氧氣越濃，燒得越劇烈、越亮。',note:'比一比木炭、鐵在空氣和氧氣中燃燒的樣子。'},
+ {id:'obs_s_open',name:'在露天的火上燒硫磺',kind:'obs',at:'heat',air:1,T:250,lose:['sulfur'],inputs:[['sulfur']],out:{},eqx:'S + O₂ → SO₂（散到空氣裡）',phen:'硫磺冒出藍色的小火焰，一股刺鼻的臭味嗆得你直咳嗽，但什麼也沒接住。',use:'燒出來的二氧化硫是氣體，直接散掉了。要收集它，得在實驗桌上用燒瓶來燒。',note:''},
+ {id:'sulfurous',name:'二氧化硫溶進水裡',kind:'chem',at:'table',inputs:[['so2','water']],out:{h2so3:1},eq:'SO2 + H2O -> H2SO3',phen:'刺鼻的氣體溶進水裡，水看起來沒什麼變化，但聞起來是酸的。',use:'非金屬的氧化物溶在水裡，大多會變成酸：二氧化碳變成碳酸，二氧化硫變成亞硫酸。',note:'燒煤、燒石油會放出二氧化硫，溶進雨水裡，就是酸雨。'},
+ {id:'ind_h2so3',name:'指示劑檢驗亞硫酸',kind:'chem',at:'table',col:'#c23d74',inputs:[['indicator','h2so3']],out:{},eqx:'紫色 → 紅色（酸性）',phen:'紫色的汁液變成紅色，比碳酸水紅得多。',use:'亞硫酸也是弱酸，但比碳酸強一些。',note:''},
+ {id:'heat_h2so3',name:'加熱亞硫酸',kind:'chem',at:'heat',T:60,pot:1,inputs:[['h2so3']],out:{so2:1,water:1},eq:'H2SO3 -> SO2 + H2O',phen:'還沒煮開，就冒出一股刺鼻的氣體。',use:'亞硫酸很不穩定，一加熱就分解回二氧化硫和水——和碳酸一加熱就放出二氧化碳一樣。',note:''},
+ {id:'so2_limewater',name:'二氧化硫通進石灰水',kind:'chem',at:'table',ppt:1,inputs:[['so2','limewater']],out:{},eq:'SO2 + Ca(OH)2 -> CaSO3 + H2O',phen:'澄清的石灰水變得白白濁濁的。',use:'二氧化硫也會讓石灰水變混濁，生成不溶於水的亞硫酸鈣。',note:'所以「石灰水變混濁」只能說可能是二氧化碳。要分辨，還得聞聞看——二氧化硫有刺鼻的臭味，二氧化碳沒有。'},
+ {id:'obs_sodawater',name:'用鹼湖水代替淡水',kind:'obs',at:'none',inputs:[],out:{},eqx:'（反應被鹼打亂了）',phen:'東西是混在一起了，可是摸起來滑滑的，嚐起來又苦又澀，和預期的完全不一樣。',use:'鹼湖水裡溶著大量的碳酸鈉，不是淡水。很多反應遇到鹼就走樣了。要淡水，得把鹼湖水蒸餾，或從別的島帶過來。',note:''},
  /* ===== 電解槽 ===== */
  {id:'electro_water',name:'電解水',kind:'chem',at:'cell',V:2,back:1,inputs:[['water','h2so4'],['water','naoh'],['water','koh'],['water','natron'],['water','lye'],['water','limewater'],['h2so4'],['naoh'],['koh'],['lye'],['limewater']],out:{h2:2,o2:1},eq:'2H2O -> 2H2 + O2',phen:'兩極都冒出氣泡，負極的氣體體積是正極的 2 倍。',use:'水被電分解成氫氣和氧氣，體積比 2：1。',note:'加進去的酸、鹼（或碳酸鈉這類鹽）只是幫助導電，沒有被消耗，所以會還給你。但不是每種電解質都這樣——換成食鹽或鹽酸，正極出來的就不是氧氣了。1800 年，伏打電堆發明後幾個星期，就有人完成了這個實驗。'},
  {id:'electro_brine',name:'電解食鹽水',kind:'chem',at:'cell',V:3,inputs:[['brine'],['seawater'],['water','salt'],['water','brine']],out:{naoh:1,h2:1,cl2:1},eq:'2NaCl + 2H2O -> 2NaOH + H2 + Cl2',phen:'兩極都冒出氣泡，其中一邊的氣體是黃綠色、有刺鼻味。',use:'氯鹼工業：漂白水、鹽酸、做肥皂用的氫氧化鈉都從這裡來。',note:'氯氣有毒！現實中只能在通風櫥裡進行。'},
@@ -455,7 +482,7 @@ const REACTIONS=[
  {id:'tech_mask',name:'活性碳面具',kind:'tech',inputs:[],out:{},eqx:'有毒氣體 —(吸附)→ 留在活性碳表面',phen:'隔著面具吸氣，刺鼻的味道淡了很多。',use:'活性碳滿是小孔，氣體分子撞上去就被「黏」住了。空氣裡的氧和氮不太會被吸住，所以還是可以呼吸。',note:'活性碳吸滿了就沒有用了，要更換或重新加熱活化。'},
  {id:'tech_scope',name:'望遠鏡',kind:'tech',inputs:[],out:{},eqx:'物鏡聚光成像 → 目鏡放大',phen:'把筒子對準海平線。原本只是一抹灰影的地方，出現了樹和山壁。',use:'前面的大透鏡把遠方來的光聚成一個小小的像，後面的小透鏡再把這個像放大。',note:'1609 年伽利略把望遠鏡指向天空，看見了月球的坑洞和木星的衛星。'},
  {id:'tech_balloon',name:'氫氣球',kind:'tech',inputs:[],out:{},eqx:'浮力 ＞ 重力（氫氣的密度只有空氣的十四分之一）',phen:'氣囊鼓起來了，吊籃輕輕離開地面。',use:'和船浮在水上是同一個道理：氣球排開的空氣，比氣球自己還重，就會往上浮。氫氣是最輕的氣體。',note:'氫氣遇火會爆炸。1937 年興登堡號飛船起火之後，飛船改用不會燃燒的氦氣。'},
- {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 強酸',phen:'一池乳白帶綠的藍綠色湖水，冒著白煙，岸邊結著一層黃色的硫磺。把陶罐伸進去，舀上來的液體和你辛苦蒸餾出來的是同一種東西。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化，就成了硫酸。你花了那麼多力氣才做出一小瓶，大自然在這裡放了一整池。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。'},
+ {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 硫酸和鹽酸的混合酸',phen:'一池乳白帶綠的藍綠色湖水，冒著白煙，岸邊結著一層黃色的硫磺。把陶罐伸進去，舀上來的是一罐溫熱、刺鼻的酸。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化成硫酸；噴出的氯化氫溶進去就是鹽酸。所以湖水是好幾種酸混在一起，還溶著鐵、鋁和硫磺。拿回實驗桌蒸餾：鹽酸會先揮發，要接上冷凝管才接得住；硫酸不揮發，留在燒瓶裡。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。山腳下的湖卻是鹼的——同一座火山，一酸一鹼。'},
  {id:'tech_radio',name:'無線電',kind:'tech',inputs:[],out:{},eqx:'電火花 → 電磁波 → 遠方的線圈 → 電流 → 聲音',phen:'你按下電鍵。火花劈啪一響——然後，耳機裡的晶體輕輕地答、答、答。',use:'快速變動的電流會把能量以波的形式送向四面八方，不需要導線。遠方的天線接住它，方鉛礦讓電流只能單向通過，酒石晶體把它變成振動——你就「聽見」了。',note:'1901 年馬可尼把三個點的訊號送過了大西洋。從那一天起，世界上沒有真正的孤島。'},
  {id:'tech_elec',name:'伏打堆的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　電子經導線流向銅片',phen:'一片鋅、一片銅，中間夾一塊浸了鹽水的布。這樣一組一組往上疊，兩端接上導線，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流，化學能就變成了電能。每一層大約 1 伏特，疊幾層電壓就是幾倍。鋅片會一點一點被吃掉，用久了要換；銅片不會。',note:'1800 年，伏打把鋅片、銀片和浸了鹽水的紙板疊成一堆，做出史上第一個能持續供電的電池。消息傳開後才幾個星期，就有人用它把水拆開了。'},
  {id:'tech_daniell',name:'丹尼爾電池',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　正極 Cu²⁺ + 2e⁻ → Cu',phen:'鋅片泡在硫酸鋅溶液裡，銅片泡在硫酸銅溶液裡，中間隔著一只沒上釉的陶罐。接上導線，電流又穩又久，銅片上還慢慢長出一層新的銅。',use:'伏打堆通電沒多久，銅片表面就積滿氫氣泡，電壓跟著掉下去。丹尼爾電池讓銅片泡在含銅的溶液裡：到銅片上的不再是氫氣，而是銅，所以電壓不會掉。陶罐把兩種溶液隔開，卻讓離子通得過。',note:'你之前把鋅直接丟進硫酸銅溶液，電子直接從鋅跳到銅離子上，能量全變成了熱。把兩邊隔開、逼電子繞過導線，同一個反應就變成了電。1836 年丹尼爾發明這種電池，後來的電報線路靠的就是它。'},
@@ -538,7 +565,7 @@ const QUESTS=[
  {id:'q_actc',ch:'第五章　遠方',goal:'把木炭變成能抓住毒氣的活性碳',hint:'「火山島的山頂冒著嗆人的煙，上次差點把你燻倒。木炭本來就會吸味道，但還不夠。如果讓滾燙的水蒸氣在木炭上蛀出更多的孔呢？要很熱，而且不能讓它燒起來。」',rx:['actcarbon'],done:F('actcarbon')},
  {id:'q_mask',ch:'第五章　遠方',goal:'做一副活性碳面具',hint:'「活性碳 2、藤蔓纖維 3、玻璃 1（護目鏡）。」',done:A('mask')},
  {id:'q_acid',ch:'第五章　遠方',goal:'戴著面具走進火山口，看看裡面有什麼',hint:'「火山島正中央，寸草不生的那一圈。」',done:s=>!!s.known._acid,
-  after:'一整池的硫酸。\n\n你想起在蒸餾器前面守著一點一點滴下來的那一小瓶。\n\n大自然從來不小氣，只是把東西放在不好拿的地方。'},
+  after:'一整池的酸。不只硫酸，聞起來還有鹽酸的味道。\n\n你想起在蒸餾器前面守著一點一點滴下來的那一小瓶。\n\n大自然從來不小氣，只是把東西混在一起、放在不好拿的地方。帶回實驗桌蒸餾，才分得開。'},
  {id:'q_lens',ch:'第五章　遠方',goal:'把玻璃磨成透鏡',hint:'「玻璃是透明的，但平平的玻璃只是窗戶。什麼東西比玻璃還硬，可以一點一點把它磨成弧形？你腳下到處都是。」',rx:['lens'],done:F('lens')},
  {id:'q_scope',ch:'第五章　遠方',goal:'做一支望遠鏡，看看海的另一邊',hint:'「透鏡 2、銅 1、木頭 1。」',done:A('scope'),
   after:'你把望遠鏡對準西北方的海平線。\n\n那裡一直有一團散不掉的雲。雲的下面——是一座島。\n\n四周的海面泛著白色的碎浪：暗礁。沒有任何一艘船過得去。\n\n但如果不走海路呢？'},
@@ -556,6 +583,11 @@ const QUESTS=[
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
  {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。把水趕走，讓它自己熔化，再接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
+ {id:'s_sulfur',side:1,ch:'支線　火山的禮物',goal:'在火山口採到硫磺，帶回實驗室燒燒看',hint:'「火山口邊上結著一塊塊黃色的結晶。在露天的火上燒，煙一下就散了；在實驗桌上架起爐火來燒，才接得住。有氧氣的話，火焰會更漂亮。」',rx:['burn_s','burn_s_o2'],done:s=>!!(s.found.burn_s||s.found.burn_s_o2)},
+ {id:'s_h2so3',side:1,ch:'支線　火山的禮物',goal:'讓燒硫磺冒出來的氣體溶進水裡',hint:'「二氧化碳溶進水裡是碳酸。那這種刺鼻的氣體呢？做出來以後，用紫色的汁液測測看。」',rx:['sulfurous'],done:F('sulfurous')},
+ {id:'s_lakes',side:1,ch:'支線　火山的禮物',goal:'用指示劑比一比山頂和山腳的兩座湖',hint:'「同一座火山，一座湖在山頂的火山口裡，一座在山腳。各舀一罐，滴進紫色的汁液。」',rx:['ind_acidlake','ind_soda'],done:s=>!!(s.found.ind_acidlake&&s.found.ind_soda)},
+ {id:'s_clwater',side:1,ch:'支線　氯的兩張臉',goal:'讓氯氣溶進水裡，再滴進指示劑',hint:'「電解食鹽水時冒出來的黃綠色氣體，一直沒派上用場。讓它溶進水裡，再滴幾滴紫色的汁液——這次的變化，和酸鹼不一樣。」',rx:['clwater','ind_clwater'],done:F('ind_clwater')},
+ {id:'s_bleach',side:1,ch:'支線　氯的兩張臉',goal:'做出能強力殺菌的漂白水，消毒發酵罐',hint:'「電解食鹽水，同時得到黃綠色的氣體和很強的鹼。把氣體通進鹼裡。做好以後回屋裡，用它消毒發酵罐。」',rx:['bleach'],done:s=>!!s.found.tech_bleach},
  {id:'s_wheel',side:1,ch:'支線　讓河替你工作',goal:'在河邊蓋一座水車',hint:'「綠岩島和火山島各有一條從湖流到海的小河。木頭 10、藤蔓纖維 4、熟鐵 2。蓋好以後，把爐子蓋在它附近。在水車旁邊取水，一次就能裝滿。」',done:HAS('wheel')},
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
@@ -669,7 +701,7 @@ const nFound=(s,kind)=>REACTIONS.filter(r=>r.kind===kind&&s.found[r.id]).length;
 const BADGES=[
  ['fire','🔥','第一把火','學會生火',s=>s.abil.fire],['pot','🏺','陶匠','燒出第一件陶器',s=>s.abil.pottery],['sea','🛶','出海','造出木筏',s=>s.abil.raft],
  ['bronze','🟤','青銅時代','鑄出青銅',s=>s.found.bronze],['iron','⚙️','鐵器時代','煉出鐵',s=>fnd(s,'smelt_fe','smelt_fe2')],['glass','🔮','玻璃匠','熔出玻璃',s=>s.found.glass],
- ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
+ ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['sulfur','🌋','硫磺礦工','在實驗室燒出二氧化硫',s=>fnd(s,'burn_s','burn_s_o2')],['bleach','🧴','消毒專家','做出漂白水',s=>s.found.bleach],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
  ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
  ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氫氣球抵達雲頂島',s=>!!s.seen[4]],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
  ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
@@ -703,7 +735,9 @@ const WRECK_CLUES=[['🔩 船釘','固定船板的銅釘，泡過海水的地方
 function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;s.abil.axe=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
 /* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
- s.inv.soap--;s.inv.water--;s.clean=3;s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
+ s.inv.soap--;s.inv.water--;s.clean=Math.max(s.clean||0,3);s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
+function sanitize(s){if(!(s.inv.bleach>0))return{err:'沒有漂白水。氯氣通進氫氧化鈉溶液就是漂白水。'};if(!(s.inv.water>0))return{err:'要有淡水來稀釋漂白水、沖洗器具。'};
+ s.inv.bleach--;s.inv.water--;s.clean=Math.max(s.clean||0,8);const isNew=!s.found.tech_bleach;s.found.tech_bleach=true;return{ok:true,isNew};}
 /* 背包：每種東西最多帶這麼多；多的要放進家裡的倉庫 */
 const BAGCAP=30;
 /* 黏土：工具越好挖得越深。徒手 8、青銅工具 10、鐵製工具 12 */
@@ -769,6 +803,8 @@ function mixReact(s,ids,at,indoor){
  if(!ids.length)return{err:'先放入材料。'};
  for(const id of ids)if(!(s.inv[id]>0))return{err:ITEMS[id].n+' 不夠了。'};
  const k=rkey(ids);let r=REACTIONS.find(r=>r.at===at&&r.inputs.some(a=>rkey(a)===k));
+ if(!r&&at==='table'&&ids.includes('sodawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='sodawater'?'water':i));   /* 拿鹼湖水當淡水用：整份走樣 */
+  if(REACTIONS.some(x=>x.at==='table'&&x.kind!=='obs'&&x.inputs.some(a=>rkey(a)===k2))){r=RMAP.obs_sodawater;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}}
  if(!r&&at==='table'&&ids.includes('seawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='seawater'?'water':i));   /* 拿海水當淡水用：反應會發生，但成品混了鹽，整份報廢 */
   if(REACTIONS.some(x=>x.at==='table'&&x.kind!=='obs'&&x.id!=='brine'&&x.inputs.some(a=>rkey(a)===k2))){r=RMAP.obs_seawater;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}}
  if(!r){const lq=at==='table'?ids.filter(i=>LIQ.has(i)&&i!=='water'):[];if(lq.length>=2){lq.forEach(i=>s.inv[i]--);return{none:true,lost:lq};}return{none:true};}   /* 兩種溶液混在一起就分不開了 */
@@ -842,7 +878,7 @@ const ISLANDS=[
   nodes:[['tree',90,[FOREST]],['shell',14,[SAND]],['sandpile',9,[SAND]],['clay',10,[MUD]],['cabbage',10,[GRASS]],['vine',14,[FOREST,GRASS]],['quartz',5,[GRASS]],['limestone',3,[GRASS]]]},
  {name:'綠岩島',cx:106,cy:64,r:27,rank:1,rock:.66,lake:[7,6,3.1],ring:0,river:1,
   nodes:[['tree',120,[FOREST]],['malachite',9,[ROCK]],['cassiterite',8,[ROCK]],['limestone',9,[ROCK]],['quartz',8,[ROCK]],['coconut',11,[SAND]],['vine',12,[FOREST,GRASS]],['cabbage',5,[GRASS]]]},
- {name:'火山島',cx:182,cy:120,r:28,rank:2,rock:.6,dark:true,lake:[-11,-6,3.3],ring:SALT,river:1,crater:5.2,
+ {name:'火山島',cx:182,cy:120,r:28,rank:2,rock:.6,dark:true,lake:[-11,-6,3.3],ring:SALT,river:1,crater:5.2,soda:1,
   nodes:[['tree',70,[FOREST]],['hematite',10,[ROCK]],['magnetite',6,[ROCK]],['vitriol',7,[ROCK]],['quartz',8,[ROCK]],['natron',8,[SALT]],['sandpile',8,[SAND]],['sugarcane',9,[GRASS]],['vine',9,[FOREST,GRASS]]]},
  {name:'雷鳴島',cx:186,cy:36,r:22,rank:3,rock:.6,lake:[10,7,2.8],ring:0,
   nodes:[['tree',60,[FOREST]],['smithsonite',9,[ROCK]],['coal',10,[ROCK]],['limestone',6,[ROCK]],['quartz',5,[ROCK]],['hematite',6,[ROCK]],['vine',8,[FOREST,GRASS]],['cabbage',4,[GRASS]]]},
@@ -851,7 +887,7 @@ const ISLANDS=[
 ];
 /* hp：要敲幾下；rock：外觀是岩石，敲開才知道成分；tool：需要的工具；regrow：幾秒後長回來（沒有這一項＝採完就沒了） */
 const NODES={tree:{item:'wood',n:4,hp:3,label:'樹',regrow:80},vine:{item:'fiber',n:2,label:'藤蔓',regrow:60},cabbage:{item:'cabbage',regrow:60},coconut:{item:'coconut',label:'椰子樹',regrow:60},sugarcane:{item:'sugarcane',regrow:60},
- shell:{item:'caco3',n:2,label:'貝殼'},sandpile:{item:'sand',n:3,label:'沙堆'},clay:{item:'clay',n:8},natron:{item:'natron',n:3,label:'白色結晶'},
+ shell:{item:'caco3',n:2,label:'貝殼'},sandpile:{item:'sand',n:3,label:'沙堆'},clay:{item:'clay',n:8},natron:{item:'natron',n:3,label:'白色結晶',regrow:120},sulfur:{item:'sulfur',n:2,label:'硫磺結晶',regrow:120},
  quartz:{item:'quartz',rock:1,hp:3,n:4,vein:'白色透明'},limestone:{item:'caco3',rock:1,hp:3,n:4,vein:'灰白色',kn:'石灰石'},malachite:{item:'malachite',rock:1,hp:3,n:4,vein:'翠綠色'},cassiterite:{item:'cassiterite',rock:1,hp:3,n:4,vein:'深褐色'},
  wildgrain:{item:'grain',n:2,label:'野生穀物',regrow:70},guano:{item:'guano',n:3,label:'鳥糞石'},
  coal:{item:'coal',rock:1,hp:3,n:5,vein:'烏黑發亮'},galena:{item:'galena',rock:1,hp:3,n:2,vein:'鉛灰色、亮得像鏡子',tool:'iron_tools'},hematite:{item:'hematite',rock:1,hp:3,n:4,vein:'紅褐色',tool:'bronze_tools'},magnetite:{item:'magnetite',rock:1,hp:3,n:4,vein:'黑色',tool:'bronze_tools'},vitriol:{item:'vitriol',rock:1,hp:3,n:4,vein:'藍綠色',tool:'bronze_tools'},smithsonite:{item:'smithsonite',rock:1,hp:3,n:4,vein:'淺藍色',tool:'iron_tools'}};
@@ -904,6 +940,10 @@ function genWorld(seed){
    if(Math.hypot(x+.5-I.cx-I.lake[0],y+.5-I.cy-I.lake[1])<I.lake[2]+2.3)c.push([x,y]);}
   for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
   c.slice(0,n).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'clay',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
+ /* 火山口的硫磺結晶：同樣放在最後才加 */
+ ISLANDS.forEach((I,ii)=>{if(!I.crater)return;const c=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(owner[y*W+x]===ii&&tiles[y*W+x]===CRATER&&!used.has(x+','+y))c.push([x,y]);
+  for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
+  c.slice(0,6).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'sulfur',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
  /* 起點旁邊擱淺的破船：找一格離起點 3～6 格、沒有東西的沙地（不動用亂數，其他東西的位置都不變） */
  let wreck=null,wb=1e9;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SAND||owner[y*W+x]!==0||used.has(x+','+y))continue;const d=Math.hypot(x-I0.cx,y-sy);if(d<3||d>7)continue;
    let near=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(used.has((x+dx)+','+(y+dy)))near++;
@@ -1044,7 +1084,7 @@ const LANDC={[SAND]:'#ead9a4',[GRASS]:'#86c563',[FOREST]:'#5fa64c',[ROCK]:'#a09d
 const DARKC={[SAND]:'#8f887c',[ROCK]:'#5f5957',[GRASS]:'#7db35e',[FOREST]:'#558f47'};
 const mixHex=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16),f=s=>Math.round(((A>>s)&255)*(1-k)+((B>>s)&255)*k);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);};
 const vhash=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%1000/1000;
-function tileHex(x,y){const t=tiles[y*W+x],I=ISLANDS[owner[y*W+x]];if(t===SEA)return SEAC[I.rank-1];const base=(I.dark&&DARKC[t])||LANDC[t];
+function tileHex(x,y){const t=tiles[y*W+x],I=ISLANDS[owner[y*W+x]];if(t===SEA)return SEAC[I.rank-1];if(I.soda&&(t===LAKE||t===RIVER))return t===LAKE?'#8ec4bd':'#9fd0c7';const base=(I.dark&&DARKC[t])||LANDC[t];
  if(I.crater){if(t===ACID)return '#7fcfbf';   /* 乳白帶綠的酸湖 */
   if(t===CRATER){const shore=[[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===ACID);return (shore?vhash(x,y)<.35:vhash(x,y)<.07)?'#c4b24a':mixHex('#4a4441','#5a524c',vhash(x+7,y+3));}   /* 火山灰；湖岸結著硫磺 */
   const d=Math.hypot(x+.5-I.cx,y+.5-I.cy);if(t!==LAKE&&t!==RIVER&&d<I.crater+14){if(t===ROCK&&d<I.crater+2.4)return mixHex('#5b3f36','#3c3532',vhash(x,y)*.5);   /* 火山口外緣：燒紅過的火山渣 */
@@ -1071,6 +1111,7 @@ const PART={
  sandpile:[{g:geo(new G.ConeGeometry(.5,.42,8),.21),c:'#f0d890'}],
  clay:[{g:geo(new G.SphereGeometry(.42,8,6),.1,.5),c:'#8f5a2c'}],
  natron:[{g:geo(new G.DodecahedronGeometry(.3,0),.12,.6),c:'#fbf5f0'}],
+ sulfur:[{g:geo(new G.DodecahedronGeometry(.27,0),.1,.65),c:'#e2cd38'},{g:geo(new G.OctahedronGeometry(.16,0),.3),c:'#f2e05a'}],
  cabbage:[{g:geo(new G.SphereGeometry(.4,8,5),.08,.35),c:'#4f8a3a'},{g:geo(new G.SphereGeometry(.26,8,6),.26),c:'#7a3fa0'}],
  sugarcane:[{g:geo(new G.CylinderGeometry(.05,.05,1.5,5),.75),c:'#b9c95a'},{g:geo(new G.CylinderGeometry(.05,.05,1.3,5).translate(.16,0,.1),.65),c:'#a5b84c'},{g:geo(new G.CylinderGeometry(.05,.05,1.1,5).translate(-.12,0,.14),.55),c:'#c5d36a'}],
  wildgrain:[{g:geo(new G.CylinderGeometry(.03,.03,.8,4),.4),c:'#b9a84a'},{g:geo(new G.CylinderGeometry(.03,.03,.7,4).translate(.14,0,.08),.35),c:'#a89a3e'},{g:geo(new G.CylinderGeometry(.03,.03,.75,4).translate(-.1,0,.12),.37),c:'#b9a84a'},{g:geo(new G.SphereGeometry(.09,5,4),.85,1.8),c:'#e3c355'},{g:geo(new G.SphereGeometry(.08,5,4).translate(.14,0,.08),.75,1.8),c:'#e3c355'}],
@@ -1084,7 +1125,7 @@ function setNode(n){const t=now(),w=n.wob&&t<n.wob?1+Math.sin((n.wob-t)*40)*.12:
  /* 採完的礦物消失；樹和植物從小苗慢慢長回原來的大小 */
  const k=n.gone?.0001:n.cd>t?Math.max(.0001,Math.pow(1-(n.cd-t)/(n.rg||1),2)*.9):1-.18*Math.min(1,n.hits/hp),s=n.sc*k;V3.set(n.x+.5,hAt(n.x+.5,n.y+.5),n.y+.5);Q.setFromAxisAngle(UP,n.rot);SC.set(s*w,s/w,s*w);M4.compose(V3,Q,SC);
  inst[n.type].forEach(m=>{m.setMatrixAt(n.i,M4);m.instanceMatrix.needsUpdate=true;});}
-nodes.forEach((n,i)=>{n.id=i;if(S.gone[i])n.gone=true;});nodes.forEach(setNode);let live=[];
+nodes.forEach((n,i)=>{n.id=i;if(S.gone[i]){if(NODES[n.type].regrow)delete S.gone[i];else n.gone=true;}});nodes.forEach(setNode);let live=[];
 
 /* --- 信號塔、主角、船 --- */
 const mat=(c,o)=>new G.MeshLambertMaterial(Object.assign({color:c,flatShading:true},o||{}));
@@ -1213,8 +1254,8 @@ function rescueBoat(){if(S.aboard||!S.boats.length)return false;const lab=landLa
 fixBoat();
 /* 把一份存檔（或全新的狀態）套用到眼前的世界 */
 function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clear();S=loadState(st);
- P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name)setTimeout(()=>{if(!modalOpen)askShare();},900);
- nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i];setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
+ P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name&&S.abil.raft)setTimeout(()=>{if(!modalOpen)askShare();},900);
+ nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i]&&!NODES[n.type].regrow;setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
  const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];hud();save();}
 
 /* --- 小地圖 --- */
@@ -1267,8 +1308,8 @@ function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)ret
   {const y=yieldOf(nd,d);gain(d.item,y);if(y>(d.n||1)&&!S.known._dig){S.known._dig=true;toast('工具越好，一次採到的越多。');}}return true;}
  setNode(nd);return false;}
 function nearWater(type){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(P.x)+dx,ty=Math.floor(P.y)+dy,tt=tileAt(tx,ty);if((tt===type||(type===LAKE&&tt===RIVER))&&Math.hypot(tx+.5-P.x,ty+.5-P.y)<1.8)return true;}return false;}
-function takeAcid(){if(!nearWater(ACID))return false;if(now()<waterCd)return true;waterCd=now()+.6;if(bagFull('h2so4')){fullWarn('h2so4');return true;}SFX.water();gain('h2so4',2);if(!S.known._acid){S.known._acid=true;S.found.tech_acidlake=true;SFX.discover();}after();return true;}
-function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;if(bagFull(type===SEA?'seawater':'water')){fullWarn(type===SEA?'seawater':'water');return true;}SFX.water();{const it=type===SEA?'seawater':'water',room=BAGCAP-(S.inv[it]||0),byWheel=type===LAKE&&S.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-P.x,w.y-P.y)<5);gain(it,Math.min(room,byWheel?room:waterYield(S)));if(byWheel&&!S.known._wheelwater){S.known._wheelwater=true;toast('🎡 水車把水打了上來，一次就裝滿了。');}}return true;}
+function takeAcid(){if(!nearWater(ACID))return false;if(now()<waterCd)return true;waterCd=now()+.6;if(bagFull('acidlake')){fullWarn('acidlake');return true;}SFX.water();gain('acidlake',2);if(!S.known._acid){S.known._acid=true;S.found.tech_acidlake=true;SFX.discover();}after();return true;}
+function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;const it=type===SEA?'seawater':ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].soda?'sodawater':'water';if(bagFull(it)){fullWarn(it);return true;}SFX.water();{const room=BAGCAP-(S.inv[it]||0),byWheel=type===LAKE&&S.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-P.x,w.y-P.y)<5);gain(it,Math.min(room,byWheel?room:waterYield(S)));if(byWheel&&!S.known._wheelwater){S.known._wheelwater=true;toast('🎡 水車把水打了上來，一次就裝滿了。');}}if(it==='sodawater'&&!S.known._soda){S.known._soda=true;toast('🫧 這湖水摸起來滑滑的，嚐一點又苦又澀——不是淡水。');}return true;}
 function nearestNode(){let best=null,bd=1.5;for(const n of nodes){const d=Math.hypot(n.x+.5-P.x,n.y+.5-P.y);if(d<bd&&!n.gone&&n.cd<=now()){bd=d;best=n;}}return best;}
 function nearStation(){let best=null,bd=1.3;for(const s of allStations()){const d=Math.hypot(s.x-P.x,s.y-P.y)-(SRAD[s.type]||.5);if(d<bd){bd=d;best=s;}}return best;}   /* 以「離牆多遠」來算，大房子才碰得到 */
 function interact(){const s=nearStation();if(s)return useStation(s);if(boatNear(2.4)>=0)return board(boatNear(2.4));const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeAcid()||takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
@@ -1357,7 +1398,8 @@ function frame(t,dt){
  if(S.st.some(x=>x.type==='rod'&&x.done&&x.bar&&!x.mag)){boltT-=dt;if(boltT<=0){boltT=14+Math.random()*10;if(rodStrike(S)){flashT=.5;thunder();for(const x of S.st)if(x.type==='rod'){syncStation(x);burst(x.x,hAt(x.x,x.y)+3,x.y,'#fff7c0');}if(!modalOpen)toast('⚡ 轟！雷打在避雷針上了。');save();}}}
  if(flashT>0){flashT-=dt;boltEl.style.opacity=Math.max(0,flashT*1.6);}else if(boltEl.style.opacity!=='0')boltEl.style.opacity='0';
  stObj.forEach(g=>{if(g.spin)g.spin.rotation.z-=dt*1.4;});
- netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!wireG)drawWires();if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
+ netAcc+=dt;if(netAcc>2){if(!modalOpen&&lbOn()&&S.share==null&&S.name&&S.abil.raft)askShare();   /* 造好木筏、要出海了，才問要不要上英雄榜 */
+ const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!wireG)drawWires();if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
  const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,y=onSea?Math.sin(t/400)*.05:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:0;
  parkedG.forEach(g=>g.visible=false);S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;const g=parkedG[bt.r-1];g.visible=true;g.position.set(bt.x,Math.sin(t/400+1+i)*.05,bt.y);g.rotation.y=bt.a||0;});
@@ -1388,8 +1430,8 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
   else if(n){const d=NODES[n.type],hp=hitsNeed(S,d);p=(toolFor(d)&&!S.abil[toolFor(d)])?'🔒 '+nodeName(n)+(toolFor(d)==='axe'?'　需要工具（去破船找找）':'　太硬了，需要'+BMAP[toolFor(d)].n):'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
-  else if(nearWater(ACID))p='🧪 酸湖　按 E 用陶罐舀硫酸';
-  else if(nearWater(LAKE))p='💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
+  else if(nearWater(ACID))p='🧪 酸湖　按 E 用陶罐舀酸湖水';
+  else if(nearWater(LAKE))p=ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].soda?'🫧 鹼湖　按 E 裝鹼湖水':'💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
   $('prompt').textContent=p;}
  audioTick();
  if(t-saveT>4000){saveT=t;S.px=P.x;S.py=P.y;save();}
@@ -1526,6 +1568,7 @@ function drawItem(c,id,x,y,r){c.save();c.translate(x,y);c.scale(r/11,r/11);c.lin
   case 'magnetite':poly([[0,-12],[10,0],[0,12],[-10,0]],'#1b1c20','#000');poly([[0,-12],[10,0],[0,0]],'#3d4048');line([[-10,0],[10,0]],'#55585f');for(let i=0;i<7;i++){const a=i*.9;line([[Math.cos(a)*10,Math.sin(a)*11],[Math.cos(a)*13.5,Math.sin(a)*14]],'#9a9da3',1.3);}break;
   case 'vitriol':poly([[-11,8],[-8,-4],[-2,-4],[-5,8]],'#49b89e','#1f7a66');poly([[-3,9],[1,-10],[7,-10],[3,9]],'#5fc9b0','#1f7a66');poly([[5,9],[8,-2],[12,-2],[10,9]],'#8fe0cc','#1f7a66');line([[1,-6],[0,5]],'#d6f6ee',1.3);break;
   case 'smithsonite':[[-6,4,5],[1,5,5.5],[7,2,4.5],[-2,-3,5.5],[5,-5,4]].forEach((b,i)=>{blob(b[0],b[1],b[2],i%2?'#b9d8f0':'#9fc6e6','#5f8fb5');blob(b[0]-1.5,b[1]-1.5,1.2,'#fff');});break;
+  case 'sulfur':poly([[-12,7],[-8,-4],[-2,-1],[2,-11],[9,-3],[11,7]],'#e6d03c','#8a7a14');poly([[-4,5],[0,-5],[5,4]],'#fff1a0','#8a7a14');break;
   case 'natron':poly([[-12,7],[-9,-2],[-1,-5],[3,6]],'#f6eee8','#b9aaa0');poly([[-3,8],[1,-8],[9,-6],[12,7]],'#fffaf6','#b9aaa0');poly([[-6,9],[-2,2],[6,3],[8,9]],'#efe4dc','#b9aaa0');break;
   case 'quicklime':poly([[-12,8],[-10,-3],[-2,-8],[2,2],[-1,9]],'#f3efe2','#a8a08a');poly([[0,9],[3,-5],[10,-4],[12,8]],'#fbf8ee','#a8a08a');line([[-7,-1],[-3,5]],'#c9c2ae');break;
   case 'slaked':pile('#eeeadb','#ffffff');break;case 'zno':pile('#f7f7f2','#cfcfc8');break;case 'ash':pile('#b9b4aa','#e6e2da');break;case 'cuo':pile('#1c1c1c','#4a4a4a');break;case 'mortar':pile('#cfc8b4','#8f8a7a');break;
@@ -1647,10 +1690,11 @@ function openHome(st){bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;pan
  <div class="row" style="align-items:center">${hasStill(st)?'<span class="muted">⚗️ 蒸餾器已安裝　</span>':btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${hasCell(st)?'':btn('mkcell','⚡ 安裝伏打堆與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
  ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${freePower(S)||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*pcap(S.pile),'還不用換')+(S.pile.dan?'':btn('piledan','🔋 改裝成丹尼爾電池　硫酸銅溶液 '+(S.inv.cuso4||0)+'/1、硫酸鋅溶液 '+(S.inv.znso4||0)+'/1、陶器 '+(S.inv.ceramic||0)+'/1',true))}</div>`:''}
  ${hasCell(st)&&S.abil.gen&&!S.legacyGen?`<div class="row" style="align-items:center">${st.wire?'<span class="muted">🧵 這間屋子已經用銅線接上水力發電機。</span>':(h=>btn('wire','🧵 從水力發電機拉銅線過來'+(h?'（銅 '+h.cost+'）':''),!!h,'這座島沒有裝了發電機的水車'))(hydroFor(st))}</div>`:''}
- <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}<span class="muted">　手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗'}　｜　洗一次要肥皂 1、淡水 1</span></div>
+ <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}${S.found.bleach||S.inv.bleach?btn('bleach','🧴 用漂白水消毒發酵罐',true):''}<span class="muted">　衛生：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒清潔'}　｜　洗手：肥皂 1、淡水 1，撐 3 次${S.found.bleach||S.inv.bleach?'；消毒：漂白水 1、淡水 1，撐 8 次':''}</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
 function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHome(st);};};
+ if(act==='bleach'){const r=sanitize(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='🧴 用稀釋的漂白水把發酵罐、木杓和桌面都泡過一遍，再用清水沖乾淨。接下來 8 次發酵都不怕雜菌。'+(r.isNew?'<br>📖 圖鑑新增：漂白水為什麼能殺菌':'');storyQ.push(...advanceQuests(S));}after();return openHome(st);}
  if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 3 次發酵。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
  if(act==='mkstill'||act==='mkcell'){const id=act==='mkstill'?'still':'cell',r=installLab(S,st,id);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=(id==='still'?'⚗️ 蒸餾器裝好了。到實驗桌把「爐火」架上去就能加熱，再加上「冷凝管」就能蒸餾。':'⚡ 伏打堆疊好了（2 層）。到實驗桌把「電極」架上去，看看電能把什麼東西拆開。疊得越高，電壓越高。')+(r.isNew?'<br>📖 圖鑑新增：'+RMAP[BMAP[id].entry].name:'');}after();hud();save();return openHome(st);}
  if(act==='bench'){back();return openBench(st);}
@@ -1808,7 +1852,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.13',VDATE='2026-11-17';
+const VERSION='2.14',VDATE='2026-11-17';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1836,9 +1880,9 @@ let lbLast=-1e9,lbSig='';
 function lbPost(o){try{fetch(LB_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(o)}).catch(()=>{});}catch(e){}}
 function lbSend(force){if(!lbOn()||S.share!==true||!S.name)return;const p=lbPayload(),sig=[p.name,p.quest,p.score,p.badges].join('|');if(!force&&(sig===lbSig||now()-lbLast<45))return;lbSig=sig;lbLast=now();lbPost(p);}
 function lbForget(){if(lbOn()&&S.pid)lbPost({id:S.pid,del:true});lbSig='';}
-const LB_NOTE='這個遊戲會記錄你<b>取的名字</b>和<b>遊戲進度</b>（玩到第幾章、分數、徽章數），用來統計有多少人在玩，並讓你的進度出現在「英雄榜」上。在榜上，別人看到的你是一個匿名的動物代號（例如「好奇的水獺」），看不到你取的名字。不會記錄帳號、真實姓名或其他個人資料——不過還是<b>請不要用真實的全名</b>。不想被記錄，把勾勾取消就好，隨時可以在「存檔・讀檔」裡更改。';
+const LB_NOTE='這個遊戲會記錄你<b>取的名字</b>和<b>遊戲進度</b>（玩到第幾章、分數、徽章數），用來統計有多少人在玩，並讓你的進度出現在「英雄榜」上。在榜上，別人看到的你是一個匿名的動物代號（例如「好奇的水獺」），看不到你取的名字。不會記錄帳號、真實姓名或其他個人資料——不過還是<b>請不要用真實的全名</b>。要不要記錄，隨時可以在「存檔・讀檔」裡更改。';
 function askShare(next){panel='share';closeHook=()=>{if(S.share==null)S.share=false;save();next&&next();};
- openModal(`<h2 style="margin-top:0">📣 關於紀錄與英雄榜</h2><div class="story" style="white-space:normal">${LB_NOTE}</div><p style="text-align:right;margin:14px 0 0"><button class="btn alt" data-act="share-no" style="margin-right:8px">不要記錄我</button><button class="btn" data-act="share-yes">好，讓我上榜</button></p>`);}
+ openModal(`<h2 style="margin-top:0">🛶 要出海了！</h2><div class="story" style="white-space:normal">木筏造好了，你就要離開第一座島。其他漂流到這片海的化學家，也在各自的島上努力著。要不要讓大家在「英雄榜」上看到你的進度？<br><br>${LB_NOTE}</div><p style="text-align:right;margin:14px 0 0"><button class="btn alt" data-act="share-no" style="margin-right:8px">不要記錄我</button><button class="btn" data-act="share-yes">好，讓我上榜</button></p>`);}
 let lbData=null,lbErr='',lbBusy=false;
 /* 英雄榜上別人一律顯示成匿名的動物（由代號算出來，同一個人每次都是同一隻），只有自己看得到自己取的名字 */
 const LB_ADJ=['好奇的','勤勞的','冷靜的','大膽的','細心的','愛睏的','樂觀的','認真的','害羞的','頑皮的','機靈的','沉穩的','熱血的','悠哉的','固執的','愛笑的','專注的','勇敢的','溫柔的','謹慎的','飛快的','慢吞吞的','閃亮的','神祕的'];
@@ -1894,7 +1938,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='lb-reload'){lbLoad();return render();}
  if(d.act==='sv-share'){S.share=!(S.share===true);if(S.share){lbSend(true);saveMsg='✅ 已開啟紀錄，你會出現在英雄榜上。';}else{lbForget();saveMsg='✅ 已關閉紀錄，並請伺服器刪掉你在英雄榜上的資料。';}save();return render();}
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
- if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';if(lbOn()){const c=$('pshare');S.share=c?!!c.checked:false;}return closeModal();}
+ if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
  if(d.add)return fireAdd(d.add,+(d.n||1));
@@ -1919,13 +1963,13 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='reset'){if(d.sure){applyState(newState());curIsl=0;closeHook=()=>namePrompt(intro);closeModal();}else{d.sure='1';b.textContent='確定要清除所有進度？再按一次';}return;}
 });
 function namePrompt(next){panel='name';closeHook=()=>{if(!S.name)S.name='小化學家';hud();save();next();};
- openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0">${(()=>{try{const j=JSON.parse(localStorage.getItem('island_chemist_v3')||'null');return j&&j.v===3&&(j.quest>0||Object.keys(j.inv||{}).length)?`<button class="btn alt" data-act="from-v1" style="margin-right:8px">⏩ 接著玩第一版的進度${j.name?'（'+String(j.name).replace(/[<>&"]/g,'')+'）':''}</button>`:'';}catch(e){return '';}})()}<button class="btn" data-act="setname">想起來了</button></p>${lbOn()?`<div class="savebox" style="margin-top:12px;font-size:13px;line-height:1.6"><label style="display:block;font-weight:700;margin-bottom:4px"><input type="checkbox" id="pshare" checked> 記錄我的進度，並顯示在英雄榜</label>${LB_NOTE}</div>`:''}<p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
+ openModal(`<div class="story">暴風雨過後，你在一片沙灘上睜開了眼睛。\n\n這裡不是你原來的世界。頭很痛，嘴裡都是鹹味。\n\n你努力回想——你的名字是：</div><p style="margin:14px 0"><input id="pname" maxlength="10" placeholder="你的名字（最多 10 個字）" value="${(S.name||'').replace(/"/g,'')}" style="font-size:18px;padding:8px 12px;width:80%;border-radius:8px;border:2px solid #8a6a45;background:#fff;color:#2b2a26"></p><p style="text-align:right;margin:0">${(()=>{try{const j=JSON.parse(localStorage.getItem('island_chemist_v3')||'null');return j&&j.v===3&&(j.quest>0||Object.keys(j.inv||{}).length)?`<button class="btn alt" data-act="from-v1" style="margin-right:8px">⏩ 接著玩第一版的進度${j.name?'（'+String(j.name).replace(/[<>&"]/g,'')+'）':''}</button>`:'';}catch(e){return '';}})()}<button class="btn" data-act="setname">想起來了</button></p><p class="muted" style="margin:12px 0 0;font-size:12px">荒島化學家 2　v${VERSION}　© 2026 小p老師　CC BY-NC-SA 4.0</p>`);
  setTimeout(()=>{const i=$('pname');if(i){i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')$('modal').querySelector('[data-act=setname]').click();});}},30);}
 function intro(){storyQ.unshift('<b>'+S.name+'</b>。對，你叫'+S.name+'。\n\n你穿越到了一座荒島上。載你來的那艘船擱淺在不遠處的沙灘，船身裂開，再也開不了了。四周只有海，和遠方幾座看不清楚的島。\n\n原來那個世界的東西，一樣也沒跟過來。但你腦子裡的科學知識還在：火是怎麼燒起來的、石頭裡藏著什麼、一種物質怎樣變成另一種物質。\n\n只是——知道，和親手做出來，是兩回事。','沙灘上有一本被海水泡皺的筆記本，不是你的。封面寫著：\n「一個化學家的漂流筆記・第一章」\n\n看來在你之前，也有人到過這裡。\n\n第一頁只有一句話：\n「這片海上什麼都有。缺的只是知道怎麼把它們變成你需要的東西。」\n\n<span class="muted">先去看看那艘破船吧，也許還有能用的東西。</span>');showStory();}
 hud();audioBtns();requestAnimationFrame(loop);
 const go=()=>{if(S.quest===0&&!Object.keys(S.inv).length&&!S.st.length)intro();else after();};
 if(lbOn())$('lbbtn').style.display='';
-if(!S.name)namePrompt(go);else if(lbOn()&&S.share==null)askShare(go);else go();
+if(!S.name)namePrompt(go);else if(lbOn()&&S.share==null&&S.abil.raft)askShare(go);else go();
 </script>
 </body>
 </html>
