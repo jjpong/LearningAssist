@@ -119,7 +119,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 /* ================= 資料區：物質、設施、反應、任務、世界（純邏輯，不碰畫面） ================= */
 const ITEMS={
  actcarbon:{n:'活性碳',f:'C',c:'#2a2a2e',d:'用水蒸氣在高溫下把木炭「蛀」出無數小孔。孔的表面積大得驚人，能把有毒的氣體抓住。'},
- magnet:{n:'磁鐵',f:'',c:'#b33a3a',d:'被雷擊磁化的鐵棒。一端吸、一端斥，能吸起鐵屑。'},
+ magnet:{n:'磁鐵',f:'',c:'#b33a3a',d:'被雷擊磁化的鋼棒。一端吸、一端斥，能吸起鐵屑。'},
  lens:{n:'透鏡',f:'SiO2',c:'#cfeaf2',d:'磨成中間厚、邊緣薄的玻璃。光通過它會偏折、聚在一起。'},
  filament:{n:'碳絲',f:'C',c:'#3a3a3a',d:'隔絕空氣悶燒過的植物纖維。細、黑、能導電，通電會發亮。'},
  tartar:{n:'酒石',f:'',c:'#d9c7b0',d:'釀酒的罐子內壁結出來的粗糙結晶。成分是酒石酸氫鉀。'},
@@ -228,18 +228,18 @@ const BUILD=[
  {id:'kiln',n:'陶窯',icon:'🏺',era:'約 2 萬年前',req:['pottery'],need:{clay:6},d:'用黏土砌成的窯。窯壁能把熱留住，比營火熱得多；窯室是封閉的，可以隔絕空氣。',entry:'tech_kiln'},
  {id:'table',n:'實驗桌',icon:'🧫',era:'',req:['pottery'],need:{wood:4},d:'擺上陶缽和陶罐：混合、溶解、過濾都在這裡做。'},
  {id:'raft',n:'木筏',icon:'🛶',era:'約 1 萬年前',dock:1,req:['pottery'],need:{wood:8,fiber:4,salt:2},grant:'raft',d:'要蓋在沙灘上。造好後會停在岸邊，走過去才能上船；可以渡過淺海。鹽用來醃糧食，陶罐用來裝淡水。',entry:'tech_raft'},
- {id:'furnace',n:'鼓風爐',icon:'⚒️',era:'約西元前 5000 年',req:['f:charcoal'],need:{clay:4,mortar:2,wood:2,fiber:2},d:'高高的爐身加上風箱。一邊燒一邊鼓風，可以超過 1200 °C。',entry:'tech_furnace'},
+ {id:'furnace',n:'鼓風爐',icon:'⚒️',era:'約西元前 5000 年',req:['f:charcoal'],need:{clay:4,mortar:2,wood:2,fiber:2},d:'高高的爐身加上風箱。一邊燒一邊鼓風，可以超過 1200 °C。爐裡空氣充足，適合冶煉；要隔絕空氣悶東西，得用陶窯。',entry:'tech_furnace'},
  {id:'bucket',n:'木桶',icon:'🪣',era:'約西元前 2500 年',craft:1,req:['bronze_tools'],need:{wood:4,fiber:2},grant:'bucket',d:'把木板削得服服貼貼，再用纖維箍緊，就不會漏水。提一桶水抵得上跑好幾趟——一次可以裝 5 份。',entry:'tech_bucket'},
  {id:'bronze_tools',n:'青銅工具',icon:'⛏️',era:'約西元前 3300 年',craft:1,req:['f:bronze'],need:{bronze:3,wood:2},grant:'bronze_tools',d:'敲得開更硬的石頭，也能把木頭加工成船板。',entry:'tech_bronze'},
  {id:'sail',n:'帆船',icon:'⛵',era:'約西元前 3000 年',dock:1,req:['bronze_tools','raft'],need:{wood:10,fiber:6,bronze:2},grant:'sail',d:'要蓋在沙灘上。可以航行到更遠的海域，淺海也進得去。',entry:'tech_sail'},
  {id:'iron_tools',n:'鐵製工具',icon:'🔨',era:'約西元前 1200 年',craft:1,req:[],need:{iron:3,wood:2,charcoal:1},grant:'iron_tools',d:'熟鐵打成的工具。刃口埋在燒紅的木炭裡吸了碳，再放進水裡淬火，變得又硬又利，敲得開最堅硬的岩石。',entry:'tech_iron'},
  {id:'still',n:'玻璃蒸餾器',icon:'⚗️',era:'約西元 800 年',inLab:1,req:['f:glass'],need:{glass:3,copper:1},grant:'distill',d:'燒瓶、冷凝管和接收瓶：把東西混合以後加熱，再把跑出來的蒸氣接住。要裝在屋裡的實驗室（木屋以上）。有了它，鼓風爐也能加裝冷凝管。',entry:'tech_distill'},
- {id:'compass',n:'指南針',icon:'🧭',era:'約西元 1100 年',craft:1,req:[],need:{magnetite:1,iron:1},grant:'compass',d:'看不到陸地也不會迷航。',entry:'tech_compass'},
+ {id:'compass',n:'指南針',icon:'🧭',era:'約西元 1100 年',craft:1,req:[],need:{magnetite:1,iron:1,charcoal:1},grant:'compass',d:'看不到陸地也不會迷航。',entry:'tech_compass'},
  {id:'ship',n:'遠洋帆船',icon:'🚢',era:'約西元 1500 年',dock:1,req:['compass','sail'],need:{wood:12,fiber:6,iron:4},grant:'ship',d:'要蓋在海夠深的沙灘上（火山島）。可以穿越風浪最大的外海；但船身大、吃水深，進淺海會擱淺，所以原來的帆船要留著用。',entry:'tech_ship'},
  {id:'blast',n:'高爐',icon:'🏭',era:'西元 1709 年',req:['f:coke'],need:{clay:6,mortar:4,iron:4,fiber:2},d:'更高的爐身、用鐵箍加固。燒焦炭並持續鼓風，可以超過 1500 °C，讓鐵熔成鐵水流出來。',entry:'tech_blast'},
  {id:'cell',n:'伏打堆與電解槽',icon:'⚡',era:'西元 1800 年',inLab:2,req:['distill'],need:{zinc:2,copper:2,salt:1,fiber:1},grant:'elec',d:'一片鋅、一片銅、一塊浸了鹽水的布，疊起來就有電。先疊兩層，之後可以再往上加：疊得越高，電壓越高。電極怕潮，要裝在磚瓦屋以上的實驗室裡。',entry:'tech_elec'},
  {id:'wheel',n:'水車',icon:'🎡',era:'約西元前 100 年',river:1,req:['iron_tools'],need:{wood:10,fiber:4,iron:2},d:'要蓋在河邊。流水推著輪子轉，輪子拉動風箱——附近的鼓風爐和高爐不用再自己踩風箱了。',entry:'tech_wheel'},
- {id:'rod',n:'避雷針',icon:'🌩️',era:'西元 1752 年',isl:3,req:['iron_tools'],need:{iron:3,copper:2,wood:2},d:'只能立在雷鳴島。一根高高的鐵桿，用銅線接到地下。把鐵棒掛上去，等雷打下來。',entry:'tech_rod'},
+ {id:'rod',n:'避雷針',icon:'🌩️',era:'西元 1752 年',isl:3,req:['iron_tools'],need:{iron:3,copper:2,wood:2},d:'只能立在雷鳴島。一根高高的鐵桿，用銅線接到地下，銅線在底下繞成一圈一圈。把鋼棒放進線圈，等雷打下來。',entry:'tech_rod'},
  {id:'generator',n:'水力發電機',icon:'🌀',era:'西元 1831 年',craft:1,req:['elec','f:tech_wheel'],need:{magnet:1,copper:3,wood:2},grant:'gen',d:'裝在水車上。流水帶著磁鐵在銅線圈旁邊轉，線圈裡就有電。同一座島上的屋子拉銅線過來，電壓又高又穩，從此不必再換鋅片。',entry:'tech_gen'},
  {id:'motor',n:'電動鼓風機',icon:'💨',era:'西元 1834 年',craft:1,req:['gen'],need:{magnet:1,copper:3,iron:2},grant:'motor',d:'把發電機倒過來用：通了電的線圈在磁鐵旁邊自己轉起來。接上風扇，再拉銅線到水力發電機，離河再遠的鼓風爐和高爐也不用踩風箱了。',entry:'tech_motor'},
  {id:'mask',n:'活性碳面具',icon:'😷',era:'西元 1915 年',craft:1,req:['f:actcarbon'],need:{actcarbon:2,fiber:3,glass:1},grant:'mask',d:'一層活性碳、一層布，加上玻璃護目鏡。戴上它，才進得了火山口。',entry:'tech_mask'},
@@ -265,8 +265,8 @@ const atOK=(d,r)=>(r.at===(d.at||'heat')&&!(r.pot&&!d.pot))||(d.at==='still'&&r.
 const STN={
  campfire:{G:105,maxBurn:6,cap:700,scale:800,pot:true,fuel:'柴堆',charge:'火上'},
  kiln:{G:125,maxBurn:8,cap:1050,scale:1200,closed:true,fuel:'爐膛（燃料）',charge:'窯室（材料）'},
- furnace:{G:115,maxBurn:8,cap:1380,scale:1500,closed:true,bellows:true,fuel:'燃料',charge:'爐料（礦石等）'},
- blast:{G:120,maxBurn:10,cap:1900,scale:2000,closed:true,bellows:true,fuel:'燃料',charge:'爐料（鐵礦、焦炭、石灰石）'},
+ furnace:{G:115,maxBurn:8,cap:1380,scale:1500,bellows:true,fuel:'燃料',charge:'爐料（礦石等）'},
+ blast:{G:120,maxBurn:10,cap:1900,scale:2000,bellows:true,fuel:'燃料',charge:'爐料（鐵礦、焦炭、石灰石）'},
  still:{G:90,maxBurn:6,cap:650,scale:700,closed:true,at:'still',pot:true,fuel:'爐火（燃料）',charge:'燒瓶'},
  stove:{G:80,maxBurn:5,cap:420,scale:500,pot:true,fuel:'灶膛（燃料）',charge:'烤盤與鍋子'}
 };
@@ -316,18 +316,18 @@ const REACTIONS=[
   phen:'窯口噴出黃色的濃煙和可以點燃的氣體，有一股刺鼻的臭味。留下來的東西變成銀灰色、佈滿小孔、敲起來鏗鏘作響。',use:'和悶木炭是同一個道理：隔絕空氣加熱，讓硫和容易跑掉的雜質先變成氣體離開，留下幾乎純的碳。跑出來的煤氣後來被拿去點路燈。',note:'1709 年英國的達比用焦炭煉鐵成功。那時英國的森林快被燒木炭砍光了，焦炭讓煉鐵不再受木材限制。中國在宋代就已經用焦炭煉鐵。'},
  {id:'pig_iron',name:'高爐煉鐵',kind:'chem',at:'heat',T:1400,sulfur:1,inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{pigiron:3,co2:1},eq:'Fe2O3 + 3CO -> 2Fe + 3CO2',
   phen:'爐底流出亮得刺眼的橘白色鐵水，上面浮著一層像玻璃的熔渣。',use:'焦炭先燒成一氧化碳，一氧化碳再把鐵礦裡的氧搶走。溫度高到鐵整個熔化，可以直接流出來鑄造。石灰石負責把礦石裡的泥沙（二氧化矽）變成熔渣浮在上面，和鐵水分開。',note:'流出來的是含碳很多的生鐵。真實歷史上木炭高爐也煉得出生鐵（中國在兩千多年前就會了），但焦炭便宜又堅硬，撐得起更高的爐子；遊戲簡化成只有焦炭夠熱。'},
- {id:'steel',name:'鼓風煉鋼',kind:'chem',at:'heat',T:1500,fresh:1,not:['coke','charcoal','coal','hematite','magnetite','o2'],inputs:[['pigiron']],out:{steel:1},eq:'C + O2 -> CO2',
+ {id:'steel',name:'鼓風煉鋼',kind:'chem',at:'heat',T:1500,air:1,fresh:1,not:['coke','charcoal','coal','hematite','magnetite','o2'],inputs:[['pigiron']],out:{steel:1},eq:'C + O2 -> CO2',
   phen:'空氣吹進熔化的生鐵，爐口噴出一大片火花，像放煙火。火花漸漸變少，就是碳快燒完了。',use:'生鐵太脆，是因為裡面的碳太多。鼓進去的空氣裡有氧，碳比鐵更容易和氧結合，先被燒成二氧化碳帶走。剩下含碳量剛好的就是鋼——又硬又韌。',note:'這一爐的爐料裡不能放焦炭：旁邊有碳，鐵裡的碳就燒不掉。中國漢代的「炒鋼」把生鐵加熱攪拌，讓空氣把碳燒掉；1856 年貝塞麥的轉爐直接把空氣吹進鐵水，幾十分鐘就能把幾噸生鐵變成鋼。'},
  {id:'steel_o2',name:'吹氧煉鋼',kind:'chem',at:'heat',T:1500,inputs:[['pigiron','o2']],out:{steel:1},eq:'C + O2 -> CO2',
   phen:'氧氣吹進鐵水，爐口噴出的火花比鼓風時更猛。',use:'用純氧代替空氣，碳燒得更快、更乾淨。',note:'現代煉鋼廠吹的就是純氧。'},
  {id:'cement',name:'燒製水泥',kind:'chem',at:'heat',T:1400,inputs:[['caco3','clay'],['quicklime','clay']],out:{cement:2},eqx:'石灰石 + 黏土 —(1450 °C)→ 水泥 + 二氧化碳',
   phen:'石灰和黏土燒成一顆顆灰黑色的硬塊，磨碎以後是灰色的粉末。',use:'石灰裡的鈣和黏土裡的矽、鋁在高溫下結合成新的化合物（主要是矽酸鈣）。這些化合物遇水會起反應、變硬。',note:'1824 年英國人阿斯普丁發明。因為硬化後的顏色像波特蘭島的石頭，所以叫波特蘭水泥。'},
- {id:'smelt_zn',name:'木炭還原氧化鋅',kind:'chem',at:'heat',T:950,needs:'distill',inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{zinc:2},eq:'ZnO + C -> Zn + CO',
-  phen:'爐裡冒出的金屬蒸氣，在冷凝管裡凝成銀灰色的鋅。',use:'鋅在 907 °C 就沸騰，一煉出來就變成蒸氣跑掉，必須冷凝收集。所以鋅比鐵晚了兩千多年才被煉出來。',note:'產生的一氧化碳有毒。'},
+ {id:'smelt_zn',name:'木炭還原氧化鋅',kind:'chem',at:'heat',T:950,closed:1,needs:'distill',inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{zinc:2},eq:'ZnO + C -> Zn + CO',
+  phen:'爐裡冒出的金屬蒸氣，在冷凝管裡凝成銀灰色的鋅。',use:'鋅在 907 °C 就沸騰，一煉出來就變成蒸氣跑掉，必須冷凝收集。蒸氣一碰到空氣又會燒回氧化鋅，所以要在封閉的窯裡煉，不能用鼓風爐。所以鋅比鐵晚了兩千多年才被煉出來。',note:'產生的一氧化碳有毒。'},
  {id:'bread',name:'烤麵包',kind:'chem',at:'heat',T:180,indoor:1,inputs:[['risen']],out:{bread:1},eqx:'發好的麵團 —(180 °C 以上)→ 麵包',phen:'麵團表面變成金黃色，飄出香味。',use:'高溫讓澱粉吸水糊化、蛋白質凝固，把氣孔的形狀固定下來；表面的糖和蛋白質反應，產生褐色和香氣。',note:''},
  {id:'boiledegg',name:'把蛋加熱',kind:'chem',at:'heat',T:70,inputs:[['egg']],out:{boiledegg:1},eqx:'蛋白質 —(加熱)→ 凝固',phen:'透明的蛋白變成不透明的白色固體。',use:'蛋白質受熱後形狀改變、互相纏在一起。冷卻也變不回去，所以是化學變化。',note:''},
- {id:'burn_ethanol',name:'酒精燃燒',kind:'chem',at:'heat',T:100,inputs:[['ethanol']],out:{co2:1},eq:'C2H5OH + 3O2 -> 2CO2 + 3H2O',phen:'淡藍色的火焰，幾乎沒有煙。',use:'酒精燈的原理。燃燒完全，所以火焰乾淨。',note:''},
- {id:'burn_h2',name:'氫氣燃燒',kind:'chem',at:'heat',T:300,inputs:[['h2']],out:{water:1},eq:'2H2 + O2 -> 2H2O',phen:'「啵！」一聲爆鳴，壁上出現水珠。',use:'氫和氧化合變成水——所以水不是元素，是化合物。',note:'氫氣和空氣混合遇火會爆炸，現實中只能用極少量做爆鳴測試。'},
+ {id:'burn_ethanol',name:'酒精燃燒',kind:'chem',at:'heat',T:100,air:1,inputs:[['ethanol']],out:{co2:1},eq:'C2H5OH + 3O2 -> 2CO2 + 3H2O',phen:'淡藍色的火焰，幾乎沒有煙。',use:'酒精燈的原理。燃燒完全，所以火焰乾淨。',note:''},
+ {id:'burn_h2',name:'氫氣燃燒',kind:'chem',at:'heat',T:300,air:1,inputs:[['h2']],out:{water:1},eq:'2H2 + O2 -> 2H2O',phen:'「啵！」一聲爆鳴，壁上出現水珠。',use:'氫和氧化合變成水——所以水不是元素，是化合物。',note:'氫氣和空氣混合遇火會爆炸，現實中只能用極少量做爆鳴測試。'},
  {id:'burn_c',name:'木炭在氧氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['charcoal','o2'],['coke','o2'],['coal','o2']],out:{co2:1},eq:'C + O2 -> CO2',phen:'木炭在純氧中發出耀眼的白光！',use:'氧氣濃度越高，燃燒越劇烈。',note:''},
  {id:'cu_o2',name:'銅在氧氣中加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','o2']],out:{cuo:2},eq:'2Cu + O2 -> 2CuO',phen:'紅色的銅表面變黑。',use:'金屬的氧化。黑色的氧化銅可以再用木炭還原回銅。',note:''},
  {id:'fe_o2',name:'鐵在氧氣中燃燒',kind:'chem',at:'heat',T:500,inputs:[['iron','o2'],['sponge','o2']],out:{magnetite:1},eq:'3Fe + 2O2 -> Fe3O4',phen:'火星四射！留下黑色的固體。',use:'鐵在純氧中可以燃燒，產物是四氧化三鐵——和磁鐵礦是同一種物質。',note:''},
@@ -373,7 +373,7 @@ const REACTIONS=[
   phen:'一開始什麼事也沒有。水越煮越少，酸越來越濃，銅片表面開始冒出刺鼻的氣體，溶液慢慢變成藍色。',use:'冷的稀硫酸拿銅沒辦法；但加熱把水趕走以後，又濃又熱的硫酸能直接把銅氧化，生成硫酸銅，同時放出二氧化硫。',note:'這和「金屬把酸裡的氫趕出來」是不同的反應——冒出來的不是氫氣，是有毒的二氧化硫。現實中必須在抽風櫃裡做。'},
  {id:'actcarbon',name:'用水蒸氣活化木炭',kind:'chem',at:'heat',T:800,closed:1,inputs:[['charcoal','water']],out:{actcarbon:1},eq:'C + H2O -> CO + H2',phen:'悶在窯室裡的木炭被滾燙的水蒸氣一點一點「蛀」掉，剩下的部分佈滿了看不見的小孔，變得又輕又脆。',use:'高溫的水蒸氣會和碳反應，把一部分的碳變成氣體帶走。留下來的碳像海綿一樣全是孔洞——一小撮的表面積就有好幾座籃球場大，能把氣體和雜質牢牢吸在表面。',note:'這叫「吸附」，是物理變化。淨水器、口罩、冰箱除臭劑裡的黑色顆粒，都是活性碳。'},
  {id:'obs_actc_cold',name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙，才咬得動碳。',note:''},
- {id:'filament',name:'把纖維悶成碳絲',kind:'chem',at:'heat',T:300,closed:1,inputs:[['fiber']],out:{filament:1},eqx:'植物纖維 —(隔絕空氣加熱)→ 碳絲 + 水蒸氣 + 可燃氣體',phen:'細細的纖維沒有燒掉，而是整條變黑、變硬，還保持著原來的形狀。',use:'和悶木炭是同一件事：沒有氧氣，纖維裡的氫和氧先跑掉，留下一條細細的碳。碳能導電，又耐高溫，是最早的燈絲。',note:'愛迪生試了六千多種材料，最後用的是日本京都的竹子悶成的碳絲，可以亮一千多個小時。'},
+ {id:'filament',name:'把纖維悶成碳絲',kind:'chem',at:'heat',T:800,closed:1,needs:'pottery',inputs:[['fiber']],out:{filament:1},eqx:'植物纖維 —(隔絕空氣加熱)→ 碳絲 + 水蒸氣 + 可燃氣體',phen:'把纖維埋在炭粉裡、封進有蓋的陶罐再燒。細細的纖維沒有燒掉，而是整條變黑、變硬，還保持著原來的形狀。',use:'和悶木炭是同一件事，只是要燒得更熱，碳絲才導得了電：沒有氧氣，纖維裡的氫和氧先跑掉，留下一條細細的碳。碳能導電，又耐高溫，是最早的燈絲。',note:'愛迪生試了六千多種材料，最後用的是日本京都的竹子悶成的碳絲，可以亮一千多個小時。'},
  {id:'lens',name:'把玻璃磨成透鏡',kind:'phys',at:'table',inputs:[['glass','sand']],out:{lens:1},eqx:'玻璃 —(用細沙研磨)→ 透鏡',phen:'玻璃片在沾濕的細沙上一圈一圈地磨。磨了很久很久，中間厚、邊緣薄，對著太陽能把光聚成一個亮點。',use:'石英砂比玻璃硬，所以磨得動玻璃。光從空氣進到玻璃會偏折；把玻璃磨成弧面，就能讓光線往中間集中。',note:'十七世紀的磨鏡師傅磨一片好透鏡要好幾天。'},
  {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 碳酸鈉 → 酒石酸鉀鈉 + 水 + 二氧化碳',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
  {id:'caramel',name:'把糖水熬成焦糖',kind:'chem',at:'heat',T:170,pot:1,inputs:[['juice']],out:{caramel:1},eqx:'蔗糖 —(約 170 °C)→ 焦糖 + 水',phen:'水先滾乾，糖漿從透明變成金黃、再變成深褐色，冒出又甜又苦的香氣。',use:'糖受熱到一百七十度左右會分解、互相結合，變成幾百種有顏色、有香氣的新物質。這是化學變化——焦糖再也變不回白糖。',note:'再燒下去就只剩黑色的碳了：糖是碳、氫、氧組成的。'},
@@ -411,6 +411,8 @@ const REACTIONS=[
  {id:'obs_cuo',name:'單獨加熱氧化銅',kind:'obs',at:'heat',T:700,alone:1,inputs:[['cuo']],out:{},eqx:'沒有變化',phen:'黑色粉末燒得通紅，冷卻後還是黑色。',use:'光加熱沒有用，還需要一種能把氧「搶走」的物質。',note:''},
  {id:'obs_sand',name:'單獨加熱石英砂',kind:'obs',at:'heat',T:900,alone:1,inputs:[['sand'],['quartz']],out:{},eqx:'沒有變化',phen:'沙子燒得發紅，卻一點也沒有熔化。',use:'二氧化矽的熔點高達 1700 °C。需要加入能降低熔點的東西（助熔劑）。',note:''},
  {id:'obs_coal_iron',name:'用煤直接煉鐵',kind:'obs',at:'heat',inputs:[],out:{},eqx:'鐵 + 硫 → 脆鐵',phen:'鐵是煉出來了，但燒紅後一敲就裂成碎塊。',use:'煤裡含有硫。硫混進鐵裡，鐵在高溫下就會變脆（叫做「熱脆」）。所以幾百年來，人們明知道煤比木炭便宜，卻沒辦法拿它煉鐵——直到有人想到先把煤裡的硫趕走。',note:''},
+ {id:'obs_burn_air',name:'在通風的火裡悶東西',kind:'obs',at:'heat',T:300,air:1,lose:['wood','fiber','coal'],not:['hematite','magnetite','cuo','cassiterite','zno'],inputs:[['wood'],['fiber'],['coal']],out:{},eqx:'可燃物 + 氧氣 → 二氧化碳 + 灰（這是燃燒，不是乾餾）',phen:'空氣一灌進去，放在裡面的東西很快燒得一乾二淨，只剩一點灰。',use:'同樣是加熱，有沒有空氣差很多。空氣充足，東西會燒掉；隔絕空氣，氫和氧先跑掉，才會留下碳——這叫乾餾。鼓風爐和高爐不停灌進空氣，做不了乾餾；要找一個封得起來的地方。',note:'溫度太低燒不起來，溫度夠高又有氧就燒光。要留下碳，得同時做到「夠熱」和「沒有氧」。'},
+ {id:'obs_zn_air',name:'在鼓風的爐子裡煉鋅',kind:'obs',at:'heat',T:950,air:1,lose:['zno','charcoal','coke','coal'],inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{},eq:'2Zn + O2 -> 2ZnO',phen:'爐口竄出藍白色的火焰，四周落下一層白色的粉末。爐底什麼也沒有。',use:'鋅一煉出來就是蒸氣。鼓風爐裡到處是空氣，鋅蒸氣一碰到氧，就燒回白色的氧化鋅。煉鋅要在封閉、沒有空氣的地方，再把蒸氣引出來冷卻。',note:''},
  {id:'obs_pig_carbon',name:'和碳一起再燒的生鐵',kind:'obs',at:'heat',T:1400,fresh:1,inputs:[['pigiron','coke'],['pigiron','charcoal'],['pigiron','coal']],out:{},eqx:'沒有變化',phen:'生鐵熔了又凝固。敲一下，還是一樣脆。',use:'爐料裡還有碳，鐵水裡的碳就燒不掉，甚至吸得更多。要讓碳離開，爐料裡就不能再放碳——只留生鐵，然後用力鼓風。',note:''},
  {id:'obs_pig_low',lose:['coke'],name:'溫度不夠的高爐料',kind:'obs',at:'heat',T:900,failOf:'pig_iron',inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{},eqx:'沒有鐵水流出來',phen:'爐料燒得通紅，卻沒有熔化。',use:'要讓鐵熔成鐵水得超過 1400 °C。舊的鼓風爐太矮、散熱太快；燃料也要用焦炭，而且風不能停。',note:''},
  {id:'obs_zn_open',lose:['zno','charcoal','coke','coal'],name:'沒有冷凝管的煉鋅',kind:'obs',at:'heat',T:950,failOf:'smelt_zn',failNeeds:1,inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{},eqx:'沒有金屬留下',phen:'爐口冒出一陣藍白色的煙，爐底什麼也沒有。',use:'溫度是夠了，但鋅一生成就變成蒸氣飄走。得想辦法把蒸氣冷卻、接住。',note:''},
@@ -442,11 +444,12 @@ const REACTIONS=[
  {id:'tech_iron',name:'鐵器時代',kind:'tech',inputs:[],out:{},eqx:'鐵礦遍地都是，只是很難煉',phen:'鐵鎬敲在岩壁上，火星四濺。',use:'熟鐵本身偏軟。鐵匠把刃口埋在燒紅的木炭裡，讓表面吸進一點碳，再放進水裡急速冷卻，刃口就變得又硬又利，工具的身體卻還保有韌性。碳的多寡決定了鐵的軟硬——這件事後面還會再遇到。',note:'最早的鐵其實不比青銅好用。鐵能取代青銅，靠的是鐵礦到處都有，不必像錫那樣千里迢迢運來。'},
  {id:'tech_blast',name:'高爐',kind:'tech',inputs:[],out:{},eqx:'更高的爐身 ＋ 焦炭 ＋ 持續鼓風',phen:'爐料從頂端一層層加進去，鐵水從底部流出來。',use:'爐身越高，熱氣往上走的時候能把上面的爐料預熱，熱量不浪費。木炭太脆，堆高了會被壓碎、把風堵住；焦炭夠硬，撐得住。',note:'高爐可以連續運轉好幾年不熄火。'},
  {id:'tech_distill',name:'蒸餾',kind:'tech',inputs:[],out:{},eqx:'加熱 → 汽化 → 冷卻 → 凝結',phen:'蒸氣通過繞成螺旋的銅管，在另一端滴成液體。',use:'沸點不同的物質會先後變成蒸氣，藉此可以把混合物分開。玻璃透明又不怕酸，從此可以安全地處理強酸。',note:''},
- {id:'tech_compass',name:'磁化',kind:'tech',inputs:[],out:{},eqx:'磁鐵礦 ＋ 鐵針 → 磁針',phen:'用磁鐵礦順著同一個方向摩擦鐵針，把針懸起來，它總是指著同一個方向。',use:'磁鐵礦天然帶有磁性，能把鐵磁化。地球本身就是一個大磁鐵，所以磁針會指向南北。',note:''},
+ {id:'tech_compass',name:'磁化',kind:'tech',inputs:[],out:{},eqx:'帶磁的磁鐵礦 ＋ 滲過碳的鐵針 → 磁針',phen:'用磁鐵礦順著同一個方向摩擦鐵針，把針懸起來，它總是指著同一個方向。',use:'熟鐵太軟，磁化了也留不住，所以先把針埋在炭火裡滲碳變硬，再拿去摩擦。地球本身就是一個大磁鐵，所以磁針會指向南北。',note:'大多數磁鐵礦只會被磁鐵吸引，自己並不帶磁。你手上這一塊卻能吸起鐵屑——它是怎麼變成磁鐵的？答案在很遠的地方。'},
  {id:'tech_ship',name:'鐵釘與生鏽',kind:'tech',inputs:[],out:{},eqx:'鐵 ＋ 氧氣 ＋ 水 → 鐵鏽',phen:'沒上油的鐵釘，泡過海水幾天就長出紅褐色的鏽。',use:'生鏽是緩慢的氧化，需要氧氣和水，鹽分會讓它更快。所以船上的鐵件要塗油，把空氣和水隔開。',note:'船越大，沉在水面下的部分（吃水）越深：浮力要等於船重，船越重就得排開越多的水。所以大船進不了淺海。'},
  {id:'tech_wheel',name:'水車',kind:'tech',inputs:[],out:{},eqx:'水的位能 → 輪子的動能 → 風箱',phen:'河水推著輪子，輪子上的凸輪一下一下壓著風箱。',use:'水從高處往低處流，帶著能量。水車把這份能量接過來，替人做重複又費力的事。爐子有了不會累的風箱，溫度才穩得住。',note:'中國在東漢就有用水車鼓風煉鐵的「水排」，比歐洲早了一千多年。'},
  {id:'tech_rod',name:'避雷針',kind:'tech',inputs:[],out:{},eqx:'閃電（電流）→ 沿金屬導入地下',phen:'一根高過所有樹的鐵桿，底下接著埋進土裡的銅線。',use:'閃電是雲和地面之間的放電。電會挑最容易走的路——又高又尖的金屬。',note:'1752 年富蘭克林的風箏實驗證明閃電就是電。那個實驗其實非常危險，千萬不要模仿。'},
- {id:'tech_magnet',name:'雷擊磁化',kind:'tech',inputs:[],out:{},eqx:'強大的電流 → 磁場 → 鐵被磁化',phen:'一聲巨響之後，掛在避雷針上的鐵棒能吸起鐵屑了。',use:'電流流過的地方，周圍會有磁場。雷電的電流大得驚人，產生的磁場足以讓鐵棒裡原本亂七八糟的「小磁鐵」排成同一個方向。',note:'1820 年厄斯特發現通電的導線會讓指南針偏轉——電和磁原來是同一件事的兩面。'},
+ {id:'tech_magnet',name:'雷擊磁化',kind:'tech',inputs:[],out:{},eqx:'強大的電流 → 線圈裡的磁場 → 鋼被磁化',phen:'一聲巨響之後，線圈裡的鋼棒能吸起鐵屑了。',use:'電流流過的地方，周圍會有磁場。把導線繞成一圈一圈，圈裡的磁場就順著同一個方向。雷電的電流大得驚人，足以讓鋼棒裡原本亂七八糟的「小磁鐵」排成同一個方向，而且排好就不再亂掉。',note:'1820 年厄斯特發現通電的導線會讓指南針偏轉——電和磁原來是同一件事的兩面。還記得那塊自己帶磁的磁鐵礦嗎？天然磁石，就是很久以前被雷打過的磁鐵礦。'},
+ {id:'obs_soft_magnet',name:'被雷打過的熟鐵',kind:'obs',at:'none',inputs:[],out:{},eqx:'磁化 → 很快消失',phen:'熟鐵棒吸起了幾粒鐵屑，才一轉眼，又全掉了下來。',use:'熟鐵幾乎不含碳，裡面的「小磁鐵」很容易排整齊，也很容易又亂掉。含碳多的鋼和生鐵比較硬，排好了就不容易亂，才能做成永久磁鐵。',note:'留不住磁也有用處：電磁鐵和電動機的鐵芯，要的就是這種一通電就有磁、一斷電就沒有的材料。'},
  {id:'tech_gen',name:'發電機',kind:'tech',inputs:[],out:{},eqx:'動能 → 電能（磁鐵與線圈相對運動）',phen:'搖動把手，磁鐵在線圈旁邊轉，接在線圈兩端的碳絲微微亮了。',use:'電流能產生磁；反過來，變動的磁也能產生電。只要磁鐵和線圈之間有相對運動，線圈裡就有電流。這就是所有發電廠的原理——不管燒的是煤、是水力還是風。',note:'1831 年法拉第發現電磁感應。有人問他這有什麼用，他說：「剛出生的嬰兒有什麼用？」'},
  {id:'tech_motor',name:'電動機',kind:'tech',inputs:[],out:{},eqx:'電能 → 動能（通電的線圈在磁場裡受力）',phen:'線圈一通電，就在磁鐵旁邊轉了起來，越轉越快。',use:'發電機是「轉動 → 電」，電動機是「電 → 轉動」。兩者的構造幾乎一樣，只是倒過來用。水車的力氣只能用輪軸和連桿傳到旁邊；變成電以後，一條銅線就能送到遠處。',note:'水車推風箱是機械傳動，離不開河邊。電把「在哪裡產生力氣」和「在哪裡用力氣」分開了——這是電力改變世界的原因之一。'},
  {id:'tech_mask',name:'活性碳面具',kind:'tech',inputs:[],out:{},eqx:'有毒氣體 —(吸附)→ 留在活性碳表面',phen:'隔著面具吸氣，刺鼻的味道淡了很多。',use:'活性碳滿是小孔，氣體分子撞上去就被「黏」住了。空氣裡的氧和氮不太會被吸住，所以還是可以呼吸。',note:'活性碳吸滿了就沒有用了，要更換或重新加熱活化。'},
@@ -465,7 +468,7 @@ const REACTIONS=[
  {id:'tech_cabin',name:'榫卯',kind:'tech',inputs:[],out:{},eqx:'凸的榫 ＋ 凹的卯',phen:'兩根木頭不用釘子就牢牢咬在一起。',use:'把力分散到木頭本身，而不是集中在一根釘子上。但要做出精準的榫頭，得先有夠硬的金屬工具。',note:''},
  {id:'tech_brick',name:'磚瓦與灰泥',kind:'tech',inputs:[],out:{},eqx:'Ca(OH)₂ + CO₂ → CaCO₃ + H₂O',phen:'剛砌好的牆還有點軟，過幾個星期就硬得敲不動。',use:'磚瓦是燒過的黏土，不怕火也不怕水。磚和磚之間的灰泥會慢慢吸收空氣裡的二氧化碳，變回堅硬的碳酸鈣——你在第一章做過的那個反應，現在撐著你的房子。',note:''},
  {id:'tech_rc',name:'鋼筋混凝土',kind:'tech',inputs:[],out:{},eqx:'混凝土（耐壓）＋ 鋼筋（耐拉）',phen:'樓板上站了人也不會裂。',use:'混凝土很耐壓，但一拉就裂；鋼正好相反，很耐拉。把鋼筋埋進混凝土，兩種力都撐得住。巧的是，兩者受熱膨脹的程度幾乎一樣，所以熱脹冷縮時不會互相扯開。',note:'1867 年法國園丁莫尼埃為了做不會裂的花盆而發明。'},
- {id:'tech_beacon',name:'電燈',kind:'tech',inputs:[],out:{},eqx:'電能 → 熱 → 光',phen:'碳絲亮了起來。',use:'電流通過很細的碳絲，碳絲發熱到發光。玻璃罩把氧氣隔在外面，碳絲才不會燒掉——還記得燃燒三要素嗎？',note:'1879 年愛迪生的第一顆實用燈泡，用的就是碳化的竹絲。'}
+ {id:'tech_beacon',name:'電燈',kind:'tech',inputs:[],out:{},eqx:'電能 → 熱 → 光',phen:'碳絲亮了起來。',use:'電流通過很細的碳絲，碳絲發熱到發光。燈泡裡不能有氧氣，不然燒到白熱的碳絲一下就燒掉了——還記得燃燒三要素嗎？',note:'1879 年愛迪生第一顆成功的燈泡，用的是碳化的棉線，亮了十幾個小時；隔年換成碳化的竹絲，可以亮一千多個小時。'}
 ];
 const RMAP={};REACTIONS.forEach(r=>RMAP[r.id]=r);
 
@@ -510,7 +513,7 @@ const QUESTS=[
  {id:'q_cuo_acid',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做出藍色的硫酸銅溶液',hint:'「銅自己不怕稀硫酸——至少冷的、稀的不怕。銅的某種黑色粉末就不一樣了，你煉銅時見過它。」',rx:['cuo_acid','cu_hot_acid'],done:s=>!!(s.found.cuo_acid||s.found.cu_hot_acid)},
  {id:'q_fe_cuso4',ch:'第三章　鐵與玻璃　｜　火山島',goal:'把鐵放進藍色的硫酸銅溶液',hint:'「看看鐵的表面長出什麼。」',rx:['fe_cuso4'],done:F('fe_cuso4'),
   after:'鐵的表面長出了銅。\n\n沒有火，沒有爐子，一種金屬就把另一種金屬從水裡「趕」了出來。\n\n筆記在這裡畫了一個大大的問號：「為什麼是鐵趕走銅，而不是銅趕走鐵？金屬之間，有強弱之分。記住這件事。它是通往電的鑰匙。」'},
- {id:'q_compass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做一個指南針',hint:'「黑色、會吸鐵的磁鐵礦 1 份，熟鐵 1 份。」',done:A('compass')},
+ {id:'q_compass',ch:'第三章　鐵與玻璃　｜　火山島',goal:'做一個指南針',hint:'「黑色、會吸鐵的磁鐵礦 1 份，熟鐵 1 份，木炭 1 份。熟鐵太軟，留不住磁；先讓針在炭火裡變硬。」',done:A('compass')},
  {id:'q_ship',ch:'第三章　鐵與玻璃　｜　火山島',goal:'在沙灘上造一艘遠洋帆船',hint:'「木頭 12、藤蔓纖維 6、熟鐵 4。出發前把硫酸、硫酸銅、銅、玻璃、木炭都備足。大船吃水深，回不了淺海——要回貝殼島、綠岩島，得換回帆船。」',done:A('ship'),
   after:'船造好了。\n\n筆記：「正北方，雷聲不斷的那座島。我在那裡蓋了一座塔，卻沒能點亮它。那裡的石頭裡，有最後一種你需要的金屬。」'},
  {id:'q_3',ch:'第三章　鐵與玻璃　｜　火山島',goal:'航向北方的雷鳴島',hint:'「最深的海，現在也攔不住你了。」',done:V(3),
@@ -520,16 +523,16 @@ const QUESTS=[
   after:'爐子比你還高出一倍。\n\n筆記：「1709 年，一個英國鐵匠把悶過的煤倒進這樣的爐子。從那天起，鐵不再是一塊一塊敲出來的，而是像水一樣流出來。」'},
  {id:'q_pig_iron',ch:'第四章　煤與電　｜　雷鳴島',goal:'用高爐煉出像水一樣流動的鐵',hint:'「鐵礦和焦炭之外，還要一種能把礦石裡的砂石雜質帶走的石頭——你很早就認識它了。要比以前煉鐵更熱。」',rx:['pig_iron'],done:F('pig_iron')},
  {id:'q_steel',ch:'第四章　煤與電　｜　雷鳴島',goal:'把又硬又脆的生鐵變成鋼',hint:'「生鐵脆，是因為裡面的碳太多。把生鐵取出來，單獨放回高爐再燒一次——這次爐料裡別放焦炭，只管用力鼓風。空氣裡有什麼東西，能把碳帶走？」',rx:['steel','steel_o2'],done:s=>!!(s.found.steel||s.found.steel_o2)},
- {id:'q_smelt_zn',ch:'第四章　煤與電　｜　雷鳴島',goal:'從淺藍色礦脈的石頭裡煉出鋅',hint:'「要鐵製工具才敲得開。前半和煉銅很像。但鋅很怪：還沒熔成一灘，就先變成蒸氣飄走了——得想辦法把蒸氣留下來。」',rx:['smelt_zn'],done:F('smelt_zn')},
+ {id:'q_smelt_zn',ch:'第四章　煤與電　｜　雷鳴島',goal:'從淺藍色礦脈的石頭裡煉出鋅',hint:'「要鐵製工具才敲得開。前半和煉銅很像。但鋅很怪：還沒熔成一灘，就先變成蒸氣飄走了——得想辦法把蒸氣留下來。蒸氣還怕空氣，一碰到就燒回去，所以鼓風的爐子不行。」',rx:['smelt_zn'],done:F('smelt_zn')},
  {id:'q_zn_acid',ch:'第四章　煤與電　｜　雷鳴島',goal:'在實驗桌把鋅放進稀硫酸',hint:'「和鐵比比看，誰冒泡比較快？留下來的溶液也有用。」',rx:['zn_acid'],done:F('zn_acid')},
  {id:'q_elec',ch:'第四章　煤與電　｜　雷鳴島',goal:'在屋裡的實驗室疊一座伏打堆',hint:'「一片鋅、一片銅、一塊浸了鹽水的布，一層一層往上疊：鋅 2、銅 2、食鹽 1、藤蔓纖維 1。這麼嬌貴的東西，木屋的桌子放不了——要磚瓦屋以上：磚瓦 8、灰泥 3、木頭 4。」',done:A('elec'),
   after:'導線兩端碰在一起時，跳出了一點小小的火花。\n\n四十萬年前的那堆營火，走到了這裡。\n\n筆記：「有了電，連水都可以拆開。」'},
  {id:'q_electro_water',ch:'第四章　煤與電　｜　雷鳴島',goal:'用電解槽把水拆成氫氣和氧氣',hint:'「先直接電解淡水試試。不行的話，想想什麼東西能幫水導電。」',rx:['electro_water'],done:F('electro_water')},
  {id:'q_daniell',ch:'第四章　煤與電　｜　雷鳴島',goal:'讓電穩定下來，撐得住一整夜的燈',hint:'「伏打堆通電沒多久，銅片上就積滿氣泡，電也跟著弱下去——拿來拆水還行，要點一整夜的燈可不夠。如果銅片泡的不是鹽水，而是本來就含銅的藍色溶液呢？鋅那一邊，也給它自己的溶液。回屋裡在伏打堆旁邊改裝：硫酸銅溶液 1、硫酸鋅溶液 1、陶器 1（把兩種溶液隔開）。」',done:A('daniell')},
- {id:'q_beacon',ch:'第四章　煤與電　｜　雷鳴島',goal:'把材料帶到山頂，點亮電燈信號塔',hint:'「走到塔旁邊按 E。銅 3（導線）、玻璃 1（燈罩）、碳絲 1（燈絲）、鋼 2（燈架）。碳絲？把細細的植物纖維，像悶木炭那樣悶一次。」',done:A('beacon'),
+ {id:'q_beacon',ch:'第四章　煤與電　｜　雷鳴島',goal:'把材料帶到山頂，點亮電燈信號塔',hint:'「走到塔旁邊按 E。銅 3（導線）、玻璃 1（燈罩）、碳絲 1（燈絲）、鋼 2（燈架）。碳絲？把細細的植物纖維封進陶罐，像悶木炭那樣悶——但要燒得比悶木炭熱得多。」',done:A('beacon'),
   after:'塔亮了。\n\n筆記的最後一頁只有一行字：\n「我沒能做完。希望撿到這本筆記的人，可以。」\n\n你等了一整夜。海面上沒有任何回應。\n\n光只能照到看得見的地方。要讓更遠的人知道你在這裡，需要一種走得比光更遠、連山和海平線都擋不住的東西。\n\n——筆記到這裡就沒有了。從現在起，每一頁都要你自己寫。'},
  {id:'q_rod',ch:'第五章　遠方',goal:'在雷鳴島立一根避雷針',hint:'「這座島的雷打個不停。閃電是電——如果能讓它乖乖打在你指定的地方呢？熟鐵 3、銅 2、木頭 2。」',done:HAS('rod')},
- {id:'q_magnet',ch:'第五章　遠方',goal:'讓雷電把鐵棒變成磁鐵',hint:'「把一根鐵掛到避雷針上，然後——等。記得站遠一點。」',done:s=>!!s.known._magnet,
+ {id:'q_magnet',ch:'第五章　遠方',goal:'用雷電做出一根磁鐵',hint:'「避雷針底下的銅線繞成了一圈一圈。把一根金屬棒放進圈裡，然後——等。記得站遠一點。太軟的鐵留不住磁，要用硬的。」',done:s=>!!s.known._magnet,
   after:'鐵棒還是那根鐵棒，卻能吸起地上的鐵屑了。\n\n電流過的地方，留下了磁。\n\n那麼反過來——讓磁動起來，會不會生出電？'},
  {id:'q_gen',ch:'第五章　遠方',goal:'讓河水替你發電',hint:'「先在河邊蓋一座水車。再做一台發電機裝上去：磁鐵 1、銅 3（繞成線圈）、木頭 2。電池裡的鋅片會一點一點溶掉；轉動的磁鐵不會。電要送到屋裡，就拉銅線。」',done:A('gen')},
  {id:'q_actc',ch:'第五章　遠方',goal:'把木炭變成能抓住毒氣的活性碳',hint:'「火山島的山頂冒著嗆人的煙，上次差點把你燻倒。木炭本來就會吸味道，但還不夠。如果讓滾燙的水蒸氣在木炭上蛀出更多的孔呢？要很熱，而且不能讓它燒起來。」',rx:['actcarbon'],done:F('actcarbon')},
@@ -681,8 +684,10 @@ const RANKS=[[0,'漂流者'],[3,'見習生'],[7,'學徒'],[12,'工匠'],[17,'鍊
 const rankOf=n=>RANKS.filter(r=>n>=r[0]).pop()[1];
 function checkBadges(s){s.badges=s.badges||{};const got=[];for(const b of BADGES){if(s.badges[b.id])continue;let ok=false;try{ok=!!b.done(s);}catch(e){}if(ok){s.badges[b.id]=1;got.push(b);}}return got;}
 /* 避雷針：掛上鐵棒，等雷打下來就成了磁鐵 */
-function rodUse(s,st){if(st.mag){st.mag=false;st.bar=false;s.inv.magnet=(s.inv.magnet||0)+1;s.known._magnet=true;const isNew=!s.found.tech_magnet;s.found.tech_magnet=true;return{took:true,isNew};}
- if(st.bar)return{wait:true};if(!(s.inv.iron>0))return{err:'要先有一根鐵，才能掛上去。'};s.inv.iron--;st.bar=true;return{hung:true};}
+function rodUse(s,st){if(st.mag){const k=st.bar===true?'steel':st.bar;st.mag=false;st.bar=false;
+  if(k==='iron'){s.inv.iron=(s.inv.iron||0)+1;const isNew=!s.found.obs_soft_magnet;s.found.obs_soft_magnet=true;return{soft:true,isNew};}   /* 熟鐵：磁一下就消失 */
+  s.inv.magnet=(s.inv.magnet||0)+1;s.known._magnet=true;const isNew=!s.found.tech_magnet;s.found.tech_magnet=true;return{took:true,isNew,k};}
+ if(st.bar)return{wait:true};const k=['steel','pigiron','iron'].find(i=>s.inv[i]>0);if(!k)return{err:'要先有一根鐵棒或鋼棒，才能放進線圈。'};s.inv[k]--;st.bar=k;return{hung:true,k};}
 function rodStrike(s){let hit=0;for(const st of s.st)if(st.type==='rod'&&st.done&&st.bar&&!st.mag){st.mag=true;hit++;}return hit;}
 /* 水車：同一條河邊 9 格內的鼓風爐、高爐會自動鼓風 */
 function wheelNear(s,st){return !!st&&s.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-st.x,w.y-st.y)<9);}
@@ -779,7 +784,7 @@ function mixReact(s,ids,at,indoor){
 /* 火 */
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
 function eligible(f){const d=STN[f.type],at=d.at||'heat',L=[];
- for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.V&&!f.elec)continue;if(r.fresh&&r.inputs.some(a=>a.some(i=>f.made[i])))continue;if(r.at==='still'&&!r.open&&f.cond===false)continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
+ for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.V&&!f.elec)continue;if(r.air&&d.closed)continue;if(r.fresh&&r.inputs.some(a=>a.some(i=>f.made[i])))continue;if(r.at==='still'&&!r.open&&f.cond===false)continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
 function fireTick(f,dt,s){const d=STN[f.type],ev=[];
  if(f.lit){let tot=0;for(const k of FUELS)tot+=f.fuel[k];
   if(tot<1){f.lit=false;for(const k of FUELS)f.fuel[k]=0;ev.push({t:'out'});}
@@ -808,7 +813,7 @@ function fireSummary(f,s){const d=STN[f.type],at=d.at||'heat',obs=[],hints=[],co
  if(d.at==='still'&&f.cond===false){let hit=false;for(const r of REACTIONS){if(r.at!=='still'||r.open||r.V||r.kind==='obs'||f.peak<r.T)continue;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));if(!a)continue;hit=true;
    for(const id of a)if(f.charge[id]>0){lost[id]=(lost[id]||0)+f.charge[id];f.charge[id]=0;}}
   if(hit){const R=RMAP.obs_no_cond,isNew=!s.found[R.id];s.found[R.id]=true;obs.push({r:R,isNew});}}   /* 沒接冷凝管就加熱：蒸氣全散掉 */
- for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;if(r.needElec&&!f.elec)continue;if(r.fresh&&r.inputs.some(a=>a.some(i=>f.made[i])))continue;
+ for(const r of REACTIONS){if(r.kind!=='obs'||!atOK(d,r))continue;if(r.needElec&&!f.elec)continue;if(r.air&&d.closed)continue;if(r.fresh&&r.inputs.some(a=>a.some(i=>f.made[i])))continue;
   if(!r.inputs.some(a=>a.every(i=>f.charge[i]>=1))||f.peak<r.T)continue;if(r.outdoor&&f.indoor)continue;
   if(r.alone&&kinds.length>1)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;
   if(r.failOf){const R=RMAP[r.failOf];if(R.closed&&!d.closed)continue;if(r.failNeeds){if(s.abil[R.needs]||f.peak<R.T)continue;}else if(f.peak>=R.T)continue;covered[r.failOf]=1;}
@@ -1420,7 +1425,8 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
  if(st===TOWER)return toast('信號塔亮著。');
  if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。'+(S.abil.gen?'　🌀 發電機也跟著轉，這座島的建築可以拉銅線過來。':''));
  if(st.type==='radio')return toast('📡 答答答。答——答——答——。答答答。');
- if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.hung){SFX.place();toast('把鐵棒掛上去了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''));}syncStation(st);return after();}
+ if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.soft){SFX.deny();toast('熟鐵棒吸起了幾粒鐵屑，才一轉眼又全掉了下來。太軟的鐵留不住磁。'+(r.isNew?'　📖 圖鑑新增：被雷打過的熟鐵':''));syncStation(st);return after();}
+  if(r.hung){SFX.place();toast('把'+ITEMS[r.k].n+'棒放進銅線繞成的圈裡了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.k==='pigiron'?'（生鐵做的，磁力比鋼弱一些，但留得住）':'')+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''));}syncStation(st);return after();}
  if(st.type==='balloon'){const r=balloonFly(S,st,P,world.land);const g=stObj.get(st);if(g)g.position.set(st.x,hAt(st.x,st.y),st.y);P.x=r.x;P.y=r.y;target=null;pending=null;S.aboard=false;S.cur=-1;SFX.arrive();{const o=owner[Math.floor(P.y)*W+Math.floor(P.x)];if(!S.seen[o]){S.seen[o]=true;drawBase();}}
   storyQ.push(r.back?'你鬆開沙袋，氣球離開了雲頂島。\n\n風把你送回出發的地方。':'你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n暗礁在腳下泛著白浪。氣球越過它們，朝那團雲飄去。');showStory();return after();}
  if(d.house)return openHome(st);
@@ -1766,7 +1772,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.11',VDATE='2026-11-17';
+const VERSION='2.12',VDATE='2026-11-17';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
