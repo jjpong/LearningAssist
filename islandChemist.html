@@ -273,19 +273,19 @@ const REACTIONS=[
   phen:'窯口冒出白煙，窯室裡的木頭變黑、變輕，卻沒有燒成灰。',use:'同樣是加熱木頭：爐膛裡空氣充足，燒成灰；窯室裡隔絕空氣，留下碳。',note:'真實製炭要悶上好幾天。'},
  {id:'calcine',name:'煅燒石灰石（貝殼）',kind:'chem',at:'heat',T:850,inputs:[['caco3']],out:{quicklime:1,co2:1},eq:'CaCO3 -> CaO + CO2',
   phen:'變得更白、更輕、一捏就碎，並放出氣體。',use:'分解反應。人類在一萬年前就會燒石灰來塗牆。',note:'真實需要約 900 °C 持續加熱數小時。'},
- {id:'smelt_sn',name:'木炭還原錫石',kind:'chem',at:'heat',T:1000,inputs:[['cassiterite','charcoal']],out:{tin:2,co2:1},eq:'SnO2 + C -> Sn + CO2',
+ {id:'smelt_sn',name:'木炭還原錫石',kind:'chem',at:'heat',T:1000,inputs:[['cassiterite','charcoal'],['cassiterite','coke'],['cassiterite','coal']],out:{tin:2,co2:1},eq:'SnO2 + C -> Sn + CO2',
   phen:'爐底流出銀白色的液態金屬。',use:'用碳把氧搶走，和煉銅是同一個原理。',note:''},
- {id:'smelt_cu',name:'木炭還原氧化銅',kind:'chem',at:'heat',T:1100,inputs:[['cuo','charcoal']],out:{copper:2,co2:1},eq:'2CuO + C -> 2Cu + CO2',
-  phen:'黑色粉末中流出紅色、有金屬光澤的銅！',use:'氧化還原：碳搶走氧化銅的氧（碳被氧化），氧化銅失去氧變成銅（被還原）。',note:'遊戲為了方便，各取 1 份就能進行；真正的比例請看反應式。'},
+ {id:'smelt_cu',name:'木炭還原氧化銅',kind:'chem',at:'heat',T:1100,inputs:[['cuo','charcoal'],['cuo','coke'],['cuo','coal']],out:{copper:2,co2:1},eq:'2CuO + C -> 2Cu + CO2',
+  phen:'黑色粉末中流出紅色、有金屬光澤的銅！',use:'氧化還原：碳搶走氧化銅的氧（碳被氧化），氧化銅失去氧變成銅（被還原）。',note:'遊戲為了方便，各取 1 份就能進行；真正的比例請看反應式。焦炭和煤的主要成分也是碳，一樣可以當還原劑。它們搶氧的本事和木炭差不多，真正的優勢是燒得更熱、更耐壓。'},
  {id:'bronze',name:'熔合銅與錫',kind:'phys',at:'heat',T:950,inputs:[['copper','tin']],out:{bronze:2},eqx:'銅 + 錫 → 青銅（合金）',
   phen:'兩種金屬熔在一起，冷卻後變成金褐色、敲起來很硬的金屬。',use:'合金是混合物，沒有固定的化學式。但性質可以比原本的金屬更好：青銅比銅硬、比銅容易熔鑄。',note:'青銅大約含 10% 的錫。'},
- {id:'smelt_fe',name:'木炭還原赤鐵礦',kind:'chem',at:'heat',T:1200,sulfur:1,inputs:[['hematite','charcoal']],out:{iron:2,co2:1},eq:'2Fe2O3 + 3C -> 4Fe + 3CO2',
+ {id:'smelt_fe',name:'木炭還原赤鐵礦',kind:'chem',at:'heat',T:1200,sulfur:1,defer:['pig_iron'],inputs:[['hematite','charcoal'],['hematite','coke'],['hematite','coal']],out:{iron:2,co2:1},eq:'2Fe2O3 + 3C -> 4Fe + 3CO2',
   phen:'爐中得到一團灰黑色、海綿狀的鐵塊。',use:'鐵比銅活潑，更難還原，需要更高的溫度，所以人類晚了三千多年才進入鐵器時代。',note:'高爐裡實際搶走氧的主要是一氧化碳：Fe₂O₃ + 3CO → 2Fe + 3CO₂。'},
- {id:'smelt_fe2',name:'木炭還原磁鐵礦',kind:'chem',at:'heat',T:1200,sulfur:1,inputs:[['magnetite','charcoal']],out:{iron:3,co2:1},eq:'Fe3O4 + 2C -> 3Fe + 2CO2',
-  phen:'黑色的礦石變成灰黑色的鐵塊。',use:'磁鐵礦和赤鐵礦都是鐵的氧化物，只是鐵和氧的比例不同，都能用碳還原成鐵。',note:''},
+ {id:'smelt_fe2',name:'木炭還原磁鐵礦',kind:'chem',at:'heat',T:1200,sulfur:1,defer:['pig_iron'],inputs:[['magnetite','charcoal'],['magnetite','coke'],['magnetite','coal']],out:{iron:3,co2:1},eq:'Fe3O4 + 2C -> 3Fe + 2CO2',
+  phen:'黑色的礦石變成灰黑色的鐵塊。',use:'磁鐵礦和赤鐵礦都是鐵的氧化物，只是鐵和氧的比例不同，都能用碳還原成鐵。',note:'木炭換成焦炭也行。直接用生煤也能把氧搶走，可是煤裡的硫會跟著混進鐵裡。'},
  {id:'glass',name:'熔製玻璃',kind:'chem',at:'heat',T:1000,inputs:[['sand','natron','caco3'],['sand','natron','quicklime'],['quartz','natron','caco3'],['quartz','natron','quicklime']],out:{glass:2},eqx:'石英砂 + 天然鹼 + 石灰石 → 玻璃 + 二氧化碳',
   phen:'沙粒熔成一團發紅的黏稠液體，冷卻後變得透明。',use:'天然鹼讓石英砂的熔點從 1700 °C 降到 1000 °C 左右（助熔劑），石灰讓玻璃不溶於水。',note:'玻璃沒有固定的熔點，是「非晶體」。'},
- {id:'coke',name:'把煤悶成焦炭',kind:'chem',at:'heat',T:1000,closed:1,inputs:[['coal']],out:{coke:1},eqx:'煤 —(隔絕空氣加熱)→ 焦炭 + 煤氣 + 煤焦油',
+ {id:'coke',name:'把煤悶成焦炭',kind:'chem',at:'heat',T:1000,closed:1,not:['hematite','magnetite'],inputs:[['coal']],out:{coke:1},eqx:'煤 —(隔絕空氣加熱)→ 焦炭 + 煤氣 + 煤焦油',
   phen:'窯口噴出黃色的濃煙和可以點燃的氣體，有一股刺鼻的臭味。留下來的東西變成銀灰色、佈滿小孔、敲起來鏗鏘作響。',use:'和悶木炭是同一個道理：隔絕空氣加熱，讓硫和容易跑掉的雜質先變成氣體離開，留下幾乎純的碳。跑出來的煤氣後來被拿去點路燈。',note:'1709 年英國的達比用焦炭煉鐵成功。那時英國的森林快被燒木炭砍光了，焦炭讓煉鐵不再受木材限制。中國在宋代就已經用焦炭煉鐵。'},
  {id:'pig_iron',name:'高爐煉鐵',kind:'chem',at:'heat',T:1400,sulfur:1,inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{pigiron:3,co2:1},eq:'Fe2O3 + 3CO -> 2Fe + 3CO2',
   phen:'爐底流出亮得刺眼的橘白色鐵水，上面浮著一層像玻璃的熔渣。',use:'焦炭先燒成一氧化碳，一氧化碳再把鐵礦裡的氧搶走。溫度高到鐵整個熔化，可以直接流出來鑄造。石灰石負責把礦石裡的泥沙（二氧化矽）變成熔渣浮在上面，和鐵水分開。',note:'流出來的是含碳很多的生鐵。真實歷史上木炭高爐也煉得出生鐵（中國在兩千多年前就會了），但焦炭便宜又堅硬，撐得起更高的爐子；遊戲簡化成只有焦炭夠熱。'},
@@ -293,13 +293,13 @@ const REACTIONS=[
   phen:'氧氣吹進鐵水，爐口噴出一大片火花，像放煙火。',use:'生鐵太脆，是因為裡面的碳太多。吹進氧氣把多餘的碳燒成二氧化碳，剩下含碳量剛好的就是鋼——又硬又韌。',note:'1856 年貝塞麥的轉爐吹的是空氣，幾十分鐘就能把幾噸生鐵變成鋼。現代煉鋼廠改吹純氧。'},
  {id:'cement',name:'燒製水泥',kind:'chem',at:'heat',T:1400,inputs:[['caco3','clay'],['quicklime','clay']],out:{cement:2},eqx:'石灰石 + 黏土 —(1450 °C)→ 水泥 + 二氧化碳',
   phen:'石灰和黏土燒成一顆顆灰黑色的硬塊，磨碎以後是灰色的粉末。',use:'石灰裡的鈣和黏土裡的矽、鋁在高溫下結合成新的化合物（主要是矽酸鈣）。這些化合物遇水會起反應、變硬。',note:'1824 年英國人阿斯普丁發明。因為硬化後的顏色像波特蘭島的石頭，所以叫波特蘭水泥。'},
- {id:'smelt_zn',name:'木炭還原氧化鋅',kind:'chem',at:'heat',T:950,needs:'distill',inputs:[['zno','charcoal']],out:{zinc:2},eq:'ZnO + C -> Zn + CO',
+ {id:'smelt_zn',name:'木炭還原氧化鋅',kind:'chem',at:'heat',T:950,needs:'distill',inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{zinc:2},eq:'ZnO + C -> Zn + CO',
   phen:'爐裡冒出的金屬蒸氣，在冷凝管裡凝成銀灰色的鋅。',use:'鋅在 907 °C 就沸騰，一煉出來就變成蒸氣跑掉，必須冷凝收集。所以鋅比鐵晚了兩千多年才被煉出來。',note:'產生的一氧化碳有毒。'},
  {id:'bread',name:'烤麵包',kind:'chem',at:'heat',T:180,indoor:1,inputs:[['risen']],out:{bread:1},eqx:'發好的麵團 —(180 °C 以上)→ 麵包',phen:'麵團表面變成金黃色，飄出香味。',use:'高溫讓澱粉吸水糊化、蛋白質凝固，把氣孔的形狀固定下來；表面的糖和蛋白質反應，產生褐色和香氣。',note:''},
  {id:'boiledegg',name:'把蛋加熱',kind:'chem',at:'heat',T:70,inputs:[['egg']],out:{boiledegg:1},eqx:'蛋白質 —(加熱)→ 凝固',phen:'透明的蛋白變成不透明的白色固體。',use:'蛋白質受熱後形狀改變、互相纏在一起。冷卻也變不回去，所以是化學變化。',note:''},
  {id:'burn_ethanol',name:'酒精燃燒',kind:'chem',at:'heat',T:100,inputs:[['ethanol']],out:{co2:1},eq:'C2H5OH + 3O2 -> 2CO2 + 3H2O',phen:'淡藍色的火焰，幾乎沒有煙。',use:'酒精燈的原理。燃燒完全，所以火焰乾淨。',note:''},
  {id:'burn_h2',name:'氫氣燃燒',kind:'chem',at:'heat',T:300,inputs:[['h2']],out:{water:1},eq:'2H2 + O2 -> 2H2O',phen:'「啵！」一聲爆鳴，壁上出現水珠。',use:'氫和氧化合變成水——所以水不是元素，是化合物。',note:'氫氣和空氣混合遇火會爆炸，現實中只能用極少量做爆鳴測試。'},
- {id:'burn_c',name:'木炭在氧氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['charcoal','o2']],out:{co2:1},eq:'C + O2 -> CO2',phen:'木炭在純氧中發出耀眼的白光！',use:'氧氣濃度越高，燃燒越劇烈。',note:''},
+ {id:'burn_c',name:'木炭在氧氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['charcoal','o2'],['coke','o2'],['coal','o2']],out:{co2:1},eq:'C + O2 -> CO2',phen:'木炭在純氧中發出耀眼的白光！',use:'氧氣濃度越高，燃燒越劇烈。',note:''},
  {id:'cu_o2',name:'銅在氧氣中加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','o2']],out:{cuo:2},eq:'2Cu + O2 -> 2CuO',phen:'紅色的銅表面變黑。',use:'金屬的氧化。黑色的氧化銅可以再用木炭還原回銅。',note:''},
  {id:'fe_o2',name:'鐵在氧氣中燃燒',kind:'chem',at:'heat',T:500,inputs:[['iron','o2']],out:{magnetite:1},eq:'3Fe + 2O2 -> Fe3O4',phen:'火星四射！留下黑色的固體。',use:'鐵在純氧中可以燃燒，產物是四氧化三鐵——和磁鐵礦是同一種物質。',note:''},
  /* ===== 蒸餾器 ===== */
@@ -357,19 +357,21 @@ const REACTIONS=[
  {id:'brine',name:'配製食鹽水',kind:'phys',at:'table',inputs:[['salt','water']],out:{brine:1},eqx:'食鹽 + 水 → 食鹽水（溶解）',phen:'白色晶體消失在水中。',use:'食鹽在水中解離成鈉離子和氯離子，所以能導電，是電解質。',note:''},
  {id:'neutral2',name:'鹽酸加氫氧化鈉',kind:'chem',at:'table',hot:1,inputs:[['hcl','naoh']],out:{salt:1},eq:'HCl + NaOH -> NaCl + H2O',phen:'混合後溫度上升，把水蒸乾，留下白色晶體——是食鹽。',use:'酸鹼中和：酸 + 鹼 → 鹽 + 水，並且放熱。兩種有腐蝕性的東西，變成了可以吃的鹽。',note:''},
  /* ===== 電解槽 ===== */
- {id:'electro_water',name:'電解水',kind:'chem',at:'cell',back:1,inputs:[['water','h2so4'],['water','naoh']],out:{h2:2,o2:1},eq:'2H2O -> 2H2 + O2',phen:'兩極都冒出氣泡，負極的氣體體積是正極的 2 倍。',use:'水被電分解成氫氣和氧氣，體積比 2：1。',note:'加進去的酸（或鹼）只是幫助導電，沒有被消耗，所以會還給你。1800 年，伏打電堆發明後幾個星期，就有人完成了這個實驗。'},
- {id:'electro_brine',name:'電解食鹽水',kind:'chem',at:'cell',inputs:[['brine'],['seawater']],out:{naoh:1,h2:1,cl2:1},eq:'2NaCl + 2H2O -> 2NaOH + H2 + Cl2',phen:'兩極都冒出氣泡，其中一邊的氣體是黃綠色、有刺鼻味。',use:'氯鹼工業：漂白水、鹽酸、做肥皂用的氫氧化鈉都從這裡來。',note:'氯氣有毒！現實中只能在通風櫥裡進行。'},
- {id:'electro_cuso4',name:'電解硫酸銅溶液',kind:'chem',at:'cell',inputs:[['cuso4']],out:{copper:1,o2:1,h2so4:1},eq:'2CuSO4 + 2H2O -> 2Cu + O2 + 2H2SO4',phen:'負極長出一層紅色的銅，正極冒出氣泡，藍色慢慢變淡。',use:'電可以把溶液裡的銅離子變回金屬銅。電鍍和精煉銅都用這個原理。',note:'這是使用碳棒電極的情況。'},
+ {id:'electro_water',name:'電解水',kind:'chem',at:'cell',back:1,inputs:[['water','h2so4'],['water','naoh'],['water','koh'],['water','natron'],['water','lye'],['water','limewater'],['h2so4'],['naoh'],['koh'],['lye'],['limewater']],out:{h2:2,o2:1},eq:'2H2O -> 2H2 + O2',phen:'兩極都冒出氣泡，負極的氣體體積是正極的 2 倍。',use:'水被電分解成氫氣和氧氣，體積比 2：1。',note:'加進去的酸、鹼（或碳酸鈉這類鹽）只是幫助導電，沒有被消耗，所以會還給你。但不是每種電解質都這樣——換成食鹽或鹽酸，正極出來的就不是氧氣了。1800 年，伏打電堆發明後幾個星期，就有人完成了這個實驗。'},
+ {id:'electro_brine',name:'電解食鹽水',kind:'chem',at:'cell',inputs:[['brine'],['seawater'],['water','salt'],['water','brine']],out:{naoh:1,h2:1,cl2:1},eq:'2NaCl + 2H2O -> 2NaOH + H2 + Cl2',phen:'兩極都冒出氣泡，其中一邊的氣體是黃綠色、有刺鼻味。',use:'氯鹼工業：漂白水、鹽酸、做肥皂用的氫氧化鈉都從這裡來。',note:'氯氣有毒！現實中只能在通風櫥裡進行。'},
+ {id:'electro_cuso4',name:'電解硫酸銅溶液',kind:'chem',at:'cell',inputs:[['cuso4'],['water','cuso4']],out:{copper:1,o2:1,h2so4:1},eq:'2CuSO4 + 2H2O -> 2Cu + O2 + 2H2SO4',phen:'負極長出一層紅色的銅，正極冒出氣泡，藍色慢慢變淡。',use:'電可以把溶液裡的銅離子變回金屬銅。電鍍和精煉銅都用這個原理。',note:'這是使用碳棒電極的情況。'},
+ {id:'electro_hcl',name:'電解鹽酸',kind:'chem',at:'cell',inputs:[['hcl'],['water','hcl']],out:{h2:1,cl2:1},eq:'2HCl -> H2 + Cl2',phen:'負極冒出無色的氣泡，正極冒出黃綠色、有刺鼻味的氣體。',use:'鹽酸被電拆成氫氣和氯氣，正好是「氯化氫」這個名字裡的兩種元素。',note:'和電解稀硫酸比一比：同樣是酸，硫酸根留在水裡不動，氯離子卻會在正極變成氯氣。氯氣有毒！'},
+ {id:'electro_znso4',name:'電解硫酸鋅溶液',kind:'chem',at:'cell',inputs:[['znso4'],['water','znso4']],out:{zinc:1,o2:1,h2so4:1},eq:'2ZnSO4 + 2H2O -> 2Zn + O2 + 2H2SO4',phen:'負極慢慢長出一層銀灰色的鋅，也夾著一些小氣泡；正極冒出氣泡。',use:'現代的鋅大多就是這樣電解出來的，不必再把鋅燒成蒸氣。',note:'鋅比氫活潑，照理說負極應該先冒氫氣。但氫氣在鋅的表面很難生成，所以鋅還是鍍得出來，只是效率不到百分之百。'},
  /* ===== 有意義的「失敗」 ===== */
  {id:'obs_clay',name:'火不夠旺的土坯',kind:'obs',at:'heat',T:150,failOf:'pottery',inputs:[['clay']],out:{},eqx:'只是乾了',phen:'土坯變乾、變硬了一點，但丟進水裡又化成一攤泥。',use:'只是水分蒸發（物理變化），黏土還是黏土。要讓它真的變成陶，溫度得再高——多放些木頭，讓火更旺。',note:''},
  {id:'obs_lime_fire',name:'溫度不夠的貝殼',kind:'obs',at:'heat',T:300,failOf:'calcine',inputs:[['caco3']],out:{},eqx:'沒有變化',phen:'被燻黑了，但敲開來還是原本的樣子。',use:'溫度不夠。營火的熱都散到空氣裡了——得用能把熱留住的窯，而且柴要夠多。',note:''},
- {id:'obs_cu_kiln',lose:['charcoal'],name:'溫度不夠的氧化銅與木炭',kind:'obs',at:'heat',T:500,failOf:'smelt_cu',inputs:[['cuo','charcoal']],out:{},eqx:'反應不完全',phen:'只有零星幾點紅色，大部分還是黑色粉末。',use:'溫度不夠高。需要送進更多空氣，讓火燒得更猛。',note:''},
+ {id:'obs_cu_kiln',lose:['charcoal','coke','coal'],name:'溫度不夠的氧化銅與木炭',kind:'obs',at:'heat',T:500,failOf:'smelt_cu',inputs:[['cuo','charcoal'],['cuo','coke'],['cuo','coal']],out:{},eqx:'反應不完全',phen:'只有零星幾點紅色，大部分還是黑色粉末。',use:'溫度不夠高。需要送進更多空氣，讓火燒得更猛。',note:''},
  {id:'obs_fe_kiln',lose:['charcoal'],name:'溫度不夠的鐵礦與木炭',kind:'obs',at:'heat',T:700,failOf:'smelt_fe',inputs:[['hematite','charcoal'],['magnetite','charcoal']],out:{},eqx:'沒有變化',phen:'礦石燒得通紅，冷卻後還是原來的顏色。',use:'還原鐵的氧化物需要 1200 °C 以上，比煉銅更高。用木炭當燃料，而且鼓風不能停。',note:''},
  {id:'obs_cuo',name:'單獨加熱氧化銅',kind:'obs',at:'heat',T:700,alone:1,inputs:[['cuo']],out:{},eqx:'沒有變化',phen:'黑色粉末燒得通紅，冷卻後還是黑色。',use:'光加熱沒有用，還需要一種能把氧「搶走」的物質。',note:''},
  {id:'obs_sand',name:'單獨加熱石英砂',kind:'obs',at:'heat',T:900,alone:1,inputs:[['sand'],['quartz']],out:{},eqx:'沒有變化',phen:'沙子燒得發紅，卻一點也沒有熔化。',use:'二氧化矽的熔點高達 1700 °C。需要加入能降低熔點的東西（助熔劑）。',note:''},
  {id:'obs_coal_iron',name:'用煤直接煉鐵',kind:'obs',at:'heat',inputs:[],out:{},eqx:'鐵 + 硫 → 脆鐵',phen:'鐵是煉出來了，但燒紅後一敲就裂成碎塊。',use:'煤裡含有硫。硫混進鐵裡，鐵在高溫下就會變脆（叫做「熱脆」）。所以幾百年來，人們明知道煤比木炭便宜，卻沒辦法拿它煉鐵——直到有人想到先把煤裡的硫趕走。',note:''},
  {id:'obs_pig_low',lose:['coke'],name:'溫度不夠的高爐料',kind:'obs',at:'heat',T:900,failOf:'pig_iron',inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{},eqx:'沒有鐵水流出來',phen:'爐料燒得通紅，卻沒有熔化。',use:'要讓鐵熔成鐵水得超過 1400 °C。舊的鼓風爐太矮、散熱太快；燃料也要用焦炭，而且風不能停。',note:''},
- {id:'obs_zn_open',lose:['zno','charcoal'],name:'沒有冷凝管的煉鋅',kind:'obs',at:'heat',T:950,failOf:'smelt_zn',failNeeds:1,inputs:[['zno','charcoal']],out:{},eqx:'沒有金屬留下',phen:'爐口冒出一陣藍白色的煙，爐底什麼也沒有。',use:'溫度是夠了，但鋅一生成就變成蒸氣飄走。得想辦法把蒸氣冷卻、接住。',note:''},
+ {id:'obs_zn_open',lose:['zno','charcoal','coke','coal'],name:'沒有冷凝管的煉鋅',kind:'obs',at:'heat',T:950,failOf:'smelt_zn',failNeeds:1,inputs:[['zno','charcoal'],['zno','coke'],['zno','coal']],out:{},eqx:'沒有金屬留下',phen:'爐口冒出一陣藍白色的煙，爐底什麼也沒有。',use:'溫度是夠了，但鋅一生成就變成蒸氣飄走。得想辦法把蒸氣冷卻、接住。',note:''},
  {id:'obs_waterglass',name:'只加天然鹼的玻璃',kind:'obs',at:'heat',T:1000,not:['caco3','quicklime'],lose:['sand','quartz','natron'],inputs:[['sand','natron'],['quartz','natron']],out:{},eqx:'SiO₂ + Na₂CO₃ → Na₂SiO₃ + CO₂（水玻璃）',phen:'沙子真的熔了，冷卻後是一團透明的東西——可是滴上水，表面就慢慢變黏、化開。',use:'天然鹼讓二氧化矽在比較低的溫度熔化，但生成的矽酸鈉會溶於水，叫做「水玻璃」。要讓玻璃不怕水，還得加進含鈣的東西。',note:'鈉鈣玻璃的三種原料：矽砂（主體）、純鹼（助熔）、石灰石（安定）。窗戶和瓶子到今天還是這個配方。'},
  {id:'obs_potdry',name:'把鍋子放進冶煉爐',kind:'obs',at:'none',inputs:[],out:{},eqx:'太熱了：一下就滾乾、燒焦',phen:'窯和鼓風爐是用來把熱悶在裡面的。鍋子一放進去，裡面的東西劈啪亂濺，一下子就滾乾、燒焦，什麼也沒留下。',use:'加熱不是越熱越好。煮東西只需要讓水保持在沸騰附近；冶煉爐動輒上千度，適合石頭和金屬，不適合鍋子裡的東西。要煮，就用營火、爐灶，或實驗室的蒸餾器。',note:'選對加熱的工具，和選對材料一樣重要。'},
  {id:'obs_oil_cold',name:'油和鹼在常溫下混合',kind:'obs',at:'table',failOf:'soap_ash',inputs:[['oil','lye'],['oil','koh'],['oil','naoh'],['oil','natron','water'],['oil','natron'],['oil','limewater'],['oil','slaked','water']],out:{},eqx:'（反應太慢，幾乎看不出變化）',phen:'油浮在上面，清清楚楚分成兩層。用力攪一攪，變得有點混濁；放著不動，又慢慢分開了。',use:'油和鹼確實會反應，但在常溫下慢得幾乎看不出來。想讓一個反應變快，你已經知道最常用的辦法。',note:'材料沒有壞，撈起來還能再用。'},
@@ -378,8 +380,11 @@ const REACTIONS=[
  {id:'obs_outdoor',name:'在戶外發酵',kind:'obs',at:'none',inputs:[],out:{},eqx:'長黴、發臭',phen:'放在露天的東西被太陽曬、被雨淋，引來一堆果蠅，表面長出一層灰綠色的黴，聞起來又酸又臭。',use:'發酵是靠特定的微生物（酵母菌、醋酸菌）慢慢工作。戶外忽冷忽熱，別的黴菌和細菌也會跑進來搶著長。要在溫度穩定、乾淨、能蓋起來的地方做——到屋子裡的實驗桌再試一次。',note:''},
  {id:'obs_bread_out',lose:['risen'],name:'在露天的火上烤麵團',kind:'obs',at:'heat',T:180,outdoor:1,inputs:[['risen']],out:{},eqx:'外面焦了，裡面還是生的',phen:'朝火的那一面燒得焦黑，背面和中心卻還是黏黏的生麵團。',use:'露天的火只烤得到一面，熱一下子就散掉。烤麵包需要四面八方都熱的密閉空間——屋子裡的爐灶。',note:''},
  {id:'obs_flatbread',lose:['dough'],name:'沒發酵就拿去烤',kind:'obs',at:'heat',T:180,inputs:[['dough']],out:{},eqx:'又硬又扁',phen:'烤出來的東西硬得像石頭，裡面一個洞也沒有。',use:'少了發酵產生的二氧化碳，麵團撐不起來。先讓它放一放。',note:''},
- {id:'obs_cu_acid',name:'銅加稀硫酸',kind:'obs',at:'table',inputs:[['copper','h2so4']],out:{},eqx:'沒有變化',phen:'銅片靜靜躺在酸裡，一顆氣泡也沒有。',use:'銅的活性比氫小，沒辦法把酸裡的氫趕出來。鐵和鋅可以。',note:'這是在常溫下。如果加熱呢？'},
- {id:'obs_water_elec',name:'直接電解淡水',kind:'obs',at:'cell',inputs:[['water']],out:{},eqx:'幾乎沒有變化',phen:'電極上幾乎看不到氣泡。',use:'純水幾乎不導電。需要先加入能解離出離子的物質（電解質），例如酸或鹼。',note:''},
+ {id:'obs_cu_acid',name:'銅加稀硫酸',kind:'obs',at:'table',inputs:[['copper','h2so4'],['copper','hcl']],out:{},eqx:'沒有變化',phen:'銅片靜靜躺在酸裡，一顆氣泡也沒有。',use:'銅的活性比氫小，沒辦法把酸裡的氫趕出來，換成稀鹽酸也一樣。鐵和鋅可以。',note:'這是在常溫下。如果加熱呢？'},
+ {id:'obs_water_elec',name:'直接電解淡水',kind:'obs',at:'cell',inputs:[['water']],out:{},eqx:'幾乎沒有變化',phen:'電極上幾乎看不到氣泡。',use:'純水幾乎不導電。需要先加入能解離出離子的物質（電解質），例如酸、鹼或鹽。',note:''},
+ {id:'obs_salt_solid',name:'電解固體食鹽',kind:'obs',at:'cell',inputs:[['salt']],out:{},eqx:'沒有變化',phen:'電極插在鹽粒裡，什麼事也沒發生。',use:'食鹽是電解質，但固體裡的離子被固定住、不能移動，所以不導電。要先溶進水裡。',note:''},
+ {id:'obs_weak_elec',name:'電解醋或碳酸水',kind:'obs',at:'cell',inputs:[['vinegar'],['carbonic'],['water','vinegar'],['water','carbonic']],out:{},eqx:'氣泡又少又慢',phen:'兩極只有稀稀落落的小氣泡，比加了硫酸的水慢得多。',use:'醋酸和碳酸是弱酸，溶在水裡只有一小部分變成離子，導電能力差。這種叫弱電解質。',note:''},
+ {id:'obs_nonelec',name:'電解糖水或酒精',kind:'obs',at:'cell',inputs:[['juice'],['ethanol'],['water','juice'],['water','ethanol']],out:{},eqx:'沒有變化',phen:'電極上一顆氣泡也沒有。',use:'糖和酒精溶在水裡還是一個個完整的分子，不會變成離子，所以不導電。這種叫非電解質。',note:'能不能導電，要看溶進水裡的東西會不會變成離子，和它溶不溶得進水沒有關係。'},
  /* ===== 科技原理 ===== */
  {id:'tech_bucket',name:'木桶',kind:'tech',inputs:[],out:{},eqx:'木板吸水膨脹 → 縫隙密合',phen:'剛箍好的桶子會滲水。泡一陣子以後，一滴也不漏了。',use:'木頭吸了水會膨脹，板子和板子擠在一起，把縫堵死。箍得越緊越不漏。要把木板削得平整，得有金屬工具。',note:'在塑膠出現以前的幾千年，水、酒、油、醃菜，全是用木桶裝的。'},
  {id:'tech_fire',name:'燃燒三要素',kind:'tech',inputs:[],out:{},eqx:'可燃物 ＋ 助燃物（氧氣）＋ 達到燃點',phen:'快速摩擦讓木屑升溫到燃點，冒煙、起火。',use:'三個要素缺一不可。柴越多，同時在燒的木頭越多，火就越熱；柴燒完，溫度就掉下來。',note:''},
@@ -613,7 +618,7 @@ function mixReact(s,ids,at,indoor){
 /* 火 */
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
 function eligible(f){const d=STN[f.type],at=d.at||'heat',L=[];
- for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L;}
+ for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
 function fireTick(f,dt,s){const d=STN[f.type],ev=[];
  if(f.lit){let tot=0;for(const k of FUELS)tot+=f.fuel[k];
   if(tot<1){f.lit=false;for(const k of FUELS)f.fuel[k]=0;ev.push({t:'out'});}
@@ -626,7 +631,7 @@ function fireTick(f,dt,s){const d=STN[f.type],ev=[];
   if(f.T<r.T||(r.needs&&!s.abil[r.needs])||(r.pot&&!s.abil.pottery)){f.prog[r.id]=0;continue;}
   f.prog[r.id]=(f.prog[r.id]||0)+dt/3;
   if(f.prog[r.id]>=1){f.prog[r.id]=0;const a=r.inputs.find(a=>a.every(i=>f.charge[i]>=1));a.forEach(i=>f.charge[i]--);
-   let R=r,out=r.out;if(r.sulfur&&f.sulf>.3){R=RMAP.obs_coal_iron;out={badiron:1};}   /* 燒過生煤：硫混進鐵裡 */
+   let R=r,out=r.out;if(r.sulfur&&(f.sulf>.3||a.includes('coal'))){R=RMAP.obs_coal_iron;out={badiron:1};}   /* 燒過生煤：硫混進鐵裡 */
    for(const o in out){if(o==='co2')continue;   /* 爐火裡生成的二氧化碳直接從爐口散掉，接不住 */
     const tgt=GAS.has(o)?f.out:f.charge;tgt[o]=(tgt[o]||0)+out[o];f.made[o]=1;}
    const isNew=!s.found[R.id];s.found[R.id]=true;f.did[r.id]=(f.did[r.id]||0)+1;if(R.grant)s.abil[R.grant]=true;ev.push({t:'react',r:R,isNew});}}
@@ -1506,7 +1511,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='1.15',VDATE='2026-11-16';
+const VERSION='1.16',VDATE='2026-11-17';
 /* ===== 英雄榜與人數統計 =====
    LB_URL 是老師自己的 Google 試算表（Apps Script 網路應用程式）的網址。留空＝完全不記錄、不顯示英雄榜。
    只送出：隨機代號、玩家自己取的名字、版本、主線進度、章節、分數、時代、徽章數。不含任何帳號或裝置資料。 */
