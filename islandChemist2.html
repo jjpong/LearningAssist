@@ -455,7 +455,7 @@ const REACTIONS=[
  {id:'tech_mask',name:'活性碳面具',kind:'tech',inputs:[],out:{},eqx:'有毒氣體 —(吸附)→ 留在活性碳表面',phen:'隔著面具吸氣，刺鼻的味道淡了很多。',use:'活性碳滿是小孔，氣體分子撞上去就被「黏」住了。空氣裡的氧和氮不太會被吸住，所以還是可以呼吸。',note:'活性碳吸滿了就沒有用了，要更換或重新加熱活化。'},
  {id:'tech_scope',name:'望遠鏡',kind:'tech',inputs:[],out:{},eqx:'物鏡聚光成像 → 目鏡放大',phen:'把筒子對準海平線。原本只是一抹灰影的地方，出現了樹和山壁。',use:'前面的大透鏡把遠方來的光聚成一個小小的像，後面的小透鏡再把這個像放大。',note:'1609 年伽利略把望遠鏡指向天空，看見了月球的坑洞和木星的衛星。'},
  {id:'tech_balloon',name:'氫氣球',kind:'tech',inputs:[],out:{},eqx:'浮力 ＞ 重力（氫氣的密度只有空氣的十四分之一）',phen:'氣囊鼓起來了，吊籃輕輕離開地面。',use:'和船浮在水上是同一個道理：氣球排開的空氣，比氣球自己還重，就會往上浮。氫氣是最輕的氣體。',note:'氫氣遇火會爆炸。1937 年興登堡號飛船起火之後，飛船改用不會燃燒的氦氣。'},
- {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 強酸',phen:'一池黃綠色的水，冒著白煙。把陶罐伸進去，舀上來的液體和你辛苦蒸餾出來的是同一種東西。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化，就成了硫酸。你花了那麼多力氣才做出一小瓶，大自然在這裡放了一整池。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。'},
+ {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 強酸',phen:'一池乳白帶綠的藍綠色湖水，冒著白煙，岸邊結著一層黃色的硫磺。把陶罐伸進去，舀上來的液體和你辛苦蒸餾出來的是同一種東西。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化，就成了硫酸。你花了那麼多力氣才做出一小瓶，大自然在這裡放了一整池。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。'},
  {id:'tech_radio',name:'無線電',kind:'tech',inputs:[],out:{},eqx:'電火花 → 電磁波 → 遠方的線圈 → 電流 → 聲音',phen:'你按下電鍵。火花劈啪一響——然後，耳機裡的晶體輕輕地答、答、答。',use:'快速變動的電流會把能量以波的形式送向四面八方，不需要導線。遠方的天線接住它，方鉛礦讓電流只能單向通過，酒石晶體把它變成振動——你就「聽見」了。',note:'1901 年馬可尼把三個點的訊號送過了大西洋。從那一天起，世界上沒有真正的孤島。'},
  {id:'tech_elec',name:'伏打堆的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　電子經導線流向銅片',phen:'一片鋅、一片銅，中間夾一塊浸了鹽水的布。這樣一組一組往上疊，兩端接上導線，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流，化學能就變成了電能。每一層大約 1 伏特，疊幾層電壓就是幾倍。鋅片會一點一點被吃掉，用久了要換；銅片不會。',note:'1800 年，伏打把鋅片、銀片和浸了鹽水的紙板疊成一堆，做出史上第一個能持續供電的電池。消息傳開後才幾個星期，就有人用它把水拆開了。'},
  {id:'tech_daniell',name:'丹尼爾電池',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　正極 Cu²⁺ + 2e⁻ → Cu',phen:'鋅片泡在硫酸鋅溶液裡，銅片泡在硫酸銅溶液裡，中間隔著一只沒上釉的陶罐。接上導線，電流又穩又久，銅片上還慢慢長出一層新的銅。',use:'伏打堆通電沒多久，銅片表面就積滿氫氣泡，電壓跟著掉下去。丹尼爾電池讓銅片泡在含銅的溶液裡：到銅片上的不再是氫氣，而是銅，所以電壓不會掉。陶罐把兩種溶液隔開，卻讓離子通得過。',note:'你之前把鋅直接丟進硫酸銅溶液，電子直接從鋅跳到銅離子上，能量全變成了熱。把兩邊隔開、逼電子繞過導線，同一個反應就變成了電。1836 年丹尼爾發明這種電池，後來的電報線路靠的就是它。'},
@@ -879,6 +879,14 @@ function genWorld(seed){
  for(let cy=0;cy<=H;cy++)for(let cx=0;cx<=W;cx++){let sea=false,lake=-1;
   for(let dy=-1;dy<=0;dy++)for(let dx=-1;dx<=0;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=W||y>=H){sea=true;continue;}const t=tiles[y*W+x];if(t===SEA)sea=true;else if(t===LAKE)lake=owner[y*W+x];}
   hc[cy*(W+1)+cx]=sea?0:lake>=0?lakeH[lake]:hOf(eAt(cx,cy)[1]);}
+ /* 火山錐：越靠近山頂越高，火山口邊緣隆起成一圈，裡面凹成碗，酸湖在碗底 */
+ ISLANDS.forEach((I,ii)=>{if(!I.crater)return;const R=13,rr=I.crater+.4,A=3.6,D=2.6,acid=[];let lo=1e9;
+  for(let cy=Math.floor(I.cy-R);cy<=I.cy+R;cy++)for(let cx=Math.floor(I.cx-R);cx<=I.cx+R;cx++){const d=Math.hypot(cx-I.cx,cy-I.cy);if(d>=R)continue;
+   let sea=false,lk=false,ac=false;for(let dy=-1;dy<=0;dy++)for(let dx=-1;dx<=0;dx++){const t=tiles[(cy+dy)*W+cx+dx];if(t===SEA)sea=true;else if(t===LAKE)lk=true;else if(t===ACID)ac=true;}
+   if(sea||lk)continue;const i=cy*(W+1)+cx,b=hOf(eAt(cx,cy)[1]);
+   hc[i]=d>=rr?b+A*Math.pow((R-d)/(R-rr),1.5):b+A-D*(1-(d/rr)*(d/rr));
+   if(ac){acid.push(i);lo=Math.min(lo,hc[i]);}}
+  acid.forEach(i=>hc[i]=lo-.2);});
  const tower={x:ISLANDS[3].cx,y:ISLANDS[3].cy};
  const nodes=[],used=new Set([tower.x+','+tower.y]);
  ISLANDS.forEach((I,ii)=>I.nodes.forEach(([type,n,ok])=>{const c=[];
@@ -1034,7 +1042,14 @@ const sun=new THREE.DirectionalLight(0xfff0d0,.52);sun.position.set(40,70,25);sc
 const SEAC=['#4fb6dc','#2f8acb','#1d549c','#8fd3cf'];   /* 第 4 種：暗礁區，泛白的淺綠 */
 const LANDC={[SAND]:'#ead9a4',[GRASS]:'#86c563',[FOREST]:'#5fa64c',[ROCK]:'#a09d95',[LAKE]:'#62b9ea',[MUD]:'#b58d5c',[SALT]:'#f1ebe1',[RIVER]:'#74c6ef',[CRATER]:'#b7a04e',[ACID]:'#9ad84f'};
 const DARKC={[SAND]:'#8f887c',[ROCK]:'#5f5957',[GRASS]:'#7db35e',[FOREST]:'#558f47'};
-function tileHex(x,y){const t=tiles[y*W+x],I=ISLANDS[owner[y*W+x]];if(t===SEA)return SEAC[I.rank-1];return(I.dark&&DARKC[t])||LANDC[t];}
+const mixHex=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16),f=s=>Math.round(((A>>s)&255)*(1-k)+((B>>s)&255)*k);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);};
+const vhash=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%1000/1000;
+function tileHex(x,y){const t=tiles[y*W+x],I=ISLANDS[owner[y*W+x]];if(t===SEA)return SEAC[I.rank-1];const base=(I.dark&&DARKC[t])||LANDC[t];
+ if(I.crater){if(t===ACID)return '#7fcfbf';   /* 乳白帶綠的酸湖 */
+  if(t===CRATER){const shore=[[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===ACID);return (shore?vhash(x,y)<.35:vhash(x,y)<.07)?'#c4b24a':mixHex('#4a4441','#5a524c',vhash(x+7,y+3));}   /* 火山灰；湖岸結著硫磺 */
+  const d=Math.hypot(x+.5-I.cx,y+.5-I.cy);if(t!==LAKE&&t!==RIVER&&d<I.crater+14){if(t===ROCK&&d<I.crater+2.4)return mixHex('#5b3f36','#3c3532',vhash(x,y)*.5);   /* 火山口外緣：燒紅過的火山渣 */
+   return mixHex(base,t===GRASS||t===FOREST?'#6f6a4e':'#47413e',Math.min(1,(I.crater+14-d)/10)*.85);}}   /* 越靠近山頂，蒙的火山灰越厚 */
+ return base;}
 let terrain;
 (()=>{const pos=new Float32Array(W*H*18),col=new Float32Array(W*H*18),c=new THREE.Color();let k=0;
  const put=(x,y)=>{pos[k]=x;pos[k+1]=hc[y*(W+1)+x];pos[k+2]=y;col[k]=c.r;col[k+1]=c.g;col[k+2]=c.b;k+=3;};
@@ -1316,7 +1331,28 @@ function update(dt){
 const marker=new G.Mesh(new G.RingGeometry(.25,.36,16),new G.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.85,side:G.DoubleSide}));marker.rotation.x=-Math.PI/2;scene.add(marker);
 let boltT=10,flashT=0;const boltEl=document.createElement('div');boltEl.style.cssText='position:fixed;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:5';document.body.appendChild(boltEl);
 function thunder(){try{const c=AU.ctx;if(!c||!AU.sfx)return;const n=c.createBufferSource(),b=c.createBuffer(1,c.sampleRate*1.6,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.2);n.buffer=b;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=260;const g=c.createGain();g.gain.value=.9;n.connect(f);f.connect(g);g.connect(AU.sg||c.destination);n.start();}catch(e){}}
+/* 火山：山頂一道煙柱、火山口邊緣幾個冒白煙的硫磺噴氣孔、酸湖上飄著蒸氣 */
+const volc=(()=>{const I=ISLANDS.find(i=>i.crater);if(!I)return null;const ii=ISLANDS.indexOf(I),geo=new THREE.IcosahedronGeometry(1,0),list=[],grp=new THREE.Group();
+ const puff=(x,y,z,o)=>{const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:o.c,transparent:true,opacity:0,depthWrite:false,flatShading:true}));m.renderOrder=2;grp.add(m);list.push(Object.assign({m,x,y,z},o));};
+ const lake=hAt(I.cx,I.cy);
+ for(let k=0;k<30;k++)puff(I.cx,lake+1.4,I.cy,{c:'#cfcac4',life:11,ph:k/30,rise:1.1,drift:.32,s0:.7,s1:3,op:.62,spread:.8,dark:1});   /* 主煙柱 */
+ for(let k=0;k<8;k++)puff(I.cx+(Math.random()-.5)*2.4,lake+.1,I.cy+(Math.random()-.5)*2.4,{c:'#f4f3ee',life:4.5,ph:Math.random(),rise:.35,drift:.12,s0:.35,s1:1.1,op:.35,spread:.4});   /* 湖面的蒸氣 */
+ const vents=[];for(let y=Math.floor(I.cy-I.crater);y<=I.cy+I.crater;y++)for(let x=Math.floor(I.cx-I.crater);x<=I.cx+I.crater;x++)if(tiles[y*W+x]===CRATER&&owner[y*W+x]===ii&&Math.hypot(x+.5-I.cx,y+.5-I.cy)>I.crater*.62&&vhash(x*3+1,y*5+2)<.11)vents.push([x+.5,y+.5]);
+ const ym=new THREE.MeshLambertMaterial({color:'#d9c23c',flatShading:true});
+ vents.slice(0,7).forEach(([x,z])=>{const h=hAt(x,z),c=new THREE.Mesh(new THREE.ConeGeometry(.32,.45,6),ym);c.position.set(x,h+.18,z);grp.add(c);
+  for(let k=0;k<4;k++)puff(x,h+.4,z,{c:'#ffffff',life:2.8,ph:k/4+Math.random()*.2,rise:.9,drift:.25,s0:.18,s1:.75,op:.55,spread:.15});});
+ scene.add(grp);return{I,list};})();
+const _vc=new THREE.Vector3(),_vp=new THREE.Vector3(),_vd=new THREE.Vector3(),_vm=new THREE.Vector3();
+function volcTick(t){if(!volc)return;const sec=t/1000,I=volc.I,near=Math.hypot(P.x-I.cx,P.y-I.cy)<I.crater+1.5;   /* 走進火山口時把煙柱調淡，免得擋住自己 */
+ _vc.copy(camera.position);_vp.set(P.x,hAt(P.x,P.y)+.8,P.y);_vd.subVectors(_vp,_vc);const L2=_vd.lengthSq()||1;
+ for(const q of volc.list){const a=((sec/q.life+q.ph)%1),age=a*q.life,m=q.m;
+  m.position.set(q.x+q.drift*age+Math.sin(q.ph*40+age*.7)*q.spread,q.y+q.rise*age,q.z-q.drift*.35*age+Math.cos(q.ph*31+age*.6)*q.spread);
+  m.scale.setScalar(q.s0+(q.s1-q.s0)*Math.sqrt(a));m.rotation.set(q.ph*9+age*.15,q.ph*5+age*.2,0);
+  _vm.subVectors(m.position,_vc);const u=Math.max(0,Math.min(1,_vm.dot(_vd)/L2)),off=_vm.addScaledVector(_vd,-u).length()-m.scale.x;   /* 擋在鏡頭和人物之間的煙變淡 */
+  m.material.opacity=q.op*Math.min(1,a/.12)*Math.min(1,(1-a)/.45)*(near&&q.dark?.3:1)*Math.max(.08,Math.min(1,(off-.3)/3));
+  if(q.dark)m.material.color.set(a<.2?'#a39e98':a<.5?'#c2bdb7':'#e2dfda');}}
 function frame(t,dt){
+ volcTick(t);
  /* 雷鳴島的雷：只要避雷針上掛著鐵棒，隔一陣子就打下來 */
  if(S.st.some(x=>x.type==='rod'&&x.done&&x.bar&&!x.mag)){boltT-=dt;if(boltT<=0){boltT=14+Math.random()*10;if(rodStrike(S)){flashT=.5;thunder();for(const x of S.st)if(x.type==='rod'){syncStation(x);burst(x.x,hAt(x.x,x.y)+3,x.y,'#fff7c0');}if(!modalOpen)toast('⚡ 轟！雷打在避雷針上了。');save();}}}
  if(flashT>0){flashT-=dt;boltEl.style.opacity=Math.max(0,flashT*1.6);}else if(boltEl.style.opacity!=='0')boltEl.style.opacity='0';
@@ -1772,7 +1808,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.12',VDATE='2026-11-17';
+const VERSION='2.13',VDATE='2026-11-17';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
