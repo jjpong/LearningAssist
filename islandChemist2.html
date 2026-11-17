@@ -239,7 +239,8 @@ const BUILD=[
  {id:'cell',n:'伏打堆與電解槽',icon:'⚡',era:'西元 1800 年',inLab:2,req:['distill'],need:{zinc:2,copper:2,salt:1,fiber:1},grant:'elec',d:'一片鋅、一片銅、一塊浸了鹽水的布，疊起來就有電。先疊兩層，之後可以再往上加：疊得越高，電壓越高。電極怕潮，要裝在磚瓦屋以上的實驗室裡。',entry:'tech_elec'},
  {id:'wheel',n:'水車',icon:'🎡',era:'約西元前 100 年',river:1,req:['iron_tools'],need:{wood:10,fiber:4,iron:2},d:'要蓋在河邊。流水推著輪子轉，輪子拉動風箱——附近的鼓風爐和高爐不用再自己踩風箱了。',entry:'tech_wheel'},
  {id:'rod',n:'避雷針',icon:'🌩️',era:'西元 1752 年',isl:3,req:['iron_tools'],need:{iron:3,copper:2,wood:2},d:'只能立在雷鳴島。一根高高的鐵桿，用銅線接到地下。把鐵棒掛上去，等雷打下來。',entry:'tech_rod'},
- {id:'generator',n:'手搖發電機',icon:'🌀',era:'西元 1831 年',craft:1,req:['elec'],need:{magnet:1,copper:3,wood:2},grant:'gen',d:'磁鐵在銅線圈旁邊轉，線圈裡就有電。電壓又高又穩，從此不必再換伏打堆的鋅片，也能推動更耗電的機器。',entry:'tech_gen'},
+ {id:'generator',n:'水力發電機',icon:'🌀',era:'西元 1831 年',craft:1,req:['elec','f:tech_wheel'],need:{magnet:1,copper:3,wood:2},grant:'gen',d:'裝在水車上。流水帶著磁鐵在銅線圈旁邊轉，線圈裡就有電。同一座島上的屋子拉銅線過來，電壓又高又穩，從此不必再換鋅片。',entry:'tech_gen'},
+ {id:'motor',n:'電動鼓風機',icon:'💨',era:'西元 1834 年',craft:1,req:['gen'],need:{magnet:1,copper:3,iron:2},grant:'motor',d:'把發電機倒過來用：通了電的線圈在磁鐵旁邊自己轉起來。接上風扇，再拉銅線到水力發電機，離河再遠的鼓風爐和高爐也不用踩風箱了。',entry:'tech_motor'},
  {id:'mask',n:'活性碳面具',icon:'😷',era:'西元 1915 年',craft:1,req:['f:actcarbon'],need:{actcarbon:2,fiber:3,glass:1},grant:'mask',d:'一層活性碳、一層布，加上玻璃護目鏡。戴上它，才進得了火山口。',entry:'tech_mask'},
  {id:'scope',n:'望遠鏡',icon:'🔭',era:'西元 1608 年',craft:1,req:['f:lens'],need:{lens:2,copper:1,wood:1},grant:'scope',d:'兩片透鏡裝在筒子的兩端。遠方看不清楚的東西，會被拉到眼前。',entry:'tech_scope'},
  {id:'balloon',n:'氫氣球',icon:'🎈',era:'西元 1783 年',req:['scope','elec'],need:{fiber:12,wood:4,h2:6},d:'用纖維織成氣囊，灌進電解出來的氫氣。氫氣比空氣輕得多，能把吊籃帶上天——飛過任何船都過不去的暗礁。',entry:'tech_balloon'},
@@ -249,11 +250,11 @@ const BUILD=[
  {id:'cabin',n:'木屋',icon:'🏠',era:'約西元前 3000 年',house:1,lab:1,maxF:2,req:['bronze_tools'],need:{wood:12,fiber:2},floor:{wood:8},d:'有了金屬工具，才能把原木削平、開出榫頭接起來。屋裡多了室內實驗桌：釀酒、做醋、發麵團這些怕風吹日曬的事，要在這裡做。最高 2 層。',entry:'tech_cabin'},
  {id:'brickhouse',n:'磚瓦屋',icon:'🏡',era:'約西元前 2500 年',house:1,lab:2,maxF:3,req:['f:mortar'],need:{ceramic:8,mortar:3,wood:4},floor:{ceramic:6,mortar:2},d:'燒過的磚瓦不怕火也不怕雨，用灰泥黏合。屋裡多了爐灶，可以烤麵包。最高 3 層。',entry:'tech_brick'},
  {id:'highrise',n:'鋼筋混凝土樓房',icon:'🏢',era:'西元 1870 年代',house:1,lab:3,maxF:8,req:['f:concrete','f:steel'],need:{concrete:6,steel:2,glass:2},floor:{concrete:4,steel:1,glass:1},d:'混凝土耐壓、鋼筋耐拉，兩個合在一起才蓋得高。屋裡是完整的實驗室：實驗桌、爐灶、蒸餾器、電解槽都在同一個地方。最高 8 層。',entry:'tech_rc'},
- {id:'tower',n:'電燈信號塔',icon:'💡',era:'西元 1879 年',fixed:1,req:['elec'],need:{copper:3,glass:1,filament:1,steel:2},grant:'beacon',d:'雷鳴島山頂的塔。需要銅線、玻璃燈罩、碳絲（悶燒過的植物纖維），和撐起燈座的鋼架。',entry:'tech_beacon'}
+ {id:'tower',n:'電燈信號塔',icon:'💡',era:'西元 1879 年',fixed:1,req:['daniell'],need:{copper:3,glass:1,filament:1,steel:2},grant:'beacon',d:'雷鳴島山頂的塔。需要銅線、玻璃燈罩、碳絲（悶燒過的植物纖維），和撐起燈座的鋼架。',entry:'tech_beacon'}
 ];
 const BMAP={};BUILD.forEach(b=>BMAP[b.id]=b);
 const hasReq=(s,q)=>q.startsWith('f:')?!!s.found[q.slice(2)]:!!s.abil[q];
-const reqName=q=>q.startsWith('f:')?'學會「'+RMAP[q.slice(2)].name+'」':q==='pottery'?'燒出陶器':'完成「'+BUILD.find(b=>b.id===q||b.grant===q).n+'」';
+const reqName=q=>q.startsWith('f:')?'學會「'+RMAP[q.slice(2)].name+'」':q==='pottery'?'燒出陶器':q==='daniell'?'把伏打堆改裝成丹尼爾電池':'完成「'+BUILD.find(b=>b.id===q||b.grant===q).n+'」';
 
 /* ---------- 火的模型：溫度由「同時在燒的燃料量 × 燃料種類 × 空氣」決定 ---------- */
 /* 燃料：hv＝每份的火力；cap＝這種燃料的火焰最高能到幾度；life＝一份能燒多久。依冶金史的順序：木頭 < 木炭 ≈ 煤 < 焦炭 */
@@ -442,12 +443,14 @@ const REACTIONS=[
  {id:'tech_rod',name:'避雷針',kind:'tech',inputs:[],out:{},eqx:'閃電（電流）→ 沿金屬導入地下',phen:'一根高過所有樹的鐵桿，底下接著埋進土裡的銅線。',use:'閃電是雲和地面之間的放電。電會挑最容易走的路——又高又尖的金屬。',note:'1752 年富蘭克林的風箏實驗證明閃電就是電。那個實驗其實非常危險，千萬不要模仿。'},
  {id:'tech_magnet',name:'雷擊磁化',kind:'tech',inputs:[],out:{},eqx:'強大的電流 → 磁場 → 鐵被磁化',phen:'一聲巨響之後，掛在避雷針上的鐵棒能吸起鐵屑了。',use:'電流流過的地方，周圍會有磁場。雷電的電流大得驚人，產生的磁場足以讓鐵棒裡原本亂七八糟的「小磁鐵」排成同一個方向。',note:'1820 年厄斯特發現通電的導線會讓指南針偏轉——電和磁原來是同一件事的兩面。'},
  {id:'tech_gen',name:'發電機',kind:'tech',inputs:[],out:{},eqx:'動能 → 電能（磁鐵與線圈相對運動）',phen:'搖動把手，磁鐵在線圈旁邊轉，接在線圈兩端的碳絲微微亮了。',use:'電流能產生磁；反過來，變動的磁也能產生電。只要磁鐵和線圈之間有相對運動，線圈裡就有電流。這就是所有發電廠的原理——不管燒的是煤、是水力還是風。',note:'1831 年法拉第發現電磁感應。有人問他這有什麼用，他說：「剛出生的嬰兒有什麼用？」'},
+ {id:'tech_motor',name:'電動機',kind:'tech',inputs:[],out:{},eqx:'電能 → 動能（通電的線圈在磁場裡受力）',phen:'線圈一通電，就在磁鐵旁邊轉了起來，越轉越快。',use:'發電機是「轉動 → 電」，電動機是「電 → 轉動」。兩者的構造幾乎一樣，只是倒過來用。水車的力氣只能用輪軸和連桿傳到旁邊；變成電以後，一條銅線就能送到遠處。',note:'水車推風箱是機械傳動，離不開河邊。電把「在哪裡產生力氣」和「在哪裡用力氣」分開了——這是電力改變世界的原因之一。'},
  {id:'tech_mask',name:'活性碳面具',kind:'tech',inputs:[],out:{},eqx:'有毒氣體 —(吸附)→ 留在活性碳表面',phen:'隔著面具吸氣，刺鼻的味道淡了很多。',use:'活性碳滿是小孔，氣體分子撞上去就被「黏」住了。空氣裡的氧和氮不太會被吸住，所以還是可以呼吸。',note:'活性碳吸滿了就沒有用了，要更換或重新加熱活化。'},
  {id:'tech_scope',name:'望遠鏡',kind:'tech',inputs:[],out:{},eqx:'物鏡聚光成像 → 目鏡放大',phen:'把筒子對準海平線。原本只是一抹灰影的地方，出現了樹和山壁。',use:'前面的大透鏡把遠方來的光聚成一個小小的像，後面的小透鏡再把這個像放大。',note:'1609 年伽利略把望遠鏡指向天空，看見了月球的坑洞和木星的衛星。'},
  {id:'tech_balloon',name:'氫氣球',kind:'tech',inputs:[],out:{},eqx:'浮力 ＞ 重力（氫氣的密度只有空氣的十四分之一）',phen:'氣囊鼓起來了，吊籃輕輕離開地面。',use:'和船浮在水上是同一個道理：氣球排開的空氣，比氣球自己還重，就會往上浮。氫氣是最輕的氣體。',note:'氫氣遇火會爆炸。1937 年興登堡號飛船起火之後，飛船改用不會燃燒的氦氣。'},
  {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 強酸',phen:'一池黃綠色的水，冒著白煙。把陶罐伸進去，舀上來的液體和你辛苦蒸餾出來的是同一種東西。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化，就成了硫酸。你花了那麼多力氣才做出一小瓶，大自然在這裡放了一整池。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。'},
  {id:'tech_radio',name:'無線電',kind:'tech',inputs:[],out:{},eqx:'電火花 → 電磁波 → 遠方的線圈 → 電流 → 聲音',phen:'你按下電鍵。火花劈啪一響——然後，耳機裡的晶體輕輕地答、答、答。',use:'快速變動的電流會把能量以波的形式送向四面八方，不需要導線。遠方的天線接住它，方鉛礦讓電流只能單向通過，酒石晶體把它變成振動——你就「聽見」了。',note:'1901 年馬可尼把三個點的訊號送過了大西洋。從那一天起，世界上沒有真正的孤島。'},
  {id:'tech_elec',name:'伏打堆的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　電子經導線流向銅片',phen:'一片鋅、一片銅，中間夾一塊浸了鹽水的布。這樣一組一組往上疊，兩端接上導線，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流，化學能就變成了電能。每一層大約 1 伏特，疊幾層電壓就是幾倍。鋅片會一點一點被吃掉，用久了要換；銅片不會。',note:'1800 年，伏打把鋅片、銀片和浸了鹽水的紙板疊成一堆，做出史上第一個能持續供電的電池。消息傳開後才幾個星期，就有人用它把水拆開了。'},
+ {id:'tech_daniell',name:'丹尼爾電池',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　正極 Cu²⁺ + 2e⁻ → Cu',phen:'鋅片泡在硫酸鋅溶液裡，銅片泡在硫酸銅溶液裡，中間隔著一只沒上釉的陶罐。接上導線，電流又穩又久，銅片上還慢慢長出一層新的銅。',use:'伏打堆通電沒多久，銅片表面就積滿氫氣泡，電壓跟著掉下去。丹尼爾電池讓銅片泡在含銅的溶液裡：到銅片上的不再是氫氣，而是銅，所以電壓不會掉。陶罐把兩種溶液隔開，卻讓離子通得過。',note:'你之前把鋅直接丟進硫酸銅溶液，電子直接從鋅跳到銅離子上，能量全變成了熱。把兩邊隔開、逼電子繞過導線，同一個反應就變成了電。1836 年丹尼爾發明這種電池，後來的電報線路靠的就是它。'},
  {id:'tech_field',name:'農業的開始',kind:'tech',inputs:[],out:{},eqx:'採集 → 種植',phen:'把吃剩的穀粒埋進土裡，過一陣子長出了一樣的植物。',use:'大約一萬年前，人類開始自己種糧食。有了穩定的食物，才有人能專心去燒陶、煉銅。',note:''},
  {id:'farm_min',name:'最小因子定律',kind:'tech',inputs:[],out:{},eqx:'收成取決於最缺的那一樣',phen:'木桶能裝多少水，由最短的那塊木板決定。',use:'植物需要氮、磷、鉀、水和合適的酸鹼。其中一樣不夠，其他的再多也沒用。施肥前要先知道缺的是什麼。',note:'1840 年德國化學家李比希提出，現代肥料工業從這裡開始。'},
  {id:'farm_ph',name:'測量土壤的酸鹼',kind:'tech',inputs:[],out:{},eqx:'土 + 水 + 指示劑 → 顏色',phen:'把一點土泡在水裡，滴進紫甘藍指示劑，看顏色就知道土是酸還是鹼。',use:'大多數作物喜歡接近中性、略偏酸的土。太酸或太鹼，養分就算在土裡，根也吸收不到。',note:''},
@@ -516,12 +519,13 @@ const QUESTS=[
   after:'導線兩端碰在一起時，跳出了一點小小的火花。\n\n四十萬年前的那堆營火，走到了這裡。\n\n筆記：「有了電，連水都可以拆開。」'},
  {id:'q_electro_water',ch:'第四章　煤與電　｜　雷鳴島',goal:'用電解槽把水拆成氫氣和氧氣',hint:'「先直接電解淡水試試。不行的話，想想什麼東西能幫水導電。」',rx:['electro_water'],done:F('electro_water')},
  {id:'q_steel',ch:'第四章　煤與電　｜　雷鳴島',goal:'把又硬又脆的生鐵變成鋼',hint:'「生鐵脆，是因為裡面的碳太多。什麼氣體能把碳燒掉？你剛剛才把它從水裡拆出來。」',rx:['steel'],done:F('steel')},
+ {id:'q_daniell',ch:'第四章　煤與電　｜　雷鳴島',goal:'讓電穩定下來，撐得住一整夜的燈',hint:'「伏打堆通電沒多久，銅片上就積滿氣泡，電也跟著弱下去——拿來拆水還行，要點一整夜的燈可不夠。如果銅片泡的不是鹽水，而是本來就含銅的藍色溶液呢？鋅那一邊，也給它自己的溶液。回屋裡在伏打堆旁邊改裝：硫酸銅溶液 1、硫酸鋅溶液 1、陶器 1（把兩種溶液隔開）。」',done:A('daniell')},
  {id:'q_beacon',ch:'第四章　煤與電　｜　雷鳴島',goal:'把材料帶到山頂，點亮電燈信號塔',hint:'「走到塔旁邊按 E。銅 3（導線）、玻璃 1（燈罩）、碳絲 1（燈絲）、鋼 2（燈架）。碳絲？把細細的植物纖維，像悶木炭那樣悶一次。」',done:A('beacon'),
   after:'塔亮了。\n\n筆記的最後一頁只有一行字：\n「我沒能做完。希望撿到這本筆記的人，可以。」\n\n你等了一整夜。海面上沒有任何回應。\n\n光只能照到看得見的地方。要讓更遠的人知道你在這裡，需要一種走得比光更遠、連山和海平線都擋不住的東西。\n\n——筆記到這裡就沒有了。從現在起，每一頁都要你自己寫。'},
  {id:'q_rod',ch:'第五章　遠方',goal:'在雷鳴島立一根避雷針',hint:'「這座島的雷打個不停。閃電是電——如果能讓它乖乖打在你指定的地方呢？鐵 3、銅 2、木頭 2。」',done:HAS('rod')},
  {id:'q_magnet',ch:'第五章　遠方',goal:'讓雷電把鐵棒變成磁鐵',hint:'「把一根鐵掛到避雷針上，然後——等。記得站遠一點。」',done:s=>!!s.known._magnet,
   after:'鐵棒還是那根鐵棒，卻能吸起地上的鐵屑了。\n\n電流過的地方，留下了磁。\n\n那麼反過來——讓磁動起來，會不會生出電？'},
- {id:'q_gen',ch:'第五章　遠方',goal:'做一台手搖發電機',hint:'「磁鐵 1、銅 3（繞成線圈）、木頭 2。電池裡的鋅片會一點一點溶掉；轉動的磁鐵不會。」',done:A('gen')},
+ {id:'q_gen',ch:'第五章　遠方',goal:'讓河水替你發電',hint:'「先在河邊蓋一座水車。再做一台發電機裝上去：磁鐵 1、銅 3（繞成線圈）、木頭 2。電池裡的鋅片會一點一點溶掉；轉動的磁鐵不會。電要送到屋裡，就拉銅線。」',done:A('gen')},
  {id:'q_actc',ch:'第五章　遠方',goal:'把木炭變成能抓住毒氣的活性碳',hint:'「火山島的山頂冒著嗆人的煙，上次差點把你燻倒。木炭本來就會吸味道，但還不夠。如果讓滾燙的水蒸氣在木炭上蛀出更多的孔呢？要很熱，而且不能讓它燒起來。」',rx:['actcarbon'],done:F('actcarbon')},
  {id:'q_mask',ch:'第五章　遠方',goal:'做一副活性碳面具',hint:'「活性碳 2、藤蔓纖維 3、玻璃 1（護目鏡）。」',done:A('mask')},
  {id:'q_acid',ch:'第五章　遠方',goal:'戴著面具走進火山口，看看裡面有什麼',hint:'「火山島正中央，寸草不生的那一圈。」',done:s=>!!s.known._acid,
@@ -582,6 +586,9 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
 function loadState(j){const st=Object.assign(newState(),j);if(st.abil&&st.abil.elec&&!st.pile)st.pile={n:3,life:3*PLIFE};   /* 舊存檔：原本的電池換成三層的伏打堆 */
+ if(st.abil&&st.abil.beacon&&!st.abil.daniell){st.abil.daniell=true;st.found.tech_daniell=true;if(st.pile&&!st.pile.dan){st.pile.dan=true;st.pile.life=st.pile.n*PLIFE*4;}}   /* 舊存檔：信號塔已經亮了，電池直接算成丹尼爾電池 */
+ if(st.abil&&st.abil.gen&&!(st.st||[]).some(w=>w.type==='wheel'&&w.done))st.legacyGen=true;   /* 舊存檔的手搖發電機：照舊到處都能用 */
+ delete st.hydro;
  if(!j.badges){st.badges={};st._quietBadges=true;}if(!st.abil.axe&&(Object.keys(st.inv).length||st.st.length||st.quest>0))st.abil.axe=true;   /* 舊存檔：已經在砍樹的人，當作早就拿到斧頭了 */
  if(!j.qd){st.qd={};for(const q of QUESTS){try{if(q.done(st))st.qd[q.id]=1;}catch(e){}}st.quest=MAINQ.filter(q=>st.qd[q.id]).length;}return st;}
 /* 成功以後，提示變成完整配方；成功以前，只列出「試過什麼」 */
@@ -606,12 +613,18 @@ const LABNEED={1:'木屋',2:'磚瓦屋'};
 /* 伏打堆：一層（鋅＋銅＋鹽水布）約 1 伏特；每電解一次吃掉一點鋅。有發電機就不必再靠它 */
 const PMAX=8,PLIFE=5,GENV=12;
 const pileOf=s=>{if(s.abil.elec&&!s.pile)s.pile={n:2,life:2*PLIFE};return s.pile;};
-function voltOf(s){if(s.abil.gen)return GENV;const p=pileOf(s);return p&&p.life>0?p.n:0;}
-function pileUse(s){const p=pileOf(s);if(!s.abil.gen&&p&&p.life>0)p.life--;}
-function pileAdd(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};if(p.n>=PMAX)return{err:'最多疊 '+PMAX+' 層，再高就要倒了。'};if(!(s.inv.zinc>=1&&s.inv.copper>=1))return{err:'加一層要鋅 1、銅 1。'};s.inv.zinc--;s.inv.copper--;p.n++;p.life+=PLIFE;return{ok:true};}
-function pileFix(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};const z=Math.ceil((p.n*PLIFE-p.life)/PLIFE);if(z<=0)return{err:'鋅片都還好好的，不用換。'};
+const pcap=p=>PLIFE*(p.dan?4:1);   /* 丹尼爾電池：鋅片耐用四倍，而且電壓穩定 */
+const freePower=s=>!!(s.hydro||s.legacyGen);   /* 接上水力發電機（或舊存檔的手搖發電機）：不靠電池 */
+const steady=s=>freePower(s)||!!(s.pile&&s.pile.dan&&s.pile.life>0);
+const wireCostOf=d=>Math.max(1,Math.ceil(d/5));
+function voltOf(s){if(freePower(s))return GENV;const p=pileOf(s);return p&&p.life>0?p.n:0;}
+function pileDan(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};if(p.dan)return{err:'已經是丹尼爾電池了。'};const need={cuso4:1,znso4:1,ceramic:1},miss=Object.keys(need).filter(k=>(s.inv[k]||0)<need[k]);
+ if(miss.length)return{err:'改裝要硫酸銅溶液 1、硫酸鋅溶液 1、陶器 1。還缺 '+miss.map(k=>ITEMS[k].n).join('、')};for(const k in need)s.inv[k]-=need[k];p.dan=true;p.life=p.n*pcap(p);s.abil.daniell=true;const isNew=!s.found.tech_daniell;s.found.tech_daniell=true;return{ok:true,isNew};}
+function pileUse(s){const p=pileOf(s);if(!freePower(s)&&p&&p.life>0)p.life--;}
+function pileAdd(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};if(p.n>=PMAX)return{err:'最多疊 '+PMAX+' 層，再高就要倒了。'};if(!(s.inv.zinc>=1&&s.inv.copper>=1))return{err:'加一層要鋅 1、銅 1。'};s.inv.zinc--;s.inv.copper--;p.n++;p.life+=pcap(p);return{ok:true};}
+function pileFix(s){const p=pileOf(s);if(!p)return{err:'還沒有伏打堆。'};const z=Math.ceil((p.n*pcap(p)-p.life)/pcap(p));if(z<=0)return{err:'鋅片都還好好的，不用換。'};
  const need={zinc:z,salt:1,water:1},miss=Object.keys(need).filter(k=>(s.inv[k]||0)<need[k]);if(miss.length)return{err:'換鋅片要鋅 '+z+'、食鹽 1、淡水 1。還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(need[k]-(s.inv[k]||0))).join('、')};
- for(const k in need)s.inv[k]-=need[k];p.life=p.n*PLIFE;return{ok:true,z};}
+ for(const k in need)s.inv[k]-=need[k];p.life=p.n*pcap(p);return{ok:true,z};}
 function installLab(s,st,id){const d=BMAP[id],h=BMAP[st.type];if(st[id])return{err:'這間屋子已經有'+d.n+'了。'};if(!h||!h.house||!(h.lab>=d.inLab))return{err:'這間屋子的實驗室不夠好，放不了'+d.n+'。要'+LABNEED[d.inLab]+'以上。'};
  const mreq=d.req.filter(q=>!hasReq(s,q));if(mreq.length)return{err:'還不會做：要先'+mreq.map(reqName).join('、')+'。'};
  const miss=Object.keys(d.need).filter(k=>(s.inv[k]||0)<d.need[k]);if(miss.length)return{err:'材料不夠：還缺 '+miss.map(k=>ITEMS[k].n+' ×'+(d.need[k]-(s.inv[k]||0))).join('、')};
@@ -633,8 +646,8 @@ const SKILLS=[
  {id:'cuso4',n:'硫酸銅',i:'🔵',req:['acid','cu'],d:s=>fnd(s,'cuo_acid','cu_hot_acid','mal_acid')},
  {id:'coke',n:'焦炭',i:'🪨',req:['ship','char'],d:s=>fnd(s,'coke')},{id:'blast',n:'高爐',i:'🏭',req:['coke','itool'],d:s=>hasSt(s,'blast')},{id:'pig',n:'生鐵',i:'🫕',req:['blast'],d:s=>fnd(s,'pig_iron')},
  {id:'zn',n:'煉鋅',i:'🔩',req:['still','itool','ship'],d:s=>fnd(s,'smelt_zn')},{id:'elec',n:'伏打堆',i:'🔋',req:['zn'],d:s=>s.abil.elec},{id:'ely',n:'電解',i:'⚡',req:['elec'],d:s=>fnd(s,'electro_water')},
- {id:'steel',n:'煉鋼',i:'🗡️',req:['pig','ely'],d:s=>fnd(s,'steel')},{id:'fil',n:'碳絲',i:'〰️',req:['kiln'],d:s=>fnd(s,'filament')},{id:'lamp',n:'電燈',i:'💡',req:['steel','fil','glass'],d:s=>s.abil.beacon},
- {id:'wheel',n:'水車',i:'🎡',req:['itool'],d:s=>hasSt(s,'wheel')},{id:'mag',n:'雷擊磁化',i:'🧲',req:['itool','ship'],d:s=>!!s.known._magnet},{id:'gen',n:'發電機',i:'🌀',req:['mag','elec'],d:s=>s.abil.gen},
+ {id:'steel',n:'煉鋼',i:'🗡️',req:['pig','ely'],d:s=>fnd(s,'steel')},{id:'fil',n:'碳絲',i:'〰️',req:['kiln'],d:s=>fnd(s,'filament')},{id:'dan',n:'丹尼爾電池',i:'🔋',req:['elec','cuso4'],d:s=>s.abil.daniell},{id:'lamp',n:'電燈',i:'💡',req:['steel','fil','glass','dan'],d:s=>s.abil.beacon},
+ {id:'wheel',n:'水車',i:'🎡',req:['itool'],d:s=>hasSt(s,'wheel')},{id:'mag',n:'雷擊磁化',i:'🧲',req:['itool','ship'],d:s=>!!s.known._magnet},{id:'gen',n:'水力發電機',i:'🌀',req:['mag','elec','wheel'],d:s=>s.abil.gen},
  {id:'actc',n:'活性碳',i:'⚫',req:['char'],d:s=>fnd(s,'actcarbon')},{id:'mask',n:'防毒面具',i:'😷',req:['actc','glass'],d:s=>s.abil.mask},{id:'lake',n:'火山口酸湖',i:'🌋',req:['mask'],d:s=>!!s.known._acid},
  {id:'lens',n:'透鏡',i:'🔍',req:['glass'],d:s=>fnd(s,'lens')},{id:'scope',n:'望遠鏡',i:'🔭',req:['lens'],d:s=>s.abil.scope},{id:'ball',n:'氫氣球',i:'🎈',req:['scope','ely'],d:s=>hasSt(s,'balloon')},
  {id:'cloud',n:'雲頂島',i:'☁️',req:['ball'],d:s=>!!s.seen[4]},{id:'tart',n:'酒石晶體',i:'💎',req:['wine'],d:s=>fnd(s,'rochelle')},{id:'radio',n:'無線電',i:'📡',req:['gen','cloud','tart','lamp'],d:s=>s.abil.radio}];
@@ -1292,7 +1305,7 @@ function frame(t,dt){
  if(S.st.some(x=>x.type==='rod'&&x.done&&x.bar&&!x.mag)){boltT-=dt;if(boltT<=0){boltT=14+Math.random()*10;if(rodStrike(S)){flashT=.5;thunder();for(const x of S.st)if(x.type==='rod'){syncStation(x);burst(x.x,hAt(x.x,x.y)+3,x.y,'#fff7c0');}if(!modalOpen)toast('⚡ 轟！雷打在避雷針上了。');save();}}}
  if(flashT>0){flashT-=dt;boltEl.style.opacity=Math.max(0,flashT*1.6);}else if(boltEl.style.opacity!=='0')boltEl.style.opacity='0';
  stObj.forEach(g=>{if(g.spin)g.spin.rotation.z-=dt*1.4;});
- netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
+ netAcc+=dt;if(netAcc>2){const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!wireG)drawWires();if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
  const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,y=onSea?Math.sin(t/400)*.05:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:0;
  parkedG.forEach(g=>g.visible=false);S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;const g=parkedG[bt.r-1];g.visible=true;g.position.set(bt.x,Math.sin(t/400+1+i)*.05,bt.y);g.rotation.y=bt.a||0;});
@@ -1394,14 +1407,14 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
   else{if(a)SFX.place();toast((a?'放上 '+a+'。':'')+'還缺 '+Object.keys(r.missing).map(k=>ITEMS[k].n+'×'+r.missing[k]).join('、'));}
   after();return;}
  if(st===TOWER)return toast('信號塔亮著。');
- if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。');
+ if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。'+(S.abil.gen?'　🌀 發電機也跟著轉，這座島的建築可以拉銅線過來。':''));
  if(st.type==='radio')return toast('📡 答答答。答——答——答——。答答答。');
  if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.hung){SFX.place();toast('把鐵棒掛上去了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''));}syncStation(st);return after();}
  if(st.type==='balloon'){const r=balloonFly(S,st,P,world.land);const g=stObj.get(st);if(g)g.position.set(st.x,hAt(st.x,st.y),st.y);P.x=r.x;P.y=r.y;target=null;pending=null;S.aboard=false;S.cur=-1;SFX.arrive();{const o=owner[Math.floor(P.y)*W+Math.floor(P.x)];if(!S.seen[o]){S.seen[o]=true;drawBase();}}
   storyQ.push(r.back?'你鬆開沙袋，氣球離開了雲頂島。\n\n風把你送回出發的地方。':'你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n暗礁在腳下泛著白浪。氣球越過它們，朝那團雲飄去。');showStory();return after();}
  if(d.house)return openHome(st);
  if(st.type==='field')return openFarm(st);
- bench.on=false;if(STN[st.type]){openFire(st.type);if(STN[st.type].bellows&&wheelNear(S,st)){fire.auto=true;flog.push('🎡 河邊的水車替你拉著風箱，不用自己踩了。');}return;}openMix(st.type==='cell'?'cell':'table');}
+ bench.on=false;S.hydro=false;if(STN[st.type]){openFire(st.type);fireSt=st;if(STN[st.type].bellows&&wheelNear(S,st)){fire.auto=true;flog.push('🎡 河邊的水車替你拉著風箱，不用自己踩了。');}else if(STN[st.type].bellows&&st.fan){fire.auto=true;flog.push('⚡ 電動鼓風機嗡嗡地轉，不用自己踩風箱了。');}fireCtl();return;}openMix(st.type==='cell'?'cell':'table');}
 
 /* ===== 火：營火、陶窯、鼓風爐、蒸餾器共用 ===== */
 let fire=null,fz='fuel',flog=[],fent=null,fsum=false,ffast=false,fpart=[],fseen=false;
@@ -1411,7 +1424,7 @@ function fireCtl(){if(!$('ctl'))return;const d=STN[fire.type],fuelZone=fz==='fue
  const known=fire.lit&&eligible(fire).length&&eligible(fire).every(r=>S.found[r.id]);
  $('ctl').innerHTML=`${benchBar()}<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
  ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:chemGroups(list,one);})()}
- <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}
+ <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}${d.bellows&&S.abil.motor&&fireSt&&!fire.auto?(h=>`<button class="btn alt" data-act="fan" ${h?'':'disabled'}>💨 裝電動鼓風機${h?'（拉線要銅 '+h.cost+'）':'<small>　這座島沒有水力發電機</small>'}</button>`)(hydroFor(fireSt)):''}
  ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>${fent?`<div class="result ${fent.isNew?'new':''}">${fent.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(fent.r)}</div>`:''}`;}
 function fireAdd(id,n){const d=STN[fire.type];n=Math.min(n,S.inv[id]||0);if(n<=0)return;
  if(fz==='fuel'){if(!FUEL[id])return;fire.fuel[id]+=n;}
@@ -1554,7 +1567,17 @@ let homeSt=null,homeMsg='';
 /* 實驗桌：桌上要架什麼裝置，由玩家決定 */
 let bench={on:false,fire:false,cond:true,elec:false,still:false,cell:false};
 const hasStill=st=>!!(st.still||(BMAP[st.type].lab>=3&&S.abil.distill)),hasCell=st=>!!(st.cell||(BMAP[st.type].lab>=3&&S.abil.elec));
-function powerText(){return S.abil.gen?'🌀 發電機供電：電壓又高又穩，不必換鋅片':pileOf(S)?`伏打堆 ${S.pile.n} 層（約 ${S.pile.life>0?S.pile.n:0} 伏特）｜鋅片還能撐 ${S.pile.life} 次電解`:'還沒有電源';}
+function powerText(){return freePower(S)?'🌀 水力發電機供電：電壓又高又穩，不必換鋅片':pileOf(S)?`${S.pile.dan?'丹尼爾電池':'伏打堆'} ${S.pile.n} 層（約 ${S.pile.life>0?S.pile.n:0} 伏特${S.pile.dan?'，穩定':'，撐不久'}）｜鋅片還能撐 ${S.pile.life} 次電解`:'還沒有電源';}
+/* 水力發電機裝在水車上；同一座島的建築拉銅線過去就有電 */
+let fireSt=null,wireG=null;
+const islOf=(x,y)=>owner[Math.floor(y)*W+Math.floor(x)];
+function hydroFor(st){if(!S.abil.gen||!st)return null;let b=null;for(const w of S.st){if(w.type!=='wheel'||!w.done||islOf(w.x,w.y)!==islOf(st.x,st.y))continue;const d=Math.hypot(w.x-st.x,w.y-st.y);if(!b||d<b.d)b={w,d,cost:wireCostOf(d)};}return b;}
+function wireTo(st,key){const h=hydroFor(st);if(!h)return{err:'這座島上沒有裝了發電機的水車，拉不了線。'};if((S.inv.copper||0)<h.cost)return{err:'拉這條線要銅 '+h.cost+'（每 5 格 1 個），你只有 '+(S.inv.copper||0)+' 個。'};S.inv.copper-=h.cost;st[key]={x:h.w.x,y:h.w.y};drawWires();return{ok:true,cost:h.cost};}
+function drawWires(){if(wireG)scene.remove(wireG);wireG=new G.Group();const pm=new G.MeshLambertMaterial({color:'#6b4a2b'}),lm=new G.LineBasicMaterial({color:'#c8743a'});
+ for(const st of S.st)for(const k of ['wire','fan']){const w=st[k];if(!w)continue;const d=Math.hypot(w.x-st.x,w.y-st.y),n=Math.max(1,Math.round(d/3)),pts=[];
+  for(let i=0;i<=n;i++){const x=w.x+(st.x-w.x)*i/n,y=w.y+(st.y-w.y)*i/n,h=hAt(x,y);pts.push(new G.Vector3(x,h+1.6,y));if(i>0&&i<n){const p=new G.Mesh(new G.CylinderGeometry(.05,.07,1.6,6),pm);p.position.set(x,h+.8,y);wireG.add(p);}}
+  wireG.add(new G.Line(new G.BufferGeometry().setFromPoints(pts),lm));}
+ scene.add(wireG);}
 function openBench(st){bench={on:true,fire:false,cond:true,elec:false,still:hasStill(st),cell:hasCell(st)};benchGo();}
 function benchGo(){if(bench.fire){openFire('still',true);fire.cond=bench.cond;fire.elec=bench.elec;flog=['桌上架了：爐火'+(bench.cond?'、冷凝管':'')+(bench.elec?'、電極':'')+'。把燃料和材料放進去，然後點火。'];fireCtl();}else openMix(bench.elec?'cell':'table',true);}
 const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'混合';
@@ -1562,13 +1585,14 @@ function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class=
  return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
 function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
  bench[k]=!bench[k];SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
-function openHome(st){bench.on=false;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
+function openHome(st){bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
  const need=d.floor&&fl<d.maxF?Object.keys(d.floor).map(k=>{const have=(st.fl&&st.fl[k]||0)+(S.inv[k]||0);return `<span class="${have>=d.floor[k]?'ok':'no'}">${ITEMS[k].n} ${Math.min(have,d.floor[k])}/${d.floor[k]}</span>`;}).join(''):'';
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
  <div class="row">${btn('store','📦 倉庫',true)}${btn('bench','🧪 實驗桌（混合・加熱・蒸餾・電解）',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
  <div class="row" style="align-items:center">${hasStill(st)?'<span class="muted">⚗️ 蒸餾器已安裝　</span>':btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${hasCell(st)?'':btn('mkcell','⚡ 安裝伏打堆與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
- ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${S.abil.gen||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*PLIFE,'還不用換')}</div>`:''}
+ ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${freePower(S)||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*pcap(S.pile),'還不用換')+(S.pile.dan?'':btn('piledan','🔋 改裝成丹尼爾電池　硫酸銅溶液 '+(S.inv.cuso4||0)+'/1、硫酸鋅溶液 '+(S.inv.znso4||0)+'/1、陶器 '+(S.inv.ceramic||0)+'/1',true))}</div>`:''}
+ ${hasCell(st)&&S.abil.gen&&!S.legacyGen?`<div class="row" style="align-items:center">${st.wire?'<span class="muted">🧵 這間屋子已經用銅線接上水力發電機。</span>':(h=>btn('wire','🧵 從水力發電機拉銅線過來'+(h?'（銅 '+h.cost+'）':''),!!h,'這座島沒有裝了發電機的水車'))(hydroFor(st))}</div>`:''}
  <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}<span class="muted">　手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗'}　｜　洗一次要肥皂 1、淡水 1</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
@@ -1576,6 +1600,8 @@ function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHom
  if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 3 次發酵。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
  if(act==='mkstill'||act==='mkcell'){const id=act==='mkstill'?'still':'cell',r=installLab(S,st,id);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=(id==='still'?'⚗️ 蒸餾器裝好了。到實驗桌把「爐火」架上去就能加熱，再加上「冷凝管」就能蒸餾。':'⚡ 伏打堆疊好了（2 層）。到實驗桌把「電極」架上去，看看電能把什麼東西拆開。疊得越高，電壓越高。')+(r.isNew?'<br>📖 圖鑑新增：'+RMAP[BMAP[id].entry].name:'');}after();hud();save();return openHome(st);}
  if(act==='bench'){back();return openBench(st);}
+ if(act==='piledan'){const r=pileDan(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg='🔋 改裝好了。銅片泡進藍色的溶液，電流又穩又久。'+(r.isNew?'<br>📖 圖鑑新增：丹尼爾電池':'');storyQ.push(...advanceQuests(S));}hud();save();return openHome(st);}
+ if(act==='wire'){const r=wireTo(st,'wire');if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg='🧵 用了 '+r.cost+' 個銅，把線從水車一路拉到屋裡。從此這間實驗室的電又穩又足。';}hud();save();return openHome(st);}
  if(act==='pileadd'||act==='pilefix'){const r=act==='pileadd'?pileAdd(S):pileFix(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=act==='pileadd'?'⚡ 伏打堆加高了一層，現在 '+S.pile.n+' 層。':'🔁 換上了新的鋅片和鹽水，伏打堆又有力了。';}hud();save();return openHome(st);}
  if(act==='store'){panel='store';return renderStore();}
  if(act==='table'){back();return openMix('table',true);}
@@ -1728,7 +1754,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.9',VDATE='2026-11-17';
+const VERSION='2.10',VDATE='2026-11-17';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -1820,6 +1846,7 @@ $('mask').addEventListener('click',e=>{
  if(d.add)return fireAdd(d.add,+(d.n||1));
  if(d.act==='ignite'){if(FUELS.every(k=>fire.fuel[k]<=0))return toast('先放燃料。');fire.lit=true;SFX.ignite();flog.push('🔥 點火了。');if(!S.abil.fire){S.abil.fire=true;S.found.tech_fire=true;S.st.forEach(syncStation);storyQ.push(...advanceQuests(S));hud();save();}return fireCtl();}
  if(d.act==='pump')return pump();
+ if(d.act==='fan'){const r=wireTo(fireSt,'fan');if(r.err){SFX.deny();toast(r.err);}else{SFX.done();fire.auto=true;flog.push('⚡ 用了 '+r.cost+' 個銅拉線。電動鼓風機轉起來了，不用再踩風箱。');save();}return fireCtl();}
  if(d.act==='fast'){ffast=!ffast;return fireCtl();}
  if(d.item){const i=mix.sel.indexOf(d.item);mix.res=null;if(i>=0)mix.sel.splice(i,1);else if(mix.sel.length<3)mix.sel.push(d.item);else toast('最多放 3 種材料');return renderMix();}
  if(d.act==='mix'){mix.shown=mix.sel.slice();mix.res=mixReact(S,mix.sel,mix.at,mix.indoor);mix.t0=performance.now();{const R=mix.res;if(mix.at==='cell'&&!R.err)SFX.zap();if(R.lost)SFX.deny();if(R.r){if(Object.keys(R.r.out).some(k=>GAS.has(k)))SFX.bubble();if(R.r.hot)SFX.hiss();R.isNew?SFX.discover():SFX.react();}else SFX.ui();}storyQ.push(...advanceQuests(S));hud();save();renderMix();$('modal').scrollTop=0;return;}
