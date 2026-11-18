@@ -417,6 +417,7 @@ const REACTIONS=[
  {id:'ind_clwater',name:'指示劑遇到氯水',kind:'chem',at:'table',col:'#f2efe6',inputs:[['indicator','clwater'],['indicator','bleach']],out:{},eqx:'先變色，接著褪成無色',phen:'紫色的汁液先變了色，幾秒鐘後顏色越來越淡，最後幾乎變成透明的水。',use:'一般的酸或鹼只會讓指示劑「變色」，換個酸鹼就能變回來。次氯酸卻是把色素分子拆壞了，顏色再也回不來——這就是「漂白」。',note:'所以用氯水或漂白水測酸鹼，是測不準的。'},
  {id:'bleach',name:'製作漂白水',kind:'chem',at:'table',inputs:[['cl2','naoh']],out:{bleach:1},eq:'Cl2 + 2NaOH -> NaClO + NaCl + H2O',phen:'黃綠色的氣體通進氫氧化鈉溶液，顏色消失了，溶液帶著一股熟悉的消毒水味。',use:'氯氣和鹼反應，生成次氯酸鈉，就是家用漂白水的主要成分。電解食鹽水正好同時得到氯氣和氫氧化鈉——兩個產物湊在一起，就是一瓶漂白水。',note:'回屋裡用它消毒發酵罐，比洗手更能防止雜菌污染。'},
  {id:'bleach_acid',name:'漂白水遇到酸',kind:'chem',at:'table',inputs:[['bleach','hcl'],['bleach','vinegar']],out:{cl2:1},eq:'NaClO + 2HCl -> NaCl + Cl2 + H2O',phen:'溶液冒出氣泡，一股刺鼻的黃綠色氣體湧了出來！',use:'漂白水碰到酸，次氯酸根會變回氯氣跑出來。氯氣有毒，吸進去會傷害呼吸道。',note:'⚠️ 家裡的漂白水絕對不能和浴廁清潔劑（含鹽酸）混用，每年都有人因此中毒。'},
+ {id:'tech_tepui',name:'平頂山與天使瀑布',kind:'tech',inputs:[],out:{},eqx:'整片砂岩高原 —(流水切割、侵蝕上億年)→ 四面懸崖的平頂山',phen:'雲頂島的山頂平得像一張桌子，四周是筆直的懸崖，雲就繞在半山腰。一道瀑布從平台邊緣一躍而下，還沒落到海面，就散成了一大片白霧。',use:'平頂山原本是一整片砂岩高原，被雨水和河流一點一點切開，最後只留下一座座四面都是懸崖的「桌山」。山頂和山下隔著幾百公尺的岩壁，動植物各自演化，彷彿另一個世界。瀑布落得太高，水在半空中被風吹散、蒸發，到了底下常常只剩水霧。',note:'南美洲圭亞那高原上的平頂山，當地人叫它 tepui，意思是「神的居所」。天使瀑布從奧揚特普伊山落下約 979 公尺，是世界上落差最大的瀑布。柯南．道爾的小說《失落的世界》，靈感就來自這一帶的平頂山。'},
  {id:'tech_airship',name:'氫氣飛艇',kind:'tech',inputs:[],out:{},eqx:'浮力（氫氣）＋ 推力（電動機）',phen:'電動機一轉，螺旋槳把飛艇推向前方。你轉動舵，它就乖乖轉向。',use:'氫氣是最輕的氣體，密度只有空氣的十四分之一，不用加熱就浮得起來。可是氣球只會隨風飄——想要往哪裡就去哪裡，得加上推力。電池推動電動機，電動機轉動螺旋槳，化學能變成電能，再變成動能。',note:'1783 年查理教授做出第一個氫氣球；1884 年法國的「法蘭西號」用電池和電動機推動，成了第一艘能飛回出發點的飛艇。氫氣遇火會爆炸：1785 年羅齊耶把熱氣球和氫氣球綁在一起，飛到半空起火喪命；1937 年興登堡號飛艇著火後，載人飛行就改用不會燒的氦氣。'},
  {id:'tech_bleach',name:'漂白水為什麼能殺菌',kind:'tech',inputs:[],out:{},eqx:'次氯酸根 → 破壞細菌的細胞',phen:'用稀釋的漂白水把發酵罐、木杓和桌面泡過一遍，再用清水沖乾淨。',use:'漂白水裡的次氯酸根是很強的氧化劑，會破壞細菌的細胞膜和酵素。肥皂是把細菌連同油汙一起帶走，漂白水是直接把細菌殺死，所以效果撐得更久。但它也會傷皮膚，所以拿來消毒器具，不拿來洗手。',note:'自來水廠和游泳池用的，也是含氯的消毒劑。'},
  {id:'distill_soda',name:'蒸餾鹼湖水',kind:'phys',at:'still',T:100,inputs:[['sodawater']],out:{water:1,natron:1},eqx:'鹼湖水 —(蒸餾)→ 淡水 ＋ 天然鹼（碳酸鈉）',phen:'燒瓶裡的湖水沸騰，冷凝管滴下清澈的淡水；燒瓶底留下一層白色的結晶。',use:'水會變成水蒸氣，碳酸鈉不會。蒸氣冷凝回來就是淡水，碳酸鈉留在燒瓶裡——和蒸餾海水得到淡水和食鹽是同一個道理。',note:'這座湖沒有出口，水只能蒸發，鹼就越積越濃。坦尚尼亞火山腳下的納特龍湖就是這樣，「natron」這個字就從那裡來。'},
@@ -891,7 +892,7 @@ function fireCollect(f,s){const got={};const add=(k,n)=>{n=Math.floor(n+1e-6);if
  f.charge={};f.out={};for(const k of FUELS)f.fuel[k]=0;f.burned=0;return got;}
 
 /* ---------- 世界生成 ---------- */
-const SEA=0,SAND=1,GRASS=2,FOREST=3,ROCK=4,LAKE=5,MUD=6,SALT=7,RIVER=8,CRATER=9,ACID=10;
+const SEA=0,SAND=1,GRASS=2,FOREST=3,ROCK=4,LAKE=5,MUD=6,SALT=7,RIVER=8,CRATER=9,ACID=10,CLIFF=11;
 /* 第二版（擴展地圖）：島嶼與海域面積大幅擴展，強化探索感。river：從湖流到海的小河；crater：火山口（要面具才進得去），中央是酸湖；rank 4：四周都是暗礁，船過不去 */
 const ISLANDS=[
  {name:'貝殼島',cx:58,cy:162,r:28,rank:1,rock:9,lake:[-9,4,4.3],ring:MUD,
@@ -902,7 +903,7 @@ const ISLANDS=[
   nodes:[['tree',110,[FOREST]],['hematite',12,[ROCK]],['magnetite',8,[ROCK]],['vitriol',9,[ROCK]],['quartz',10,[ROCK]],['natron',10,[SALT]],['sandpile',10,[SAND]],['sugarcane',12,[GRASS]],['vine',12,[FOREST,GRASS]]]},
  {name:'雷鳴島',cx:246,cy:48,r:29,rank:3,rock:.6,lake:[13,9,3.7],ring:0,
   nodes:[['tree',95,[FOREST]],['smithsonite',11,[ROCK]],['coal',12,[ROCK]],['limestone',8,[ROCK]],['quartz',6,[ROCK]],['hematite',8,[ROCK]],['vine',11,[FOREST,GRASS]],['cabbage',6,[GRASS]]]},
- {name:'雲頂島',cx:52,cy:40,r:19,rank:4,rock:.55,lake:[5,4,2.4],ring:0,hidden:1,
+ {name:'雲頂島',cx:52,cy:40,r:19,rank:4,rock:.55,lake:[1,2.5,2.2],ring:0,hidden:1,river:1,tepui:.64,
   nodes:[['tree',48,[FOREST]],['galena',8,[ROCK]],['quartz',4,[ROCK]],['vine',8,[FOREST,GRASS]],['cabbage',4,[GRASS]]]}
 ];
 /* hp：要敲幾下；rock：外觀是岩石，敲開才知道成分；tool：需要的工具；regrow：幾秒後長回來（沒有這一項＝採完就沒了） */
@@ -926,15 +927,32 @@ function genWorld(seed){
   if(t!==SEA&&I.crater){const dc=Math.hypot(x+.5-I.cx,y+.5-I.cy);if(dc<I.crater*.42)t=ACID;else if(dc<I.crater)t=CRATER;}
   tiles[y*W+x]=t;owner[y*W+x]=i;}
  /* 小河：從湖心往「離島中心最遠」的方向流到海，沿途微微蜿蜒。河很淺，可以涉水走過去 */
- ISLANDS.forEach((I,ii)=>{if(!I.river)return;const L=Math.hypot(I.lake[0],I.lake[1]),ux=I.lake[0]/L,uy=I.lake[1]/L;
+ ISLANDS.forEach((I,ii)=>{if(!I.river||I.tepui)return;const L=Math.hypot(I.lake[0],I.lake[1]),ux=I.lake[0]/L,uy=I.lake[1]/L;
   for(let d=I.lake[2]-.5;d<I.r*1.6;d+=.38){const w=Math.sin(d*.45)*2.0,x=Math.floor(I.cx+I.lake[0]+ux*d-uy*w),y=Math.floor(I.cy+I.lake[1]+uy*d+ux*w);if(x<1||y<1||x>=W-1||y>=H-1)break;
    const t=tiles[y*W+x];if(t===SEA)break;if(t!==LAKE&&owner[y*W+x]===ii)tiles[y*W+x]=RIVER;
    const x2=x+Math.round(-uy),y2=y+Math.round(ux),t2=tiles[y2*W+x2];if(t2!==SEA&&t2!==LAKE&&owner[y2*W+x2]===ii)tiles[y2*W+x2]=RIVER;}});   /* 兩格寬 */
+ /* 平頂山：雲頂島的山頂是一整片平台，四周是筆直的懸崖，只有從天上才上得去、下得來 */
+ const tepR=(I,x,y)=>I.r*I.tepui*(1+(noise(x/4,y/4,7)-.5)*.22);
+ ISLANDS.forEach((I,ii)=>{if(!I.tepui)return;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const k=y*W+x;if(owner[k]!==ii||tiles[k]===SEA)continue;
+  if(Math.hypot(x+.5-I.cx,y+.5-I.cy)>tepR(I,x+.5,y+.5))tiles[k]=CLIFF;}
+  if(I.river){const L=Math.hypot(I.lake[0],I.lake[1]),ux=I.lake[0]/L,uy=I.lake[1]/L;   /* 平台上的河：從湖流到懸崖邊，在那裡衝出去成為瀑布 */
+   for(let d=I.lake[2]-.5;d<I.r;d+=.25){const w=Math.sin(d*.6)*.7,px=I.cx+I.lake[0]+ux*d-uy*w,py=I.cy+I.lake[1]+uy*d+ux*w,x=Math.floor(px),y=Math.floor(py),k=y*W+x;
+    if(tiles[k]===CLIFF||tiles[k]===SEA){I._fall={x:px-ux*.5,y:py-uy*.5};break;}if(tiles[k]!==LAKE)tiles[k]=RIVER;
+    for(const [ox,oy] of [[Math.round(-uy),Math.round(ux)],[1,0],[0,1]]){const k2=(y+oy)*W+x+ox;if(tiles[k2]!==CLIFF&&tiles[k2]!==SEA&&tiles[k2]!==LAKE&&owner[k2]===ii&&ox*ox+oy*oy===1&&(ox===Math.round(-uy)&&oy===Math.round(ux)))tiles[k2]=RIVER;}}}});
  const lakeH=ISLANDS.map(I=>hOf(eAt(I.cx+I.lake[0],I.cy+I.lake[1])[1])*.5);
  const hc=new Float32Array((W+1)*(H+1));
  for(let cy=0;cy<=H;cy++)for(let cx=0;cx<=W;cx++){let sea=false,lake=-1;
   for(let dy=-1;dy<=0;dy++)for(let dx=-1;dx<=0;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=W||y>=H){sea=true;continue;}const t=tiles[y*W+x];if(t===SEA)sea=true;else if(t===LAKE)lake=owner[y*W+x];}
   hc[cy*(W+1)+cx]=sea?0:lake>=0?lakeH[lake]:hOf(eAt(cx,cy)[1]);}
+ /* 平頂山的高度：平台頂上一片平坦，邊緣一下子掉成幾乎垂直的岩壁，底下是一圈落石堆到海邊 */
+ let falls=null;
+ ISLANDS.forEach((I,ii)=>{if(!I.tepui)return;const TOP=12;
+  for(let cy=Math.floor(I.cy-I.r-2);cy<=I.cy+I.r+2;cy++)for(let cx=Math.floor(I.cx-I.r-2);cx<=I.cx+I.r+2;cx++){if(cx<1||cy<1||cx>=W||cy>=H)continue;
+   let sea=false,wet=false,mine=false;for(let dy=-1;dy<=0;dy++)for(let dx=-1;dx<=0;dx++){const k=(cy+dy)*W+cx+dx,t=tiles[k];if(t===SEA)sea=true;else{if(owner[k]===ii)mine=true;if(t===LAKE||t===RIVER)wet=true;}}
+   if(sea||!mine)continue;const R=tepR(I,cx,cy),dd=Math.hypot(cx-I.cx,cy-I.cy)-R;
+   hc[cy*(W+1)+cx]=dd<=0?TOP-(wet?.25:0)+(noise(cx/3,cy/3,8)-.5)*.35:dd<1.2?TOP-(TOP-2.4)*Math.pow(dd/1.2,2.6):Math.max(.35,2.4*(1-(dd-1.2)/3.2));}
+  /* 瀑布：河流在平台邊緣衝出去的地方 */
+  if(I._fall){const fx=I._fall.x,fy=I._fall.y,L=Math.hypot(I.lake[0],I.lake[1]);falls={x:fx,y:fy,ux:I.lake[0]/L,uy:I.lake[1]/L,top:TOP};delete I._fall;}});
  /* 火山錐：越靠近山頂越高，火山口邊緣隆起成一圈，裡面凹成碗，酸湖在碗底 */
  ISLANDS.forEach((I,ii)=>{if(!I.crater)return;const R=17.5,rr=I.crater+.5,A=4.2,D=3.0,acid=[];let lo=1e9;
   for(let cy=Math.floor(I.cy-R);cy<=I.cy+R;cy++)for(let cx=Math.floor(I.cx-R);cx<=I.cx+R;cx++){const d=Math.hypot(cx-I.cx,cy-I.cy);if(d>=R)continue;
@@ -971,7 +989,7 @@ function genWorld(seed){
  if(!wreck)wreck={x:I0.cx+4,y:sy};
  /* 雲頂島上氣球降落的空地 */
  let land=null,lb=1e9;{const I=ISLANDS[4];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(owner[y*W+x]!==4||used.has(x+','+y))continue;const t=tiles[y*W+x];if(t!==GRASS&&t!==SAND)continue;const d=Math.hypot(x-I.cx,y-I.cy-6.5);if(d<lb){lb=d;land={x:x+.5,y:y+.5};}}}
- return{W,H,tiles,owner,hc,nodes,animals,start:{x:I0.cx+.5,y:sy+.5},tower,wreck,land};
+ return{W,H,tiles,owner,hc,nodes,animals,start:{x:I0.cx+.5,y:sy+.5},tower,wreck,land,falls};
 }
 </script>
 <script>
@@ -995,7 +1013,7 @@ const world=genWorld(SEED),{W,H,tiles,owner,hc,nodes}=world;
 const P={x:S.px||world.start.x,y:S.py||world.start.y,ang:0,swing:0};
 const tileAt=(x,y)=>(x<0||y<0||x>=W||y>=H)?SEA:tiles[y*W+x];
 const rankAt=(x,y)=>(x<0||y<0||x>=W||y>=H)?9:ISLANDS[owner[y*W+x]].rank;
-const walk=(x,y)=>{const tx=Math.floor(x),ty=Math.floor(y),t=tileAt(tx,ty);if(t===LAKE||t===ACID)return false;if(t===CRATER&&!S.abil.mask)return false;if(t===SEA){const b=curBoat();return !!b&&boatOK(b.r,rankAt(tx,ty));}return true;};
+const walk=(x,y)=>{const tx=Math.floor(x),ty=Math.floor(y),t=tileAt(tx,ty);if(t===LAKE||t===ACID||t===CLIFF)return false;if(t===CRATER&&!S.abil.mask)return false;if(t===SEA){const b=curBoat();return !!b&&boatOK(b.r,rankAt(tx,ty));}return true;};
 function curBoat(){return S.aboard&&S.boats?S.boats[S.cur]||null:null;}
 const free=(x,y)=>walk(x-.28,y-.28)&&walk(x+.28,y-.28)&&walk(x-.28,y+.28)&&walk(x+.28,y+.28);
 function hAt(x,y){const x0=Math.max(0,Math.min(W-1,Math.floor(x))),y0=Math.max(0,Math.min(H-1,Math.floor(y))),fx=Math.min(1,Math.max(0,x-x0)),fy=Math.min(1,Math.max(0,y-y0)),i=y0*(W+1)+x0;
@@ -1101,7 +1119,7 @@ const sun=new THREE.DirectionalLight(0xfff1d0,.56);sun.position.set(55,88,38);sc
 const fillL=new THREE.DirectionalLight(0x9ec8f0,.18);fillL.position.set(-48,42,-35);scene.add(fillL);
 
 const SEAC=['#48b4dc','#2982c4','#194d92','#88d4ce'];   /* 第 4 種：暗礁區，泛白的淺綠 */
-const LANDC={[SAND]:'#ecdba6',[GRASS]:'#7fc25c',[FOREST]:'#529a42',[ROCK]:'#9b978e',[LAKE]:'#55b4e8',[MUD]:'#ad8352',[SALT]:'#f3ede3',[RIVER]:'#68c2ee',[CRATER]:'#b59d4a',[ACID]:'#94d94c'};
+const LANDC={[SAND]:'#ecdba6',[GRASS]:'#7fc25c',[FOREST]:'#529a42',[ROCK]:'#9b978e',[LAKE]:'#55b4e8',[MUD]:'#ad8352',[SALT]:'#f3ede3',[RIVER]:'#68c2ee',[CRATER]:'#b59d4a',[ACID]:'#94d94c',[CLIFF]:'#5a4842'};
 const DARKC={[SAND]:'#8c8478',[ROCK]:'#5a5452',[GRASS]:'#74ab56',[FOREST]:'#4c863f'};
 const mixHex=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16),f=s=>Math.round(((A>>s)&255)*(1-k)+((B>>s)&255)*k);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);};
 const vhash=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%1000/1000;
@@ -1112,6 +1130,8 @@ function tileHex(x,y){const t=tiles[y*W+x],I=ISLANDS[owner[y*W+x]];
   return base;}
  let base=(I.dark&&DARKC[t])||LANDC[t];
  if(I.soda&&(t===LAKE||t===RIVER))return t===LAKE?'#8ec4bd':'#9fd0c7';   /* 鹼湖：乳白的藍綠色 */
+ if(t===CLIFF){const v=vhash(x,y),w=vhash(x+13,y*3+1);return v<.18?'#2f2a29':v<.42?mixHex('#7d5a4f','#9a6e5c',w):mixHex('#4e3f3b','#665049',w);}   /* 平頂山的砂岩懸崖：黑色的苔痕、粉紅的岩面 */
+ if(I.tepui&&(t===GRASS||t===FOREST))base=mixHex(base,'#5f7a4a',.25);   /* 山頂的草比較暗、比較濕 */
  if(t===SAND&&[[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===SEA))base=mixHex(base,I.dark?'#6e675d':'#d6be82',.32);   /* 靠海的濕沙灘 */
  if(I.crater){if(t===ACID)return '#78d4be';   /* 乳白帶綠的酸湖 */
   if(t===CRATER){const shore=[[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===ACID);return (shore?vhash(x,y)<.38:vhash(x,y)<.08)?'#ceb846':mixHex('#48423f','#5a524c',vhash(x+7,y+3));}   /* 火山灰；湖岸結著硫磺 */
@@ -1158,7 +1178,7 @@ let terrain,waterSheen,foamA,foamB,cloudGrp;
  const mkCloud=(cx,cy,cz,s,dark)=>{const g2=new THREE.Group();[[0,0,0,1.3,.55,1],[-.9,-.1,.2,.9,.45,.8],[.95,-.08,-.15,.95,.48,.82],[.2,.25,.3,.8,.45,.75]].forEach(b=>{const m=new THREE.Mesh(cg,dark?dm:cm);m.position.set(b[0]*s,b[1]*s,b[2]*s);m.scale.set(b[3]*s,b[4]*s,b[5]*s);g2.add(m);});g2.position.set(cx,cy,cz);return g2;};
  for(let i=0;i<16;i++)cloudGrp.add(mkCloud(vhash(i,1)*W,22+vhash(i,2)*5,vhash(i,3)*H,2.2+vhash(i,4)*1.6,false));
  {const I3=ISLANDS[3];for(let i=0;i<5;i++){const a=i*1.25;cloudGrp.add(mkCloud(I3.cx+Math.cos(a)*9,18+(i%2)*1.5,I3.cy+Math.sin(a)*9,2.4,true));}}
- {const I4=ISLANDS[4];for(let i=0;i<10;i++){const a=i*Math.PI/5,r=I4.r*.72;cloudGrp.add(mkCloud(I4.cx+Math.cos(a)*r,11.5+(i%2)*.8,I4.cy+Math.sin(a)*r,2.1,false));}}
+ {const I4=ISLANDS[4];for(let i=0;i<12;i++){const a=i*Math.PI/6+.2,r=I4.r*(.86+(i%3)*.05);cloudGrp.add(mkCloud(I4.cx+Math.cos(a)*r,6.5+(i%3)*1.6,I4.cy+Math.sin(a)*r,2.2,false));}}   /* 雲繞在懸崖半腰 */
  scene.add(cloudGrp);
 })();
 
@@ -1410,7 +1430,7 @@ const V2_OLD_ISL=[[45,122,21],[106,64,27],[182,120,28],[186,36,22],[40,30,14]];
 function remapOldWorld(o,oldIsl,isV1){const st=JSON.parse(JSON.stringify(o)),fl=Math.floor;
  const isl=(x,y)=>{let b=0,bd=1e9;oldIsl.forEach((I,i)=>{const d=Math.hypot(x-I[0],y-I[1])/I[2];if(d<bd){bd=d;b=i;}});return b;};
  const map=(x,y)=>{const i=isl(x,y),O=oldIsl[i],N=ISLANDS[i],k=N.r/O[2];return{x:N.cx+(x-O[0])*k,y:N.cy+(y-O[1])*k,i};};
- const taken=[],bad=t=>t===SEA||t===LAKE||t===RIVER||t===CRATER||t===ACID;
+ const taken=[],bad=t=>t===SEA||t===LAKE||t===RIVER||t===CRATER||t===ACID||t===CLIFF;
  const snap=(x,y,rad,i)=>{let best=null,bd=1e9;for(let dy=-18;dy<=18;dy++)for(let dx=-18;dx<=18;dx++){const tx=fl(x)+dx,ty=fl(y)+dy;if(tx<1||ty<1||tx>=W-1||ty>=H-1||bad(tiles[ty*W+tx])||owner[ty*W+tx]!==i)continue;
     const cx=tx+.5,cy=ty+.5;if(rad&&(nodes.some(n=>Math.hypot(n.x+.5-cx,n.y+.5-cy)<rad+.7)||taken.some(q=>Math.hypot(q.x-cx,q.y-cy)<rad+q.r+.5)||Math.hypot(WRECK.x-cx,WRECK.y-cy)<rad+2||Math.hypot(TOWER.x-cx,TOWER.y-cy)<rad+2))continue;
     const d=Math.hypot(cx-x,cy-y);if(d<bd){bd=d;best={x:cx,y:cy};}}return best;};
@@ -1421,12 +1441,17 @@ function remapOldWorld(o,oldIsl,isV1){const st=JSON.parse(JSON.stringify(o)),fl=
  st.gone={};st.thin={};st.rs={};st.w312=1;if(isV1){delete st.badges;delete st.boat;}
  return{st,moved,lost};}
 if(!S.w312){if(S.px!=null||(S.st&&S.st.length)||(S.boats&&S.boats.length)){S=loadState(remapOldWorld(S,V2_OLD_ISL,false).st);P.x=S.px||world.start.x;P.y=S.py||world.start.y;nodes.forEach((n,i)=>{n.gone=!!S.gone[i];setNode(n);});}else S.w312=1;}
-farmCatchUp();S.st.forEach(syncStation);fixBoat();
+offCliff();farmCatchUp();S.st.forEach(syncStation);fixBoat();
+/* 雲頂島改成平頂山以後，舊存檔裡停在懸崖位置的東西搬到平台上 */
+function offCliff(){const near=(x,y)=>{let b=null,bd=1e9;for(let dy=-14;dy<=14;dy++)for(let dx=-14;dx<=14;dx++){const tx=Math.floor(x)+dx,ty=Math.floor(y)+dy;if(tx<1||ty<1||tx>=W-1||ty>=H-1)continue;const t=tiles[ty*W+tx];
+   if(t!==GRASS&&t!==SAND&&t!==FOREST&&t!==ROCK)continue;if(owner[ty*W+tx]!==owner[Math.floor(y)*W+Math.floor(x)])continue;const d=Math.hypot(tx+.5-x,ty+.5-y);if(d<bd){bd=d;b={x:tx+.5,y:ty+.5};}}return b;};
+ for(const st of S.st)if(tileAt(Math.floor(st.x),Math.floor(st.y))===CLIFF){const p=near(st.x,st.y);if(p){st.x=p.x;st.y=p.y;}}
+ if(tileAt(Math.floor(P.x),Math.floor(P.y))===CLIFF){const p=near(P.x,P.y);if(p){P.x=p.x;P.y=p.y;}}}
 /* 把一份存檔（或全新的狀態）套用到眼前的世界 */
 function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clear();S=loadState(st);
  if(!S.w312){if(S.px!=null||(S.st&&S.st.length)||(S.boats&&S.boats.length))S=loadState(remapOldWorld(S,V2_OLD_ISL,false).st);else S.w312=1;}
  P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name&&S.abil.raft)setTimeout(()=>{if(!modalOpen)askShare();},900);
- flySt=null;flyG.visible=false;settleFlight();
+ flySt=null;flyG.visible=false;settleFlight();offCliff();
  nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i]&&!NODES[n.type].regrow;setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
  const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];hud();save();}
 
@@ -1522,7 +1547,7 @@ let curIsl=0,stepT=0;
 /* --- 氫氣球飛行 --- */
 var flySt=null;const flyGs={balloon:stationModel('balloon'),airship:stationModel('airship')};for(const k in flyGs){flyGs[k].scale.set(1.3,1.3,1.3);flyGs[k].visible=false;scene.add(flyGs[k]);}let flyG=flyGs.balloon;P.alt=0;
 const FLYV={balloon:5,airship:9},FLYH={balloon:7,airship:8};
-const landOK=(x,y)=>{const t=tileAt(Math.floor(x),Math.floor(y));if(t===SEA||t===LAKE||t===RIVER||t===ACID||t===CRATER)return false;const f=flySt,ox=f&&f.x,oy=f&&f.y;if(f){f.x=f.y=-999;}const ok=!bumpAt(x,y);if(f){f.x=ox;f.y=oy;}return ok;};   /* 正在飛的氣球自己不算障礙 */
+const landOK=(x,y)=>{const t=tileAt(Math.floor(x),Math.floor(y));if(t===SEA||t===LAKE||t===RIVER||t===ACID||t===CRATER||t===CLIFF)return false;const f=flySt,ox=f&&f.x,oy=f&&f.y;if(f){f.x=f.y=-999;}const ok=!bumpAt(x,y);if(f){f.x=ox;f.y=oy;}return ok;};   /* 正在飛的氣球自己不算障礙 */
 function randomSpot(i){const c=[];const I=ISLANDS[i];for(let y=Math.max(1,Math.floor(I.cy-I.r));y<Math.min(H-1,I.cy+I.r);y++)for(let x=Math.max(1,Math.floor(I.cx-I.r));x<Math.min(W-1,I.cx+I.r);x++){if(owner[y*W+x]!==i)continue;const t=tiles[y*W+x];
   if((t===GRASS||t===SAND)&&!S.st.some(b=>Math.hypot(b.x-x-.5,b.y-y-.5)<2.5)&&!nodes.some(n=>!n.gone&&n.x===x&&n.y===y))c.push([x+.5,y+.5]);}
  const q=c[Math.floor(Math.random()*c.length)]||[world.start.x,world.start.y];return{x:q[0],y:q[1]};}
@@ -1539,6 +1564,7 @@ function takeOff(st){closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一
 function landAt(x,y,msg){const st=flySt;flySt=null;st.flying=false;st.x=x;st.y=y;const g=stObj.get(st);if(g){g.visible=true;g.position.set(x,hAt(x,y),y);}flyG.visible=false;
  P.x=x;P.y=y+1.5;if(!free(P.x,P.y)){P.x=x+1.5;P.y=y;if(!free(P.x,P.y)){P.x=x;P.y=y;}}P.alt=0;target=null;pending=null;
  const o=owner[Math.floor(y)*W+Math.floor(x)];curIsl=o;if(!S.seen[o]){S.seen[o]=true;drawBase();}SFX.place();
+ if(ISLANDS[o].tepui&&!S.found.tech_tepui){S.found.tech_tepui=true;setTimeout(()=>toast('📖 圖鑑新增：平頂山與天使瀑布'),400);}
  if(msg){storyQ.push(msg);showStory();}else toast('🎈 降落在'+ISLANDS[o].name+'。');S.px=P.x;S.py=P.y;save();after();}
 function tryLand(){if(landOK(P.x,P.y))return landAt(P.x,P.y);const t=tileAt(Math.floor(P.x),Math.floor(P.y));warn(t===SEA?'下面是海，找一塊陸地再降落。':t===CRATER||t===ACID?'下面是火山口，降不下去。':t===LAKE||t===RIVER?'下面是水，往旁邊飛一點。':'下面有東西擋著，換個地方。');}
 function gasOut(){const st=flySt;st.burn=0;
@@ -1580,6 +1606,7 @@ function update(dt){
   if(sea(P.x,P.y)){const cb=curBoat();if(cb){cb.x=P.x;cb.y=P.y;cb.a=P.ang;}}else if(!sea(P.x-.28,P.y-.28)&&!sea(P.x+.28,P.y-.28)&&!sea(P.x-.28,P.y+.28)&&!sea(P.x+.28,P.y+.28)){S.aboard=false;S.cur=-1;SFX.place();toast('下船了。船會停在這裡等你。');save();}}
  if(!moved){const ax=Math.floor(P.x+dx*.8),ay=Math.floor(P.y+dy*.8);
   if(tileAt(ax,ay)===SEA&&!S.aboard&&boatNear(2)>=0){board(boatNear(2));return;}
+  if(tileAt(ax,ay)===CLIFF)warn('腳下是筆直的懸崖，看不到底。這座島只能從天上來去。');
   if(tileAt(ax,ay)===CRATER&&!S.abil.mask)warn('刺鼻的黃煙燻得你睜不開眼、喘不過氣。沒有保護，進不了火山口。');
   if(tileAt(ax,ay)===SEA&&S.aboard&&rankAt(ax,ay)===4)warn('前面的海面泛著白色的碎浪——底下全是暗礁。什麼船都過不去。');
   else if(tileAt(ax,ay)===SEA&&!(pending&&pending.water!=null)){if(!S.aboard)warn(!S.boats.length?'你需要一艘船才能出海':'要先回到船上才能出海——小地圖上的白色方塊是你的船');else if(rankAt(ax,ay)<4){const cb=curBoat();warn(cb&&rankAt(ax,ay)<BOATR[cb.r][0]?'前面的海太淺，遠洋帆船吃水深，再過去會擱淺——要去那邊得換帆船':'這片海域風浪太大，這艘'+(cb?BOATN[cb.r]:'船')+'過不去');}}
@@ -1612,8 +1639,27 @@ function volcTick(t){if(!volc)return;const sec=t/1000,I=volc.I,near=Math.hypot(P
   _vm.subVectors(m.position,_vc);const u=Math.max(0,Math.min(1,_vm.dot(_vd)/L2)),off=_vm.addScaledVector(_vd,-u).length()-m.scale.x;   /* 擋在鏡頭和人物之間的煙變淡 */
   m.material.opacity=q.op*Math.min(1,a/.12)*Math.min(1,(1-a)/.45)*(near&&q.dark?.3:1)*Math.max(.08,Math.min(1,(off-.3)/3));
   if(q.dark)m.material.color.set(a<.2?'#a39e98':a<.5?'#c2bdb7':'#e2dfda');}}
+/* 天使瀑布：一道細長的水簾從平台邊緣直直落下，底下散成水霧 */
+const falls=(()=>{const f=world.falls;if(!f)return null;const grp=new THREE.Group(),out=[];
+ const cvs=document.createElement('canvas');cvs.width=64;cvs.height=256;const c=cvs.getContext('2d');c.clearRect(0,0,64,256);
+ for(let i=0;i<70;i++){const x=Math.random()*64,w=1+Math.random()*3.5,y=Math.random()*256,h=30+Math.random()*120,a=.35+Math.random()*.6;c.fillStyle=`rgba(255,255,255,${a})`;c.fillRect(x,y,w,h);c.fillRect(x,y-256,w,h);}
+ const tex=new THREE.CanvasTexture(cvs);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(1,2.4);
+ const tex2=tex.clone();tex2.needsUpdate=true;tex2.repeat.set(1.3,1.7);
+ const bx=f.x+f.ux*1.45,by=f.y+f.uy*1.45,base=Math.max(.15,hAt(bx,by)),top=f.top-.05,Hh=top-base,ang=Math.atan2(f.ux,f.uy);
+ const mk2=(w,tx,col,op,off)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,Hh,1,1),new THREE.MeshBasicMaterial({color:col,map:tx,transparent:true,opacity:op,depthWrite:false,side:THREE.DoubleSide}));m.position.set(bx+f.ux*off,base+Hh/2,by+f.uy*off);m.rotation.y=ang;m.renderOrder=3;grp.add(m);return m;};
+ mk2(1.9,tex2,'#bfe4f2',.55,-.05);mk2(1.35,tex,'#ffffff',.9,.05);
+ const lip=new THREE.Mesh(new THREE.BoxGeometry(1.15,.04,.32),new THREE.MeshBasicMaterial({color:'#eaf8fc',transparent:true,opacity:.32,depthWrite:false}));lip.position.set(f.x+f.ux*.95,top+.03,f.y+f.uy*.95);lip.rotation.y=ang;lip.visible=false;
+ const foam=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.8,.05,16),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.45,depthWrite:false}));foam.position.set(bx,base+.03,by);grp.add(foam);
+ const geo=new THREE.IcosahedronGeometry(1,0);
+ for(let k=0;k<22;k++){const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:'#f4fafc',transparent:true,opacity:0,depthWrite:false}));m.renderOrder=4;grp.add(m);out.push({m,ph:k/22,life:3.2,low:k%3!==0});}
+ scene.add(grp);return{tex,tex2,out,bx,by,base,Hh,ux:f.ux,uy:f.uy,foam};})();
+function fallsTick(t,dt){if(!falls)return;falls.tex.offset.y+=dt*1.9;falls.tex2.offset.y+=dt*1.25;falls.foam.scale.setScalar(1+Math.sin(t/300)*.06);const sec=t/1000;
+ for(const q of falls.out){const a=(sec/q.life+q.ph)%1,m=q.m,r=.4+a*1.6;
+  if(q.low)m.position.set(falls.bx+Math.cos(q.ph*40)*r+falls.ux*a*1.2,falls.base+.3+a*1.6,falls.by+Math.sin(q.ph*40)*r+falls.uy*a*1.2);   /* 落點的水霧 */
+  else m.position.set(falls.bx+falls.ux*(.4+a*.8),falls.base+falls.Hh*(.35+q.ph*.5),falls.by+falls.uy*(.4+a*.8));   /* 半空中被風吹散的水 */
+  m.scale.setScalar(q.low?.45+a*1.1:.3+a*.7);m.material.opacity=(q.low?.42:.22)*Math.min(1,a/.15)*Math.min(1,(1-a)/.5);}}
 function frame(t,dt){
- volcTick(t);
+ volcTick(t);fallsTick(t,dt);
  if(waterSheen)waterSheen.position.y=.022+Math.sin(t/520)*.01;
  if(foamA){const w0=.5+.5*Math.sin(t/460),w1=.5+.5*Math.cos(t/460);foamA.material.opacity=.14+w0*.22;foamB.material.opacity=.14+w1*.22;foamA.position.y=.016+w0*.012;foamB.position.y=.016+w1*.012;}
  if(cloudGrp){cloudGrp.position.x=Math.sin(t/9500)*4;cloudGrp.position.z=Math.cos(t/11500)*3;}
@@ -2076,7 +2122,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.17',VDATE='2026-11-18';
+const VERSION='2.18',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
