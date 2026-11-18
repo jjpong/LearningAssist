@@ -1948,8 +1948,19 @@ function fireCtl(){if(!$('ctl'))return;const d=STN[fire.type],fuelZone=fz==='fue
  const known=fire.lit&&eligible(fire).length&&eligible(fire).every(r=>S.found[r.id]);
  $('ctl').innerHTML=`${benchBar()}<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
  ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:chemGroups(list,one);})()}
+ ${fireTakeRow()}
  <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}${d.bellows&&S.abil.motor&&fireSt&&!fire.auto?(h=>`<button class="btn alt" data-act="fan" ${h?'':'disabled'}>💨 裝電動鼓風機${h?'（拉線要銅 '+h.cost+'）':'<small>　這座島沒有水力發電機</small>'}</button>`)(hydroFor(fireSt)):''}
  ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>${fent?`<div class="result ${fent.isNew?'new':''}">${fent.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(fent.r)}</div>`:''}`;}
+/* 放錯了可以拿回來：燃料、爐料、接住的氣體，一份一份或整項取出，不必熄火 */
+function fireTakeRow(){const f=fire,rows=[],put=(w,id,n)=>{n=Math.floor(n+1e-6);if(n<=0||!ITEMS[id])return;
+  rows.push(`<span class="pair"><button class="item" data-out="${w}:${id}">${ico(id)}<b>${ITEMS[id].n}</b><small>${w==='fuel'?'燃料':w==='out'?'接住的氣體':'材料'}</small><span>×${n}</span></button>${n>1?`<button class="plus" data-out="${w}:${id}" data-n="99">全部</button>`:''}</span>`);};
+ for(const k of FUELS)put('fuel',k,f.fuel[k]);for(const k in f.charge)put('charge',k,f.charge[k]);for(const k in f.out)put('out',k,f.out[k]);
+ if(!rows.length)return '';
+ return `<h3 style="margin:10px 0 4px">放錯了？點一下取回 1 份，按「全部」整項取回</h3><div class="grid">${rows.join('')}</div>${f.lit?'<div class="muted">火還在燒：燒到一半的燃料取不出來。</div>':''}`;}
+function fireTake(w,id,n){const f=fire,src=w==='fuel'?f.fuel:w==='out'?f.out:f.charge,has=Math.floor((src[id]||0)+1e-6);n=Math.min(n,has);if(n<=0)return;
+ src[id]=Math.max(0,src[id]-n);S.inv[id]=(S.inv[id]||0)+n;
+ const ok=new Set(eligible(f).map(r=>r.id));for(const k in f.prog)if(!ok.has(k))f.prog[k]=0;   /* 材料拿走了，進行到一半的反應就停下來 */
+ fsum=false;fseen=false;SFX.place();flog.push('取回：'+ITEMS[id].n+' ×'+n);fireCtl();}
 function fireAdd(id,n){const d=STN[fire.type];n=Math.min(n,S.inv[id]||0);if(n<=0)return;
  if(fz==='fuel'){if(!FUEL[id])return;fire.fuel[id]+=n;}
  else{if(LIQ.has(id)&&!S.abil.pottery)return toast('沒有容器可以裝液體——你需要先燒出陶器。');
@@ -2336,7 +2347,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.25',VDATE='2026-11-18';
+const VERSION='2.26',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2429,6 +2440,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
  if(d.add)return fireAdd(d.add,+(d.n||1));
+ if(d.out&&panel==='fire'){const i=d.out.indexOf(':');return fireTake(d.out.slice(0,i),d.out.slice(i+1),+(d.n||1));}
  if(d.act==='ignite'){if(FUELS.every(k=>fire.fuel[k]<=0))return toast('先放燃料。');fire.lit=true;SFX.ignite();flog.push('🔥 點火了。');if(!S.abil.fire){S.abil.fire=true;S.found.tech_fire=true;S.st.forEach(syncStation);storyQ.push(...advanceQuests(S));hud();save();}return fireCtl();}
  if(d.act==='pump')return pump();
  if(d.act==='fan'){const r=wireTo(fireSt,'fan');if(r.err){SFX.deny();toast(r.err);}else{SFX.done();fire.auto=true;flog.push('⚡ 用了 '+r.cost+' 個銅拉線。電動鼓風機轉起來了，不用再踩風箱。');save();}return fireCtl();}
