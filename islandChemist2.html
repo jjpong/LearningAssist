@@ -693,7 +693,7 @@ const QUESTS=[
  /* ---- 生活線：另一條主線。發酵要靠乾淨的手 ---- */
  {id:'l_house',line:'life',ch:'生活線　發酵與衛生',goal:'蓋一間有室內實驗桌的房子（木屋以上）',hint:'「草棚只能放東西。有了青銅工具才蓋得出木屋：木頭 12、藤蔓纖維 2。」',done:s=>s.st.some(x=>x.done&&BMAP[x.type].house&&BMAP[x.type].lab>=1)},
  {id:'l_soap',line:'life',ch:'生活線　發酵與衛生',goal:'做出肥皂',hint:'「油＋鹼。沙灘上的椰子樹有油；鹼——想想火堆裡清出來的灰，或是鹽湖邊白色的結晶。不是每一種鹼都做得出能起泡的肥皂。」',rx:['soap','soap_ash','soap_soda'],done:s=>!!(s.found.soap||s.found.soap_ash||s.found.soap_soda)},
- {id:'l_wash',line:'life',ch:'生活線　發酵與衛生',goal:'進屋，用肥皂和淡水把手洗乾淨',hint:'「進屋後按「洗手」。肥皂 1、淡水 1，洗一次可以做 3 次發酵。」',done:s=>!!s.known._washed,
+ {id:'l_wash',line:'life',ch:'生活線　發酵與衛生',goal:'進屋，用肥皂和淡水把手洗乾淨',hint:'「進屋後按「洗手」。肥皂 1、淡水 1，洗一次可以做 5 次食物實驗（發酵、做醋、發麵團）。出了門手又會弄髒，回來要再洗。」',done:s=>!!s.known._washed,
   after:'手上的油汙被泡沫帶走了。\n\n筆記：「發酵，是請特定的微生物來工作。手沒洗乾淨，就等於把一群不請自來的雜菌一起放進罐子。」'},
  {id:'l_wine',line:'life',ch:'生活線　發酵與衛生',goal:'在室內把甘蔗變成酒',hint:'「甘蔗長在火山島的草地上。先把甜味弄進水裡，然後——等。沒洗手就動手，整罐都會發霉。」',rx:['ferment'],done:F('ferment')},
  {id:'l_vinegar',line:'life',ch:'生活線　發酵與衛生',goal:'讓酒變成醋',hint:'「酒敞著口放在室內，醋酸菌會接手。一樣要先洗手。」',rx:['vinegar'],done:F('vinegar')},
@@ -727,7 +727,7 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  const cur=MAINQ.find(q=>q.ch===ch&&!qd[q.id])||MAINQ.find((q,i)=>i>hi&&!qd[q.id])||MAINQ[MAINQ.length-1],ci=MAINQ.indexOf(cur),inCh=MAINQ.filter(q=>q.ch===cur.ch);
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
-function loadState(j){const st=Object.assign(newState(),j);(st.st||[]).forEach(b=>{if(b.type==='balloon'){delete b.home;delete b.away;if(b.burn==null){b.burn=50;delete b.gas;}if(b.done)st.abil.balloon=true;}});   /* 舊版的氫氣球改成熱氣球，火盆裡先放 5 份木炭 */
+function loadState(j){const st=Object.assign(newState(),j);st.clean=0;   /* 讀檔時人在屋外，手要重洗 */(st.st||[]).forEach(b=>{if(b.type==='balloon'){delete b.home;delete b.away;if(b.burn==null){b.burn=50;delete b.gas;}if(b.done)st.abil.balloon=true;}});   /* 舊版的氫氣球改成熱氣球，火盆裡先放 5 份木炭 */
  st.w312=j.w312?1:0;if(st.found&&st.found.steel&&!st.found.steel_o2&&!st.v118){st.found.steel_o2=true;}if(st.abil&&st.abil.iron_tools)st.found.forge=true;st.v118=1;   /* 舊存檔：以前的鋼是吹氧煉的；已經有鐵製工具的人當作會鍛打了 */
  if(st.abil&&st.abil.elec&&!st.pile)st.pile={n:3,life:3*PLIFE};   /* 舊存檔：原本的電池換成三層的伏打堆 */
  if(st.abil&&st.abil.beacon&&!st.abil.daniell){st.abil.daniell=true;st.found.tech_daniell=true;if(st.pile&&!st.pile.dan){st.pile.dan=true;st.pile.life=st.pile.n*PLIFE*4;}}   /* 舊存檔：信號塔已經亮了，電池直接算成丹尼爾電池 */
@@ -839,9 +839,9 @@ const toolFor=d=>d.tool||(d.hp>1?'axe':null),TOOLN={axe:'舊鐵斧'};
 const WRECK_CLUES=[['🔩 船釘','固定船板的銅釘，泡過海水的地方長出一層綠色的鏽。'],['⚓ 鐵錨','鏽成紅褐色，一碰就掉屑。原本銀灰色的鐵，放久了會變成這樣。'],['🪢 纜繩','大部分都爛了。只有長年泡在鹽水裡的那一段，還結實得很。'],
  ['🪟 舷窗碎片','透明的玻璃碎片，斷口摸起來卻和沙子一樣粗。'],['🪨 壓艙石','船底壓艙用的灰白色石頭，上面黏著貝殼——兩者的顏色和質地，幾乎分不出來。'],['📜 航海日誌的殘頁','「……東北方有一座較大的島，山壁露出灰白和翠綠的顏色。更遠的東南方，有一座會冒煙的山……」後面的字被海水泡糊了。']];
 function lootWreck(s){if(s.known._wreck)return null;s.known._wreck=true;s.abil.axe=true;const got={};for(const k in WRECK_LOOT){const n=Math.min(WRECK_LOOT[k],BAGCAP-(s.inv[k]||0));if(n>0){s.inv[k]=(s.inv[k]||0)+n;got[k]=n;}}return got;}
-/* 洗手：肥皂 1、淡水 1，可以做 3 次發酵 */
+/* 洗手：肥皂 1、淡水 1，可以做 5 次食物實驗；離開屋子就要重洗 */
 function washHands(s){if(!(s.inv.soap>0))return{err:'沒有肥皂。椰子油和鹼（草木灰水或氫氧化鉀）一起煮，就是肥皂。'};if(!(s.inv.water>0))return{err:'要有淡水才能洗手。到湖邊裝一些。'};
- s.inv.soap--;s.inv.water--;s.clean=Math.max(s.clean||0,3);s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
+ s.inv.soap--;s.inv.water--;s.clean=Math.max(s.clean||0,5);s.known._washed=true;const isNew=!s.found.tech_wash;s.found.tech_wash=true;return{ok:true,isNew};}
 function sanitize(s){if(!(s.inv.bleach>0))return{err:'沒有漂白水。氯氣通進氫氧化鈉溶液就是漂白水。'};if(!(s.inv.water>0))return{err:'要有淡水來稀釋漂白水、沖洗器具。'};
  s.inv.bleach--;s.inv.water--;s.clean=Math.max(s.clean||0,8);const isNew=!s.found.tech_bleach;s.found.tech_bleach=true;return{ok:true,isNew};}
 /* 背包：每種東西最多帶這麼多；多的要放進家裡的倉庫 */
@@ -1926,7 +1926,8 @@ function after(){const m=advanceQuests(S);badgeToast();lbSend();if(m.length){sto
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
 function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;document.body.classList.add('modal');if(mini.classList.contains('big')){mini.classList.remove('big');mini.style.cursor='zoom-in';}target=null;pending=null;for(const k in keys)keys[k]=false;}
-function closeModal(){if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;document.body.classList.remove('modal');panel=null;const h=closeHook;closeHook=null;if(h)h();else if(storyQ.length)showStory();}
+function closeModal(){if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;document.body.classList.remove('modal');panel=null;const h=closeHook;closeHook=null;
+ if(homeIn&&!h){homeIn=false;if(S.clean>0){S.clean=0;toast('🚪 走出屋子了。手碰過外面的東西，下次進屋做食物實驗前要再洗一次。');}}   /* 離開屋子：手又髒了 */if(h)h();else if(storyQ.length)showStory();}
 function showStory(){const t=storyQ.shift();panel='story';SFX.page();openModal(`<div class="story">${t}</div><p style="text-align:right;margin:14px 0 0"><button class="btn" data-act="close">繼續</button></p>`);}
 const head=t=>`<h2><span>${t}</span><button class="x" data-act="close">關閉 ✕</button></h2>`;
 const ICO={};
@@ -2262,7 +2263,8 @@ function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class=
  return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire&&!bench.elec)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
 function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
  bench[k]=!bench[k];if(k==='elec'&&bench.elec)bench.cond=false;SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
-function openHome(st){bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
+var homeIn=false;
+function openHome(st){homeIn=true;bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
  const need=d.floor&&fl<d.maxF?Object.keys(d.floor).map(k=>{const have=(st.fl&&st.fl[k]||0)+(S.inv[k]||0);return `<span class="${have>=d.floor[k]?'ok':'no'}">${ITEMS[k].n} ${Math.min(have,d.floor[k])}/${d.floor[k]}</span>`;}).join(''):'';
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
@@ -2270,12 +2272,12 @@ function openHome(st){bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;pan
  <div class="row" style="align-items:center">${hasStill(st)?'<span class="muted">⚗️ 蒸餾器已安裝　</span>':btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${hasCell(st)?'':btn('mkcell','⚡ 安裝伏打堆與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
  ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${freePower(S)||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*pcap(S.pile),'還不用換')+(S.pile.dan?'':btn('piledan','🔋 改裝成丹尼爾電池　硫酸銅溶液 '+(S.inv.cuso4||0)+'/1、硫酸鋅溶液 '+(S.inv.znso4||0)+'/1、陶器 '+(S.inv.ceramic||0)+'/1',true))}</div>`:''}
  ${hasCell(st)&&S.abil.gen&&!S.legacyGen?`<div class="row" style="align-items:center">${st.wire?'<span class="muted">🧵 這間屋子已經用銅線接上水力發電機。</span>':(h=>btn('wire','🧵 從水力發電機拉銅線過來'+(h?'（銅 '+h.cost+'）':''),!!h,'這座島沒有裝了發電機的水車'))(hydroFor(st))}</div>`:''}
- <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}${S.found.bleach||S.inv.bleach?btn('bleach','🧴 用漂白水消毒發酵罐',true):''}<span class="muted">　衛生：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒清潔'}　｜　洗手：肥皂 1、淡水 1，撐 3 次${S.found.bleach||S.inv.bleach?'；消毒：漂白水 1、淡水 1，撐 8 次':''}</span></div>
+ <div class="row" style="align-items:center">${btn('wash','🧼 用肥皂洗手',true)}${S.found.bleach||S.inv.bleach?btn('bleach','🧴 用漂白水消毒發酵罐',true):''}<span class="muted">　衛生：${S.clean>0?'乾淨（還能做 '+S.clean+' 次食物實驗）':'還沒清潔'}　｜　洗手：肥皂 1、淡水 1，撐 5 次${S.found.bleach||S.inv.bleach?'；消毒：漂白水 1、淡水 1，撐 8 次':''}　｜　出了門就要重洗</span></div>
  <div class="muted">釀酒、做醋、發麵團要在室內實驗桌做，而且要先洗手，不然會被雜菌污染；烤麵包要用爐灶。</div>
  ${d.floor?(fl<d.maxF?`<div class="savebox" style="margin-top:10px"><h4>加蓋第 ${fl+1} 層</h4><div class="need">${need}</div><button class="btn" data-home="floor" style="margin-top:6px">🔨 把材料搬上去</button></div>`:'<div class="muted" style="margin-top:8px">已經蓋到這種房子的最高樓層。</div>'):''}`);drawHome();}
 function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHome(st);};};
- if(act==='bleach'){const r=sanitize(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='🧴 用稀釋的漂白水把發酵罐、木杓和桌面都泡過一遍，再用清水沖乾淨。接下來 8 次發酵都不怕雜菌。'+(r.isNew?'<br>📖 圖鑑新增：漂白水為什麼能殺菌':'');storyQ.push(...advanceQuests(S));}after();return openHome(st);}
- if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 3 次發酵。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
+ if(act==='bleach'){const r=sanitize(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='🧴 用稀釋的漂白水把發酵罐、木杓和桌面都泡過一遍，再用清水沖乾淨。這次在屋裡，接下來 8 次食物實驗都不怕雜菌。'+(r.isNew?'<br>📖 圖鑑新增：漂白水為什麼能殺菌':'');storyQ.push(...advanceQuests(S));}after();return openHome(st);}
+ if(act==='wash'){const r=washHands(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.water();homeMsg='用肥皂搓出泡沫，再用淡水沖掉。手乾淨了，可以做 5 次食物實驗。出了門手又會弄髒，回來要再洗。'+(r.isNew?'<br>📖 圖鑑新增：肥皂為什麼洗得掉油':'');}after();return openHome(st);}
  if(act==='mkstill'||act==='mkcell'){const id=act==='mkstill'?'still':'cell',r=installLab(S,st,id);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=(id==='still'?'⚗️ 蒸餾器裝好了。到實驗桌把「爐火」架上去就能加熱，再加上「冷凝管」就能蒸餾。':'⚡ 伏打堆疊好了（2 層）。到實驗桌把「電極」架上去，看看電能把什麼東西拆開。疊得越高，電壓越高。')+(r.isNew?'<br>📖 圖鑑新增：'+RMAP[BMAP[id].entry].name:'');}after();hud();save();return openHome(st);}
  if(act==='bench'){back();return openBench(st);}
  if(act==='piledan'){const r=pileDan(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg='🔋 改裝好了。銅片泡進藍色的溶液，電流又穩又久。'+(r.isNew?'<br>📖 圖鑑新增：丹尼爾電池':'');storyQ.push(...advanceQuests(S));}hud();save();return openHome(st);}
@@ -2347,7 +2349,7 @@ function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=ha
   else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
  const keepScroll=$('modal').scrollTop;
  openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
- ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗——發酵前先回屋裡洗手'}</div>`:''}
+ ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次食物實驗）':'還沒洗——發酵前先在屋裡洗手'}</div>`:''}
  <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':'')):'<span class="muted">背包是空的。</span>'}
  <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'✋ 動手'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
 function drawMix(t){const cvs=$('mc');if(!cvs)return;const c=cvs.getContext('2d'),cell=mix.at==='cell',R=mix.res&&mix.res.r,el=R?(performance.now()-mix.t0)/1000:0,done=R&&el>.7,act=R&&R.kind!=='obs'&&el<6;
@@ -2424,7 +2426,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.33',VDATE='2026-11-18';
+const VERSION='2.34',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
