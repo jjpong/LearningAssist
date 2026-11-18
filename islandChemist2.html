@@ -139,7 +139,7 @@ const ITEMS={
  magnet:{n:'磁鐵',f:'',c:'#b33a3a',d:'被雷擊磁化的鋼棒。一端吸、一端斥，能吸起鐵屑。'},
  lens:{n:'透鏡',f:'SiO2',c:'#cfeaf2',d:'磨成中間厚、邊緣薄的玻璃。光通過它會偏折、聚在一起。'},
  filament:{n:'碳絲',f:'C',c:'#3a3a3a',d:'隔絕空氣悶燒過的植物纖維。細、黑、能導電，通電會發亮。'},
- tartar:{n:'酒石',f:'',c:'#d9c7b0',d:'釀酒的罐子內壁結出來的粗糙結晶。成分是酒石酸氫鉀。'},
+ tartar:{n:'酒石',f:'',c:'#d9c7b0',d:'釀葡萄酒的罐子內壁結出來的粗糙結晶。成分是酒石酸氫鉀：鉀來自土壤，酒石酸來自葡萄。'},
  rochelle:{n:'酒石晶體',f:'',c:'#eaf4f7',d:'酒石酸鉀鈉的透明大晶體。擠壓它會產生電，通電它會振動——可以把電變成聲音。'},
  caramel:{n:'焦糖',f:'',c:'#7a3d12',d:'糖加熱到一百七十度左右，分解成褐色、帶苦香的混合物。'},
  cola:{n:'可樂',f:'',c:'#3d1c0a',d:'焦糖加碳酸水。冒著泡、甜中帶苦——這個世界的第一瓶汽水。'},
@@ -193,6 +193,9 @@ const ITEMS={
  pig_blue:{n:'埃及藍',f:'CaCuSi4O10',c:'#2f6fb8',d:'銅、鈣和石英在窯裡燒成的藍色晶體，磨成粉就是顏料。人類最早的人造顏料。'},
  pig_black:{n:'碳黑',f:'C',c:'#2c2b2a',d:'磨得極細的木炭粉。和膠調在一起，就是墨。'},
  dye_pink:{n:'粉紅色染液',f:'',c:'#d0679a',d:'紫甘藍汁加了醋，變成粉紅色。花青素在酸裡偏紅。'},
+ grape:{n:'葡萄',f:'',c:'#5a2a6a',d:'一串一串紫黑色的野葡萄，又酸又甜。果皮上那層白白的粉裡，住著天然的酵母菌。'},
+ grapejuice:{n:'葡萄汁',f:'',c:'#7a2f6a',d:'壓碎葡萄擠出來的紫紅色果汁，含有很多糖，還有葡萄特有的酒石酸。'},
+ grapewine:{n:'葡萄酒',f:'',c:'#7a1f3a',d:'葡萄汁發酵成的酒。含有少量酒精，也溶著酒石酸。'},
  oil:{n:'椰子油',f:'',c:'#f3e7a8',d:'油脂，不溶於水。'},
  soap:{n:'肥皂',f:'',c:'#f6efd8',d:'一端親水、一端親油，所以能把油汙帶進水裡。'},
  malachite:{n:'孔雀石',f:'Cu2(OH)2CO3',c:'#27a56f',d:'翠綠色的含銅礦石。'},
@@ -241,22 +244,22 @@ const ITEMS={
  clwater:{n:'氯水',f:'',c:'#eef3be',d:'氯氣溶在水裡，淡淡的黃綠色。含有鹽酸和次氯酸，能漂白、能殺菌。'},
  bleach:{n:'漂白水',f:'NaClO',c:'#f3f6e2',d:'次氯酸鈉溶液。強力殺菌、漂白。絕對不能和酸性的清潔劑混用。'}
 };
-const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext','dye_pink']);
+const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext','dye_pink','grapejuice','grapewine']);
 const GAS=new Set(['co2','h2','o2','cl2','so2']);
 /* 會燒焦的東西：放在火上卻沒有發生該有的反應，超過 300 °C 就毀了 */
-const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
+const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','grape','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
 /* 背包的分類 */
-const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','water','seawater']],
+const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','grape','camphorwood','citronella','vanilla','water','seawater']],
  ['礦物',['caco3','sand','quartz','natron','sulfur','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
- ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s','camphor']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']],['顏料與染料',['pig_red','pig_yellow','pig_green','pig_blue','pig_black','dye_pink']],['氣體',['co2','h2','o2','cl2','so2']]];
+ ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s','camphor']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext','grapejuice','grapewine']],['顏料與染料',['pig_red','pig_yellow','pig_green','pig_blue','pig_black','dye_pink']],['氣體',['co2','h2','o2','cl2','so2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
 const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','pig_black','h2','o2','cl2']],
  ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite','pig_red','pig_yellow']],
  ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh','koh_s','naoh_s']],
  ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle','pig_green']],
  ['有機化合物',['ethanol','oil','soap','camphor']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
- ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola','citroil','vanillaext','dye_pink']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete','pig_blue']],
- ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
+ ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola','citroil','vanillaext','dye_pink','grapejuice','grapewine']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete','pig_blue']],
+ ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','grape','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
 const KIND={chem:'化學變化',phys:'物理變化',obs:'觀察紀錄',tech:'科技原理'};
 const AT={heat:'用火加熱',table:'實驗桌（常溫）',still:'蒸餾器',cell:'電解槽'};
 
@@ -371,7 +374,7 @@ const REACTIONS=[
  {id:'cu_o2',lab:1,name:'銅在氧氣中加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','o2']],out:{cuo:1},eq:'2Cu + O2 -> 2CuO',phen:'紅色的銅表面變黑。',use:'金屬的氧化。黑色的氧化銅可以再用木炭還原回銅。',note:''},
  {id:'fe_o2',lab:1,name:'鐵在氧氣中燃燒',kind:'chem',at:'heat',T:500,fresh:1,inputs:[['iron','o2'],['sponge','o2'],['steel','o2']],out:{magnetite:1},eq:'3Fe + 2O2 -> Fe3O4',phen:'火星四射！留下黑色的固體。',use:'鐵在純氧中可以燃燒，產物是四氧化三鐵——和磁鐵礦是同一種物質。',note:'把鋼絲絨點著了伸進氧氣瓶，會燒得像仙女棒一樣火花四射。'},
  /* ===== 蒸餾器 ===== */
- {id:'distill_wine',name:'蒸餾酒',kind:'phys',at:'still',T:78,inputs:[['wine']],out:{ethanol:1},eqx:'酒 → 酒精蒸氣 → 冷凝成酒精',phen:'還沒到水的沸點，就有透明液體滴進接收瓶，一點就著。',use:'酒精的沸點（78 °C）比水（100 °C）低，會先被蒸出來。',note:''},
+ {id:'distill_wine',name:'蒸餾酒',kind:'phys',at:'still',T:78,inputs:[['wine'],['grapewine']],out:{ethanol:1},eqx:'酒 → 酒精蒸氣 → 冷凝成酒精',phen:'還沒到水的沸點，就有透明液體滴進接收瓶，一點就著。',use:'酒精的沸點（78 °C）比水（100 °C）低，會先被蒸出來。',note:''},
  {id:'distill_sea',name:'蒸餾海水',kind:'phys',at:'still',T:100,inputs:[['seawater']],out:{water:1,salt:1},eqx:'海水 → 水蒸氣 → 冷凝成淡水',phen:'燒瓶裡的海水沸騰，冷凝管另一端滴出清澈的水，嚐起來不鹹。',use:'利用沸點不同來分離混合物：水先變成氣體跑出去，鹽留在原地。',note:''},
  {id:'hcl',name:'食鹽加硫酸製鹽酸',kind:'chem',at:'still',T:150,inputs:[['salt','h2so4']],out:{hcl:1},eq:'NaCl + H2SO4 -> NaHSO4 + HCl',phen:'冒出刺鼻的白霧，通入水中就成了鹽酸。',use:'「鹽酸」這個名字，就是因為它是從食鹽做出來的酸。',note:'氯化氫氣體有強烈刺激性。'},
  {id:'h2so4',name:'乾餾綠礬製硫酸',kind:'chem',at:'still',T:480,inputs:[['vitriol','water']],out:{h2so4:1,hematite:1},eq:'2FeSO4 + H2O -> Fe2O3 + SO2 + H2SO4',
@@ -388,7 +391,7 @@ const REACTIONS=[
  {id:'flour',name:'把穀物磨成粉',kind:'phys',at:'table',inputs:[['grain']],out:{flour:1},eqx:'穀物 → 麵粉（磨碎）',phen:'穀粒在石頭上磨成白色的細粉。',use:'只是顆粒變小，成分沒有變——物理變化。',note:''},
  {id:'dough',name:'揉麵團',kind:'phys',at:'table',inputs:[['flour','water']],out:{dough:1},eqx:'麵粉 + 水 → 麵團',phen:'粉和水揉成一團有彈性的麵團。',use:'麵粉裡的蛋白質吸水後互相拉在一起，形成有彈性的網（麵筋）。',note:''},
  {id:'rise',name:'麵團發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['dough']],out:{risen:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'麵團放著放著，脹成兩倍大，切開來裡面都是小洞。',use:'空氣裡的酵母菌吃掉麵團裡的糖，放出二氧化碳，氣體被麵筋包住，就把麵團撐大了。和釀酒是同一個反應。',note:'產生的少量酒精在烤的時候會蒸發掉。'},
- {id:'vinegar',name:'酒變成醋',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['wine']],out:{vinegar:1},eq:'C2H5OH + O2 -> CH3COOH + H2O',phen:'沒蓋好的酒放了幾天，聞起來變酸了。',use:'空氣中的醋酸菌讓酒精和氧氣反應，變成醋酸。這是人類最早得到的酸。',note:'現實中要等上好幾天。'},
+ {id:'vinegar',name:'酒變成醋',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['wine'],['grapewine']],out:{vinegar:1},eq:'C2H5OH + O2 -> CH3COOH + H2O',phen:'沒蓋好的酒放了幾天，聞起來變酸了。',use:'空氣中的醋酸菌讓酒精和氧氣反應，變成醋酸。這是人類最早得到的酸。',note:'現實中要等上好幾天。'},
  {id:'ind_vinegar',name:'指示劑檢驗醋',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','vinegar']],out:{dye_pink:1},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'醋是弱酸，顏色變化介於碳酸水和硫酸之間。',note:'這杯粉紅色的汁液，也可以拿來染布。'},
  {id:'caco3_vinegar',name:'貝殼泡醋',kind:'chem',at:'table',inputs:[['caco3','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'貝殼表面慢慢冒出細小的氣泡。',use:'醋雖然是弱酸，一樣能和碳酸鈣反應放出二氧化碳，只是比鹽酸慢得多。',note:''},
  {id:'egg_vinegar',name:'雞蛋泡醋',kind:'chem',at:'table',inputs:[['egg','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'蛋殼冒著泡慢慢消失，最後剩下一顆軟軟的、半透明的「無殼蛋」。',use:'蛋殼是碳酸鈣，會被醋溶掉；裡面那層薄膜不是碳酸鈣，所以留了下來。',note:'現實中要泡一兩天。'},
@@ -414,7 +417,7 @@ const REACTIONS=[
  {id:'obs_actc_cold',name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙，才咬得動碳。',note:''},
  {id:'filament',name:'把纖維悶成碳絲',kind:'chem',at:'heat',T:800,closed:1,needs:'pottery',inputs:[['fiber']],out:{filament:1},eqx:'植物纖維 —(隔絕空氣加熱)→ 碳絲 + 水蒸氣 + 可燃氣體',phen:'把纖維埋在炭粉裡、封進有蓋的陶罐再燒。細細的纖維沒有燒掉，而是整條變黑、變硬，還保持著原來的形狀。',use:'和悶木炭是同一件事，只是要燒得更熱，碳絲才導得了電：沒有氧氣，纖維裡的氫和氧先跑掉，留下一條細細的碳。碳能導電，又耐高溫，是最早的燈絲。',note:'愛迪生試了六千多種材料，最後用的是日本京都的竹子悶成的碳絲，可以亮一千多個小時。'},
  {id:'lens',name:'把玻璃磨成透鏡',kind:'phys',at:'table',inputs:[['glass','sand']],out:{lens:1},eqx:'玻璃 —(用細沙研磨)→ 透鏡',phen:'玻璃片在沾濕的細沙上一圈一圈地磨。磨了很久很久，中間厚、邊緣薄，對著太陽能把光聚成一個亮點。',use:'石英砂比玻璃硬，所以磨得動玻璃。光從空氣進到玻璃會偏折；把玻璃磨成弧面，就能讓光線往中間集中。',note:'十七世紀的磨鏡師傅磨一片好透鏡要好幾天。'},
- {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 碳酸鈉 → 酒石酸鉀鈉 + 水 + 二氧化碳',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
+ {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water'],['tartar','sodawater'],['tartar','naoh']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 含鈉的鹼（碳酸鈉或氫氧化鈉）→ 酒石酸鉀鈉',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
  {id:'caramel',name:'把糖水熬成焦糖',kind:'chem',at:'heat',T:170,pot:1,inputs:[['juice']],out:{caramel:1},eqx:'蔗糖 —(約 170 °C)→ 焦糖 + 水',phen:'水先滾乾，糖漿從透明變成金黃、再變成深褐色，冒出又甜又苦的香氣。',use:'糖受熱到一百七十度左右會分解、互相結合，變成幾百種有顏色、有香氣的新物質。這是化學變化——焦糖再也變不回白糖。',note:'再燒下去就只剩黑色的碳了：糖是碳、氫、氧組成的。'},
  {id:'cola',name:'調一瓶可樂',kind:'phys',at:'table',inputs:[['caramel','carbonic']],out:{cola:1},eqx:'焦糖 + 碳酸水 → 可樂（混合）',phen:'褐色的糖漿在冒泡的水裡化開。喝一口——氣泡在舌頭上炸開，甜中帶一點苦。',use:'汽水的「氣」就是溶在水裡的二氧化碳。打開瓶子壓力變小，二氧化碳就跑出來。',note:'真正的可樂還加了磷酸和香料。配方是商業機密。'},
  {id:'unslake',name:'加熱熟石灰',kind:'chem',at:'heat',T:520,inputs:[['slaked']],out:{quicklime:1},eq:'Ca(OH)2 -> CaO + H2O',phen:'白色粉末冒出水氣，變得更乾、更輕。',use:'熟石灰加熱到五百多度會把水吐出來，變回生石灰。加水變熟石灰、加熱變回生石灰——這個反應可以來回走。',note:'所以灰泥砌的爐子，內壁其實一直在失水、吸水之間循環。'},
@@ -468,7 +471,7 @@ const REACTIONS=[
  {id:'ind_neutral',name:'指示劑遇到中性的東西',kind:'chem',at:'table',col:'#8e44ad',inputs:[['indicator','water'],['indicator','brine'],['indicator','salt'],['indicator','ethanol'],['indicator','juice']],out:{},eqx:'紫色 → 紫色（中性）',phen:'紫色的指示劑一點也沒變。',use:'淡水、食鹽水、酒精、糖水都是中性的：不酸也不鹼。指示劑不變色，也是一種結果。',note:''},
  {id:'ind_carb',name:'指示劑檢驗天然鹼、草木灰',kind:'chem',at:'table',col:'#3f8f7a',inputs:[['indicator','natron'],['indicator','ash']],out:{},eqx:'紫色 → 藍綠色（鹼性）',phen:'粉末一溶進去，紫色就變成藍綠色。',use:'碳酸鈉和碳酸鉀是「鹽」，不是鹼；但它們溶在水裡會讓水變成鹼性。所以古人拿它們來洗衣服、做肥皂。',note:''},
  {id:'ind_soap',name:'指示劑檢驗肥皂水',kind:'chem',at:'table',col:'#4fa36a',inputs:[['indicator','soap']],out:{},eqx:'紫色 → 綠色（弱鹼性）',phen:'紫色的指示劑變成綠色。',use:'肥皂是強鹼和油做的，溶在水裡是弱鹼性。用肥皂洗太多次手會乾澀，就是這個原因。',note:''},
- {id:'ind_drink',name:'指示劑檢驗酒和可樂',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','wine'],['indicator','cola']],out:{},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'酒放久了會變成醋，本來就帶一點酸；可樂裡溶著碳酸，也是酸的。很多飲料其實都偏酸。',note:''},
+ {id:'ind_drink',name:'指示劑檢驗酒和可樂',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','wine'],['indicator','grapewine'],['indicator','cola']],out:{},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'酒放久了會變成醋，本來就帶一點酸；可樂裡溶著碳酸，也是酸的。很多飲料其實都偏酸。',note:''},
  {id:'ind_sea',name:'指示劑檢驗海水',kind:'chem',at:'table',col:'#6a5fb0',inputs:[['indicator','seawater']],out:{},eqx:'紫色 → 藍紫色（弱鹼性）',phen:'紫色只偏藍了一點點。',use:'海水是弱鹼性的。空氣中的二氧化碳越來越多，溶進海裡，海水正一點一點變酸，叫做「海洋酸化」，會讓貝殼和珊瑚長不好。',note:''},
  {id:'burn_h2_o2',lab:1,name:'氫氣在氧氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['h2','o2']],out:{water:1},eq:'2H2 + O2 -> 2H2O',phen:'淡藍色的火焰又尖又亮，瓶壁上很快凝滿水珠。',use:'在純氧裡，氫燒得更猛。氫和氧化合只生成水，沒有其他東西，所以氫被看作最乾淨的燃料。',note:'⚠️ 氫和氧事先混好再點火，會猛烈爆炸。'},
  {id:'h2_cl2',lab:1,name:'氫氣在氯氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['h2','cl2']],out:{hcl:1},eq:'H2 + Cl2 -> 2HCl',phen:'氫氣在黃綠色的氯氣裡安靜地燒，火焰是蒼白色的，瓶口冒出白霧。',use:'氫和氯化合成氯化氫，溶在水裡就是鹽酸。現代的鹽酸就是這樣做的：電解食鹽水同時得到氫氣和氯氣，再讓它們燒在一起。',note:'⚠️ 氫氣和氯氣事先混在一起，照到陽光就可能爆炸。'},
@@ -480,14 +483,14 @@ const REACTIONS=[
  {id:'fe_s',lab:1,name:'鐵和硫一起加熱',kind:'chem',at:'heat',T:300,inputs:[['iron','sulfur'],['sponge','sulfur']],out:{},eq:'Fe + S -> FeS',phen:'混合物的一端燒紅以後，紅光自己往另一端蔓延，就算把火移開也不停。冷卻後是一塊黑色、磁鐵吸不起來的東西。',use:'鐵和硫化合成硫化亞鐵。原本鐵會被磁鐵吸、硫是黃色的；化合以後，兩種性質都不見了——這就是化合物和混合物的差別。',note:'這個反應會放熱，一點燃就能自己進行下去。'},
  {id:'cu_s',lab:1,name:'銅和硫一起加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','sulfur']],out:{},eq:'2Cu + S -> Cu2S',phen:'紅色的銅在硫蒸氣裡發出紅光，變成黑色、一敲就碎的東西。',use:'銅和硫化合成硫化亞銅。很多銅礦本來就是銅和硫的化合物，要先在空氣裡燒掉硫，才煉得出銅。',note:''},
  {id:'heat_carbonic',name:'加熱碳酸水',kind:'chem',at:'heat',T:60,pot:1,inputs:[['carbonic']],out:{co2:1,water:1},eq:'H2CO3 -> CO2 + H2O',phen:'還沒煮開，水裡就冒出一大堆氣泡；嚐一口，已經不酸了。',use:'碳酸很不穩定，溫度一高，二氧化碳就跑出來。汽水放在太陽下會沒氣，就是這樣。',note:''},
- {id:'boil_lye',name:'煮乾草木灰水',kind:'phys',at:'heat',T:100,pot:1,defer:['soap_ash'],inputs:[['lye']],out:{ash:1},eqx:'草木灰水 → 碳酸鉀（鉀鹼）+ 水蒸氣',phen:'水越煮越少，鍋底剩下一層灰白色的硬殼。',use:'灰水煮乾留下的，是比草木灰純得多的碳酸鉀。英文的 potash（鉀鹼）就是「鍋子（pot）裡的灰（ash）」；1807 年戴維從它裡面抓出一種新金屬，就取名叫 potassium——鉀。',note:'這份白色的粉末和草木灰的主要成分一樣，可以當草木灰用。'},
+ {id:'boil_lye',name:'煮乾草木灰水',kind:'phys',at:'heat',T:100,pot:1,defer:['soap_ash','tartar_k'],inputs:[['lye']],out:{ash:1},eqx:'草木灰水 → 碳酸鉀（鉀鹼）+ 水蒸氣',phen:'水越煮越少，鍋底剩下一層灰白色的硬殼。',use:'灰水煮乾留下的，是比草木灰純得多的碳酸鉀。英文的 potash（鉀鹼）就是「鍋子（pot）裡的灰（ash）」；1807 年戴維從它裡面抓出一種新金屬，就取名叫 potassium——鉀。',note:'這份白色的粉末和草木灰的主要成分一樣，可以當草木灰用。'},
  {id:'ester',name:'酯化反應',kind:'chem',at:'heat',T:70,pot:1,inputs:[['ethanol','vinegar','h2so4']],out:{},eq:'CH3COOH + C2H5OH -> CH3COOC2H5 + H2O',phen:'燒瓶裡飄出一股甜甜的水果香，液面上浮著一層油狀的液體。',use:'酸和醇反應，生成「酯」和水。硫酸在這裡當催化劑，讓反應快一點。水果和花的香味，很多都是酯。',note:'乙酸乙酯也是去光水、膠水裡常見的溶劑。'},
  {id:'obs_soap_dry',name:'乾的鹼粉和油一起煮',kind:'obs',at:'heat',T:90,pot:1,not:['water','sodawater','lye','koh','naoh'],inputs:[['oil','natron'],['oil','ash']],out:{},eqx:'（少了水，反應起不來）',phen:'油在鍋裡滋滋作響，白色的粉末沉在鍋底，怎麼攪都只是油裡混著粉。',use:'天然鹼和草木灰要先溶在水裡，才會變成鹼性的溶液，去「咬」油脂。加一份淡水再試試。',note:''},
  {id:'tech_tepui',name:'平頂山與天使瀑布',kind:'tech',inputs:[],out:{},eqx:'整片砂岩高原 —(流水切割、侵蝕上億年)→ 四面懸崖的平頂山',phen:'雲頂島的山頂平得像一張桌子，四周是筆直的懸崖，雲就繞在半山腰。一道瀑布從平台邊緣一躍而下，還沒落到海面，就散成了一大片白霧。',use:'平頂山原本是一整片砂岩高原，被雨水和河流一點一點切開，最後只留下一座座四面都是懸崖的「桌山」。山頂和山下隔著幾百公尺的岩壁，動植物各自演化，彷彿另一個世界。瀑布落得太高，水在半空中被風吹散、蒸發，到了底下常常只剩水霧。',note:'南美洲圭亞那高原上的平頂山，當地人叫它 tepui，意思是「神的居所」。天使瀑布從奧揚特普伊山落下約 979 公尺，是世界上落差最大的瀑布。柯南．道爾的小說《失落的世界》，靈感就來自這一帶的平頂山。'},
  {id:'tech_airship',name:'氫氣飛艇',kind:'tech',inputs:[],out:{},eqx:'浮力（氫氣）＋ 推力（電動機）',phen:'電動機一轉，螺旋槳把飛艇推向前方。你轉動舵，它就乖乖轉向。',use:'氫氣是最輕的氣體，密度只有空氣的十四分之一，不用加熱就浮得起來。可是氣球只會隨風飄——想要往哪裡就去哪裡，得加上推力。電池推動電動機，電動機轉動螺旋槳，化學能變成電能，再變成動能。',note:'1783 年查理教授做出第一個氫氣球；1884 年法國的「法蘭西號」用電池和電動機推動，成了第一艘能飛回出發點的飛艇。氫氣遇火會爆炸：1785 年羅齊耶把熱氣球和氫氣球綁在一起，飛到半空起火喪命；1937 年興登堡號飛艇著火後，載人飛行就改用不會燒的氦氣。'},
  {id:'tech_bleach',name:'漂白水為什麼能殺菌',kind:'tech',inputs:[],out:{},eqx:'次氯酸根 → 破壞細菌的細胞',phen:'用稀釋的漂白水把發酵罐、木杓和桌面泡過一遍，再用清水沖乾淨。',use:'漂白水裡的次氯酸根是很強的氧化劑，會破壞細菌的細胞膜和酵素。肥皂是把細菌連同油汙一起帶走，漂白水是直接把細菌殺死，所以效果撐得更久。但它也會傷皮膚，所以拿來消毒器具，不拿來洗手。',note:'自來水廠和游泳池用的，也是含氯的消毒劑。'},
  {id:'distill_soda',name:'蒸餾鹼湖水',kind:'phys',at:'still',T:100,inputs:[['sodawater']],out:{water:1,natron:1},eqx:'鹼湖水 —(蒸餾)→ 淡水 ＋ 天然鹼（碳酸鈉）',phen:'燒瓶裡的湖水沸騰，冷凝管滴下清澈的淡水；燒瓶底留下一層白色的結晶。',use:'水會變成水蒸氣，碳酸鈉不會。蒸氣冷凝回來就是淡水，碳酸鈉留在燒瓶裡——和蒸餾海水得到淡水和食鹽是同一個道理。',note:'這座湖沒有出口，水只能蒸發，鹼就越積越濃。坦尚尼亞火山腳下的納特龍湖就是這樣，「natron」這個字就從那裡來。'},
- {id:'boil_soda',name:'煮乾鹼湖水',kind:'phys',at:'heat',T:100,pot:1,defer:['distill_soda'],inputs:[['sodawater']],out:{natron:1},eqx:'鹼湖水 → 天然鹼 ＋ 水蒸氣',phen:'水越煮越少，鍋底結出一層白色、摸起來滑滑的結晶。',use:'水蒸發掉了，溶在裡面的碳酸鈉留了下來。湖邊那一圈白色的結晶，也是太陽這樣曬出來的。',note:''},
+ {id:'boil_soda',name:'煮乾鹼湖水',kind:'phys',at:'heat',T:100,pot:1,defer:['distill_soda','rochelle'],inputs:[['sodawater']],out:{natron:1},eqx:'鹼湖水 → 天然鹼 ＋ 水蒸氣',phen:'水越煮越少，鍋底結出一層白色、摸起來滑滑的結晶。',use:'水蒸發掉了，溶在裡面的碳酸鈉留了下來。湖邊那一圈白色的結晶，也是太陽這樣曬出來的。',note:''},
  {id:'ind_soda',name:'指示劑檢驗鹼湖水',kind:'chem',at:'table',col:'#3f8f7a',inputs:[['indicator','sodawater']],out:{},eqx:'紫色 → 藍綠色（鹼性）',phen:'紫色的汁液變成了藍綠色。',use:'鹼湖水裡溶著碳酸鈉，是鹼性的。火山灰裡的鈉在水裡慢慢風化成碳酸鈉，湖又沒有出口，鹼就越積越多。',note:''},
  {id:'distill_acidlake',name:'蒸餾酸湖水',kind:'phys',at:'still',T:110,inputs:[['acidlake']],out:{hcl:1,h2so4:1},eqx:'酸湖水 —(蒸餾)→ 鹽酸（先揮發、被冷凝接住）＋ 稀硫酸（留在燒瓶裡）',phen:'加熱沒多久，冷凝管先滴下刺鼻的液體——是鹽酸。燒瓶裡剩下的，是不太會揮發的稀硫酸。',use:'氯化氫很容易揮發，一加熱就跟著水蒸氣跑出來；硫酸幾乎不揮發，留在原地。利用沸點不同，就能把混在一起的兩種酸分開。',note:'這和「食鹽加硫酸蒸餾出鹽酸」是同一個道理：不揮發的酸留下，揮發的酸跑出來。'},
  {id:'boil_acidlake',name:'沒接冷凝管就煮酸湖水',kind:'phys',at:'heat',T:110,pot:1,defer:['distill_acidlake'],inputs:[['acidlake']],out:{h2so4:1},eqx:'酸湖水 → 稀硫酸 ＋（鹽酸散到空氣裡）',phen:'鍋子冒出刺鼻的白霧，嗆得你直咳嗽。剩下的液體比原本更酸、更黏稠。',use:'鹽酸揮發掉了，沒有冷凝管接住；硫酸不揮發，留在鍋子裡。',note:'想要連鹽酸一起留下，得接上冷凝管。'},
@@ -510,8 +513,8 @@ const REACTIONS=[
  {id:'molten_koh',name:'電解熔融的氫氧化鉀',kind:'chem',at:'still',open:1,T:400,V:6,inputs:[['koh_s']],out:{potassium:1,o2:1},eq:'4KOH -> 4K + O2 + 2H2O',phen:'白色的固體熔成一灘透明的液體。接上電極，負極冒出一顆顆銀亮的小珠子，有的一碰到空氣就噗地燒出紫色的火焰。',use:'在水溶液裡，電只會把水拆開，鉀始終留在水裡。把水趕走、讓它自己熔化，電才終於把鉀抓出來。鉀太活潑，碳搶不走它的氧，只有電辦得到。',note:'1807 年，戴維用兩百多片金屬板疊成的大電池，電解熔融的苛性鉀（氫氧化鉀），第一次看見金屬鉀。據說他高興得在實驗室裡跳起舞來。幾天後，他用同樣的方法從苛性鈉得到了鈉。'},
  {id:'molten_naoh',name:'電解熔融的氫氧化鈉',kind:'chem',at:'still',open:1,T:350,V:6,inputs:[['naoh_s']],out:{sodium:1,o2:1},eq:'4NaOH -> 4Na + O2 + 2H2O',phen:'白色的固體熔成透明的液體。接上電極，負極浮出銀亮的小珠子，偶爾竄出黃色的火焰。',use:'和鉀一樣，鈉也只能用電從熔化的化合物裡抓出來。',note:'這個方法後來成了工業製鈉的做法。現在改成電解熔融的食鹽，但那需要 800 °C 以上的爐子。'},
  {id:'alkali_acid',name:'把鈉或鉀丟進酸裡',kind:'chem',at:'table',hot:1,boom:1,inputs:[['sodium','hcl'],['sodium','h2so4'],['sodium','vinegar'],['sodium','acidlake'],['potassium','hcl'],['potassium','h2so4'],['potassium','vinegar'],['potassium','acidlake']],out:{},eq:'2Na + 2HCl -> 2NaCl + H2',phen:'金屬一碰到酸，「砰」一聲炸開！火光一閃，酸液和碎片噴得到處都是，杯子也裂了。',use:'鈉和鉀連水裡的氫都搶得走；酸裡可以搶的氫更多、更容易搶，反應快到一瞬間就放出大量的熱和氫氣，氫氣再被點燃——就成了爆炸。這兩份材料都炸飛了，什麼也沒留下。',note:'⚠️ 現實中絕對不可以這樣做！鈉、鉀碰到水或酸都可能爆炸，噴出的強鹼和酸會灼傷眼睛和皮膚。戴維一生做過許多危險的實驗，1812 年還在一次化學爆炸中傷了眼睛。'},
- {id:'dry_naoh',name:'蒸乾氫氧化鈉溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap'],inputs:[['naoh']],out:{naoh_s:1},eqx:'氫氧化鈉溶液 → 氫氧化鈉（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色、半透明的固體。',use:'和煮海水得到食鹽一樣：水跑掉了，溶在裡面的東西留下來。這就是燒鹼。要讓它熔化，還得燒到三百多度。',note:'固體燒鹼放在空氣裡會吸水變得濕黏，還會吸收二氧化碳變質，要密封保存。'},
- {id:'dry_koh',name:'蒸乾氫氧化鉀溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap'],inputs:[['koh']],out:{koh_s:1},eqx:'氫氧化鉀溶液 → 氫氧化鉀（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色的固體。',use:'水跑掉了，溶在裡面的苛性鉀留下來。要讓它熔化，還得燒到三百多度。',note:'苛性鉀比燒鹼還會吸水，放在空氣裡一下子就變得濕濕黏黏。'},
+ {id:'dry_naoh',name:'蒸乾氫氧化鈉溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap','rochelle'],inputs:[['naoh']],out:{naoh_s:1},eqx:'氫氧化鈉溶液 → 氫氧化鈉（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色、半透明的固體。',use:'和煮海水得到食鹽一樣：水跑掉了，溶在裡面的東西留下來。這就是燒鹼。要讓它熔化，還得燒到三百多度。',note:'固體燒鹼放在空氣裡會吸水變得濕黏，還會吸收二氧化碳變質，要密封保存。'},
+ {id:'dry_koh',name:'蒸乾氫氧化鉀溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap','tartar_k'],inputs:[['koh']],out:{koh_s:1},eqx:'氫氧化鉀溶液 → 氫氧化鉀（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色的固體。',use:'水跑掉了，溶在裡面的苛性鉀留下來。要讓它熔化，還得燒到三百多度。',note:'苛性鉀比燒鹼還會吸水，放在空氣裡一下子就變得濕濕黏黏。'},
  {id:'dissolve_naoh',name:'把燒鹼溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['naoh_s','water']],out:{naoh:1},eqx:'氫氧化鈉（固體）+ 水 → 氫氧化鈉溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
  {id:'dissolve_koh',name:'把苛性鉀溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['koh_s','water']],out:{koh:1},eqx:'氫氧化鉀（固體）+ 水 → 氫氧化鉀溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
  /* ===== 霧裡小島的香氣 ===== */
@@ -527,6 +530,10 @@ const REACTIONS=[
  {id:'grind_black',name:'把木炭磨成粉',kind:'phys',at:'table',inputs:[['charcoal']],out:{pig_black:1},eqx:'木炭 —(研磨)→ 碳黑（顏料）',phen:'黑色的炭塊磨成極細的粉，輕輕一吹就飛起來。',use:'碳不溶於水、也不怕陽光，是最耐久的黑色。把碳黑和膠調在一起，就是墨。',note:'兩千年前的竹簡和帛書，字跡到今天還是黑的，靠的就是碳。'},
  {id:'egypt_blue',name:'燒製埃及藍',kind:'chem',at:'heat',T:850,inputs:[['sand','cuo','caco3'],['sand','cuo','quicklime'],['quartz','cuo','caco3'],['quartz','cuo','quicklime']],out:{pig_blue:1},eq:'CaCO3 + CuO + 4SiO2 -> CaCuSi4O10 + CO2',phen:'石英砂、黑色的氧化銅和石灰石一起燒了很久，冷卻後變成一團鮮豔的藍色。',use:'銅、鈣和二氧化矽在高溫下結合成矽酸銅鈣：一種很穩定、不溶於水的藍色晶體。這是人類第一種用化學反應「做」出來的顏料，古埃及人拿它畫壁畫和雕像。',note:'四千多年前就有了，後來配方失傳。1815 年，戴維分析了龐貝古城出土的藍色顏料，才知道它是銅、鈣和矽組成的。'},
  {id:'tech_paint',name:'顏料和染料',kind:'tech',inputs:[],out:{},eqx:'顏料（不溶的色粉）＋ 黏合劑 → 塗料　｜　染料（溶在水裡）→ 滲進纖維',phen:'顏料拌進灰泥刷上牆，乾了以後顏色牢牢黏在上面；衣服泡進染液，顏色滲進了每一根纖維。',use:'顏料是不溶於水的有色粉末，要靠灰泥、油或膠把它黏在東西表面；染料溶在水裡，能滲進布的纖維。人類最早的顏色，大多來自礦物：赤鐵礦的紅、孔雀石的綠、木炭的黑、石灰的白。植物裡也有顏色，像紫甘藍的花青素，但它會隨酸鹼變色，也比較容易褪。',note:'灰泥裡的熟石灰會吸收二氧化碳變回碳酸鈣，把顏料封在裡面——義大利的濕壁畫就是這樣畫的，幾百年都不褪色。'},
+ /* ===== 葡萄：壓汁、發酵，罐壁才會結出酒石 ===== */
+ {id:'grape_juice',name:'把葡萄壓成汁',kind:'phys',at:'table',inputs:[['grape']],out:{grapejuice:1},eqx:'葡萄 —(壓碎、擠汁)→ 葡萄汁',phen:'葡萄一壓就破，紫紅色的果汁流了出來。',use:'不必加水：葡萄本身就有很多水分和糖。和甘蔗不一樣的是，葡萄汁裡還有大量的酒石酸。',note:''},
+ {id:'ferment_grape',name:'葡萄汁發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['grapejuice']],out:{grapewine:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'放了幾天，紫紅色的汁液不斷冒出小氣泡，聞起來有酒香。',use:'酵母菌把糖分解成酒精和二氧化碳。葡萄皮上那層白粉裡本來就住著酵母菌，所以葡萄汁放著就會自己發酵。',note:'酒精越來越多，酒石酸氫鉀就越溶不下去，慢慢結晶在罐壁上，這就是酒石。甘蔗裡沒有酒石酸，所以甘蔗酒結不出酒石。'},
+ {id:'tartar_k',name:'酒石加鉀的鹼',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','ash','water'],['tartar','lye'],['tartar','koh']],out:{},eqx:'酒石（酒石酸氫鉀）+ 碳酸鉀／氫氧化鉀 → 酒石酸鉀（少了鈉）',phen:'酒石一樣冒著細泡溶掉了。可是放涼以後，杯底只結出一些細碎的小結晶，長不出透明的大晶體。',use:'能把電變成聲音的大晶體是「酒石酸鉀鈉」：裡面同時要有鉀和鈉。鉀已經在酒石裡了，鈉得靠加進去的鹼。草木灰和氫氧化鉀只帶來更多的鉀，做出來的是酒石酸鉀，是另一種鹽。',note:'要帶進鈉，可以用天然鹼、鹼湖水，或氫氧化鈉溶液。'},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -672,7 +679,7 @@ const QUESTS=[
  {id:'q_4',ch:'第五章　遠方',goal:'乘熱氣球飛到雲裡的那座島',hint:'「走到熱氣球旁邊按 E，把柴火放進火盆就能升空。木頭燒得快，木炭耐燒得多。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。燃料燒完，氣球就會往下掉——在海上的話，風把你吹到哪裡，就是哪裡。」',done:V(4),
   after:'雲頂島。\n\n沒有筆記，沒有陶罐，沒有任何人來過的痕跡。\n\n岩壁上嵌著一種鉛灰色的石頭，斷面亮得像鏡子，一塊一塊都是整齊的方塊。'},
  {id:'q_galena',ch:'第五章　遠方',goal:'敲開鉛灰色、亮得像鏡子的石頭',hint:'「要鐵製工具。」',done:s=>!!s.known.galena},
- {id:'q_rochelle',ch:'第五章　遠方',goal:'做出一顆能把電變成聲音的晶體',hint:'「釀過幾次酒以後，罐子內壁會結一層粗粗的東西，別刷掉。它是酸性的——拿湖邊那種白色的鹼去溶它，慢慢加熱，再放涼。」',rx:['rochelle'],done:F('rochelle')},
+ {id:'q_rochelle',ch:'第五章　遠方',goal:'做出一顆能把電變成聲音的晶體',hint:'「綠岩島的林子邊長著野葡萄。釀過幾次葡萄酒以後，罐子內壁會結一層粗粗的東西，別刷掉。它是酸性的——拿湖邊那種白色的鹼去溶它，慢慢加熱，再放涼。」',rx:['rochelle'],done:F('rochelle')},
  {id:'q_radio',ch:'終章　回音',goal:'造一台無線電發報機，把訊號送出去',hint:'「銅 6（線圈和天線）、方鉛礦 1、酒石晶體 1、玻璃 1、木頭 4。要有發電機才推得動。蓋在哪裡都可以——波不需要路。」',done:A('radio'),
   after:'你搖動發電機，按下電鍵。\n\n答答答。　答——答——答——。　答答答。\n\n一次，兩次，一百次。耳機裡只有沙沙的雜音。\n\n然後，在某一次停頓裡——\n\n答。答答。答。\n\n不是你發的。\n\n有人聽見了。\n\n<b>——全劇終——</b>\n\n從一堆營火，到一道橫越大海的電波。你走過的每一步，都是人類真的走過的路。'},
  {id:'q_free',ch:'自由探索',goal:'把知識圖鑑補齊',hint:'「氧氣能讓什麼燒得更旺？酸和鹼碰在一起呢？甘蔗汁放著會怎樣？」',done:s=>false},
@@ -878,19 +885,21 @@ function deliver(s,st){const def=BMAP[st.type],added={},missing={};
  return{added,missing,done};}
 /* ---------- 農田：成長速度由「最缺的那一樣」決定（最小因子定律） ---------- */
 const SOIL_PH=[5.2,6.4,4.6,5.8],clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* 作物：葡萄要結很多果實，特別需要鉀；也喜歡接近中性的土 */
+const CROP={1:{item:'grain',n:'穀物',ph:6.5,K:.7,spd:80,sow:'把穀粒埋進土裡。'},2:{item:'grape',n:'葡萄',ph:7,K:.9,spd:100,sow:'把一串葡萄埋進土裡，旁邊插一根木棍讓藤往上爬。果實裡的種子會發芽。'}};
 function farmInit(isl){return{crop:0,g:0,ph:SOIL_PH[isl]!=null?SOIL_PH[isl]:5.5,N:.42,P:.36,K:.36,w:.5,seen:null,qs:0,gs:0,last:0};}
-function farmFactors(fm){return{ph:clamp(1-Math.abs(fm.ph-6.5)/2.2,.1,1),N:clamp(fm.N/.7,.15,1),P:clamp(fm.P/.7,.15,1),K:clamp(fm.K/.7,.15,1),w:clamp(fm.w/.5,.2,1)};}
+function farmFactors(fm){const C=CROP[fm.crop]||CROP[1];return{ph:clamp(1-Math.abs(fm.ph-C.ph)/2.2,.1,1),N:clamp(fm.N/.7,.15,1),P:clamp(fm.P/.7,.15,1),K:clamp(fm.K/C.K,.15,1),w:clamp(fm.w/.5,.2,1)};}
 const FARM_LABEL={ph:'土壤酸鹼',N:'氮',P:'磷',K:'鉀',w:'水'};
 function farmRate(fm){const f=farmFactors(fm);return Math.min(f.ph,f.N,f.P,f.K,f.w);}
 function farmLimit(fm){const f=farmFactors(fm);return Object.keys(f).sort((a,b)=>f[a]-f[b])[0];}
-function farmTick(fm,dt){fm.w=Math.max(0,fm.w-dt/220);if(fm.crop&&fm.g<1){const r=farmRate(fm),dg=Math.min(1-fm.g,dt*r/80);fm.g+=dg;fm.qs+=r*dg;fm.gs+=dg;['N','P','K'].forEach(k=>fm[k]=Math.max(0,fm[k]-dg*.2));}}
+function farmTick(fm,dt){fm.w=Math.max(0,fm.w-dt/220);if(fm.crop&&fm.g<1){const r=farmRate(fm),dg=Math.min(1-fm.g,dt*r/((CROP[fm.crop]||CROP[1]).spd));fm.g+=dg;fm.qs+=r*dg;fm.gs+=dg;['N','P','K'].forEach(k=>fm[k]=Math.max(0,fm[k]-dg*.2));}}
 const farmStage=fm=>!fm.crop?0:fm.g<.25?1:fm.g<.6?2:fm.g<1?3:4;
 const phWord=ph=>ph<5.5?'紫紅色——酸性':ph<6?'偏紅的紫色——微酸':ph<=7?'紫色——接近中性':ph<=8?'藍綠色——微鹼':'綠色——鹼性';
-const FARM_ACT={sow:{item:'grain',n:'播種'},water:{item:'water',n:'澆水'},test:{item:'indicator',n:'測土'},lime:{item:'slaked',n:'撒熟石灰'},ash:{item:'ash',n:'撒草木灰'},compost:{item:'compost',n:'施堆肥'},guano:{item:'guano',n:'撒鳥糞石'}};
+const FARM_ACT={sow:{item:'grain',n:'種穀物'},sowgrape:{item:'grape',n:'種葡萄'},water:{item:'water',n:'澆水'},test:{item:'indicator',n:'測土'},lime:{item:'slaked',n:'撒熟石灰'},ash:{item:'ash',n:'撒草木灰'},compost:{item:'compost',n:'施堆肥'},guano:{item:'guano',n:'撒鳥糞石'}};
 function farmAct(s,fm,act){const A=FARM_ACT[act],found=[];if(!A)return{msg:''};if(!(s.inv[A.item]>0))return{msg:'沒有'+ITEMS[A.item].n+'。'};
- if(act==='sow'&&fm.crop)return{msg:'田裡已經種東西了。'};
+ if((act==='sow'||act==='sowgrape')&&fm.crop)return{msg:'田裡已經種東西了。'};
  s.inv[A.item]--;let msg='';const mark=id=>{if(!s.found[id]){s.found[id]=true;found.push(id);}};
- if(act==='sow'){fm.crop=1;fm.g=0;fm.qs=fm.gs=0;msg='把穀粒埋進土裡。';}
+ if(act==='sow'||act==='sowgrape'){fm.crop=act==='sowgrape'?2:1;fm.g=0;fm.qs=fm.gs=0;msg=CROP[fm.crop].sow;}
  if(act==='water'){fm.w=Math.min(1,fm.w+.5);msg='澆了水。';}
  if(act==='test'){fm.seen=fm.ph;msg='土壤的顏色：'+phWord(fm.ph)+'（pH 約 '+fm.ph.toFixed(1)+'）。';mark('farm_ph');}
  if(act==='lime'){if(fm.ph<6)mark('farm_lime');fm.ph=Math.min(9.5,fm.ph+.8);msg='撒了熟石灰。土壤變了多少？再測一次才知道。';}
@@ -898,7 +907,7 @@ function farmAct(s,fm,act){const A=FARM_ACT[act],found=[];if(!A)return{msg:''};i
  if(act==='compost'){fm.N=Math.min(1,fm.N+.45);fm.P=Math.min(1,fm.P+.06);fm.K=Math.min(1,fm.K+.06);msg='施了堆肥（主要補氮）。';mark('farm_npk');}
  if(act==='guano'){fm.P=Math.min(1,fm.P+.45);fm.N=Math.min(1,fm.N+.15);msg='撒了鳥糞石（主要補磷）。';mark('farm_npk');}
  return{msg,found};}
-function farmHarvest(s,fm){if(!fm.crop||fm.g<1)return null;const q=fm.gs?fm.qs/fm.gs:0,n=2+Math.round(q*5),lim=farmLimit(fm);s.inv.grain=(s.inv.grain||0)+n;fm.crop=0;fm.g=0;const isNew=!s.found.farm_min;s.found.farm_min=true;return{n,q,lim,isNew};}
+function farmHarvest(s,fm){if(!fm.crop||fm.g<1)return null;const C=CROP[fm.crop]||CROP[1],q=fm.gs?fm.qs/fm.gs:0,n=2+Math.round(q*(fm.crop===2?4:5)),lim=farmLimit(fm),item=C.item;s.inv[item]=(s.inv[item]||0)+n;fm.crop=0;fm.g=0;const isNew=!s.found.farm_min;s.found.farm_min=true;return{n,q,lim,isNew,item};}
 /* 房子加蓋一層 */
 function addFloor(s,st){const def=BMAP[st.type];if(!def.house||!st.done||(st.floors||1)>=def.maxF)return null;st.fl=st.fl||{};const added={},missing={};
  for(const k in def.floor){const lack=def.floor[k]-(st.fl[k]||0),n=Math.min(lack,s.inv[k]||0);if(n>0){s.inv[k]-=n;st.fl[k]=(st.fl[k]||0)+n;added[k]=n;}if(lack-n>0)missing[k]=lack-n;}
@@ -921,7 +930,7 @@ function mixReact(s,ids,at,indoor){
  if(r.clean&&!(s.clean>0)){r=RMAP.obs_dirty;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}   /* 沒洗手就發酵：被雜菌污染 */
  if(r.clean)s.clean--;
  if(r.kind!=='obs'){const keep=r.back?ids.find(i=>i!=='water'):null;ids.forEach(id=>{if(id!==keep)s.inv[id]-=(r.n&&r.n[id])||1;});for(const o in r.out)s.inv[o]=(s.inv[o]||0)+r.out[o];
-  if(r.id==='ferment'){s.known._nferm=(s.known._nferm||0)+1;if(s.known._nferm%2===0){s.inv.tartar=(s.inv.tartar||0)+1;const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,bonus:'tartar'};}}}   /* 每釀兩次酒，罐壁結出一份酒石 */
+  if(r.id==='ferment_grape'){s.known._ngrape=(s.known._ngrape||0)+1;if(s.known._ngrape%2===0){s.inv.tartar=(s.inv.tartar||0)+1;const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,bonus:'tartar'};}}}   /* 每釀兩次酒，罐壁結出一份酒石 */
  const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew};}
 /* 火 */
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
@@ -997,7 +1006,7 @@ const ISLANDS=[
  {name:'香草島',cx:291,cy:104,r:10,rank:2,rock:2,lake:[0,0,0],ring:0,islet:[['vanilla',12,[FOREST,GRASS]],['tree',14,[FOREST]],['coconut',5,[SAND]],['vine',4,[FOREST,GRASS]]],nodes:[]}
 ];
 /* hp：要敲幾下；rock：外觀是岩石，敲開才知道成分；tool：需要的工具；regrow：幾秒後長回來（沒有這一項＝採完就沒了） */
-const NODES={tree:{item:'wood',n:4,hp:3,label:'樹',regrow:80},vine:{item:'fiber',n:2,label:'藤蔓',regrow:60},cabbage:{item:'cabbage',regrow:60},coconut:{item:'coconut',label:'椰子樹',regrow:60},sugarcane:{item:'sugarcane',regrow:60},camphor:{item:'camphorwood',n:2,hp:3,label:'樟樹',regrow:90},lemongrass:{item:'citronella',n:2,label:'香茅草',regrow:60},vanilla:{item:'vanilla',label:'香草蘭',regrow:90},
+const NODES={tree:{item:'wood',n:4,hp:3,label:'樹',regrow:80},vine:{item:'fiber',n:2,label:'藤蔓',regrow:60},cabbage:{item:'cabbage',regrow:60},coconut:{item:'coconut',label:'椰子樹',regrow:60},sugarcane:{item:'sugarcane',regrow:60},grape:{item:'grape',n:2,label:'野葡萄',regrow:70},camphor:{item:'camphorwood',n:2,hp:3,label:'樟樹',regrow:90},lemongrass:{item:'citronella',n:2,label:'香茅草',regrow:60},vanilla:{item:'vanilla',label:'香草蘭',regrow:90},
  shell:{item:'caco3',n:2,label:'貝殼'},sandpile:{item:'sand',n:3,label:'沙堆'},clay:{item:'clay',n:8},natron:{item:'natron',n:3,label:'白色結晶',regrow:120},sulfur:{item:'sulfur',n:2,label:'硫磺結晶',regrow:120},
  quartz:{item:'quartz',rock:1,hp:3,n:4,vein:'白色透明'},limestone:{item:'caco3',rock:1,hp:3,n:4,vein:'灰白色',kn:'石灰石'},malachite:{item:'malachite',rock:1,hp:3,n:4,vein:'翠綠色'},cassiterite:{item:'cassiterite',rock:1,hp:3,n:4,vein:'深褐色'},
  wildgrain:{item:'grain',n:2,label:'野生穀物',regrow:70},guano:{item:'guano',n:3,label:'鳥糞石'},
@@ -1074,6 +1083,8 @@ function genWorld(seed){
   c.slice(0,6).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'sulfur',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
  /* 霧裡的小島：資源最後才加 */
  ISLANDS.forEach((I,ii)=>{if(!I.islet)return;I.islet.forEach(([type,n,ok])=>pickTiles(ii,n,ok).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type,x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});}));});
+ /* 綠岩島林子邊的野葡萄：一樣放在最後才加 */
+ pickTiles(1,10,[GRASS]).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'grape',x:p[0],y:p[1],isl:1,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});
  /* 起點旁邊擱淺的破船：找一格離起點 3～6 格、沒有東西的沙地（不動用亂數，其他東西的位置都不變） */
  let wreck=null,wb=1e9;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SAND||owner[y*W+x]!==0||used.has(x+','+y))continue;const d=Math.hypot(x-I0.cx,y-sy);if(d<3.5||d>8)continue;
    let near=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(used.has((x+dx)+','+(y+dy)))near++;
@@ -1366,6 +1377,15 @@ const PART={
   {g:gRot(new G.ConeGeometry(.07,1.2,4),.35,0,.3,-.05,.58,.13),c:'#a8cc62'},
   {g:geo(new G.CylinderGeometry(.2,.24,.14,6),.07),c:'#7a9a44'}
  ],
+ grape:[
+  {g:geo(new G.CylinderGeometry(.04,.05,1.1,5),.55),c:'#7a5a3a'},
+  {g:gRot(new G.CylinderGeometry(.03,.03,.7,5),0,0,Math.PI/2,0,1.02,0),c:'#7a5a3a'},
+  {g:gRot(new G.IcosahedronGeometry(.36,0),0,0,0,.05,.95,0).scale(1.25,.7,1),c:'#4f9a3f'},
+  {g:gRot(new G.IcosahedronGeometry(.28,0),0,0,0,-.22,.7,.1),c:'#5aa84a'},
+  {g:gRot(new G.SphereGeometry(.12,6,5),0,0,0,.2,.72,.16).scale(1,1.35,1),c:'#4a1f5a',sh:60},
+  {g:gRot(new G.SphereGeometry(.1,6,5),0,0,0,-.08,.6,.2).scale(1,1.35,1),c:'#5a2a6a',sh:60},
+  {g:gRot(new G.SphereGeometry(.11,6,5),0,0,0,.3,.55,-.08).scale(1,1.35,1),c:'#4a1f5a',sh:60}
+ ],
  vanilla:[
   {g:geo(new G.CylinderGeometry(.06,.08,1.4,6),.7),c:'#7a5a3a'},
   {g:gRot(new G.TorusGeometry(.13,.035,5,10),1.4,0,0,0,.4,0),c:'#3f8a3e'},
@@ -1485,12 +1505,12 @@ function houseModel(type,fl,pt){const g=new G.Group(),hut=type==='hut',hi=type==
  else{const r=mk(new G.ConeGeometry(w/1.414+.28,hut?.78:.66,4),RF,0,top+(hut?.39:.33),0);r.rotation.y=Math.PI/4;r.scale.z=dp/w;g.add(r);
   if(type==='brickhouse'||type==='cabin')g.add(mk(new G.BoxGeometry(.22,.52,.22),type==='brickhouse'?'#8a4a3a':'#77736b',.45,top+.42,-.2));}
  return g;}
-function fieldModel(stage){const g=new G.Group();g.add(mk(new G.BoxGeometry(1.9,.1,1.5),'#5f4126',0,.05,0));[-.5,0,.5].forEach(z=>g.add(mk(new G.BoxGeometry(1.8,.08,.26),'#7a5634',0,.12,z)));
+function fieldModel(stage,crop){const g=new G.Group();g.add(mk(new G.BoxGeometry(1.9,.1,1.5),'#5f4126',0,.05,0));[-.5,0,.5].forEach(z=>g.add(mk(new G.BoxGeometry(1.8,.08,.26),'#7a5634',0,.12,z)));
  [[-.98,0,.06,1.6],[.98,0,.06,1.6],[0,-.76,1.96,.06],[0,.76,1.96,.06]].forEach(q=>g.add(mk(new G.BoxGeometry(q[2],.26,q[3]),'#9a6b3c',q[0],.14,q[1])));
- if(stage>0){const h=[0,.14,.34,.6,.7][stage],col=stage===4?'#d9b84a':stage===1?'#8fd06a':'#4f9a3f';for(let z=-1;z<=1;z++)for(let x=-3;x<=3;x++){g.add(mk(new G.ConeGeometry(.07+stage*.012,h,5),col,x*.25,.16+h/2,z*.5));if(stage===4)g.add(mk(new G.SphereGeometry(.06,5,4),'#efd36a',x*.25,.2+h,z*.5));}}
+ if(stage>0){const h=[0,.14,.34,.6,.7][stage],col=crop===2?(stage===1?'#8fd06a':'#4f8a3a'):stage===4?'#d9b84a':stage===1?'#8fd06a':'#4f9a3f';for(let z=-1;z<=1;z++)for(let x=-3;x<=3;x++){g.add(mk(new G.ConeGeometry(.07+stage*.012,h,5),col,x*.25,.16+h/2,z*.5));if(stage===4)g.add(mk(new G.SphereGeometry(crop===2?.08:.06,5,4),crop===2?'#4a1f5a':'#efd36a',x*.25,crop===2?.12+h*.6:.2+h,z*.5));}}
  return g;}
-function syncStation(st){let g=stObj.get(st);const hd=BMAP[st.type].house,fd=st.type==='field'&&st.done,fl=fd?10+farmStage(st.farm||(st.farm=farmInit(st.isl))):(st.floors||1);const pk=JSON.stringify(st.paint||0);if(g&&(hd||st.type==='field')&&(g.fl!==fl||(hd&&g.pk!==pk))){scene.remove(g);g=null;}
- if(!g){g=hd?houseModel(st.type,fl,st.paint):st.type==='field'?fieldModel(fd?fl-10:0):stationModel(st.type);g.fl=fl;g.pk=pk;g.position.set(st.x,hAt(st.x,st.y),st.y);scene.add(g);stObj.set(st,g);}
+function syncStation(st){let g=stObj.get(st);const hd=BMAP[st.type].house,fd=st.type==='field'&&st.done,fl=fd?10+farmStage(st.farm||(st.farm=farmInit(st.isl)))+(st.farm.crop===2?5:0):(st.floors||1);const pk=JSON.stringify(st.paint||0);if(g&&(hd||st.type==='field')&&(g.fl!==fl||(hd&&g.pk!==pk))){scene.remove(g);g=null;}
+ if(!g){g=hd?houseModel(st.type,fl,st.paint):st.type==='field'?fieldModel(fd?(fl-10)%5:0,fd&&fl>=15?2:1):stationModel(st.type);g.fl=fl;g.pk=pk;g.position.set(st.x,hAt(st.x,st.y),st.y);scene.add(g);stObj.set(st,g);}
  const p=st.done?1:buildProgress(st);g.scale.set(1.3,1.3*(.12+.88*p),1.3);if(g.bar){g.bar.visible=!!st.bar;g.bar.material.color.set(st.mag?'#b33a3a':'#8a8f96');}if(g.flame)g.flame.visible=st.done&&!!S.abil.fire;}
 function farmCatchUp(){for(const st of S.st)if(st.type==='field'&&st.done){if(!st.farm)st.farm=farmInit(st.isl);const el=st.farm.last?Math.min(300,(Date.now()-st.farm.last)/1000):0;for(let k=0;k<el;k+=2)farmTick(st.farm,2);st.farm.last=Date.now();}}
 {const g=boatModel(3);g.scale.setScalar(1.6);g.rotation.set(.12,.9,.42);const wx=world.wreck.x+.5,wy=world.wreck.y+.5;g.position.set(wx,hAt(wx,wy)-.18,wy);
@@ -1499,7 +1519,7 @@ const TOWER={type:'tower',x:world.tower.x+.5,y:world.tower.y+.5,get have(){retur
 const WRECK={type:'wreck',x:world.wreck.x+.5,y:world.wreck.y+.5,done:true};
 const allStations=()=>S.st.concat([TOWER,WRECK]);
 /* --- 擋路：樹、石頭、設施都不能穿過去 --- */
-const BLOCK={coal:.5,tree:.36,camphor:.4,vanilla:.18,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
+const BLOCK={coal:.5,tree:.36,grape:.2,camphor:.4,vanilla:.18,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
 const SRAD={wheel:1.1,rod:.5,balloon:.9,airship:1.1,radio:.8,wreck:1.5,field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
 const nodeGrid=new Map();nodes.forEach(n=>nodeGrid.set(n.y*W+n.x,n));
 function bumpAt(nx,ny){const t=now(),tx=Math.floor(nx),ty=Math.floor(ny);   /* 只擋「越走越近」，所以萬一卡在裡面也走得出來 */
@@ -2065,6 +2085,7 @@ function drawItem(c,id,x,y,r){c.save();c.translate(x,y);c.scale(r/11,r/11);c.lin
   case 'coconut':blob(0,0,11,'#7a5a3a','#3f2d1a');[[-3,-4],[3,-4],[0,1]].forEach(p=>blob(p[0],p[1],1.6,'#2a1d10'));line([[-8,5],[-4,8]],'#a8845a');line([[5,6],[8,3]],'#a8845a');break;
   case 'camphorwood':[[-6,3,-.5,'#c9a46a'],[4,-3,.35,'#d8b77e'],[2,6,-.15,'#b98f55']].forEach(q=>{c.save();c.translate(q[0],q[1]);c.rotate(q[2]);c.fillStyle=q[3];c.fillRect(-8,-3,16,6);c.strokeStyle='#6e4f2a';c.strokeRect(-8,-3,16,6);line([[-6,-.5],[5,-.5]],'#9a7442');c.restore();});break;
   case 'citronella':[[-8,-11,'#9cc45a'],[-3,-13,'#b5d36a'],[2,-12,'#88b24a'],[7,-10,'#a8cc62'],[10,-6,'#c2dc7a'],[-11,-5,'#88b24a']].forEach((q,i)=>{c.beginPath();c.moveTo(-1+i*.4,11);c.quadraticCurveTo(q[0]*.4,0,q[0],q[1]);c.strokeStyle=q[2];c.lineWidth=2.6;c.stroke();});c.lineWidth=1;poly([[-4,11],[4,11],[3,7],[-3,7]],'#7a9a44','#4a6a24');break;
+  case 'grape':line([[0,-12],[1,-8]],'#6b4a26',1.6);poly([[1,-9],[9,-12],[11,-6],[5,-5]],'#5aa84a','#2f6a2a');[[-3,-5],[2,-5],[-5,0],[0,0],[5,0],[-3,5],[2,5],[0,10]].forEach(p=>blob(p[0],p[1],3.4,'#5a2a6a','#2a0f33'));[[-4,-6],[1,-1],[-2,4]].forEach(p=>blob(p[0],p[1],1,'rgba(255,255,255,.55)'));break;
   case 'vanilla':[[-6,-.5,'#3a2a18'],[0,.2,'#4a3420'],[6,.6,'#2e2012']].forEach(q=>{c.save();c.translate(q[0],0);c.rotate(q[1]);c.beginPath();c.moveTo(0,-12);c.quadraticCurveTo(3,0,0,12);c.quadraticCurveTo(-2.4,0,0,-12);c.fillStyle=q[2];c.fill();c.strokeStyle='#120c06';c.stroke();line([[.2,-9],[.8,8]],'rgba(255,240,200,.25)');c.restore();});break;
   case 'camphor':poly([[-11,8],[-8,-3],[-2,-5],[0,8]],'rgba(250,250,246,.95)','#a8b2b8');poly([[-2,9],[1,-10],[7,-8],[6,9]],'rgba(255,255,255,.97)','#a8b2b8');poly([[5,9],[8,-1],[12,1],[11,9]],'rgba(240,244,246,.95)','#a8b2b8');line([[2,-6],[3,5]],'#fff',1.5);break;
   case 'pig_red':pile('#a3402c','#d9765e');break;case 'pig_yellow':pile('#c99a32','#ead07a');break;case 'pig_green':pile('#2f9a6a','#7fd2a8');break;case 'pig_blue':pile('#2f6fb8','#8fbff0');break;case 'pig_black':pile('#2c2b2a','#6a6866');break;
@@ -2315,21 +2336,25 @@ function drawHome(){const cvs=$('hc');if(!cvs||!homeSt)return;const c=cvs.getCon
 let farmT=0,farmSt=null,farmMsg='',farmEnt=null;
 function openFarm(st){farmSt=st;farmMsg='';farmEnt=null;panel='farm';openModal(head('🌾 農田')+`<canvas class="scene" id="fc" width="560" height="250"></canvas><div id="fctl"></div>`);farmCtl();}
 function farmCtl(){if(!$('fctl'))return;const fm=farmSt.farm,ripe=fm.crop&&fm.g>=1;
- const b=(act,ico)=>{const A=FARM_ACT[act],n=S.inv[A.item]||0;return `<button class="cond" data-farm="${act}" ${n>0&&!(act==='sow'&&fm.crop)?'':'disabled'}>${ico} ${A.n}<small style="color:#8a8470">　${ITEMS[A.item].n} ×${n}</small></button>`;};
+ const b=(act,ico)=>{const A=FARM_ACT[act],n=S.inv[A.item]||0;return `<button class="cond" data-farm="${act}" ${n>0&&!((act==='sow'||act==='sowgrape')&&fm.crop)?'':'disabled'}>${ico} ${A.n}<small style="color:#8a8470">　${ITEMS[A.item].n} ×${n}</small></button>`;};
  $('fctl').innerHTML=`<div class="log">${farmMsg||(fm.crop?'作物正在長。成長的快慢，由木桶最短的那塊板子決定。':'田是空的。先播種。')}</div>
- <div class="row">${b('sow','🌱')}${b('water','💧')}${b('test','🧪')}${ripe?'<button class="btn" data-farm="harvest">🌾 收成</button>':''}</div>
+ <div class="row">${b('sow','🌱')}${b('sowgrape','🍇')}${b('water','💧')}${b('test','🧪')}${ripe?'<button class="btn" data-farm="harvest">🌾 收成</button>':''}</div>
  <div class="row">${b('lime','⚪')}${b('ash','🔘')}${b('compost','🟤')}${b('guano','🪨')}</div>
  <div class="muted">上次測土：${fm.seen==null?'還沒測過。用紫甘藍指示劑測一次，才知道土壤是酸還是鹼。':phWord(fm.seen)+'（pH 約 '+fm.seen.toFixed(1)+'）。撒過東西以後要重測才準。'}</div>
  ${farmEnt?`<div class="result new"><b>✨ 新發現！已記入知識圖鑑</b><br>${entryHTML(farmEnt)}</div>`:''}`;}
 function farmDo(act){const fm=farmSt.farm;
- if(act==='harvest'){const r=farmHarvest(S,fm);if(!r)return;SFX.done();farmMsg=`收成了 ${r.n} 份穀物。`+(r.q>.85?'這塊田照顧得很好！':'這一季長得最慢的原因是：'+FARM_LABEL[r.lim]+'不夠理想。');if(r.isNew){farmEnt=RMAP.farm_min;SFX.discover();}syncStation(farmSt);hud();save();return farmCtl();}
+ if(act==='harvest'){const r=farmHarvest(S,fm);if(!r)return;SFX.done();farmMsg=`收成了 ${r.n} 份${ITEMS[r.item].n}。`+(r.q>.85?'這塊田照顧得很好！':'這一季長得最慢的原因是：'+FARM_LABEL[r.lim]+'不夠理想。');if(r.isNew){farmEnt=RMAP.farm_min;SFX.discover();}syncStation(farmSt);hud();save();return farmCtl();}
  const r=farmAct(S,fm,act);farmMsg=r.msg;if(r.found&&r.found.length){farmEnt=RMAP[r.found[0]];SFX.discover();}else if(r.found)act==='water'||act==='test'?SFX.water():SFX.dig();
  syncStation(farmSt);hud();save();farmCtl();}
 function drawFarm(t){const cvs=$('fc');if(!cvs||!farmSt)return;const c=cvs.getContext('2d'),fm=farmSt.farm,f=farmFactors(fm);c.clearRect(0,0,560,250);
  const sky=c.createLinearGradient(0,0,0,250);sky.addColorStop(0,'#bfe3f5');sky.addColorStop(1,'#e9f5e0');c.fillStyle=sky;c.fillRect(0,0,560,250);
  /* 田 */
  const wet=fm.w;c.fillStyle=`rgb(${Math.round(122-wet*45)},${Math.round(86-wet*32)},${Math.round(52-wet*20)})`;c.fillRect(0,170,330,80);c.fillStyle='rgba(0,0,0,.12)';for(let i=0;i<8;i++)c.fillRect(0,178+i*10,330,3);
- if(fm.crop){const g=fm.g,ripe=g>=1;for(let i=0;i<9;i++){const x=22+i*36,h=8+g*95,sway=Math.sin(t/700+i)*g*5;c.strokeStyle=ripe?'#b99a3a':'#3f8a3a';c.lineWidth=3;c.beginPath();c.moveTo(x,176);c.quadraticCurveTo(x+sway*.4,176-h*.5,x+sway,176-h);c.stroke();
+ if(fm.crop===2){const g=fm.g,ripe=g>=1;for(let i=0;i<6;i++){const x=34+i*52,h=10+g*100;c.fillStyle='#7a5a3a';c.fillRect(x-2,176-112,4,112);c.strokeStyle='#4f7a32';c.lineWidth=3;c.beginPath();c.moveTo(x,176);for(let k=1;k<=6;k++){const yy=176-h*k/6;c.lineTo(x+(k%2?7:-7),yy);}c.stroke();
+   if(g>.15)for(let k=1;k<=4;k++){const yy=176-h*k/4.5;c.beginPath();c.ellipse(x+(k%2?11:-11),yy,9*Math.min(1,g*1.5),6*Math.min(1,g*1.5),k%2?.4:-.4,0,7);c.fillStyle='#5aa84a';c.fill();}
+   if(g>.6){const eg=Math.min(1,(g-.6)/.4);[[8,.45],[-9,.7]].forEach(([dx,q])=>{for(let k=0;k<7;k++){c.beginPath();c.arc(x+dx+((k%3)-1)*4*eg,176-h*q+Math.floor(k/3)*4.5*eg,3*eg,0,7);c.fillStyle=ripe?'#4a1f5a':'#8fbf5a';c.fill();}});}}
+  c.fillStyle='#2b2a26';c.font='bold 14px sans-serif';c.textAlign='left';c.fillText((ripe?'葡萄成熟了，可以收成':'葡萄 成長 '+Math.round(g*100)+'%'),12,24);}
+ else if(fm.crop){const g=fm.g,ripe=g>=1;for(let i=0;i<9;i++){const x=22+i*36,h=8+g*95,sway=Math.sin(t/700+i)*g*5;c.strokeStyle=ripe?'#b99a3a':'#3f8a3a';c.lineWidth=3;c.beginPath();c.moveTo(x,176);c.quadraticCurveTo(x+sway*.4,176-h*.5,x+sway,176-h);c.stroke();
    if(g>.2){c.lineWidth=2;[.35,.6].forEach((q,k)=>{c.beginPath();c.moveTo(x+sway*q,176-h*q);c.quadraticCurveTo(x+(k?-14:14)*g,176-h*q-6,x+(k?-20:20)*g,176-h*q+4*g);c.stroke();});}
    if(g>.6){const eg=Math.min(1,(g-.6)/.4);for(let k=0;k<5;k++){c.beginPath();c.ellipse(x+sway+(k%2?4:-4)*eg,176-h-k*5*eg,4*eg,2.4*eg,k%2?.6:-.6,0,7);c.fillStyle=ripe?'#e3c355':'#a8c85a';c.fill();}}}
   c.fillStyle='#2b2a26';c.font='bold 14px sans-serif';c.textAlign='left';c.fillText(ripe?'成熟了，可以收成':'成長 '+Math.round(g*100)+'%',12,24);}
@@ -2346,7 +2371,7 @@ let mix={at:'table',sel:[],res:null,t0:0,shown:[]};
 function openMix(at,indoor){mix={at,indoor:!!indoor,sel:[],res:null,t0:0,shown:[]};panel='mix';renderMix();}
 function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=have(),cell=mix.at==='cell';let res='';const R=mix.res;
  if(R){if(R.err)res=`<div class="result fail">${R.err}</div>`;else if(R.none)res=`<div class="result fail">沒有觀察到明顯的變化。換個組合試試？${R.lost?`<br><b>💨 ${R.lost.map(k=>ITEMS[k].n).join('和')}混在一起，已經分不開，浪費掉了。</b>`:''}<div class="muted">（不是每種組合都看得出變化；看不出來，不代表現實中一定沒有反應。）</div></div>`;
-  else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
+  else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 釀葡萄酒的罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
  const keepScroll=$('modal').scrollTop;
  openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
  ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次食物實驗）':'還沒洗——發酵前先在屋裡洗手'}</div>`:''}
@@ -2426,7 +2451,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.34',VDATE='2026-11-18';
+const VERSION='2.35',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
