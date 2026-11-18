@@ -215,6 +215,8 @@ const ITEMS={
  sodium:{n:'鈉',f:'Na',c:'#d9dde0',d:'銀白色的軟金屬，和鉀是同一族。碰到水會劇烈反應。'},
  znso4:{n:'硫酸鋅溶液',f:'ZnSO4',c:'#e8eef2',d:'無色溶液。'},
  brine:{n:'食鹽水',f:'NaCl',c:'#cfe6f5',d:'食鹽溶於水形成的溶液，可以導電。'},
+ naoh_s:{n:'氫氧化鈉（固體）',f:'NaOH',c:'#f4f2f7',d:'白色、半透明的固體，俗稱燒鹼、苛性鈉。會吸收空氣中的水氣變得濕黏，溶進水裡會大量放熱。熔點 318 °C。'},
+ koh_s:{n:'氫氧化鉀（固體）',f:'KOH',c:'#f1eef7',d:'白色的固體，俗稱苛性鉀。比燒鹼更會吸水，溶進水裡會大量放熱。熔點約 360 °C。'},
  naoh:{n:'氫氧化鈉溶液',f:'NaOH',c:'#e4dff0',d:'強鹼，有腐蝕性。'},
  h2:{n:'氫氣',f:'H2',c:'#f2d5d5',d:'最輕的氣體，可燃。'},
  o2:{n:'氧氣',f:'O2',c:'#d5e6f2',d:'助燃的氣體。'},
@@ -229,11 +231,11 @@ const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','grain','flour
 /* 背包的分類 */
 const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','water','seawater']],
  ['礦物',['caco3','sand','quartz','natron','sulfur','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
- ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3']],['氣體',['co2','h2','o2','cl2','so2']]];
+ ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3']],['氣體',['co2','h2','o2','cl2','so2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
 const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','h2','o2','cl2']],
  ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
- ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh']],
+ ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh','koh_s','naoh_s']],
  ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle']],
  ['有機化合物',['ethanol','oil','soap']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
  ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
@@ -392,7 +394,7 @@ const REACTIONS=[
  {id:'cu_hot_acid',name:'銅加硫酸加熱',kind:'chem',at:'heat',T:200,pot:1,inputs:[['copper','h2so4']],out:{cuso4:1},eq:'Cu + 2H2SO4 -> CuSO4 + SO2 + 2H2O',
   phen:'一開始什麼事也沒有。水越煮越少，酸越來越濃，銅片表面開始冒出刺鼻的氣體，溶液慢慢變成藍色。',use:'冷的稀硫酸拿銅沒辦法；但加熱把水趕走以後，又濃又熱的硫酸能直接把銅氧化，生成硫酸銅，同時放出二氧化硫。',note:'這和「金屬把酸裡的氫趕出來」是不同的反應——冒出來的不是氫氣，是有毒的二氧化硫。現實中必須在抽風櫃裡做。'},
  {id:'actcarbon',name:'用水蒸氣活化木炭',kind:'chem',at:'heat',T:800,closed:1,inputs:[['charcoal','water']],out:{actcarbon:1},eq:'C + H2O -> CO + H2',phen:'悶在窯室裡的木炭被滾燙的水蒸氣一點一點「蛀」掉，剩下的部分佈滿了看不見的小孔，變得又輕又脆。',use:'高溫的水蒸氣會和碳反應，把一部分的碳變成氣體帶走。留下來的碳像海綿一樣全是孔洞——一小撮的表面積就有好幾座籃球場大，能把氣體和雜質牢牢吸在表面。',note:'這叫「吸附」，是物理變化。淨水器、口罩、冰箱除臭劑裡的黑色顆粒，都是活性碳。'},
- {id:'obs_actc_cold',lab:1,name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙（八百度以上），才咬得動碳。實驗桌的爐火最多燒到六百多度；要用封閉、又燒得夠熱的陶窯。',note:''},
+ {id:'obs_actc_cold',name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙，才咬得動碳。',note:''},
  {id:'filament',name:'把纖維悶成碳絲',kind:'chem',at:'heat',T:800,closed:1,needs:'pottery',inputs:[['fiber']],out:{filament:1},eqx:'植物纖維 —(隔絕空氣加熱)→ 碳絲 + 水蒸氣 + 可燃氣體',phen:'把纖維埋在炭粉裡、封進有蓋的陶罐再燒。細細的纖維沒有燒掉，而是整條變黑、變硬，還保持著原來的形狀。',use:'和悶木炭是同一件事，只是要燒得更熱，碳絲才導得了電：沒有氧氣，纖維裡的氫和氧先跑掉，留下一條細細的碳。碳能導電，又耐高溫，是最早的燈絲。',note:'愛迪生試了六千多種材料，最後用的是日本京都的竹子悶成的碳絲，可以亮一千多個小時。'},
  {id:'lens',name:'把玻璃磨成透鏡',kind:'phys',at:'table',inputs:[['glass','sand']],out:{lens:1},eqx:'玻璃 —(用細沙研磨)→ 透鏡',phen:'玻璃片在沾濕的細沙上一圈一圈地磨。磨了很久很久，中間厚、邊緣薄，對著太陽能把光聚成一個亮點。',use:'石英砂比玻璃硬，所以磨得動玻璃。光從空氣進到玻璃會偏折；把玻璃磨成弧面，就能讓光線往中間集中。',note:'十七世紀的磨鏡師傅磨一片好透鏡要好幾天。'},
  {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 碳酸鈉 → 酒石酸鉀鈉 + 水 + 二氧化碳',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
@@ -488,9 +490,13 @@ const REACTIONS=[
  {id:'electro_cuso4',name:'電解硫酸銅溶液',kind:'chem',at:'cell',V:1,inputs:[['cuso4'],['water','cuso4']],out:{copper:1,o2:1,h2so4:1},eq:'2CuSO4 + 2H2O -> 2Cu + O2 + 2H2SO4',phen:'負極長出一層紅色的銅，正極冒出氣泡，藍色慢慢變淡。',use:'電可以把溶液裡的銅離子變回金屬銅。電鍍和精煉銅都用這個原理。',note:'這是使用碳棒電極的情況。'},
  {id:'electro_hcl',name:'電解鹽酸',kind:'chem',at:'cell',V:2,inputs:[['hcl'],['water','hcl']],out:{h2:1,cl2:1},eq:'2HCl -> H2 + Cl2',phen:'負極冒出無色的氣泡，正極冒出黃綠色、有刺鼻味的氣體。',use:'鹽酸被電拆成氫氣和氯氣，正好是「氯化氫」這個名字裡的兩種元素。',note:'和電解稀硫酸比一比：同樣是酸，硫酸根留在水裡不動，氯離子卻會在正極變成氯氣。氯氣有毒！'},
  {id:'electro_znso4',name:'電解硫酸鋅溶液',kind:'chem',at:'cell',V:3,inputs:[['znso4'],['water','znso4']],out:{zinc:1,o2:1,h2so4:1},eq:'2ZnSO4 + 2H2O -> 2Zn + O2 + 2H2SO4',phen:'負極慢慢長出一層銀灰色的鋅，也夾著一些小氣泡；正極冒出氣泡。',use:'現代的鋅大多就是這樣電解出來的，不必再把鋅燒成蒸氣。',note:'鋅比氫活潑，照理說負極應該先冒氫氣。但氫氣在鋅的表面很難生成，所以鋅還是鍍得出來，只是效率不到百分之百。'},
- {id:'molten_koh',name:'電解熔融的氫氧化鉀',kind:'chem',at:'still',open:1,T:400,V:6,inputs:[['koh']],out:{potassium:1,o2:1},eq:'4KOH -> 4K + O2 + 2H2O',phen:'水先煮乾，剩下的白色固體熔成一灘透明的液體。接上電極，負極冒出一顆顆銀亮的小珠子，有的一碰到空氣就噗地燒出紫色的火焰。',use:'在水溶液裡，電只會把水拆開，鉀始終留在水裡。把水趕走、讓它自己熔化，電才終於把鉀抓出來。鉀太活潑，碳搶不走它的氧，只有電辦得到。',note:'1807 年，戴維用兩百多片金屬板疊成的大電池，電解熔融的苛性鉀（氫氧化鉀），第一次看見金屬鉀。據說他高興得在實驗室裡跳起舞來。幾天後，他用同樣的方法從苛性鈉得到了鈉。'},
- {id:'molten_naoh',name:'電解熔融的氫氧化鈉',kind:'chem',at:'still',open:1,T:350,V:6,inputs:[['naoh']],out:{sodium:1,o2:1},eq:'4NaOH -> 4Na + O2 + 2H2O',phen:'水煮乾後，白色固體熔成透明的液體。接上電極，負極浮出銀亮的小珠子，偶爾竄出黃色的火焰。',use:'和鉀一樣，鈉也只能用電從熔化的化合物裡抓出來。',note:'這個方法後來成了工業製鈉的做法。現在改成電解熔融的食鹽，但那需要 800 °C 以上的爐子。'},
+ {id:'molten_koh',name:'電解熔融的氫氧化鉀',kind:'chem',at:'still',open:1,T:400,V:6,inputs:[['koh_s']],out:{potassium:1,o2:1},eq:'4KOH -> 4K + O2 + 2H2O',phen:'白色的固體熔成一灘透明的液體。接上電極，負極冒出一顆顆銀亮的小珠子，有的一碰到空氣就噗地燒出紫色的火焰。',use:'在水溶液裡，電只會把水拆開，鉀始終留在水裡。把水趕走、讓它自己熔化，電才終於把鉀抓出來。鉀太活潑，碳搶不走它的氧，只有電辦得到。',note:'1807 年，戴維用兩百多片金屬板疊成的大電池，電解熔融的苛性鉀（氫氧化鉀），第一次看見金屬鉀。據說他高興得在實驗室裡跳起舞來。幾天後，他用同樣的方法從苛性鈉得到了鈉。'},
+ {id:'molten_naoh',name:'電解熔融的氫氧化鈉',kind:'chem',at:'still',open:1,T:350,V:6,inputs:[['naoh_s']],out:{sodium:1,o2:1},eq:'4NaOH -> 4Na + O2 + 2H2O',phen:'白色的固體熔成透明的液體。接上電極，負極浮出銀亮的小珠子，偶爾竄出黃色的火焰。',use:'和鉀一樣，鈉也只能用電從熔化的化合物裡抓出來。',note:'這個方法後來成了工業製鈉的做法。現在改成電解熔融的食鹽，但那需要 800 °C 以上的爐子。'},
  {id:'alkali_acid',name:'把鈉或鉀丟進酸裡',kind:'chem',at:'table',hot:1,boom:1,inputs:[['sodium','hcl'],['sodium','h2so4'],['sodium','vinegar'],['sodium','acidlake'],['potassium','hcl'],['potassium','h2so4'],['potassium','vinegar'],['potassium','acidlake']],out:{},eq:'2Na + 2HCl -> 2NaCl + H2',phen:'金屬一碰到酸，「砰」一聲炸開！火光一閃，酸液和碎片噴得到處都是，杯子也裂了。',use:'鈉和鉀連水裡的氫都搶得走；酸裡可以搶的氫更多、更容易搶，反應快到一瞬間就放出大量的熱和氫氣，氫氣再被點燃——就成了爆炸。這兩份材料都炸飛了，什麼也沒留下。',note:'⚠️ 現實中絕對不可以這樣做！鈉、鉀碰到水或酸都可能爆炸，噴出的強鹼和酸會灼傷眼睛和皮膚。戴維一生做過許多危險的實驗，1812 年還在一次化學爆炸中傷了眼睛。'},
+ {id:'dry_naoh',name:'蒸乾氫氧化鈉溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap'],inputs:[['naoh']],out:{naoh_s:1},eqx:'氫氧化鈉溶液 → 氫氧化鈉（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色、半透明的固體。',use:'和煮海水得到食鹽一樣：水跑掉了，溶在裡面的東西留下來。這就是燒鹼。要讓它熔化，還得燒到三百多度。',note:'固體燒鹼放在空氣裡會吸水變得濕黏，還會吸收二氧化碳變質，要密封保存。'},
+ {id:'dry_koh',name:'蒸乾氫氧化鉀溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap'],inputs:[['koh']],out:{koh_s:1},eqx:'氫氧化鉀溶液 → 氫氧化鉀（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色的固體。',use:'水跑掉了，溶在裡面的苛性鉀留下來。要讓它熔化，還得燒到三百多度。',note:'苛性鉀比燒鹼還會吸水，放在空氣裡一下子就變得濕濕黏黏。'},
+ {id:'dissolve_naoh',name:'把燒鹼溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['naoh_s','water']],out:{naoh:1},eqx:'氫氧化鈉（固體）+ 水 → 氫氧化鈉溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
+ {id:'dissolve_koh',name:'把苛性鉀溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['koh_s','water']],out:{koh:1},eqx:'氫氧化鉀（固體）+ 水 → 氫氧化鉀溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -521,7 +527,7 @@ const REACTIONS=[
  {id:'obs_nonelec',name:'電解糖水或酒精',kind:'obs',at:'cell',inputs:[['juice'],['ethanol'],['water','juice'],['water','ethanol']],out:{},eqx:'沒有變化',phen:'電極上一顆氣泡也沒有。',use:'糖和酒精溶在水裡還是一個個完整的分子，不會變成離子，所以不導電。這種叫非電解質。',note:'能不能導電，要看溶進水裡的東西會不會變成離子，和它溶不溶得進水沒有關係。'},
  {id:'obs_lowvolt',name:'電壓不夠的電解',kind:'obs',at:'cell',inputs:[],out:{},eqx:'沒有變化',phen:'電極上沒有動靜，頂多冒出一兩顆氣泡就停了。',use:'每一種物質要被電拆開，都有一個最低的電壓。電壓不夠，離子就是不肯在電極上放手。把伏打堆再疊高一些。',note:'不同的東西需要的電壓不一樣：銅離子最好說話，水和酸其次，食鹽水更高，熔化的強鹼最難。'},
  {id:'obs_no_cond',name:'沒接冷凝管就加熱',kind:'obs',at:'still',inputs:[],out:{},eqx:'蒸氣散到空氣裡',phen:'瓶口不斷冒出白煙，瓶裡的東西越來越少，卻什麼也沒接到。',use:'加熱會讓容易變成氣體的成分先跑出來。沒有冷凝管把蒸氣變回液體，它就全散到空氣裡了。',note:''},
- {id:'obs_melt_only',name:'只加熱、不通電的強鹼',kind:'obs',at:'still',inputs:[],out:{},eqx:'熔化 → 冷卻後又凝固',phen:'水煮乾後，白色的固體熔成透明的液體；火一熄，又凝回白色的固體。',use:'熔化只是物理變化。再怎麼加熱，它也不會自己分開。要拆開它，得靠別的力量。',note:''},
+ {id:'obs_melt_only',name:'只加熱、不通電的強鹼',kind:'obs',at:'still',inputs:[],out:{},eqx:'熔化 → 冷卻後又凝固',phen:'白色的固體熔成透明的液體；火一熄，又凝回白色的固體。',use:'熔化只是物理變化。再怎麼加熱，它也不會自己分開。要拆開它，得靠別的力量。',note:''},
  {id:'obs_no_melt',name:'想把食鹽或草木灰燒熔',kind:'obs',at:'still',needElec:1,T:550,inputs:[['salt'],['ash'],['natron']],out:{},eqx:'沒有熔化',phen:'燒到發紅，還是一粒一粒的固體。電極插在裡面，什麼事也沒發生。',use:'食鹽要 801 °C、草木灰裡的碳酸鉀要 891 °C 才會熔化，實驗桌上的小爐子辦不到。有沒有含著同一種金屬、卻容易熔化得多的東西？',note:''},
  /* ===== 科技原理 ===== */
  {id:'tech_bucket',name:'木桶',kind:'tech',inputs:[],out:{},eqx:'木板吸水膨脹 → 縫隙密合',phen:'剛箍好的桶子會滲水。泡一陣子以後，一滴也不漏了。',use:'木頭吸了水會膨脹，板子和板子擠在一起，把縫堵死。箍得越緊越不漏。要把木板削得平整，得有金屬工具。',note:'在塑膠出現以前的幾千年，水、酒、油、醃菜，全是用木桶裝的。'},
@@ -646,7 +652,7 @@ const QUESTS=[
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
  {id:'s_airship',side:1,ch:'支線　天空',goal:'造一艘不用燒柴、想去哪就去哪的氫氣飛艇',hint:'「熱氣球得一直燒柴，風往哪吹也很難違抗。如果氣囊裡裝的是最輕的那種氣體呢？再加上一台會轉的電動機和一顆穩定的電池。」',done:HAS('airship')},
- {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。把水趕走，讓它自己熔化，再接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
+ {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。先把水煮乾，留下白色的固體；再讓固體自己熔化，接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
  {id:'s_sulfur',side:1,ch:'支線　火山的禮物',goal:'在火山口採到硫磺，帶回實驗室燒燒看',hint:'「火山口邊上結著一塊塊黃色的結晶。在露天的火上燒，煙一下就散了；在實驗桌上架起爐火來燒，才接得住。有氧氣的話，火焰會更漂亮。」',rx:['burn_s','burn_s_o2'],done:s=>!!(s.found.burn_s||s.found.burn_s_o2)},
  {id:'s_h2so3',side:1,ch:'支線　火山的禮物',goal:'讓燒硫磺冒出來的氣體溶進水裡',hint:'「二氧化碳溶進水裡是碳酸。那這種刺鼻的氣體呢？做出來以後，用紫色的汁液測測看。」',rx:['sulfurous'],done:F('sulfurous')},
  {id:'s_lakes',side:1,ch:'支線　火山的禮物',goal:'用指示劑比一比山頂和山腳的兩座湖',hint:'「同一座火山，一座湖在山頂的火山口裡，一座在山腳。各舀一罐，滴進紫色的汁液。」',rx:['ind_acidlake','ind_soda'],done:s=>!!(s.found.ind_acidlake&&s.found.ind_soda)},
@@ -2172,7 +2178,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.20',VDATE='2026-11-18';
+const VERSION='2.21',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
