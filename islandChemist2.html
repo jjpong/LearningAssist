@@ -392,7 +392,7 @@ const REACTIONS=[
  {id:'cu_hot_acid',name:'銅加硫酸加熱',kind:'chem',at:'heat',T:200,pot:1,inputs:[['copper','h2so4']],out:{cuso4:1},eq:'Cu + 2H2SO4 -> CuSO4 + SO2 + 2H2O',
   phen:'一開始什麼事也沒有。水越煮越少，酸越來越濃，銅片表面開始冒出刺鼻的氣體，溶液慢慢變成藍色。',use:'冷的稀硫酸拿銅沒辦法；但加熱把水趕走以後，又濃又熱的硫酸能直接把銅氧化，生成硫酸銅，同時放出二氧化硫。',note:'這和「金屬把酸裡的氫趕出來」是不同的反應——冒出來的不是氫氣，是有毒的二氧化硫。現實中必須在抽風櫃裡做。'},
  {id:'actcarbon',name:'用水蒸氣活化木炭',kind:'chem',at:'heat',T:800,closed:1,inputs:[['charcoal','water']],out:{actcarbon:1},eq:'C + H2O -> CO + H2',phen:'悶在窯室裡的木炭被滾燙的水蒸氣一點一點「蛀」掉，剩下的部分佈滿了看不見的小孔，變得又輕又脆。',use:'高溫的水蒸氣會和碳反應，把一部分的碳變成氣體帶走。留下來的碳像海綿一樣全是孔洞——一小撮的表面積就有好幾座籃球場大，能把氣體和雜質牢牢吸在表面。',note:'這叫「吸附」，是物理變化。淨水器、口罩、冰箱除臭劑裡的黑色顆粒，都是活性碳。'},
- {id:'obs_actc_cold',name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙，才咬得動碳。',note:''},
+ {id:'obs_actc_cold',lab:1,name:'溫度不夠的木炭和水',kind:'obs',at:'heat',T:150,failOf:'actcarbon',lose:['water'],inputs:[['charcoal','water']],out:{},eqx:'（水只是蒸發了）',phen:'水燒乾了，木炭還是原來的木炭。',use:'水蒸氣要夠燙（八百度以上），才咬得動碳。實驗桌的爐火最多燒到六百多度；要用封閉、又燒得夠熱的陶窯。',note:''},
  {id:'filament',name:'把纖維悶成碳絲',kind:'chem',at:'heat',T:800,closed:1,needs:'pottery',inputs:[['fiber']],out:{filament:1},eqx:'植物纖維 —(隔絕空氣加熱)→ 碳絲 + 水蒸氣 + 可燃氣體',phen:'把纖維埋在炭粉裡、封進有蓋的陶罐再燒。細細的纖維沒有燒掉，而是整條變黑、變硬，還保持著原來的形狀。',use:'和悶木炭是同一件事，只是要燒得更熱，碳絲才導得了電：沒有氧氣，纖維裡的氫和氧先跑掉，留下一條細細的碳。碳能導電，又耐高溫，是最早的燈絲。',note:'愛迪生試了六千多種材料，最後用的是日本京都的竹子悶成的碳絲，可以亮一千多個小時。'},
  {id:'lens',name:'把玻璃磨成透鏡',kind:'phys',at:'table',inputs:[['glass','sand']],out:{lens:1},eqx:'玻璃 —(用細沙研磨)→ 透鏡',phen:'玻璃片在沾濕的細沙上一圈一圈地磨。磨了很久很久，中間厚、邊緣薄，對著太陽能把光聚成一個亮點。',use:'石英砂比玻璃硬，所以磨得動玻璃。光從空氣進到玻璃會偏折；把玻璃磨成弧面，就能讓光線往中間集中。',note:'十七世紀的磨鏡師傅磨一片好透鏡要好幾天。'},
  {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 碳酸鈉 → 酒石酸鉀鈉 + 水 + 二氧化碳',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
@@ -490,6 +490,7 @@ const REACTIONS=[
  {id:'electro_znso4',name:'電解硫酸鋅溶液',kind:'chem',at:'cell',V:3,inputs:[['znso4'],['water','znso4']],out:{zinc:1,o2:1,h2so4:1},eq:'2ZnSO4 + 2H2O -> 2Zn + O2 + 2H2SO4',phen:'負極慢慢長出一層銀灰色的鋅，也夾著一些小氣泡；正極冒出氣泡。',use:'現代的鋅大多就是這樣電解出來的，不必再把鋅燒成蒸氣。',note:'鋅比氫活潑，照理說負極應該先冒氫氣。但氫氣在鋅的表面很難生成，所以鋅還是鍍得出來，只是效率不到百分之百。'},
  {id:'molten_koh',name:'電解熔融的氫氧化鉀',kind:'chem',at:'still',open:1,T:400,V:6,inputs:[['koh']],out:{potassium:1,o2:1},eq:'4KOH -> 4K + O2 + 2H2O',phen:'水先煮乾，剩下的白色固體熔成一灘透明的液體。接上電極，負極冒出一顆顆銀亮的小珠子，有的一碰到空氣就噗地燒出紫色的火焰。',use:'在水溶液裡，電只會把水拆開，鉀始終留在水裡。把水趕走、讓它自己熔化，電才終於把鉀抓出來。鉀太活潑，碳搶不走它的氧，只有電辦得到。',note:'1807 年，戴維用兩百多片金屬板疊成的大電池，電解熔融的苛性鉀（氫氧化鉀），第一次看見金屬鉀。據說他高興得在實驗室裡跳起舞來。幾天後，他用同樣的方法從苛性鈉得到了鈉。'},
  {id:'molten_naoh',name:'電解熔融的氫氧化鈉',kind:'chem',at:'still',open:1,T:350,V:6,inputs:[['naoh']],out:{sodium:1,o2:1},eq:'4NaOH -> 4Na + O2 + 2H2O',phen:'水煮乾後，白色固體熔成透明的液體。接上電極，負極浮出銀亮的小珠子，偶爾竄出黃色的火焰。',use:'和鉀一樣，鈉也只能用電從熔化的化合物裡抓出來。',note:'這個方法後來成了工業製鈉的做法。現在改成電解熔融的食鹽，但那需要 800 °C 以上的爐子。'},
+ {id:'alkali_acid',name:'把鈉或鉀丟進酸裡',kind:'chem',at:'table',hot:1,boom:1,inputs:[['sodium','hcl'],['sodium','h2so4'],['sodium','vinegar'],['sodium','acidlake'],['potassium','hcl'],['potassium','h2so4'],['potassium','vinegar'],['potassium','acidlake']],out:{},eq:'2Na + 2HCl -> 2NaCl + H2',phen:'金屬一碰到酸，「砰」一聲炸開！火光一閃，酸液和碎片噴得到處都是，杯子也裂了。',use:'鈉和鉀連水裡的氫都搶得走；酸裡可以搶的氫更多、更容易搶，反應快到一瞬間就放出大量的熱和氫氣，氫氣再被點燃——就成了爆炸。這兩份材料都炸飛了，什麼也沒留下。',note:'⚠️ 現實中絕對不可以這樣做！鈉、鉀碰到水或酸都可能爆炸，噴出的強鹼和酸會灼傷眼睛和皮膚。戴維一生做過許多危險的實驗，1812 年還在一次化學爆炸中傷了眼睛。'},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -1108,7 +1109,8 @@ const SFX={
  done(){[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.28,i*.09));},          /* 蓋好了 */
  discover(){[659,784,988,1319,1568].forEach((f,i)=>tone(f,.38,'sine',.26,i*.085));},    /* 新發現 */
  react(){tone(880,.12,'sine',.22);tone(1320,.22,'sine',.18,.08);},
- ignite(){noise(.55,.45,300,.7,'bandpass',0,2600);},                                    /* 點火 */
+ ignite(){noise(.55,.45,300,.7,'bandpass',0,2600);},
+ boom(){noise(.9,1,700,.4,'lowpass',0,60);tone(80,.6,'sine',.9,0,28);},                     /* 爆炸 */                                    /* 點火 */
  pump(){noise(.38,.4,420,.8,'bandpass',0,1500);},                                       /* 風箱 */
  out(){noise(.7,.25,1200,.6,'lowpass',0,150);},                                         /* 火熄了 */
  bubble(){for(let i=0;i<7;i++){const f=350+Math.random()*500;tone(f,.07,'sine',.16,i*.11+Math.random()*.05,f*1.7);}},
@@ -2170,7 +2172,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.19',VDATE='2026-11-18';
+const VERSION='2.20',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2267,7 +2269,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='fan'){const r=wireTo(fireSt,'fan');if(r.err){SFX.deny();toast(r.err);}else{SFX.done();fire.auto=true;flog.push('⚡ 用了 '+r.cost+' 個銅拉線。電動鼓風機轉起來了，不用再踩風箱。');save();}return fireCtl();}
  if(d.act==='fast'){ffast=!ffast;return fireCtl();}
  if(d.item){const i=mix.sel.indexOf(d.item);mix.res=null;if(i>=0)mix.sel.splice(i,1);else if(mix.sel.length<3)mix.sel.push(d.item);else toast('最多放 3 種材料');return renderMix();}
- if(d.act==='mix'){mix.shown=mix.sel.slice();mix.res=mixReact(S,mix.sel,mix.at,mix.indoor);mix.t0=performance.now();{const R=mix.res;if(mix.at==='cell'&&!R.err)SFX.zap();if(R.lost)SFX.deny();if(R.r){if(Object.keys(R.r.out).some(k=>GAS.has(k)))SFX.bubble();if(R.r.hot)SFX.hiss();R.isNew?SFX.discover():SFX.react();}else SFX.ui();}storyQ.push(...advanceQuests(S));hud();save();renderMix();$('modal').scrollTop=0;return;}
+ if(d.act==='mix'){mix.shown=mix.sel.slice();mix.res=mixReact(S,mix.sel,mix.at,mix.indoor);mix.t0=performance.now();{const R=mix.res;if(mix.at==='cell'&&!R.err)SFX.zap();if(R.lost)SFX.deny();if(R.r){if(Object.keys(R.r.out).some(k=>GAS.has(k)))SFX.bubble();if(R.r.boom)SFX.boom();else if(R.r.hot)SFX.hiss();R.isNew?SFX.discover():SFX.react();}else SFX.ui();}storyQ.push(...advanceQuests(S));hud();save();renderMix();$('modal').scrollTop=0;if(mix.res&&mix.res.r&&mix.res.r.boom)try{$('modal').animate([{transform:'translate(0,0)'},{transform:'translate(-14px,6px)'},{transform:'translate(12px,-8px)'},{transform:'translate(-8px,4px)'},{transform:'translate(5px,-2px)'},{transform:'translate(0,0)'}],{duration:450});}catch(e){}return;}
  if(d.home==='back'){homeMsg='';return openHome(homeSt);}
  if(d.bench)return benchToggle(d.bench);
  if(d.home)return homeDo(d.home);
