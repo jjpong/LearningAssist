@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>荒島化學家 2</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b6ca3'/%3E%3Cellipse cx='32' cy='55' rx='27' ry='8' fill='%23e6cb7e'/%3E%3Cpath d='M3 55c6-3 12-3 18 0' stroke='%239fe0f0' stroke-width='2' fill='none'/%3E%3Cpath d='M25 7h14v5h-2.5v13l11 19c2.4 4.2-.3 9-5.2 9H21.7c-4.9 0-7.6-4.8-5.2-9l11-19V12H25z' fill='%23f4fbfd' stroke='%23173650' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M20 42.5l6-10.5h12l6 10.5c1.6 2.9 0 5.5-3.3 5.5H23.3c-3.3 0-4.9-2.6-3.3-5.5z' fill='%233fb39a'/%3E%3Ccircle cx='29' cy='40' r='2.2' fill='%23fff'/%3E%3Ccircle cx='35.5' cy='43.5' r='1.6' fill='%23fff'/%3E%3Ccircle cx='32' cy='36' r='1.3' fill='%23fff'/%3E%3C/svg%3E">
 <meta name="author" content="小p老師">
 <!-- 荒島化學家 © 2026 小p老師｜CC BY-NC-SA 4.0（姓名標示－非商業性－相同方式分享）https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant -->
 <style>
@@ -261,7 +262,7 @@ const BUILD=[
  {id:'bronze_tools',n:'青銅工具',icon:'⛏️',era:'約西元前 3300 年',craft:1,req:['f:bronze'],need:{bronze:3,wood:2},grant:'bronze_tools',d:'敲得開更硬的石頭，也能把木頭加工成船板。',entry:'tech_bronze'},
  {id:'sail',n:'帆船',icon:'⛵',era:'約西元前 3000 年',dock:1,req:['bronze_tools','raft'],need:{wood:10,fiber:6,bronze:2},grant:'sail',d:'要蓋在沙灘上。可以航行到更遠的海域，淺海也進得去。',entry:'tech_sail'},
  {id:'iron_tools',n:'鐵製工具',icon:'🔨',era:'約西元前 1200 年',craft:1,req:[],need:{iron:3,wood:2,charcoal:1},grant:'iron_tools',d:'熟鐵打成的工具。刃口埋在燒紅的木炭裡吸了碳，再放進水裡淬火，變得又硬又利，敲得開最堅硬的岩石。',entry:'tech_iron'},
- {id:'still',n:'玻璃蒸餾器',icon:'⚗️',era:'約西元 800 年',inLab:1,req:['f:glass'],need:{glass:3,copper:1},grant:'distill',d:'燒瓶、冷凝管和接收瓶：把東西混合以後加熱，再把跑出來的蒸氣接住。要裝在屋裡的實驗室（木屋以上）。有了它，鼓風爐也能加裝冷凝管。',entry:'tech_distill'},
+ {id:'still',n:'玻璃蒸餾器',icon:'⚗️',era:'約西元 800 年',inLab:1,req:['f:glass'],need:{glass:3,copper:1},grant:'distill',d:'燒瓶、冷凝管和接收瓶：把東西混合以後加熱，再把跑出來的蒸氣接住。要裝在屋裡的實驗室（木屋以上）。有了它，陶窯也能接上冷凝管，把金屬蒸氣接住。',entry:'tech_distill'},
  {id:'compass',n:'指南針',icon:'🧭',era:'約西元 1100 年',craft:1,req:[],need:{magnetite:1,iron:1,charcoal:1},grant:'compass',d:'看不到陸地也不會迷航。',entry:'tech_compass'},
  {id:'ship',n:'遠洋帆船',icon:'🚢',era:'約西元 1500 年',dock:1,req:['compass','sail'],need:{wood:12,fiber:6,iron:4},grant:'ship',d:'要蓋在海夠深的沙灘上（火山島）。可以穿越風浪最大的外海；但船身大、吃水深，進淺海會擱淺，所以原來的帆船要留著用。',entry:'tech_ship'},
  {id:'blast',n:'高爐',icon:'🏭',era:'西元 1709 年',req:['f:coke'],need:{clay:6,mortar:4,iron:4,fiber:2},d:'更高的爐身、用鐵箍加固。燒焦炭並持續鼓風，可以超過 1500 °C，讓鐵熔成鐵水流出來。',entry:'tech_blast'},
@@ -332,7 +333,7 @@ const REACTIONS=[
  {id:'smelt_sn',name:'木炭還原錫石',kind:'chem',at:'heat',T:1000,inputs:[['cassiterite','charcoal'],['cassiterite','coke'],['cassiterite','coal']],out:{tin:2,co2:1},eq:'SnO2 + C -> Sn + CO2',
   phen:'爐底流出銀白色的液態金屬。',use:'用碳把氧搶走，和煉銅是同一個原理。',note:''},
  {id:'smelt_cu',name:'木炭還原氧化銅',kind:'chem',at:'heat',T:1100,inputs:[['cuo','charcoal'],['cuo','coke'],['cuo','coal']],out:{copper:2,co2:1},eq:'2CuO + C -> 2Cu + CO2',
-  phen:'黑色粉末中流出紅色、有金屬光澤的銅！',use:'氧化還原：碳搶走氧化銅的氧（碳被氧化），氧化銅失去氧變成銅（被還原）。',note:'遊戲為了方便，各取 1 份就能進行；真正的比例請看反應式。焦炭和煤的主要成分也是碳，一樣可以當還原劑。它們搶氧的本事和木炭差不多，真正的優勢是燒得更熱、更耐壓。'},
+  phen:'黑色粉末中流出紅色、有金屬光澤的銅！',use:'氧化還原：碳搶走氧化銅的氧（碳被氧化），氧化銅失去氧變成銅（被還原）。',note:'放 1 份氧化銅和 1 份木炭就煉得出來；真正的比例要看反應式：兩份氧化銅才配一份碳。焦炭和煤的主要成分也是碳，一樣可以當還原劑。它們搶氧的本事和木炭差不多，真正的優勢是燒得更熱、更耐壓。'},
  {id:'bronze',name:'熔合銅與錫',kind:'phys',at:'heat',T:950,inputs:[['copper','tin']],out:{bronze:2},eqx:'銅 + 錫 → 青銅（合金）',
   phen:'兩種金屬熔在一起，冷卻後變成金褐色、敲起來很硬的金屬。',use:'合金是混合物，沒有固定的化學式。但性質可以比原本的金屬更好：青銅比銅硬、比銅容易熔鑄。',note:'青銅大約含 10% 的錫。'},
  {id:'smelt_fe',name:'木炭還原赤鐵礦',kind:'chem',at:'heat',T:1200,sulfur:1,defer:['pig_iron'],inputs:[['hematite','charcoal'],['hematite','coke'],['hematite','coal']],out:{sponge:2,co2:1},eq:'2Fe2O3 + 3C -> 4Fe + 3CO2',
@@ -344,7 +345,7 @@ const REACTIONS=[
  {id:'coke',name:'把煤悶成焦炭',kind:'chem',at:'heat',T:1000,closed:1,not:['hematite','magnetite'],inputs:[['coal']],out:{coke:1},eqx:'煤 —(隔絕空氣加熱)→ 焦炭 + 煤氣 + 煤焦油',
   phen:'窯口噴出黃色的濃煙和可以點燃的氣體，有一股刺鼻的臭味。留下來的東西變成銀灰色、佈滿小孔、敲起來鏗鏘作響。',use:'和悶木炭是同一個道理：隔絕空氣加熱，讓硫和容易跑掉的雜質先變成氣體離開，留下幾乎純的碳。跑出來的煤氣後來被拿去點路燈。',note:'1709 年英國的達比用焦炭煉鐵成功。那時英國的森林快被燒木炭砍光了，焦炭讓煉鐵不再受木材限制。中國在宋代就已經用焦炭煉鐵。'},
  {id:'pig_iron',name:'高爐煉鐵',kind:'chem',at:'heat',T:1400,sulfur:1,inputs:[['hematite','coke','caco3'],['hematite','coke','quicklime'],['magnetite','coke','caco3'],['magnetite','coke','quicklime']],out:{pigiron:3,co2:1},eq:'Fe2O3 + 3CO -> 2Fe + 3CO2',
-  phen:'爐底流出亮得刺眼的橘白色鐵水，上面浮著一層像玻璃的熔渣。',use:'焦炭先燒成一氧化碳，一氧化碳再把鐵礦裡的氧搶走。溫度高到鐵整個熔化，可以直接流出來鑄造。石灰石負責把礦石裡的泥沙（二氧化矽）變成熔渣浮在上面，和鐵水分開。',note:'流出來的是含碳很多的生鐵。真實歷史上木炭高爐也煉得出生鐵（中國在兩千多年前就會了），但焦炭便宜又堅硬，撐得起更高的爐子；遊戲簡化成只有焦炭夠熱。'},
+  phen:'爐底流出亮得刺眼的橘白色鐵水，上面浮著一層像玻璃的熔渣。',use:'焦炭先燒成一氧化碳，一氧化碳再把鐵礦裡的氧搶走。溫度高到鐵整個熔化，可以直接流出來鑄造。石灰石負責把礦石裡的泥沙（二氧化矽）變成熔渣浮在上面，和鐵水分開。',note:'流出來的是含碳很多的生鐵。真實歷史上木炭高爐也煉得出生鐵（中國在兩千多年前就會了），但焦炭便宜又堅硬，撐得起更高的爐子；在這座島上，只有焦炭撐得起這麼高的爐子。'},
  {id:'steel',name:'鼓風煉鋼',kind:'chem',at:'heat',T:1500,air:1,fresh:1,not:['coke','charcoal','coal','hematite','magnetite','o2'],inputs:[['pigiron']],out:{steel:1},eq:'C + O2 -> CO2',
   phen:'空氣吹進熔化的生鐵，爐口噴出一大片火花，像放煙火。火花漸漸變少，就是碳快燒完了。',use:'生鐵太脆，是因為裡面的碳太多。鼓進去的空氣裡有氧，碳比鐵更容易和氧結合，先被燒成二氧化碳帶走。剩下含碳量剛好的就是鋼——又硬又韌。',note:'這一爐的爐料裡不能放焦炭：旁邊有碳，鐵裡的碳就燒不掉。中國漢代的「炒鋼」把生鐵加熱攪拌，讓空氣把碳燒掉；1856 年貝塞麥的轉爐直接把空氣吹進鐵水，幾十分鐘就能把幾噸生鐵變成鋼。'},
  {id:'steel_o2',name:'吹氧煉鋼',kind:'chem',at:'heat',T:1500,inputs:[['pigiron','o2']],out:{steel:1},eq:'C + O2 -> CO2',
@@ -359,7 +360,7 @@ const REACTIONS=[
  {id:'burn_h2',name:'氫氣燃燒',kind:'chem',at:'heat',T:300,air:1,defer:['burn_h2_o2','h2_cl2','h2_cuo','h2_fe'],inputs:[['h2']],out:{water:1},eq:'2H2 + O2 -> 2H2O',phen:'「啵！」一聲爆鳴，壁上出現水珠。',use:'氫和氧化合變成水——所以水不是元素，是化合物。',note:'氫氣和空氣混合遇火會爆炸，現實中只能用極少量做爆鳴測試。'},
  {id:'burn_c',lab:1,name:'木炭在氧氣中燃燒',kind:'chem',at:'heat',T:300,inputs:[['charcoal','o2'],['coke','o2'],['coal','o2']],out:{co2:1},eq:'C + O2 -> CO2',phen:'木炭在純氧中發出耀眼的白光！',use:'氧氣濃度越高，燃燒越劇烈。',note:''},
  {id:'cu_o2',lab:1,name:'銅在氧氣中加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','o2']],out:{cuo:1},eq:'2Cu + O2 -> 2CuO',phen:'紅色的銅表面變黑。',use:'金屬的氧化。黑色的氧化銅可以再用木炭還原回銅。',note:''},
- {id:'fe_o2',lab:1,name:'鐵在氧氣中燃燒',kind:'chem',at:'heat',T:500,fresh:1,inputs:[['iron','o2'],['sponge','o2'],['steel','o2']],out:{magnetite:1},eq:'3Fe + 2O2 -> Fe3O4',phen:'火星四射！留下黑色的固體。',use:'鐵在純氧中可以燃燒，產物是四氧化三鐵——和磁鐵礦是同一種物質。',note:'把鋼絲絨點著了伸進氧氣瓶，燒起來像仙女棒——課堂上常用它示範。'},
+ {id:'fe_o2',lab:1,name:'鐵在氧氣中燃燒',kind:'chem',at:'heat',T:500,fresh:1,inputs:[['iron','o2'],['sponge','o2'],['steel','o2']],out:{magnetite:1},eq:'3Fe + 2O2 -> Fe3O4',phen:'火星四射！留下黑色的固體。',use:'鐵在純氧中可以燃燒，產物是四氧化三鐵——和磁鐵礦是同一種物質。',note:'把鋼絲絨點著了伸進氧氣瓶，會燒得像仙女棒一樣火花四射。'},
  /* ===== 蒸餾器 ===== */
  {id:'distill_wine',name:'蒸餾酒',kind:'phys',at:'still',T:78,inputs:[['wine']],out:{ethanol:1},eqx:'酒 → 酒精蒸氣 → 冷凝成酒精',phen:'還沒到水的沸點，就有透明液體滴進接收瓶，一點就著。',use:'酒精的沸點（78 °C）比水（100 °C）低，會先被蒸出來。',note:''},
  {id:'distill_sea',name:'蒸餾海水',kind:'phys',at:'still',T:100,inputs:[['seawater']],out:{water:1,salt:1},eqx:'海水 → 水蒸氣 → 冷凝成淡水',phen:'燒瓶裡的海水沸騰，冷凝管另一端滴出清澈的水，嚐起來不鹹。',use:'利用沸點不同來分離混合物：水先變成氣體跑出去，鹽留在原地。',note:''},
@@ -378,7 +379,7 @@ const REACTIONS=[
  {id:'flour',name:'把穀物磨成粉',kind:'phys',at:'table',inputs:[['grain']],out:{flour:1},eqx:'穀物 → 麵粉（磨碎）',phen:'穀粒在石頭上磨成白色的細粉。',use:'只是顆粒變小，成分沒有變——物理變化。',note:''},
  {id:'dough',name:'揉麵團',kind:'phys',at:'table',inputs:[['flour','water']],out:{dough:1},eqx:'麵粉 + 水 → 麵團',phen:'粉和水揉成一團有彈性的麵團。',use:'麵粉裡的蛋白質吸水後互相拉在一起，形成有彈性的網（麵筋）。',note:''},
  {id:'rise',name:'麵團發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['dough']],out:{risen:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'麵團放著放著，脹成兩倍大，切開來裡面都是小洞。',use:'空氣裡的酵母菌吃掉麵團裡的糖，放出二氧化碳，氣體被麵筋包住，就把麵團撐大了。和釀酒是同一個反應。',note:'產生的少量酒精在烤的時候會蒸發掉。'},
- {id:'vinegar',name:'酒變成醋',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['wine']],out:{vinegar:1},eq:'C2H5OH + O2 -> CH3COOH + H2O',phen:'沒蓋好的酒放了幾天，聞起來變酸了。',use:'空氣中的醋酸菌讓酒精和氧氣反應，變成醋酸。這是人類最早得到的酸。',note:'遊戲把幾天縮成一瞬間。'},
+ {id:'vinegar',name:'酒變成醋',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['wine']],out:{vinegar:1},eq:'C2H5OH + O2 -> CH3COOH + H2O',phen:'沒蓋好的酒放了幾天，聞起來變酸了。',use:'空氣中的醋酸菌讓酒精和氧氣反應，變成醋酸。這是人類最早得到的酸。',note:'現實中要等上好幾天。'},
  {id:'ind_vinegar',name:'指示劑檢驗醋',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','vinegar']],out:{},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'醋是弱酸，顏色變化介於碳酸水和硫酸之間。',note:''},
  {id:'caco3_vinegar',name:'貝殼泡醋',kind:'chem',at:'table',inputs:[['caco3','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'貝殼表面慢慢冒出細小的氣泡。',use:'醋雖然是弱酸，一樣能和碳酸鈣反應放出二氧化碳，只是比鹽酸慢得多。',note:''},
  {id:'egg_vinegar',name:'雞蛋泡醋',kind:'chem',at:'table',inputs:[['egg','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'蛋殼冒著泡慢慢消失，最後剩下一顆軟軟的、半透明的「無殼蛋」。',use:'蛋殼是碳酸鈣，會被醋溶掉；裡面那層薄膜不是碳酸鈣，所以留了下來。',note:'現實中要泡一兩天。'},
@@ -394,7 +395,7 @@ const REACTIONS=[
  {id:'lye',name:'草木灰泡水',kind:'phys',at:'table',inputs:[['ash','water']],out:{lye:1},eqx:'草木灰 + 水 → 草木灰水（溶解、過濾）',phen:'灰沉到底部，上層的水略帶黃色，摸起來滑滑的。',use:'灰裡的碳酸鉀溶進水裡，不溶的雜質留下來。',note:''},
  {id:'causticize',name:'草木灰水加石灰水',kind:'chem',at:'table',ppt:1,inputs:[['lye','limewater'],['lye','slaked'],['ash','limewater'],['ash','slaked','water']],out:{koh:1,caco3:1},eq:'K2CO3 + Ca(OH)2 -> 2KOH + CaCO3',phen:'混合後出現白色沉澱，上層液體變得更滑、更「咬手」。',use:'沉澱是碳酸鈣；留在水裡的氫氧化鉀是比原來強得多的鹼。這是古人製造強鹼的方法。',note:'氫氧化鉀有腐蝕性。'},
  {id:'juice',name:'榨甘蔗汁',kind:'phys',at:'table',inputs:[['sugarcane','water']],out:{juice:1},eqx:'甘蔗 + 水 → 糖水（溶解）',phen:'得到一罐甜甜的黃綠色汁液。',use:'糖溶在水裡，形成溶液。',note:''},
- {id:'ferment',name:'糖水發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['juice']],out:{wine:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'靜置幾天，液面不斷冒出小氣泡，聞起來有酒味。',use:'空氣中的酵母菌把糖分解成酒精和二氧化碳。',note:'甘蔗裡的蔗糖會先被分解成葡萄糖和果糖（都是 C₆H₁₂O₆）再發酵。遊戲把幾天縮成一瞬間。'},
+ {id:'ferment',name:'糖水發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['juice']],out:{wine:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'靜置幾天，液面不斷冒出小氣泡，聞起來有酒味。',use:'空氣中的酵母菌把糖分解成酒精和二氧化碳。',note:'甘蔗裡的蔗糖會先被分解成葡萄糖和果糖（都是 C₆H₁₂O₆）再發酵。現實中要等上好幾天。'},
  {id:'caco3_hcl',name:'石灰石加鹽酸',kind:'chem',at:'table',inputs:[['caco3','hcl'],['caco3','acidlake']],out:{co2:1},eq:'CaCO3 + 2HCl -> CaCl2 + H2O + CO2',phen:'石頭表面冒出大量氣泡，慢慢變小。',use:'碳酸鹽遇到酸會放出二氧化碳。這也是實驗室製造二氧化碳的方法。',note:''},
  {id:'cuo_acid',name:'氧化銅加稀硫酸',kind:'chem',at:'table',inputs:[['cuo','h2so4']],out:{cuso4:1},eq:'CuO + H2SO4 -> CuSO4 + H2O',phen:'黑色粉末消失，溶液變成漂亮的藍色！',use:'金屬氧化物 + 酸 → 鹽 + 水。藍色來自銅離子。',note:'稍微加熱會反應得更快。'},
  {id:'fe_cuso4',name:'鐵放進硫酸銅溶液',kind:'chem',at:'table',col:'#bfe0c8',inputs:[['iron','cuso4'],['sponge','cuso4'],['pigiron','cuso4'],['steel','cuso4']],out:{copper:1,vitriol:1},eq:'Fe + CuSO4 -> FeSO4 + Cu',phen:'鐵的表面長出一層紅色的銅，藍色溶液漸漸變成淺綠色。',use:'鐵比銅活潑，把銅從溶液裡「趕」了出來。古人叫它「膽水煉銅」。',note:''},
@@ -444,17 +445,17 @@ const REACTIONS=[
  {id:'bordeaux',name:'調製波爾多液',kind:'chem',at:'table',ppt:1,col:'#7fb6e0',inputs:[['limewater','cuso4'],['slaked','cuso4']],out:{},eq:'CuSO4 + Ca(OH)2 -> Cu(OH)2 + CaSO4',phen:'藍色溶液變成一缸天藍色、糊糊的懸濁液。',use:'1880 年代，法國波爾多的葡萄園在路邊的葡萄上噴石灰和硫酸銅，本來是要嚇阻路人偷摘，卻發現那些葡萄不長黴病。銅離子對黴菌有毒，石灰讓它黏在葉子上、不被雨沖走。這是人類最早的殺菌農藥之一，果農到現在還在用。',note:''},
  {id:'fe_oh',name:'綠礬加鹼',kind:'chem',at:'table',ppt:1,col:'#8a9a6a',inputs:[['naoh','vitriol'],['koh','vitriol'],['limewater','vitriol']],out:{},eq:'FeSO4 + 2NaOH -> Fe(OH)2 + Na2SO4',phen:'出現灰綠色的沉澱。放著放著，表面慢慢變成紅褐色。',use:'先生成灰綠色的氫氧化亞鐵；它碰到空氣裡的氧，又被氧化成紅褐色的氫氧化鐵——和鐵生鏽是同一家人。',note:''},
  {id:'zn_oh',name:'硫酸鋅加強鹼',kind:'chem',at:'table',ppt:1,col:'#f2f2ee',inputs:[['naoh','znso4'],['koh','znso4']],out:{},eq:'ZnSO4 + 2NaOH -> Zn(OH)2 + Na2SO4',phen:'無色溶液裡出現白色的沉澱。',use:'鋅離子遇到氫氧根，生成白色的氫氧化鋅。和銅（藍）、鐵（灰綠轉紅褐）比一比：看沉澱的顏色，就能猜出溶液裡是哪一種金屬。',note:''},
- {id:'cu_co3',name:'硫酸銅遇到碳酸鹽',kind:'chem',at:'table',ppt:1,col:'#3fae86',inputs:[['natron','cuso4'],['sodawater','cuso4'],['lye','cuso4'],['ash','cuso4']],out:{co2:1},eq:'2CuSO4 + 2Na2CO3 + H2O -> Cu2(OH)2CO3 + 2Na2SO4 + CO2',phen:'冒出一點氣泡，生成一團藍綠色的沉澱。',use:'這團沉澱是鹼式碳酸銅——和孔雀石、銅器上的銅綠是同一種東西。從礦石煉成的銅，又繞回了礦石。',note:'沉澱太細，遊戲裡收集不起來。'},
- {id:'sea_mg',name:'海水加鹼',kind:'chem',at:'table',ppt:1,col:'#eef2f2',inputs:[['seawater','limewater'],['seawater','slaked'],['seawater','naoh']],out:{},eq:'MgCl2 + Ca(OH)2 -> Mg(OH)2 + CaCl2',phen:'海水變得白白濁濁的，慢慢沉下一層白色的東西。',use:'海水裡除了食鹽，還溶著不少鎂。加了鹼，鎂就變成不溶的氫氧化鎂沉下來。1916 年起，美國就有工廠用石灰從海水裡撈出鎂，再電解成金屬鎂。',note:'遊戲裡沒有鎂，這團沉澱收集不起來。'},
+ {id:'cu_co3',name:'硫酸銅遇到碳酸鹽',kind:'chem',at:'table',ppt:1,col:'#3fae86',inputs:[['natron','cuso4'],['sodawater','cuso4'],['lye','cuso4'],['ash','cuso4']],out:{co2:1},eq:'2CuSO4 + 2Na2CO3 + H2O -> Cu2(OH)2CO3 + 2Na2SO4 + CO2',phen:'冒出一點氣泡，生成一團藍綠色的沉澱。',use:'這團沉澱是鹼式碳酸銅——和孔雀石、銅器上的銅綠是同一種東西。從礦石煉成的銅，又繞回了礦石。',note:'沉澱又細又少，撈不起來。'},
+ {id:'sea_mg',name:'海水加鹼',kind:'chem',at:'table',ppt:1,col:'#eef2f2',inputs:[['seawater','limewater'],['seawater','slaked'],['seawater','naoh']],out:{},eq:'MgCl2 + Ca(OH)2 -> Mg(OH)2 + CaCl2',phen:'海水變得白白濁濁的，慢慢沉下一層白色的東西。',use:'海水裡除了食鹽，還溶著不少鎂。加了鹼，鎂就變成不溶的氫氧化鎂沉下來。1916 年起，美國就有工廠用石灰從海水裡撈出鎂，再電解成金屬鎂。',note:'這團白色沉澱又細又散，撈不起來。'},
  {id:'co2_koh',name:'氫氧化鉀吸收二氧化碳',kind:'chem',at:'table',inputs:[['co2','koh']],out:{lye:1},eq:'2KOH + CO2 -> K2CO3 + H2O',phen:'氣體被吸得一乾二淨，溶液看起來沒有任何變化。',use:'強鹼會把二氧化碳吸進去，變回碳酸鹽——氫氧化鉀又變回了草木灰水。所以強鹼要密封保存，放久了會「失效」。',note:'太空船和潛水艇裡，也是用強鹼把人呼出的二氧化碳吸掉。'},
  {id:'co2_naoh',name:'氫氧化鈉吸收二氧化碳',kind:'chem',at:'table',inputs:[['co2','naoh']],out:{natron:1},eq:'2NaOH + CO2 -> Na2CO3 + H2O',phen:'氣體被吸得一乾二淨。把溶液蒸乾，留下白色的粉末。',use:'氫氧化鈉吸收二氧化碳，變成碳酸鈉——就是天然鹼。燒鹼放久了會變成蘇打，所以要密封保存。',note:''},
  {id:'egg_ethanol',name:'雞蛋泡酒精',kind:'chem',at:'table',inputs:[['egg','ethanol']],out:{},eqx:'蛋白質 —(酒精)→ 凝固',phen:'透明的蛋白變成白色、不透明的固體。沒有加熱，蛋卻「熟」了。',use:'酒精和加熱一樣，會讓蛋白質變形、凝固。細菌也是由蛋白質組成的，所以酒精能殺菌。',note:'消毒用的酒精濃度約 75%；太濃反而只把細菌表面凝固，裡面殺不死。'},
- {id:'pidan',name:'用強鹼醃蛋',kind:'chem',at:'table',inputs:[['egg','naoh'],['egg','koh'],['egg','lye','slaked']],out:{},eqx:'蛋白質 —(強鹼)→ 凝固',phen:'泡了一陣子，蛋白變成透明的茶褐色果凍，蛋黃變成墨綠色。',use:'這就是皮蛋。強鹼和加熱、酒精一樣，能讓蛋白質變性凝固。傳統做法是用石灰、草木灰和鹽調成泥裹在蛋外面——石灰和草木灰在泥裡，就變成了氫氧化鉀。',note:'遊戲把一個月縮成一瞬間。'},
+ {id:'pidan',name:'用強鹼醃蛋',kind:'chem',at:'table',inputs:[['egg','naoh'],['egg','koh'],['egg','lye','slaked']],out:{},eqx:'蛋白質 —(強鹼)→ 凝固',phen:'泡了一陣子，蛋白變成透明的茶褐色果凍，蛋黃變成墨綠色。',use:'這就是皮蛋。強鹼和加熱、酒精一樣，能讓蛋白質變性凝固。傳統做法是用石灰、草木灰和鹽調成泥裹在蛋外面——石灰和草木灰在泥裡，就變成了氫氧化鉀。',note:'現實中要醃上一個月左右。'},
  {id:'soap_hard',name:'肥皂遇到硬水',kind:'chem',at:'table',ppt:1,inputs:[['soap','seawater'],['soap','limewater']],out:{},eqx:'肥皂（脂肪酸鈉）+ 鈣、鎂離子 → 皂垢（不溶於水）',phen:'怎麼搓都搓不出泡沫，水面浮起一層灰白色的渣。',use:'海水和石灰水裡有很多鈣、鎂離子，把肥皂變成不溶於水的鈣皂、鎂皂，就是浴室裡洗不掉的皂垢。含鈣、鎂多的水叫「硬水」。',note:'在海上用一般肥皂洗不乾淨，所以船上要用特製的「海水皂」。'},
  {id:'soap_acid',name:'肥皂遇到酸',kind:'chem',at:'table',inputs:[['soap','vinegar'],['soap','hcl']],out:{},eqx:'脂肪酸鈉 + 酸 → 脂肪酸（不溶於水）+ 鈉鹽',phen:'肥皂水變混濁，表面浮起一層油油的白色東西，再也搓不出泡沫。',use:'酸把肥皂變回不溶於水的脂肪酸，肥皂就失效了。肥皂水是鹼性的，碰到酸會被中和掉。',note:''},
- {id:'rust',name:'鐵泡在水裡',kind:'chem',at:'table',inputs:[['iron','water'],['sponge','water'],['iron','seawater'],['sponge','seawater'],['iron','brine']],out:{hematite:1},eq:'4Fe + 3O2 + 6H2O -> 4Fe(OH)3',phen:'放了一陣子，鐵的表面長出一層紅褐色、鬆鬆的鏽，一刮就掉。泡在鹽水裡的鏽得特別快。',use:'鐵同時碰到水和空氣裡的氧，就會生鏽。鐵鏽是含水的氧化鐵，脫了水就和赤鐵礦一樣——鐵又繞回了礦石。',note:'塗油、上漆、鍍鋅，都是為了把鐵和水、空氣隔開。遊戲把好幾天縮成一瞬間。'},
+ {id:'rust',name:'鐵泡在水裡',kind:'chem',at:'table',inputs:[['iron','water'],['sponge','water'],['iron','seawater'],['sponge','seawater'],['iron','brine']],out:{hematite:1},eq:'4Fe + 3O2 + 6H2O -> 4Fe(OH)3',phen:'放了一陣子，鐵的表面長出一層紅褐色、鬆鬆的鏽，一刮就掉。泡在鹽水裡的鏽得特別快。',use:'鐵同時碰到水和空氣裡的氧，就會生鏽。鐵鏽是含水的氧化鐵，脫了水就和赤鐵礦一樣——鐵又繞回了礦石。',note:'塗油、上漆、鍍鋅，都是為了把鐵和水、空氣隔開。現實中要放上好幾天。'},
  {id:'obs_insol',name:'放進水裡攪一攪',kind:'obs',at:'table',inputs:[['sand','water'],['quartz','water'],['caco3','water'],['sulfur','water'],['charcoal','water'],['oil','water'],['glass','water']],out:{},eqx:'（不溶於水）',phen:'攪了半天，東西還是原樣：沙和石頭沉在底下，硫磺粉和油浮在上面。',use:'不是每種東西都溶得進水。沙、石灰石、硫磺、木炭、油都不溶於水；食鹽、糖、天然鹼就溶得很快。能不能溶在水裡，是物質的特性之一。',note:'材料沒有壞，撈起來還能再用。'},
- {id:'obs_dissolve',name:'溶在水裡',kind:'obs',at:'table',inputs:[['natron','water'],['ethanol','water']],out:{},eqx:'（溶解，沒有產生新物質）',phen:'白色的天然鹼很快就溶得看不見了；酒精倒進水裡，一下就混在一起，分不出界線。',use:'溶解是物理變化：東西只是散進水裡，沒有變成新的物質。把水蒸發掉，就能拿回原來的東西。',note:'要用天然鹼溶液的時候，把天然鹼、淡水和其他材料一起放進去就行。材料沒有用掉。'},
+ {id:'obs_dissolve',name:'溶在水裡',kind:'obs',at:'table',inputs:[['natron','water'],['ethanol','water']],out:{},eqx:'（溶解，沒有產生新物質）',phen:'白色的天然鹼很快就溶得看不見了；酒精倒進水裡，一下就混在一起，分不出界線。',use:'溶解是物理變化：東西只是散進水裡，沒有變成新的物質。把水蒸發掉，就能拿回原來的東西。',note:'想用天然鹼溶液，就把天然鹼、淡水和其他材料一起放進陶缽。這次的材料沒有用掉。'},
  {id:'ind_neutral',name:'指示劑遇到中性的東西',kind:'chem',at:'table',col:'#8e44ad',inputs:[['indicator','water'],['indicator','brine'],['indicator','salt'],['indicator','ethanol'],['indicator','juice']],out:{},eqx:'紫色 → 紫色（中性）',phen:'紫色的指示劑一點也沒變。',use:'淡水、食鹽水、酒精、糖水都是中性的：不酸也不鹼。指示劑不變色，也是一種結果。',note:''},
  {id:'ind_carb',name:'指示劑檢驗天然鹼、草木灰',kind:'chem',at:'table',col:'#3f8f7a',inputs:[['indicator','natron'],['indicator','ash']],out:{},eqx:'紫色 → 藍綠色（鹼性）',phen:'粉末一溶進去，紫色就變成藍綠色。',use:'碳酸鈉和碳酸鉀是「鹽」，不是鹼；但它們溶在水裡會讓水變成鹼性。所以古人拿它們來洗衣服、做肥皂。',note:''},
  {id:'ind_soap',name:'指示劑檢驗肥皂水',kind:'chem',at:'table',col:'#4fa36a',inputs:[['indicator','soap']],out:{},eqx:'紫色 → 綠色（弱鹼性）',phen:'紫色的指示劑變成綠色。',use:'肥皂是強鹼和油做的，溶在水裡是弱鹼性。用肥皂洗太多次手會乾澀，就是這個原因。',note:''},
@@ -470,7 +471,7 @@ const REACTIONS=[
  {id:'fe_s',lab:1,name:'鐵和硫一起加熱',kind:'chem',at:'heat',T:300,inputs:[['iron','sulfur'],['sponge','sulfur']],out:{},eq:'Fe + S -> FeS',phen:'混合物的一端燒紅以後，紅光自己往另一端蔓延，就算把火移開也不停。冷卻後是一塊黑色、磁鐵吸不起來的東西。',use:'鐵和硫化合成硫化亞鐵。原本鐵會被磁鐵吸、硫是黃色的；化合以後，兩種性質都不見了——這就是化合物和混合物的差別。',note:'這個反應會放熱，一點燃就能自己進行下去。'},
  {id:'cu_s',lab:1,name:'銅和硫一起加熱',kind:'chem',at:'heat',T:300,inputs:[['copper','sulfur']],out:{},eq:'2Cu + S -> Cu2S',phen:'紅色的銅在硫蒸氣裡發出紅光，變成黑色、一敲就碎的東西。',use:'銅和硫化合成硫化亞銅。很多銅礦本來就是銅和硫的化合物，要先在空氣裡燒掉硫，才煉得出銅。',note:''},
  {id:'heat_carbonic',name:'加熱碳酸水',kind:'chem',at:'heat',T:60,pot:1,inputs:[['carbonic']],out:{co2:1,water:1},eq:'H2CO3 -> CO2 + H2O',phen:'還沒煮開，水裡就冒出一大堆氣泡；嚐一口，已經不酸了。',use:'碳酸很不穩定，溫度一高，二氧化碳就跑出來。汽水放在太陽下會沒氣，就是這樣。',note:''},
- {id:'boil_lye',name:'煮乾草木灰水',kind:'phys',at:'heat',T:100,pot:1,defer:['soap_ash'],inputs:[['lye']],out:{ash:1},eqx:'草木灰水 → 碳酸鉀（鉀鹼）+ 水蒸氣',phen:'水越煮越少，鍋底剩下一層灰白色的硬殼。',use:'灰水煮乾留下的，是比草木灰純得多的碳酸鉀。英文的 potash（鉀鹼）就是「鍋子（pot）裡的灰（ash）」；1807 年戴維從它裡面抓出一種新金屬，就取名叫 potassium——鉀。',note:'遊戲裡收進背包的，還是叫「草木灰」。'},
+ {id:'boil_lye',name:'煮乾草木灰水',kind:'phys',at:'heat',T:100,pot:1,defer:['soap_ash'],inputs:[['lye']],out:{ash:1},eqx:'草木灰水 → 碳酸鉀（鉀鹼）+ 水蒸氣',phen:'水越煮越少，鍋底剩下一層灰白色的硬殼。',use:'灰水煮乾留下的，是比草木灰純得多的碳酸鉀。英文的 potash（鉀鹼）就是「鍋子（pot）裡的灰（ash）」；1807 年戴維從它裡面抓出一種新金屬，就取名叫 potassium——鉀。',note:'這份白色的粉末和草木灰的主要成分一樣，可以當草木灰用。'},
  {id:'ester',name:'酯化反應',kind:'chem',at:'heat',T:70,pot:1,inputs:[['ethanol','vinegar','h2so4']],out:{},eq:'CH3COOH + C2H5OH -> CH3COOC2H5 + H2O',phen:'燒瓶裡飄出一股甜甜的水果香，液面上浮著一層油狀的液體。',use:'酸和醇反應，生成「酯」和水。硫酸在這裡當催化劑，讓反應快一點。水果和花的香味，很多都是酯。',note:'乙酸乙酯也是去光水、膠水裡常見的溶劑。'},
  {id:'obs_soap_dry',name:'乾的鹼粉和油一起煮',kind:'obs',at:'heat',T:90,pot:1,not:['water','sodawater','lye','koh','naoh'],inputs:[['oil','natron'],['oil','ash']],out:{},eqx:'（少了水，反應起不來）',phen:'油在鍋裡滋滋作響，白色的粉末沉在鍋底，怎麼攪都只是油裡混著粉。',use:'天然鹼和草木灰要先溶在水裡，才會變成鹼性的溶液，去「咬」油脂。加一份淡水再試試。',note:''},
  {id:'tech_tepui',name:'平頂山與天使瀑布',kind:'tech',inputs:[],out:{},eqx:'整片砂岩高原 —(流水切割、侵蝕上億年)→ 四面懸崖的平頂山',phen:'雲頂島的山頂平得像一張桌子，四周是筆直的懸崖，雲就繞在半山腰。一道瀑布從平台邊緣一躍而下，還沒落到海面，就散成了一大片白霧。',use:'平頂山原本是一整片砂岩高原，被雨水和河流一點一點切開，最後只留下一座座四面都是懸崖的「桌山」。山頂和山下隔著幾百公尺的岩壁，動植物各自演化，彷彿另一個世界。瀑布落得太高，水在半空中被風吹散、蒸發，到了底下常常只剩水霧。',note:'南美洲圭亞那高原上的平頂山，當地人叫它 tepui，意思是「神的居所」。天使瀑布從奧揚特普伊山落下約 979 公尺，是世界上落差最大的瀑布。柯南．道爾的小說《失落的世界》，靈感就來自這一帶的平頂山。'},
@@ -652,7 +653,7 @@ const QUESTS=[
  {id:'q_scope',ch:'第五章　遠方',goal:'做一支望遠鏡，看看海的另一邊',hint:'「透鏡 2、銅 1、木頭 1。」',done:A('scope'),
   after:'你把望遠鏡對準西北方的海平線。\n\n那裡一直有一團散不掉的雲。雲的下面——是一座島。\n\n四周的海面泛著白色的碎浪：暗礁。沒有任何一艘船過得去。\n\n但如果不走海路呢？'},
  {id:'q_balloon',ch:'第五章　遠方',goal:'造一個能載人的熱氣球',hint:'「藤蔓纖維 12（織氣囊）、木頭 4（吊籃）、陶器 1（火盆）。空氣燒熱了會變輕——煙為什麼總是往上飄？」',done:HAS('balloon')},
- {id:'q_4',ch:'第五章　遠方',goal:'乘氫氣球飛到雲底下的那座島',hint:'「走到熱氣球旁邊按 E，把柴火放進火盆就能升空。木頭燒得快，木炭耐燒得多。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。燃料燒完，氣球就會往下掉——在海上的話，風把你吹到哪裡，就是哪裡。」',done:V(4),
+ {id:'q_4',ch:'第五章　遠方',goal:'乘熱氣球飛到雲裡的那座島',hint:'「走到熱氣球旁邊按 E，把柴火放進火盆就能升空。木頭燒得快，木炭耐燒得多。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。燃料燒完，氣球就會往下掉——在海上的話，風把你吹到哪裡，就是哪裡。」',done:V(4),
   after:'雲頂島。\n\n沒有筆記，沒有陶罐，沒有任何人來過的痕跡。\n\n岩壁上嵌著一種鉛灰色的石頭，斷面亮得像鏡子，一塊一塊都是整齊的方塊。'},
  {id:'q_galena',ch:'第五章　遠方',goal:'敲開鉛灰色、亮得像鏡子的石頭',hint:'「要鐵製工具。」',done:s=>!!s.known.galena},
  {id:'q_rochelle',ch:'第五章　遠方',goal:'做出一顆能把電變成聲音的晶體',hint:'「釀過幾次酒以後，罐子內壁會結一層粗粗的東西，別刷掉。它是酸性的——拿湖邊那種白色的鹼去溶它，慢慢加熱，再放涼。」',rx:['rochelle'],done:F('rochelle')},
@@ -789,7 +790,7 @@ const BADGES=[
  ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['sulfur','🌋','硫磺礦工','在實驗室燒出二氧化硫',s=>fnd(s,'burn_s','burn_s_o2')],['bleach','🧴','消毒專家','做出漂白水',s=>s.found.bleach],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
  ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
  ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氣球抵達雲頂島',s=>!!s.seen[4]],['zep','🛩️','天空的主人','造出氫氣飛艇',s=>hasSt(s,'airship')],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
- ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['islet','🏝️','霧裡的小島','找到藏在霧裡的三座小島',s=>[5,6,7].every(i=>s.seen[i])],['aroma','🌿','香氣獵人','取得樟腦、香茅油和香草精',s=>!!(s.found.camphor_dist&&s.found.citro_dist&&s.found.vanilla_ext)],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
+ ['isl','🧭','探險家','踏上五座大島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['islet','🏝️','霧裡的小島','找到藏在霧裡的三座小島',s=>[5,6,7].every(i=>s.seen[i])],['aroma','🌿','香氣獵人','取得樟腦、香茅油和香草精',s=>!!(s.found.camphor_dist&&s.found.citro_dist&&s.found.vanilla_ext)],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
  ['fail1','📝','失敗也是發現','累積 5 筆觀察紀錄',s=>nFound(s,'obs')>=5],['fail2','🧐','實驗狂','累積 15 筆觀察紀錄',s=>nFound(s,'obs')>=15],['fail3','🤯','什麼都要試一下','累積 25 筆觀察紀錄',s=>nFound(s,'obs')>=25],
  ['chem1','📗','初級化學家','發現 15 種化學反應',s=>nFound(s,'chem')>=15],['chem2','📘','資深化學家','發現 35 種化學反應',s=>nFound(s,'chem')>=35],['chem3','📕','反應大師','發現 55 種化學反應',s=>nFound(s,'chem')>=55],
  ['soap3','🧼','肥皂研究員','用三種不同的鹼做出肥皂',s=>['soap','soap_ash','soap_soda'].every(i=>s.found[i])],['clean','🙌','先洗手','洗過手再發酵成功',s=>s.known._washed&&s.found.ferment],
@@ -1904,7 +1905,7 @@ const have=()=>ORDER.filter(id=>S.inv[id]>0);
 /* 把一串材料照化學分類分組顯示 */
 function chemGroups(ids,fn){const seen=new Set(),out=[];const row=(nm,g)=>`<div class="cgrp"><span class="cname">${nm}</span><div class="grid">${g.map(fn).join('')}</div></div>`;
  for(const [nm,L] of CHEM){const g=L.filter(id=>ids.includes(id));if(g.length){g.forEach(i=>seen.add(i));out.push(row(nm,g));}}
- const rest=ids.filter(i=>!seen.has(i));if(rest.length)out.push(row('其他',rest));return out.join('')+'<div class="muted" style="margin-top:4px">分類以主要成分為準：例如木炭和焦炭當作碳，草木灰當作碳酸鉀；酸、鹼的水溶液歸在酸、鹼。</div>';}   /* 依分類排序 */
+ const rest=ids.filter(i=>!seen.has(i));if(rest.length)out.push(row('其他',rest));return out.join('')+'<div class="muted" style="margin-top:4px">依照主要成分分類：木炭和焦炭算是碳，草木灰算是碳酸鉀；酸和鹼的水溶液，放在酸、鹼裡。</div>';}   /* 依分類排序 */
 function entryHTML(r){return `<div><span class="tag k-${r.kind}">${KIND[r.kind]}</span><b>${r.name}</b></div><div class="eq">${r.eq?fh(r.eq):r.eqx}</div>
  ${AT[r.at]?`<div><span class="lbl">條件：</span>${AT[r.at]}${r.T&&r.kind!=='obs'?'，'+r.T+' °C 以上':''}${r.closed?'，隔絕空氣':''}${r.needs?'，需要冷凝管':''}</div>`:''}
  <div><span class="lbl">現象：</span>${r.phen}</div><div><span class="lbl">知識：</span>${r.use}</div>${r.note?`<div class="muted">🔍 真實世界：${r.note}</div>`:''}`;}
@@ -2254,7 +2255,7 @@ function drawFarm(t){const cvs=$('fc');if(!cvs||!farmSt)return;const c=cvs.getCo
 let mix={at:'table',sel:[],res:null,t0:0,shown:[]};
 function openMix(at,indoor){mix={at,indoor:!!indoor,sel:[],res:null,t0:0,shown:[]};panel='mix';renderMix();}
 function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=have(),cell=mix.at==='cell';let res='';const R=mix.res;
- if(R){if(R.err)res=`<div class="result fail">${R.err}</div>`;else if(R.none)res=`<div class="result fail">沒有觀察到明顯的變化。換個組合試試？${R.lost?`<br><b>💨 ${R.lost.map(k=>ITEMS[k].n).join('和')}混在一起，已經分不開，浪費掉了。</b>`:''}<div class="muted">（遊戲只收錄部分反應，沒反應不一定代表現實中也沒有。）</div></div>`;
+ if(R){if(R.err)res=`<div class="result fail">${R.err}</div>`;else if(R.none)res=`<div class="result fail">沒有觀察到明顯的變化。換個組合試試？${R.lost?`<br><b>💨 ${R.lost.map(k=>ITEMS[k].n).join('和')}混在一起，已經分不開，浪費掉了。</b>`:''}<div class="muted">（不是每種組合都看得出變化；看不出來，不代表現實中一定沒有反應。）</div></div>`;
   else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
  const keepScroll=$('modal').scrollTop;
  openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
@@ -2333,9 +2334,9 @@ function saveHTML(){const q=questView(S).cur;
    ${dirList&&dirList.length?'<div class="muted">資料夾裡的存檔（點一下讀取，會蓋掉目前的進度）：</div><div class="grid" style="margin-top:6px">'+dirList.map(n=>`<button class="item" data-svload="${n.replace(/"/g,'&quot;')}">📄 ${n.replace(/</g,'&lt;')}</button>`).join('')+'</div>':''}`
    :`選一個位置（例如「文件」），遊戲會在裡面建立「${SAVE_DIR}」資料夾，之後自動把進度寫進去。
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
-  :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
+  :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.24',VDATE='2026-11-18';
+const VERSION='2.25',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2373,7 +2374,7 @@ const LB_ANI=['水獺','石虎','黑熊','藍鵲','穿山甲','梅花鹿','獼�
 function lbHash(t){let h=2166136261;t=String(t);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 const lbTag=id=>('0000000'+lbHash('tag:'+id).toString(16)).slice(-8);
 function lbAlias(key){const h=lbHash(key);return LB_ADJ[h%LB_ADJ.length]+LB_ANI[(h>>>8)%LB_ANI.length];}
-function lbLoad(){if(!lbOn())return;lbBusy=true;lbErr='';fetch(LB_URL+(LB_URL.includes('?')?'&':'?')+'top=100&t='+Date.now()).then(r=>r.json()).then(j=>{lbData=j;lbBusy=false;if(panel==='lb')render();}).catch(()=>{lbBusy=false;lbErr='連不上英雄榜。可能是網路的關係，或是這個頁面不允許連到外面（請改用 GitHub 上的版本）。';if(panel==='lb')render();});}
+function lbLoad(){if(!lbOn())return;lbBusy=true;lbErr='';fetch(LB_URL+(LB_URL.includes('?')?'&':'?')+'top=100&t='+Date.now()).then(r=>r.json()).then(j=>{lbData=j;lbBusy=false;if(panel==='lb')render();}).catch(()=>{lbBusy=false;lbErr='連不上英雄榜。可能是網路的關係，或是這個頁面不允許連到外面。請直接打開遊戲的網址再試試。';if(panel==='lb')render();});}
 function lbHTML(){const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let body;if(lbErr)body=`<div class="result">${lbErr}</div>`;else if(!lbData)body='<div class="muted">讀取中……</div>';
  else{const L=lbData.top||[],myTag=S.pid?lbTag(S.pid):'',myScore=score(S).total,mine=r=>S.share===true&&(r.tag?r.tag===myTag:(r.name===S.name&&r.score===myScore));
@@ -2383,7 +2384,7 @@ function lbHTML(){const e=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&
  return head('🏆 英雄榜')+body+`<p style="margin:10px 0 0"><button class="btn alt" data-act="lb-reload" ${lbBusy?'disabled':''}>🔄 重新整理</button></p>`;}
 function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <div class="savebox"><h4>這是什麼</h4>一個漂流到荒島的人，從一堆營火開始，靠著前人留下的筆記，一步一步做出陶、石灰、青銅、鐵、玻璃、硫酸，最後做出電池，點亮一盞燈。<br>遊戲裡的每一個反應都是真的，只是把時間縮短、把取得材料變容易了。</div>
- <div class="savebox"><h4>第二版多了什麼</h4>島和海都放大了一倍多，礦要走遠一點才找得到。新增小河與水車、火山口的酸湖、雷擊磁化與發電機、透鏡與望遠鏡、氫氣球，以及第五章「遠方」和新的結局。</div>
+ <div class="savebox"><h4>第二版多了什麼</h4>島和海都放大了一倍多，礦要走遠一點才找得到。新增小河與水車、火山口的酸湖、雷擊磁化與發電機、透鏡與望遠鏡、熱氣球與氫氣飛艇，以及第五章「遠方」和新的結局。後來又加上地圖上的迷霧、可以轉動的燈塔，和藏在霧裡的小島。</div>
  <div class="savebox"><h4>設計理念</h4>
  <b>探索與嘗試。</b>筆記只給線索，不給配方。該加什麼、要燒多熱、放在哪裡燒，要自己動手試。試錯了，材料會浪費，但筆記會記下你看到了什麼——失敗也是一種發現。<br>
  <b>知識是累積出來的。</b>每做成一件事，它就變成你的配方、你的工具，讓下一件事變得可能。沒有陶鍋就煮不出鹽，沒有灰泥就砌不出爐子，沒有玻璃就做不出酸。<br>
