@@ -526,7 +526,7 @@ const REACTIONS=[
  {id:'obs_weak_elec',name:'電解醋或碳酸水',kind:'obs',at:'cell',inputs:[['vinegar'],['carbonic'],['water','vinegar'],['water','carbonic']],out:{},eqx:'氣泡又少又慢',phen:'兩極只有稀稀落落的小氣泡，比加了硫酸的水慢得多。',use:'醋酸和碳酸是弱酸，溶在水裡只有一小部分變成離子，導電能力差。這種叫弱電解質。',note:''},
  {id:'obs_nonelec',name:'電解糖水或酒精',kind:'obs',at:'cell',inputs:[['juice'],['ethanol'],['water','juice'],['water','ethanol']],out:{},eqx:'沒有變化',phen:'電極上一顆氣泡也沒有。',use:'糖和酒精溶在水裡還是一個個完整的分子，不會變成離子，所以不導電。這種叫非電解質。',note:'能不能導電，要看溶進水裡的東西會不會變成離子，和它溶不溶得進水沒有關係。'},
  {id:'obs_lowvolt',name:'電壓不夠的電解',kind:'obs',at:'cell',inputs:[],out:{},eqx:'沒有變化',phen:'電極上沒有動靜，頂多冒出一兩顆氣泡就停了。',use:'每一種物質要被電拆開，都有一個最低的電壓。電壓不夠，離子就是不肯在電極上放手。把伏打堆再疊高一些。',note:'不同的東西需要的電壓不一樣：銅離子最好說話，水和酸其次，食鹽水更高，熔化的強鹼最難。'},
- {id:'obs_no_cond',name:'沒接冷凝管就加熱',kind:'obs',at:'still',inputs:[],out:{},eqx:'蒸氣散到空氣裡',phen:'瓶口不斷冒出白煙，瓶裡的東西越來越少，卻什麼也沒接到。',use:'加熱會讓容易變成氣體的成分先跑出來。沒有冷凝管把蒸氣變回液體，它就全散到空氣裡了。',note:''},
+ {id:'obs_no_cond',name:'沒接冷凝管就加熱',kind:'obs',at:'still',inputs:[],out:{},eqx:'蒸氣散到空氣裡',phen:'瓶口不斷冒出白煙，瓶裡的東西越來越少，卻什麼也沒接到。',use:'加熱會讓容易變成氣體的成分先跑出來。沒有冷凝管把蒸氣變回液體，它就全散到空氣裡了。',note:'在實驗桌上按下「💧 冷凝管」，就能把蒸氣接住。'},
  {id:'obs_melt_only',name:'只加熱、不通電的強鹼',kind:'obs',at:'still',inputs:[],out:{},eqx:'熔化 → 冷卻後又凝固',phen:'白色的固體熔成透明的液體；火一熄，又凝回白色的固體。',use:'熔化只是物理變化。再怎麼加熱，它也不會自己分開。要拆開它，得靠別的力量。',note:''},
  {id:'obs_no_melt',name:'想把食鹽或草木灰燒熔',kind:'obs',at:'still',needElec:1,T:550,inputs:[['salt'],['ash'],['natron']],out:{},eqx:'沒有熔化',phen:'燒到發紅，還是一粒一粒的固體。電極插在裡面，什麼事也沒發生。',use:'食鹽要 801 °C、草木灰裡的碳酸鉀要 891 °C 才會熔化，實驗桌上的小爐子辦不到。有沒有含著同一種金屬、卻容易熔化得多的東西？',note:''},
  /* ===== 科技原理 ===== */
@@ -1996,7 +1996,7 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
 /* ===== 進屋：倉庫、室內實驗室、加蓋 ===== */
 let homeSt=null,homeMsg='';
 /* 實驗桌：桌上要架什麼裝置，由玩家決定 */
-let bench={on:false,fire:false,cond:true,elec:false,still:false,cell:false};
+let bench={on:false,fire:false,cond:false,elec:false,still:false,cell:false};
 const hasStill=st=>!!(st.still||(BMAP[st.type].lab>=3&&S.abil.distill)),hasCell=st=>!!(st.cell||(BMAP[st.type].lab>=3&&S.abil.elec));
 function powerText(){return freePower(S)?'🌀 水力發電機供電：電壓又高又穩，不必換鋅片':pileOf(S)?`${S.pile.dan?'丹尼爾電池':'伏打堆'} ${S.pile.n} 層（約 ${S.pile.life>0?S.pile.n:0} 伏特${S.pile.dan?'，穩定':'，撐不久'}）｜鋅片還能撐 ${S.pile.life} 次電解`:'還沒有電源';}
 /* 水力發電機裝在水車上；同一座島的建築拉銅線過去就有電 */
@@ -2009,7 +2009,7 @@ function drawWires(){if(wireG)scene.remove(wireG);wireG=new G.Group();const pm=n
   for(let i=0;i<=n;i++){const x=w.x+(st.x-w.x)*i/n,y=w.y+(st.y-w.y)*i/n,h=hAt(x,y);pts.push(new G.Vector3(x,h+1.6,y));if(i>0&&i<n){const p=new G.Mesh(new G.CylinderGeometry(.05,.07,1.6,6),pm);p.position.set(x,h+.8,y);wireG.add(p);}}
   wireG.add(new G.Line(new G.BufferGeometry().setFromPoints(pts),lm));}
  scene.add(wireG);}
-function openBench(st){bench={on:true,fire:false,cond:true,elec:false,still:hasStill(st),cell:hasCell(st)};benchGo();}
+function openBench(st){bench={on:true,fire:false,cond:false,elec:false,still:hasStill(st),cell:hasCell(st)};benchGo();}
 function benchGo(){if(bench.fire){openFire('still',true);fire.cond=bench.cond;fire.elec=bench.elec;flog=['桌上架了：爐火'+(bench.cond?'、冷凝管':'')+(bench.elec?'、電極':'')+'。把燃料和材料放進去，然後點火。'];fireCtl();}else openMix(bench.elec?'cell':'table',true);}
 const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'混合';
 function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class="cond ${bench[k]&&ok?'sel':''}" data-bench="${k}" ${ok?'':'disabled'}>${label}</button>`;
@@ -2178,7 +2178,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.21',VDATE='2026-11-18';
+const VERSION='2.22',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
