@@ -126,7 +126,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-scope="1" id="scopebtn" title="望遠鏡（Q）" style="display:none">🔭</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
-<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="lb" id="lbbtn" style="display:none">🏆 英雄榜</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
+<div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="paint" id="paintbtn" style="display:none">🎨 塗裝</button><button data-open="lb" id="lbbtn" style="display:none">🏆 英雄榜</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
 <div id="mask"><div id="modal"></div></div>
 
 <script id="logic">
@@ -184,6 +184,12 @@ const ITEMS={
  citroil:{n:'香茅油',f:'',c:'#f0e08a',d:'淡黃色的精油，有濃濃的檸檬草香。不溶於水，蚊子不喜歡這個味道。'},
  vanilla:{n:'香草莢',f:'',c:'#3a2a18',d:'香草蘭的果莢，曬乾、發酵過後變成黑褐色，香氣才出來。'},
  vanillaext:{n:'香草精',f:'',c:'#b07a3a',d:'香草莢泡在酒精裡萃取出來的琥珀色液體，主要的香味分子叫香草醛。'},
+ pig_red:{n:'鐵紅',f:'Fe2O3',c:'#a3402c',d:'磨得細細的赤鐵礦粉。最古老的紅色顏料，洞穴壁畫的紅就是它。'},
+ pig_yellow:{n:'鐵黃',f:'FeO(OH)',c:'#c99a32',d:'黃褐色的鐵的化合物粉末。黃土和赭石的黃，就是它。'},
+ pig_green:{n:'石綠',f:'Cu2(OH)2CO3',c:'#2f9a6a',d:'磨得細細的孔雀石粉。中國山水畫裡的青綠色。'},
+ pig_blue:{n:'埃及藍',f:'CaCuSi4O10',c:'#2f6fb8',d:'銅、鈣和石英在窯裡燒成的藍色晶體，磨成粉就是顏料。人類最早的人造顏料。'},
+ pig_black:{n:'碳黑',f:'C',c:'#2c2b2a',d:'磨得極細的木炭粉。和膠調在一起，就是墨。'},
+ dye_pink:{n:'粉紅色染液',f:'',c:'#d0679a',d:'紫甘藍汁加了醋，變成粉紅色。花青素在酸裡偏紅。'},
  oil:{n:'椰子油',f:'',c:'#f3e7a8',d:'油脂，不溶於水。'},
  soap:{n:'肥皂',f:'',c:'#f6efd8',d:'一端親水、一端親油，所以能把油汙帶進水裡。'},
  malachite:{n:'孔雀石',f:'Cu2(OH)2CO3',c:'#27a56f',d:'翠綠色的含銅礦石。'},
@@ -232,21 +238,21 @@ const ITEMS={
  clwater:{n:'氯水',f:'',c:'#eef3be',d:'氯氣溶在水裡，淡淡的黃綠色。含有鹽酸和次氯酸，能漂白、能殺菌。'},
  bleach:{n:'漂白水',f:'NaClO',c:'#f3f6e2',d:'次氯酸鈉溶液。強力殺菌、漂白。絕對不能和酸性的清潔劑混用。'}
 };
-const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']);
+const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext','dye_pink']);
 const GAS=new Set(['co2','h2','o2','cl2','so2']);
 /* 會燒焦的東西：放在火上卻沒有發生該有的反應，超過 300 °C 就毀了 */
 const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
 /* 背包的分類 */
 const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','water','seawater']],
  ['礦物',['caco3','sand','quartz','natron','sulfur','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
- ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s','camphor']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']],['氣體',['co2','h2','o2','cl2','so2']]];
+ ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s','camphor']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']],['顏料與染料',['pig_red','pig_yellow','pig_green','pig_blue','pig_black','dye_pink']],['氣體',['co2','h2','o2','cl2','so2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
-const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','h2','o2','cl2']],
- ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
+const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','pig_black','h2','o2','cl2']],
+ ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite','pig_red','pig_yellow']],
  ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh','koh_s','naoh_s']],
- ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle']],
+ ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle','pig_green']],
  ['有機化合物',['ethanol','oil','soap','camphor']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
- ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola','citroil','vanillaext']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
+ ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola','citroil','vanillaext','dye_pink']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete','pig_blue']],
  ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
 const KIND={chem:'化學變化',phys:'物理變化',obs:'觀察紀錄',tech:'科技原理'};
 const AT={heat:'用火加熱',table:'實驗桌（常溫）',still:'蒸餾器',cell:'電解槽'};
@@ -328,7 +334,7 @@ const REACTIONS=[
   phen:'礦石變成白色粉末，並放出氣體。',use:'碳酸鹽受熱分解成金屬氧化物和二氧化碳，和燒貝殼是同一類反應。',note:''},
  {id:'charcoal',name:'悶燒木頭成木炭',kind:'chem',at:'heat',T:300,closed:1,inputs:[['wood']],out:{charcoal:1},eqx:'木頭 —(隔絕空氣加熱)→ 木炭 + 水蒸氣 + 可燃氣體',
   phen:'窯口冒出白煙，窯室裡的木頭變黑、變輕，卻沒有燒成灰。',use:'同樣是加熱木頭：爐膛裡空氣充足，燒成灰；窯室裡隔絕空氣，留下碳。',note:'真實製炭要悶上好幾天。'},
- {id:'calcine',name:'煅燒石灰石（貝殼）',kind:'chem',at:'heat',T:850,inputs:[['caco3']],out:{quicklime:1,co2:1},eq:'CaCO3 -> CaO + CO2',
+ {id:'calcine',name:'煅燒石灰石（貝殼）',kind:'chem',at:'heat',T:850,defer:['egypt_blue'],inputs:[['caco3']],out:{quicklime:1,co2:1},eq:'CaCO3 -> CaO + CO2',
   phen:'變得更白、更輕、一捏就碎，並放出氣體。',use:'分解反應。人類在一萬年前就會燒石灰來塗牆。',note:'真實需要約 900 °C 持續加熱數小時。'},
  {id:'smelt_sn',name:'木炭還原錫石',kind:'chem',at:'heat',T:1000,inputs:[['cassiterite','charcoal'],['cassiterite','coke'],['cassiterite','coal']],out:{tin:2,co2:1},eq:'SnO2 + C -> Sn + CO2',
   phen:'爐底流出銀白色的液態金屬。',use:'用碳把氧搶走，和煉銅是同一個原理。',note:''},
@@ -380,7 +386,7 @@ const REACTIONS=[
  {id:'dough',name:'揉麵團',kind:'phys',at:'table',inputs:[['flour','water']],out:{dough:1},eqx:'麵粉 + 水 → 麵團',phen:'粉和水揉成一團有彈性的麵團。',use:'麵粉裡的蛋白質吸水後互相拉在一起，形成有彈性的網（麵筋）。',note:''},
  {id:'rise',name:'麵團發酵',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['dough']],out:{risen:1,co2:1},eq:'C6H12O6 -> 2C2H5OH + 2CO2',phen:'麵團放著放著，脹成兩倍大，切開來裡面都是小洞。',use:'空氣裡的酵母菌吃掉麵團裡的糖，放出二氧化碳，氣體被麵筋包住，就把麵團撐大了。和釀酒是同一個反應。',note:'產生的少量酒精在烤的時候會蒸發掉。'},
  {id:'vinegar',name:'酒變成醋',kind:'chem',at:'table',indoor:1,clean:1,inputs:[['wine']],out:{vinegar:1},eq:'C2H5OH + O2 -> CH3COOH + H2O',phen:'沒蓋好的酒放了幾天，聞起來變酸了。',use:'空氣中的醋酸菌讓酒精和氧氣反應，變成醋酸。這是人類最早得到的酸。',note:'現實中要等上好幾天。'},
- {id:'ind_vinegar',name:'指示劑檢驗醋',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','vinegar']],out:{},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'醋是弱酸，顏色變化介於碳酸水和硫酸之間。',note:''},
+ {id:'ind_vinegar',name:'指示劑檢驗醋',kind:'chem',at:'table',col:'#c8508f',inputs:[['indicator','vinegar']],out:{dye_pink:1},eqx:'紫色 → 粉紅色（弱酸性）',phen:'紫色的指示劑變成粉紅色。',use:'醋是弱酸，顏色變化介於碳酸水和硫酸之間。',note:'這杯粉紅色的汁液，也可以拿來染布。'},
  {id:'caco3_vinegar',name:'貝殼泡醋',kind:'chem',at:'table',inputs:[['caco3','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'貝殼表面慢慢冒出細小的氣泡。',use:'醋雖然是弱酸，一樣能和碳酸鈣反應放出二氧化碳，只是比鹽酸慢得多。',note:''},
  {id:'egg_vinegar',name:'雞蛋泡醋',kind:'chem',at:'table',inputs:[['egg','vinegar']],out:{co2:1},eq:'CaCO3 + 2CH3COOH -> Ca(CH3COO)2 + H2O + CO2',phen:'蛋殼冒著泡慢慢消失，最後剩下一顆軟軟的、半透明的「無殼蛋」。',use:'蛋殼是碳酸鈣，會被醋溶掉；裡面那層薄膜不是碳酸鈣，所以留了下來。',note:'現實中要泡一兩天。'},
  {id:'curd',name:'牛奶加酸',kind:'chem',at:'table',ppt:1,inputs:[['milk','vinegar'],['milk','hcl']],out:{curd:1},eqx:'牛奶裡的蛋白質 + 酸 → 凝固',phen:'牛奶裡出現一團一團白色的凝塊，剩下的水變得清清的。',use:'牛奶裡的蛋白質（酪蛋白）遇到酸，形狀會改變、互相黏在一起沉下來。把凝塊瀝乾就是最簡單的起司。',note:'換成鹽酸也一樣。胃酸就是鹽酸，所以喝下去的牛奶，到了胃裡也會先凝成一塊一塊。'},
@@ -443,7 +449,7 @@ const REACTIONS=[
  {id:'obs_no_displace',name:'不夠活潑的金屬',kind:'obs',at:'table',inputs:[['copper','znso4'],['iron','znso4'],['sponge','znso4'],['tin','znso4'],['copper','vitriol','water']],out:{},eqx:'（沒有反應）',phen:'泡了很久，金屬表面還是亮亮的，溶液顏色也沒變。',use:'金屬只能把「比自己不活潑」的金屬從溶液裡趕出來。活性大小：鉀 > 鈉 > 鋅 > 鐵 > 錫 > 氫 > 銅。銅趕不動鋅和鐵，鐵和錫也趕不動鋅。',note:'材料沒有壞，撈起來還能再用。'},
  {id:'cu_oh',name:'硫酸銅加強鹼',kind:'chem',at:'table',ppt:1,col:'#4a90d9',inputs:[['naoh','cuso4'],['koh','cuso4']],out:{},eq:'CuSO4 + 2NaOH -> Cu(OH)2 + Na2SO4',phen:'藍色溶液裡立刻生成一團一團淺藍色、像棉絮一樣的沉澱。',use:'銅離子和氫氧根結合成不溶於水的氫氧化銅，就沉了下來。要檢驗溶液裡有沒有銅，常用這一招。',note:'把這團藍色沉澱加熱，會變成黑色的氧化銅。'},
  {id:'bordeaux',name:'調製波爾多液',kind:'chem',at:'table',ppt:1,col:'#7fb6e0',inputs:[['limewater','cuso4'],['slaked','cuso4']],out:{},eq:'CuSO4 + Ca(OH)2 -> Cu(OH)2 + CaSO4',phen:'藍色溶液變成一缸天藍色、糊糊的懸濁液。',use:'1880 年代，法國波爾多的葡萄園在路邊的葡萄上噴石灰和硫酸銅，本來是要嚇阻路人偷摘，卻發現那些葡萄不長黴病。銅離子對黴菌有毒，石灰讓它黏在葉子上、不被雨沖走。這是人類最早的殺菌農藥之一，果農到現在還在用。',note:''},
- {id:'fe_oh',name:'綠礬加鹼',kind:'chem',at:'table',ppt:1,col:'#8a9a6a',inputs:[['naoh','vitriol'],['koh','vitriol'],['limewater','vitriol']],out:{},eq:'FeSO4 + 2NaOH -> Fe(OH)2 + Na2SO4',phen:'出現灰綠色的沉澱。放著放著，表面慢慢變成紅褐色。',use:'先生成灰綠色的氫氧化亞鐵；它碰到空氣裡的氧，又被氧化成紅褐色的氫氧化鐵——和鐵生鏽是同一家人。',note:''},
+ {id:'fe_oh',name:'綠礬加鹼',kind:'chem',at:'table',ppt:1,col:'#8a9a6a',inputs:[['naoh','vitriol'],['koh','vitriol'],['limewater','vitriol']],out:{pig_yellow:1},eq:'FeSO4 + 2NaOH -> Fe(OH)2 + Na2SO4',phen:'出現灰綠色的沉澱。放著放著，表面慢慢變成紅褐色。',use:'先生成灰綠色的氫氧化亞鐵；它碰到空氣裡的氧，又被氧化成紅褐色的氫氧化鐵——和鐵生鏽是同一家人。',note:'把沉澱濾出來曬乾，就是黃色的顏料「鐵黃」。'},
  {id:'zn_oh',name:'硫酸鋅加強鹼',kind:'chem',at:'table',ppt:1,col:'#f2f2ee',inputs:[['naoh','znso4'],['koh','znso4']],out:{},eq:'ZnSO4 + 2NaOH -> Zn(OH)2 + Na2SO4',phen:'無色溶液裡出現白色的沉澱。',use:'鋅離子遇到氫氧根，生成白色的氫氧化鋅。和銅（藍）、鐵（灰綠轉紅褐）比一比：看沉澱的顏色，就能猜出溶液裡是哪一種金屬。',note:''},
  {id:'cu_co3',name:'硫酸銅遇到碳酸鹽',kind:'chem',at:'table',ppt:1,col:'#3fae86',inputs:[['natron','cuso4'],['sodawater','cuso4'],['lye','cuso4'],['ash','cuso4']],out:{co2:1},eq:'2CuSO4 + 2Na2CO3 + H2O -> Cu2(OH)2CO3 + 2Na2SO4 + CO2',phen:'冒出一點氣泡，生成一團藍綠色的沉澱。',use:'這團沉澱是鹼式碳酸銅——和孔雀石、銅器上的銅綠是同一種東西。從礦石煉成的銅，又繞回了礦石。',note:'沉澱又細又少，撈不起來。'},
  {id:'sea_mg',name:'海水加鹼',kind:'chem',at:'table',ppt:1,col:'#eef2f2',inputs:[['seawater','limewater'],['seawater','slaked'],['seawater','naoh']],out:{},eq:'MgCl2 + Ca(OH)2 -> Mg(OH)2 + CaCl2',phen:'海水變得白白濁濁的，慢慢沉下一層白色的東西。',use:'海水裡除了食鹽，還溶著不少鎂。加了鹼，鎂就變成不溶的氫氧化鎂沉下來。1916 年起，美國就有工廠用石灰從海水裡撈出鎂，再電解成金屬鎂。',note:'這團白色沉澱又細又散，撈不起來。'},
@@ -512,6 +518,12 @@ const REACTIONS=[
  {id:'obs_vanilla_water',name:'香草莢泡水',kind:'obs',at:'table',inputs:[['vanilla','water']],out:{},eqx:'（香味分子不太溶於水）',phen:'泡了半天，水只沾上一點點淡淡的香味，顏色幾乎沒變。',use:'香草醛在水裡溶得不多。要把香味「拉」出來，得換一種更溶得了它的液體。',note:'材料沒有壞，撈起來還能再用。'},
  {id:'obs_camphor_sub',name:'加熱樟腦',kind:'obs',at:'heat',T:60,pot:1,fresh:1,lose:['camphor'],inputs:[['camphor']],out:{},eqx:'樟腦（固體）→ 樟腦（氣體）',phen:'白色的晶體沒有熔成液體，就一縷一縷變成氣體散掉了，整間屋子都是樟腦味。',use:'這叫昇華：固體直接變成氣體。衣櫃裡的樟腦丸越放越小，也是這個道理。',note:''},
  {id:'obs_lens_quartz',name:'用整塊石英磨玻璃',kind:'obs',at:'table',inputs:[['glass','quartz']],out:{},eqx:'（磨不動）',phen:'石英在玻璃上刮出幾道細細的刮痕，可是磨了半天，玻璃還是平的。',use:'石英確實比玻璃硬，但整塊太大了，只刮得出刮痕，磨不出光滑的弧面。',note:'材料沒有壞，撈起來還能再用。'},
+ /* ===== 顏料：礦物磨粉、沉澱、燒製、植物萃取 ===== */
+ {id:'grind_red',name:'把赤鐵礦磨成粉',kind:'phys',at:'table',inputs:[['hematite']],out:{pig_red:1},eqx:'赤鐵礦 —(研磨)→ 鐵紅（顏料）',phen:'紅褐色的礦石在石砧上磨成細細的紅色粉末，沾到手上就洗不太掉。',use:'赤鐵礦的主要成分是氧化鐵，磨細了就是最古老的紅色顏料「鐵紅」。顏色和成分都沒變，只是顆粒變小——物理變化。',note:'三四萬年前的洞穴壁畫，紅色多半就是它。磚頭和紅土的紅，也來自氧化鐵。'},
+ {id:'grind_green',name:'把孔雀石磨成粉',kind:'phys',at:'table',inputs:[['malachite']],out:{pig_green:1},eqx:'孔雀石 —(研磨)→ 石綠（顏料）',phen:'翠綠色的石頭磨成一堆柔和的綠色粉末。',use:'孔雀石不溶於水、顏色又穩定，磨細就成了綠色顏料「石綠」。磨得越細，顏色越淡。',note:'中國山水畫裡的「青綠山水」，綠色用的就是石綠。'},
+ {id:'grind_black',name:'把木炭磨成粉',kind:'phys',at:'table',inputs:[['charcoal']],out:{pig_black:1},eqx:'木炭 —(研磨)→ 碳黑（顏料）',phen:'黑色的炭塊磨成極細的粉，輕輕一吹就飛起來。',use:'碳不溶於水、也不怕陽光，是最耐久的黑色。把碳黑和膠調在一起，就是墨。',note:'兩千年前的竹簡和帛書，字跡到今天還是黑的，靠的就是碳。'},
+ {id:'egypt_blue',name:'燒製埃及藍',kind:'chem',at:'heat',T:850,inputs:[['sand','cuo','caco3'],['sand','cuo','quicklime'],['quartz','cuo','caco3'],['quartz','cuo','quicklime']],out:{pig_blue:1},eq:'CaCO3 + CuO + 4SiO2 -> CaCuSi4O10 + CO2',phen:'石英砂、黑色的氧化銅和石灰石一起燒了很久，冷卻後變成一團鮮豔的藍色。',use:'銅、鈣和二氧化矽在高溫下結合成矽酸銅鈣：一種很穩定、不溶於水的藍色晶體。這是人類第一種用化學反應「做」出來的顏料，古埃及人拿它畫壁畫和雕像。',note:'四千多年前就有了，後來配方失傳。1815 年，戴維分析了龐貝古城出土的藍色顏料，才知道它是銅、鈣和矽組成的。'},
+ {id:'tech_paint',name:'顏料和染料',kind:'tech',inputs:[],out:{},eqx:'顏料（不溶的色粉）＋ 黏合劑 → 塗料　｜　染料（溶在水裡）→ 滲進纖維',phen:'顏料拌進灰泥刷上牆，乾了以後顏色牢牢黏在上面；衣服泡進染液，顏色滲進了每一根纖維。',use:'顏料是不溶於水的有色粉末，要靠灰泥、油或膠把它黏在東西表面；染料溶在水裡，能滲進布的纖維。人類最早的顏色，大多來自礦物：赤鐵礦的紅、孔雀石的綠、木炭的黑、石灰的白。植物裡也有顏色，像紫甘藍的花青素，但它會隨酸鹼變色，也比較容易褪。',note:'灰泥裡的熟石灰會吸收二氧化碳變回碳酸鈣，把顏料封在裡面——義大利的濕壁畫就是這樣畫的，幾百年都不褪色。'},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -1405,7 +1417,8 @@ const hero=new G.Group(),man=new G.Group(),boat=new G.Group();
  const arm=new G.Group();arm.position.set(.25,.52,.05);
  const shaft=mk(new G.BoxGeometry(.07,.07,.52),'#7a5230',0,-.04,.16),headM=mk(new G.BoxGeometry(.18,.08,.11),'#6e5a4f',0,.02,.38);
  arm.add(mk(new G.BoxGeometry(.085,.18,.085),'#f2cba2',0,-.02,0),shaft,headM);man.arm=arm;man.toolHead=headM;man.add(arm);
- boat.m=[null,boatModel(1),boatModel(2),boatModel(3)];boat.add(boat.m[1],boat.m[2],boat.m[3]);hero.add(man,boat);hero.scale.setScalar(1.25);scene.add(hero);}
+ boat.m=[null,boatModel(1),boatModel(2),boatModel(3)];boat.add(boat.m[1],boat.m[2],boat.m[3]);hero.add(man,boat);hero.scale.setScalar(1.25);scene.add(hero);
+ const ch=man.children;man.skin={hat:[ch[9],ch[10]],band:[ch[11]],shirt:[ch[2]],pants:[legL,legR]};for(const k in man.skin)man.skin[k].forEach(m=>m.orig='#'+m.material.color.getHexString());}
 /* 敲擊時飛出的碎屑 */
 const chips=[];for(let i=0;i<12;i++){const m=mk(new G.BoxGeometry(.1,.1,.1),'#fff',0,-9,0);m.life=0;m.v=new G.Vector3();scene.add(m);chips.push(m);}
 function burst(x,y,z,color){let k=0;for(const m of chips){if(m.life>0)continue;m.position.set(x,y+.5,z);m.material.color.set(color);m.v.set((Math.random()-.5)*3,2.5+Math.random()*2,(Math.random()-.5)*3);m.life=.6;if(++k>=5)break;}}
@@ -1455,26 +1468,26 @@ function stationModel(type){const g=new G.Group();
  else g.add(boatModel(type==='raft'?1:type==='sail'?2:3));
  g.scale.setScalar(1.3);return g;}
 const stObj=new Map();
-function houseModel(type,fl){const g=new G.Group(),hut=type==='hut',hi=type==='highrise',C={hut:['#c6a968','#8f7d3c','#5a4a22'],cabin:['#a87540','#6b4423','#ffefc2'],brickhouse:['#cc8f6e','#a8432f','#fff2cc'],highrise:['#d4d8dc','#8a959e','#bfe8ff']}[type];
+function houseModel(type,fl,pt){const g=new G.Group(),hut=type==='hut',hi=type==='highrise',C={hut:['#c6a968','#8f7d3c','#5a4a22'],cabin:['#a87540','#6b4423','#ffefc2'],brickhouse:['#cc8f6e','#a8432f','#fff2cc'],highrise:['#d4d8dc','#8a959e','#bfe8ff']}[type],WL=pt&&pt.wall||C[0],RF=pt&&pt.roof||C[1];
  const w=hut?1.2:hi?1.6:1.5,dp=hut?1.1:1.3,h=hut?.6:.78;
  g.add(mk(new G.BoxGeometry(w+.14,.12,dp+.14),'#7d7a72',0,.06,0));   /* 石砌地基 */
- for(let i=0;i<fl;i++){const y=.08+i*h;g.add(mk(new G.BoxGeometry(w,h,dp),C[0],0,y+h/2,0));
+ for(let i=0;i<fl;i++){const y=.08+i*h;g.add(mk(new G.BoxGeometry(w,h,dp),WL,0,y+h/2,0));
   if(type==='cabin')[.2,.45,.7].forEach(q=>g.add(mk(new G.BoxGeometry(w+.04,.035,dp+.04),C[1],0,y+h*q,0)));                 /* 原木的橫紋 */
   if(type==='brickhouse')g.add(mk(new G.BoxGeometry(w+.04,.04,dp+.04),'#e6dcc8',0,y+h,0));
   if(hi)g.add(mk(new G.BoxGeometry(w+.08,.06,dp+.08),C[1],0,y+h,0));                                                          /* 樓板 */
   if(!hut){const xs=hi?[-.5,0,.5]:[-.42,.42];xs.forEach(x=>{if(i===0&&Math.abs(x)<.1)return;[1,-1].forEach(sg=>{g.add(mk(new G.BoxGeometry(hi?.34:.26,hi?.42:.28,.04),C[2],x,y+h*.58,sg*(dp/2+.015),{basic:1}));g.add(mk(new G.BoxGeometry(hi?.38:.3,.04,.07),C[1],x,y+h*.42,sg*(dp/2+.02)));});});}
   if(i===0){g.add(mk(new G.BoxGeometry(.34,hut?.44:.52,.05),hut?C[2]:'#4a321c',0,y+(hut?.22:.26),dp/2+.02));g.add(mk(new G.BoxGeometry(.44,.06,.18),'#8d8a82',0,.04,dp/2+.1));}}            /* 門與門階 */
  const top=.08+fl*h;
- if(hi){g.add(mk(new G.BoxGeometry(w+.14,.1,dp+.14),C[1],0,top+.05,0),mk(new G.BoxGeometry(.5,.32,.5),C[1],.3,top+.26,-.2));}
- else{const r=mk(new G.ConeGeometry(w/1.414+.28,hut?.78:.66,4),C[1],0,top+(hut?.39:.33),0);r.rotation.y=Math.PI/4;r.scale.z=dp/w;g.add(r);
+ if(hi){g.add(mk(new G.BoxGeometry(w+.14,.1,dp+.14),RF,0,top+.05,0),mk(new G.BoxGeometry(.5,.32,.5),RF,.3,top+.26,-.2));}
+ else{const r=mk(new G.ConeGeometry(w/1.414+.28,hut?.78:.66,4),RF,0,top+(hut?.39:.33),0);r.rotation.y=Math.PI/4;r.scale.z=dp/w;g.add(r);
   if(type==='brickhouse'||type==='cabin')g.add(mk(new G.BoxGeometry(.22,.52,.22),type==='brickhouse'?'#8a4a3a':'#77736b',.45,top+.42,-.2));}
  return g;}
 function fieldModel(stage){const g=new G.Group();g.add(mk(new G.BoxGeometry(1.9,.1,1.5),'#5f4126',0,.05,0));[-.5,0,.5].forEach(z=>g.add(mk(new G.BoxGeometry(1.8,.08,.26),'#7a5634',0,.12,z)));
  [[-.98,0,.06,1.6],[.98,0,.06,1.6],[0,-.76,1.96,.06],[0,.76,1.96,.06]].forEach(q=>g.add(mk(new G.BoxGeometry(q[2],.26,q[3]),'#9a6b3c',q[0],.14,q[1])));
  if(stage>0){const h=[0,.14,.34,.6,.7][stage],col=stage===4?'#d9b84a':stage===1?'#8fd06a':'#4f9a3f';for(let z=-1;z<=1;z++)for(let x=-3;x<=3;x++){g.add(mk(new G.ConeGeometry(.07+stage*.012,h,5),col,x*.25,.16+h/2,z*.5));if(stage===4)g.add(mk(new G.SphereGeometry(.06,5,4),'#efd36a',x*.25,.2+h,z*.5));}}
  return g;}
-function syncStation(st){let g=stObj.get(st);const hd=BMAP[st.type].house,fd=st.type==='field'&&st.done,fl=fd?10+farmStage(st.farm||(st.farm=farmInit(st.isl))):(st.floors||1);if(g&&(hd||st.type==='field')&&g.fl!==fl){scene.remove(g);g=null;}
- if(!g){g=hd?houseModel(st.type,fl):st.type==='field'?fieldModel(fd?fl-10:0):stationModel(st.type);g.fl=fl;g.position.set(st.x,hAt(st.x,st.y),st.y);scene.add(g);stObj.set(st,g);}
+function syncStation(st){let g=stObj.get(st);const hd=BMAP[st.type].house,fd=st.type==='field'&&st.done,fl=fd?10+farmStage(st.farm||(st.farm=farmInit(st.isl))):(st.floors||1);const pk=JSON.stringify(st.paint||0);if(g&&(hd||st.type==='field')&&(g.fl!==fl||(hd&&g.pk!==pk))){scene.remove(g);g=null;}
+ if(!g){g=hd?houseModel(st.type,fl,st.paint):st.type==='field'?fieldModel(fd?fl-10:0):stationModel(st.type);g.fl=fl;g.pk=pk;g.position.set(st.x,hAt(st.x,st.y),st.y);scene.add(g);stObj.set(st,g);}
  const p=st.done?1:buildProgress(st);g.scale.set(1.3,1.3*(.12+.88*p),1.3);if(g.bar){g.bar.visible=!!st.bar;g.bar.material.color.set(st.mag?'#b33a3a':'#8a8f96');}if(g.flame)g.flame.visible=st.done&&!!S.abil.fire;}
 function farmCatchUp(){for(const st of S.st)if(st.type==='field'&&st.done){if(!st.farm)st.farm=farmInit(st.isl);const el=st.farm.last?Math.min(300,(Date.now()-st.farm.last)/1000):0;for(let k=0;k<el;k+=2)farmTick(st.farm,2);st.farm.last=Date.now();}}
 {const g=boatModel(3);g.scale.setScalar(1.6);g.rotation.set(.12,.9,.42);const wx=world.wreck.x+.5,wy=world.wreck.y+.5;g.position.set(wx,hAt(wx,wy)-.18,wy);
@@ -1557,7 +1570,7 @@ function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clea
  P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name&&S.abil.raft)setTimeout(()=>{if(!modalOpen)askShare();},900);
  flySt=null;flyG.visible=false;settleFlight();offCliff();
  nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i]&&!NODES[n.type].regrow;setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
- const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];fogMsg=null;fogInit();hud();save();}
+ const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];fogMsg=null;fogInit();applySkin();hud();save();}
 
 /* --- 小地圖（含地形陰影、海岸線與島名） --- */
 const mini=$('mini'),mctx=mini.getContext('2d'),mbase=document.createElement('canvas');mini.width=mbase.width=W;mini.height=mbase.height=H;
@@ -1633,7 +1646,7 @@ function beamSet(a){a=((Math.round(a)%360)+360)%360;S.beam=a;const r=beamSweep(a
  r.newly.forEach(i=>S.known['_isl'+i]=1);r.newly.forEach(i=>msg.push('🏝️ 光束照亮了'+(S.seen[i]?ISLANDS[i].name:'一座沒去過的小島')+'！'));
  if(!msg.length)msg.push(r.n?'光束照亮了一片海面。':'這個方向都已經照過了。');
  save();after();openBeam(msg.join('<br>'));}
-fogInit();
+fogInit();applySkin();
 
 /* --- 動物：在出生地附近慢慢走動 --- */
 function animalModel(type){const g=new G.Group();
@@ -1880,7 +1893,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(dirH&&t-dirT>30000){dirT=t;dirSave(false);}requestAnimationFrame(loop);}
 
 /* --- 任務欄 --- */
-function hud(){{const sb=$('scopebtn');if(sb)sb.style.display=S.abil.scope?'':'none';}{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
+function hud(){{const sb=$('scopebtn');if(sb)sb.style.display=S.abil.scope?'':'none';const pb=$('paintbtn');if(pb)pb.style.display=paintOn(S)?'':'none';if(paintOn(S)&&!S.known._paint){S.known._paint=1;setTimeout(()=>toast('🎨 進入青銅時代了！現在可以用顏料替衣服、帽子和房子換顏色（下方的「🎨 塗裝」）。'),1500);}}{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
  const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;{const N=questNotes(S,q);$('qhint').innerHTML='筆記：'+q.hint+N.tried.map(o=>`<div class="tried">✎ 試過「${o.name}」：${o.phen}</div>`).join('');}
  const lifeOn=S.abil.bronze_tools||LIFEQ.some(x=>qd[x.id]),sideOn=!!qd.q_1;
  $('qmore').innerHTML=(V_.behind.length?'⚑ 前面還有 '+V_.behind.length+' 項沒做（翻筆記看清單）<br>':'')+(lifeOn&&V_.life?'🍞 生活線：'+V_.life.goal:'');
@@ -2175,6 +2188,38 @@ function benchFront(c,f,t,T,sol){if(!f.elec)return;const act=benchActive(f,r=>!!
   c.fillStyle='#eef3f6';for(let i=0;i<4;i++){c.beginPath();c.arc(202+((i*7+t/90)%12),226+i*4,2.4,0,7);c.fill();}   /* 負極長出金屬小珠 */
   if(Math.random()<.18){c.strokeStyle='#ffe066';c.lineWidth=2;c.beginPath();const x=208+(Math.random()-.5)*12;c.moveTo(x,232);c.lineTo(x+(Math.random()-.5)*14,222);c.stroke();}}}
 
+/* ===== 塗裝：用顏料替衣服、帽子和房子換顏色（進入青銅時代以後） ===== */
+const PAINTS=[['white',['slaked','zno'],'石灰白','#efebe0','熟石灰或氧化鋅'],['black',['pig_black'],'碳黑','#2c2b2a','把木炭磨成粉'],['red',['pig_red'],'鐵紅','#a3402c','把紅褐色的鐵礦磨成粉'],
+ ['yellow',['pig_yellow'],'鐵黃','#c99a32','綠礬溶液加鹼，沉澱放著會慢慢變黃'],['green',['pig_green'],'石綠','#2f9a6a','把翠綠色的銅礦磨成粉'],['blue',['pig_blue'],'埃及藍','#2f6fb8','石英砂、氧化銅、石灰石一起放進窯裡燒'],
+ ['purple',['indicator'],'紫甘藍紫','#7a3fa0','紫甘藍煮出來的汁'],['pink',['dye_pink'],'花青素粉紅','#d0679a','紫甘藍汁加一點醋'],['brown',['caramel'],'焦糖棕','#7a4a22','把糖水熬成焦糖']];
+const SKINP=[['hat','帽子'],['band','帽帶'],['shirt','衣服'],['pants','褲子']],HOUSEP=[['wall','牆壁'],['roof','屋頂']];
+const paintOn=s=>!!s.found.bronze;
+let paintSel='shirt',paintMsg='';
+function applySkin(){const sk=S.skin||{};for(const k in man.skin)man.skin[k].forEach(m=>m.material.color.set(sk[k]||m.orig));}
+function nearHouse(){let b=null,bd=3.5;for(const st of S.st){if(!st.done||!BMAP[st.type].house)continue;const d=Math.hypot(st.x-P.x,st.y-P.y);if(d<bd){bd=d;b=st;}}return b;}
+function paintHTML(){const hs=nearHouse(),isH=HOUSEP.some(p=>p[0]===paintSel);if(isH&&!hs)paintSel='shirt';
+ const cur=isH?(hs.paint||{})[paintSel]:(S.skin||{})[paintSel];
+ const tab=(p,on)=>`<button class="cond ${paintSel===p[0]?'sel':''}" data-paintpart="${p[0]}" ${on?'':'disabled'}>${p[1]}</button>`;
+ const sw=PAINTS.map(c=>{const src=c[1].find(i=>(S.inv[i]||0)>0),ok=!!src&&(!isH||(S.inv.mortar||0)>0);
+  return `<button class="item ${cur===c[3]?'sel':''}" data-paint="${c[0]}" ${ok?'':'disabled'} title="${src?'用掉 1 份'+ITEMS[src].n+(isH?'和 1 份灰泥':''):'還沒有：'+c[4]}" style="${ok?'':'opacity:.45'}"><span style="display:inline-block;width:22px;height:22px;border-radius:6px;background:${c[3]};border:2px solid rgba(0,0,0,.25);vertical-align:middle"></span> <b>${c[2]}</b><small>${src?ITEMS[src].n+' ×'+S.inv[src]:'還沒有'}</small></button>`;}).join('');
+ const miss=PAINTS.filter(c=>!c[1].some(i=>(S.inv[i]||0)>0)).map(c=>c[2]+'：'+c[4]);
+ return head('🎨 塗裝')+`<p class="muted" style="margin-top:0">衣服和帽子泡一泡染液就好，用掉 1 份顏料；牆壁和屋頂要把顏料拌進灰泥再刷上去，用掉顏料 1、灰泥 1。站在自己的房子旁邊，才刷得到房子。</p>
+ <div class="row" style="align-items:center"><b>自己：</b>${SKINP.map(p=>tab(p,true)).join('')}</div>
+ <div class="row" style="align-items:center"><b>房子：</b>${HOUSEP.map(p=>tab(p,!!hs)).join('')}${hs?'<span class="muted">　'+BMAP[hs.type].n+'　｜　灰泥 ×'+(S.inv.mortar||0)+'</span>':'<span class="muted">　走到自己的房子旁邊再來</span>'}</div>
+ <div class="grid" style="margin-top:8px">${sw}</div>
+ <div class="row"><button class="btn alt" data-paint="none">↺ 恢復原來的顏色</button></div>${paintMsg?`<div class="log">${paintMsg}</div>`:''}
+ ${miss.length?`<div class="muted" style="margin-top:6px">手上沒有的顏色，可以這樣做：<br>${miss.join('<br>')}</div>`:''}`;}
+function paintDo(key){const isH=HOUSEP.some(p=>p[0]===paintSel),hs=nearHouse();if(isH&&!hs){paintMsg='要站在自己的房子旁邊。';return render();}
+ const tgt=isH?(hs.paint=hs.paint||{}):(S.skin=S.skin||{});
+ if(key==='none'){delete tgt[paintSel];paintMsg='恢復成原來的顏色了。';}
+ else{const c=PAINTS.find(x=>x[0]===key),src=c&&c[1].find(i=>(S.inv[i]||0)>0);if(!src)return;
+  if(tgt[paintSel]===c[3]){paintMsg='已經是這個顏色了。';return render();}
+  if(isH&&!((S.inv.mortar||0)>0)){paintMsg='刷房子要拌灰泥，背包裡沒有灰泥。';return render();}
+  S.inv[src]--;if(isH)S.inv.mortar--;tgt[paintSel]=c[3];
+  const nm=(isH?HOUSEP:SKINP).find(p=>p[0]===paintSel)[1];paintMsg=isH?'把'+ITEMS[src].n+'拌進灰泥，'+nm+'刷成了'+c[2]+'。':'把'+nm+'泡進'+ITEMS[src].n+'調成的染液，染成了'+c[2]+'。';
+  if(!S.found.tech_paint){S.found.tech_paint=true;paintMsg+='<br>📖 圖鑑新增：顏料和染料';}}
+ SFX.place();if(isH)syncStation(hs);else applySkin();save();after();render();}
+
 /* ===== 進屋：倉庫、室內實驗室、加蓋 ===== */
 let homeSt=null,homeMsg='';
 /* 實驗桌：桌上要架什麼裝置，由玩家決定 */
@@ -2360,7 +2405,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.30',VDATE='2026-11-18';
+const VERSION='2.31',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2420,6 +2465,7 @@ function aboutHTML(){return head('ℹ️ 關於《荒島化學家 2》')+`
  <span class="muted">3D 繪圖使用 three.js（MIT 授權）。</span></div>`;}
 function render(){
  if(panel==='about')return openModal(aboutHTML());
+ if(panel==='paint')return openModal(paintHTML());
  if(panel==='lb')return openModal(lbHTML());
  if(panel==='tree')return openModal(treeHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
@@ -2435,7 +2481,7 @@ function render(){
  if(panel==='codex'){const n=REACTIONS.filter(r=>S.found[r.id]).length;const sec=(k,title)=>{const L=REACTIONS.filter(r=>k.includes(r.kind));return `<h3>${title}（${L.filter(r=>S.found[r.id]).length}/${L.length}）</h3>`+L.map(r=>S.found[r.id]?`<div class="entry">${entryHTML(r)}</div>`:`<div class="entry lock">？？？　尚未發現</div>`).join('');};
   openModal(head(`📖 知識圖鑑　${n}/${REACTIONS.length}`)+(()=>{const sc=score(S),p=sc.parts;return `<div class="savebox"><h4>🏛 ${sc.era}　文明分數 ${sc.total}</h4>主線任務 ${p.main}（每個 20）　物質的變化 ${p.chem}（每條 10）　科技原理 ${p.tech}（每條 15）　失敗也是發現 ${p.obs}（每條 5）　認得的礦物 ${p.rocks}（每種 5）　房子 ${p.house}（越高級、越多層越高）</div>`;})()+sec(['tech'],'科技原理')+sec(['chem','phys'],'物質的變化')+sec(['obs'],'失敗也是發現'));}
 }
-function openPanel(p){panel=p;SFX.ui();if(p==='lb'){lbSend(true);lbLoad();}if(p==='save'){saveMsg='';if(dirH)dirRefresh().then(()=>{if(panel==='save')render();});}render();}
+function openPanel(p){panel=p;SFX.ui();if(p==='paint')paintMsg='';if(p==='lb'){lbSend(true);lbLoad();}if(p==='save'){saveMsg='';if(dirH)dirRefresh().then(()=>{if(panel==='save')render();});}render();}
 $('bar').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)openPanel(b.dataset.open);});
 $('mask').addEventListener('click',e=>{
  if(e.target===$('mask'))return closeModal();
@@ -2450,6 +2496,8 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
  if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
  if(d.beam){const [k,v]=d.beam.split(':');return beamSet(k==='set'?+v:(S.beam==null?180:S.beam)+(+v));}
+ if(d.paintpart){paintSel=d.paintpart;paintMsg='';return render();}
+ if(d.paint)return paintDo(d.paint);
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
  if(d.add)return fireAdd(d.add,+(d.n||1));
