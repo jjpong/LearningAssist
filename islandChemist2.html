@@ -263,7 +263,8 @@ const BUILD=[
  {id:'motor',n:'電動鼓風機',icon:'💨',era:'西元 1834 年',craft:1,req:['gen'],need:{magnet:1,copper:3,iron:2},grant:'motor',d:'把發電機倒過來用：通了電的線圈在磁鐵旁邊自己轉起來。接上風扇，再拉銅線到水力發電機，離河再遠的鼓風爐和高爐也不用踩風箱了。',entry:'tech_motor'},
  {id:'mask',n:'活性碳面具',icon:'😷',era:'西元 1915 年',craft:1,req:['f:actcarbon'],need:{actcarbon:2,fiber:3,glass:1},grant:'mask',d:'一層活性碳、一層布，加上玻璃護目鏡。戴上它，才進得了火山口。',entry:'tech_mask'},
  {id:'scope',n:'望遠鏡',icon:'🔭',era:'西元 1608 年',craft:1,req:['f:lens'],need:{lens:2,copper:1,wood:1},grant:'scope',d:'兩片透鏡裝在筒子的兩端。遠方看不清楚的東西，會被拉到眼前。',entry:'tech_scope'},
- {id:'balloon',n:'氫氣球',icon:'🎈',era:'西元 1783 年',req:['scope','elec'],need:{fiber:12,wood:4,h2:6},d:'用纖維織成氣囊，灌進電解出來的氫氣。氫氣比空氣輕得多，能把吊籃帶上天——飛過任何船都過不去的暗礁。',entry:'tech_balloon'},
+ {id:'balloon',n:'熱氣球',icon:'🎈',era:'西元 1783 年',req:['scope'],need:{fiber:12,wood:4,ceramic:1},grant:'balloon',d:'纖維織成的大氣囊，底下吊著一個陶火盆。燒柴把氣囊裡的空氣燒熱，熱空氣變輕，就把吊籃帶上天。燃料燒完就得降落。',entry:'tech_balloon'},
+ {id:'airship',n:'氫氣飛艇',icon:'🛩️',era:'西元 1884 年',req:['balloon','motor','daniell'],need:{fiber:16,wood:4,h2:8,copper:2},d:'長長的氣囊灌滿氫氣，不必燒任何東西就浮得起來；吊艙上裝著電動機和螺旋槳，靠電池推著走，想去哪裡就去哪裡。',entry:'tech_airship'},
  {id:'radio',n:'無線電發報機',icon:'📡',era:'西元 1895 年',req:['gen','beacon'],need:{copper:6,galena:1,rochelle:1,glass:1,wood:4},grant:'radio',d:'線圈和天線把電火花變成看不見的波送出去；方鉛礦和酒石晶體，把回來的波變成聽得見的聲音。',entry:'tech_radio'},
  {id:'field',n:'農田',icon:'🌾',era:'約 1 萬年前',req:[],need:{wood:2,fiber:2},d:'翻鬆一塊地、圍上籬笆。種子、水、肥料和土壤的酸鹼，都會決定收成。',entry:'tech_field'},
  {id:'hut',n:'草棚',icon:'⛺',era:'約 1 萬年前',house:1,lab:0,maxF:1,req:[],need:{wood:4,fiber:4},d:'幾根木頭搭起骨架，鋪上藤蔓和葉子。屋裡有倉庫，可以把背包放不下的東西存起來。',entry:'tech_hut'},
@@ -416,6 +417,7 @@ const REACTIONS=[
  {id:'ind_clwater',name:'指示劑遇到氯水',kind:'chem',at:'table',col:'#f2efe6',inputs:[['indicator','clwater'],['indicator','bleach']],out:{},eqx:'先變色，接著褪成無色',phen:'紫色的汁液先變了色，幾秒鐘後顏色越來越淡，最後幾乎變成透明的水。',use:'一般的酸或鹼只會讓指示劑「變色」，換個酸鹼就能變回來。次氯酸卻是把色素分子拆壞了，顏色再也回不來——這就是「漂白」。',note:'所以用氯水或漂白水測酸鹼，是測不準的。'},
  {id:'bleach',name:'製作漂白水',kind:'chem',at:'table',inputs:[['cl2','naoh']],out:{bleach:1},eq:'Cl2 + 2NaOH -> NaClO + NaCl + H2O',phen:'黃綠色的氣體通進氫氧化鈉溶液，顏色消失了，溶液帶著一股熟悉的消毒水味。',use:'氯氣和鹼反應，生成次氯酸鈉，就是家用漂白水的主要成分。電解食鹽水正好同時得到氯氣和氫氧化鈉——兩個產物湊在一起，就是一瓶漂白水。',note:'回屋裡用它消毒發酵罐，比洗手更能防止雜菌污染。'},
  {id:'bleach_acid',name:'漂白水遇到酸',kind:'chem',at:'table',inputs:[['bleach','hcl'],['bleach','vinegar']],out:{cl2:1},eq:'NaClO + 2HCl -> NaCl + Cl2 + H2O',phen:'溶液冒出氣泡，一股刺鼻的黃綠色氣體湧了出來！',use:'漂白水碰到酸，次氯酸根會變回氯氣跑出來。氯氣有毒，吸進去會傷害呼吸道。',note:'⚠️ 家裡的漂白水絕對不能和浴廁清潔劑（含鹽酸）混用，每年都有人因此中毒。'},
+ {id:'tech_airship',name:'氫氣飛艇',kind:'tech',inputs:[],out:{},eqx:'浮力（氫氣）＋ 推力（電動機）',phen:'電動機一轉，螺旋槳把飛艇推向前方。你轉動舵，它就乖乖轉向。',use:'氫氣是最輕的氣體，密度只有空氣的十四分之一，不用加熱就浮得起來。可是氣球只會隨風飄——想要往哪裡就去哪裡，得加上推力。電池推動電動機，電動機轉動螺旋槳，化學能變成電能，再變成動能。',note:'1783 年查理教授做出第一個氫氣球；1884 年法國的「法蘭西號」用電池和電動機推動，成了第一艘能飛回出發點的飛艇。氫氣遇火會爆炸：1785 年羅齊耶把熱氣球和氫氣球綁在一起，飛到半空起火喪命；1937 年興登堡號飛艇著火後，載人飛行就改用不會燒的氦氣。'},
  {id:'tech_bleach',name:'漂白水為什麼能殺菌',kind:'tech',inputs:[],out:{},eqx:'次氯酸根 → 破壞細菌的細胞',phen:'用稀釋的漂白水把發酵罐、木杓和桌面泡過一遍，再用清水沖乾淨。',use:'漂白水裡的次氯酸根是很強的氧化劑，會破壞細菌的細胞膜和酵素。肥皂是把細菌連同油汙一起帶走，漂白水是直接把細菌殺死，所以效果撐得更久。但它也會傷皮膚，所以拿來消毒器具，不拿來洗手。',note:'自來水廠和游泳池用的，也是含氯的消毒劑。'},
  {id:'distill_soda',name:'蒸餾鹼湖水',kind:'phys',at:'still',T:100,inputs:[['sodawater']],out:{water:1,natron:1},eqx:'鹼湖水 —(蒸餾)→ 淡水 ＋ 天然鹼（碳酸鈉）',phen:'燒瓶裡的湖水沸騰，冷凝管滴下清澈的淡水；燒瓶底留下一層白色的結晶。',use:'水會變成水蒸氣，碳酸鈉不會。蒸氣冷凝回來就是淡水，碳酸鈉留在燒瓶裡——和蒸餾海水得到淡水和食鹽是同一個道理。',note:'這座湖沒有出口，水只能蒸發，鹼就越積越濃。坦尚尼亞火山腳下的納特龍湖就是這樣，「natron」這個字就從那裡來。'},
  {id:'boil_soda',name:'煮乾鹼湖水',kind:'phys',at:'heat',T:100,pot:1,defer:['distill_soda'],inputs:[['sodawater']],out:{natron:1},eqx:'鹼湖水 → 天然鹼 ＋ 水蒸氣',phen:'水越煮越少，鍋底結出一層白色、摸起來滑滑的結晶。',use:'水蒸發掉了，溶在裡面的碳酸鈉留了下來。湖邊那一圈白色的結晶，也是太陽這樣曬出來的。',note:''},
@@ -493,7 +495,7 @@ const REACTIONS=[
  {id:'tech_motor',name:'電動機',kind:'tech',inputs:[],out:{},eqx:'電能 → 動能（通電的線圈在磁場裡受力）',phen:'線圈一通電，就在磁鐵旁邊轉了起來，越轉越快。',use:'發電機是「轉動 → 電」，電動機是「電 → 轉動」。兩者的構造幾乎一樣，只是倒過來用。水車的力氣只能用輪軸和連桿傳到旁邊；變成電以後，一條銅線就能送到遠處。',note:'水車推風箱是機械傳動，離不開河邊。電把「在哪裡產生力氣」和「在哪裡用力氣」分開了——這是電力改變世界的原因之一。'},
  {id:'tech_mask',name:'活性碳面具',kind:'tech',inputs:[],out:{},eqx:'有毒氣體 —(吸附)→ 留在活性碳表面',phen:'隔著面具吸氣，刺鼻的味道淡了很多。',use:'活性碳滿是小孔，氣體分子撞上去就被「黏」住了。空氣裡的氧和氮不太會被吸住，所以還是可以呼吸。',note:'活性碳吸滿了就沒有用了，要更換或重新加熱活化。'},
  {id:'tech_scope',name:'望遠鏡',kind:'tech',inputs:[],out:{},eqx:'物鏡聚光成像 → 目鏡放大',phen:'把筒子對準海平線。原本只是一抹灰影的地方，出現了樹和山壁。',use:'前面的大透鏡把遠方來的光聚成一個小小的像，後面的小透鏡再把這個像放大。',note:'1609 年伽利略把望遠鏡指向天空，看見了月球的坑洞和木星的衛星。'},
- {id:'tech_balloon',name:'氫氣球',kind:'tech',inputs:[],out:{},eqx:'浮力 ＞ 重力（氫氣的密度只有空氣的十四分之一）',phen:'氣囊鼓起來了，吊籃輕輕離開地面。',use:'和船浮在水上是同一個道理：氣球排開的空氣，比氣球自己還重，就會往上浮。氫氣是最輕的氣體。',note:'氫氣分子是所有分子裡最小的，會從氣囊布料的縫隙慢慢鑽出去，所以氫氣球飛久了就會越來越沉。1783 年查理教授的氫氣球飛了兩個多小時才落地。氫氣遇火會爆炸：1937 年興登堡號飛船起火，此後載人飛行就改用不會燒的氦氣。'},
+ {id:'tech_balloon',name:'熱氣球',kind:'tech',inputs:[],out:{},eqx:'空氣受熱 → 膨脹 → 密度變小 → 浮起來',phen:'火盆一燒旺，軟趴趴的氣囊慢慢鼓了起來，吊籃輕輕離開地面。',use:'空氣受熱會膨脹，同樣大小的一袋熱空氣，比外面的冷空氣輕。和船浮在水上是同一個道理：排開的空氣比氣球自己重，就會往上浮。火一熄，空氣冷下來，氣球就往下沉。木炭燒出的熱比同樣重的木頭多，又不冒煙，所以更耐飛。',note:'1783 年，法國的孟格菲兄弟在吊籃的火盆裡燒稻草和羊毛，載著兩個人飛越了巴黎。'},
  {id:'tech_acidlake',name:'火山口的酸湖',kind:'tech',inputs:[],out:{},eqx:'火山氣體（SO₂、HCl）+ 水 → 硫酸和鹽酸的混合酸',phen:'一池乳白帶綠的藍綠色湖水，冒著白煙，岸邊結著一層黃色的硫磺。把陶罐伸進去，舀上來的是一罐溫熱、刺鼻的酸。',use:'火山噴出的二氧化硫溶進湖水，再被空氣氧化成硫酸；噴出的氯化氫溶進去就是鹽酸。所以湖水是好幾種酸混在一起，還溶著鐵、鋁和硫磺。拿回實驗桌蒸餾：鹽酸會先揮發，要接上冷凝管才接得住；硫酸不揮發，留在燒瓶裡。',note:'印尼的伊真火山口有一座這樣的湖，酸鹼值比電池裡的電解液還低。山腳下的湖卻是鹼的——同一座火山，一酸一鹼。'},
  {id:'tech_radio',name:'無線電',kind:'tech',inputs:[],out:{},eqx:'電火花 → 電磁波 → 遠方的線圈 → 電流 → 聲音',phen:'你按下電鍵。火花劈啪一響——然後，耳機裡的晶體輕輕地答、答、答。',use:'快速變動的電流會把能量以波的形式送向四面八方，不需要導線。遠方的天線接住它，方鉛礦讓電流只能單向通過，酒石晶體把它變成振動——你就「聽見」了。',note:'1901 年馬可尼把三個點的訊號送過了大西洋。從那一天起，世界上沒有真正的孤島。'},
  {id:'tech_elec',name:'伏打堆的原理',kind:'tech',inputs:[],out:{},eqx:'負極 Zn → Zn²⁺ + 2e⁻　　電子經導線流向銅片',phen:'一片鋅、一片銅，中間夾一塊浸了鹽水的布。這樣一組一組往上疊，兩端接上導線，就有電流。',use:'鋅比銅活潑，容易失去電子；電子經過導線流向銅片，形成電流，化學能就變成了電能。每一層大約 1 伏特，疊幾層電壓就是幾倍。鋅片會一點一點被吃掉，用久了要換；銅片不會。',note:'1800 年，伏打把鋅片、銀片和浸了鹽水的紙板疊成一堆，做出史上第一個能持續供電的電池。消息傳開後才幾個星期，就有人用它把水拆開了。'},
@@ -581,8 +583,8 @@ const QUESTS=[
  {id:'q_lens',ch:'第五章　遠方',goal:'把玻璃磨成透鏡',hint:'「玻璃是透明的，但平平的玻璃只是窗戶。什麼東西比玻璃還硬，可以一點一點把它磨成弧形？你腳下到處都是。」',rx:['lens'],done:F('lens')},
  {id:'q_scope',ch:'第五章　遠方',goal:'做一支望遠鏡，看看海的另一邊',hint:'「透鏡 2、銅 1、木頭 1。」',done:A('scope'),
   after:'你把望遠鏡對準西北方的海平線。\n\n那裡一直有一團散不掉的雲。雲的下面——是一座島。\n\n四周的海面泛著白色的碎浪：暗礁。沒有任何一艘船過得去。\n\n但如果不走海路呢？'},
- {id:'q_balloon',ch:'第五章　遠方',goal:'造一顆能載人的氫氣球',hint:'「藤蔓纖維 12（織氣囊）、木頭 4（吊籃）、氫氣 6。氫氣從哪裡來，你知道的。多電解一些帶在身上——飛到一半氫氣漏光了，可不好玩。」',done:HAS('balloon')},
- {id:'q_4',ch:'第五章　遠方',goal:'乘氫氣球飛到雲底下的那座島',hint:'「走到氣球旁邊按 E，灌好氫氣就能升空。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。氫氣會從氣囊一點一點漏掉——漏光了，風把你吹到哪裡，就是哪裡。」',done:V(4),
+ {id:'q_balloon',ch:'第五章　遠方',goal:'造一個能載人的熱氣球',hint:'「藤蔓纖維 12（織氣囊）、木頭 4（吊籃）、陶器 1（火盆）。空氣燒熱了會變輕——煙為什麼總是往上飄？」',done:HAS('balloon')},
+ {id:'q_4',ch:'第五章　遠方',goal:'乘氫氣球飛到雲底下的那座島',hint:'「走到熱氣球旁邊按 E，把柴火放進火盆就能升空。木頭燒得快，木炭耐燒得多。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。燃料燒完，氣球就會往下掉——在海上的話，風把你吹到哪裡，就是哪裡。」',done:V(4),
   after:'雲頂島。\n\n沒有筆記，沒有陶罐，沒有任何人來過的痕跡。\n\n岩壁上嵌著一種鉛灰色的石頭，斷面亮得像鏡子，一塊一塊都是整齊的方塊。'},
  {id:'q_galena',ch:'第五章　遠方',goal:'敲開鉛灰色、亮得像鏡子的石頭',hint:'「要鐵製工具。」',done:s=>!!s.known.galena},
  {id:'q_rochelle',ch:'第五章　遠方',goal:'做出一顆能把電變成聲音的晶體',hint:'「釀過幾次酒以後，罐子內壁會結一層粗粗的東西，別刷掉。它是酸性的——拿湖邊那種白色的鹼去溶它，慢慢加熱，再放涼。」',rx:['rochelle'],done:F('rochelle')},
@@ -594,6 +596,7 @@ const QUESTS=[
  {id:'s_co2',side:1,ch:'支線　石灰的循環',goal:'把石灰水變回石頭',hint:'「石灰石燒的時候，有東西從爐口跑掉了，抓不住。但同一種氣體，你身上就有。」',rx:['breath','limewater_co2'],done:s=>!!(s.found.breath||s.found.limewater_co2),
   after:'澄清的液體變成一片白色混濁。\n\n瓶底的白色沉澱，和貝殼、石灰石是同一種東西。\n\n石頭變成氣體和粉末，粉末變成溶液，溶液又變回石頭。物質沒有消失，只是換了組合。'},
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
+ {id:'s_airship',side:1,ch:'支線　天空',goal:'造一艘不用燒柴、想去哪就去哪的氫氣飛艇',hint:'「熱氣球得一直燒柴，風往哪吹也很難違抗。如果氣囊裡裝的是最輕的那種氣體呢？再加上一台會轉的電動機和一顆穩定的電池。」',done:HAS('airship')},
  {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。把水趕走，讓它自己熔化，再接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
  {id:'s_sulfur',side:1,ch:'支線　火山的禮物',goal:'在火山口採到硫磺，帶回實驗室燒燒看',hint:'「火山口邊上結著一塊塊黃色的結晶。在露天的火上燒，煙一下就散了；在實驗桌上架起爐火來燒，才接得住。有氧氣的話，火焰會更漂亮。」',rx:['burn_s','burn_s_o2'],done:s=>!!(s.found.burn_s||s.found.burn_s_o2)},
  {id:'s_h2so3',side:1,ch:'支線　火山的禮物',goal:'讓燒硫磺冒出來的氣體溶進水裡',hint:'「二氧化碳溶進水裡是碳酸。那這種刺鼻的氣體呢？做出來以後，用紫色的汁液測測看。」',rx:['sulfurous'],done:F('sulfurous')},
@@ -638,7 +641,7 @@ function questView(s){const qd=s.qd||{};let hi=-1;MAINQ.forEach((q,i)=>{if(qd[q.
  const cur=MAINQ.find(q=>q.ch===ch&&!qd[q.id])||MAINQ.find((q,i)=>i>hi&&!qd[q.id])||MAINQ[MAINQ.length-1],ci=MAINQ.indexOf(cur),inCh=MAINQ.filter(q=>q.ch===cur.ch);
  return{cur,done:inCh.filter(q=>qd[q.id]).length,total:inCh.length,behind:MAINQ.filter((q,i)=>i<ci&&q.ch!==cur.ch&&!qd[q.id]),life:LIFEQ.find(q=>!qd[q.id])||null};}
 /* 讀檔：舊存檔沒有打勾紀錄，把已經達成的靜靜勾起來（不重播劇情） */
-function loadState(j){const st=Object.assign(newState(),j);(st.st||[]).forEach(b=>{if(b.type==='balloon'){delete b.home;delete b.away;}});   /* 舊版氣球只會在兩個島之間跳，現在停在哪裡就從哪裡飛 */
+function loadState(j){const st=Object.assign(newState(),j);(st.st||[]).forEach(b=>{if(b.type==='balloon'){delete b.home;delete b.away;if(b.burn==null){b.burn=50;delete b.gas;}if(b.done)st.abil.balloon=true;}});   /* 舊版的氫氣球改成熱氣球，火盆裡先放 5 份木炭 */
  st.w312=j.w312?1:0;if(st.found&&st.found.steel&&!st.found.steel_o2&&!st.v118){st.found.steel_o2=true;}if(st.abil&&st.abil.iron_tools)st.found.forge=true;st.v118=1;   /* 舊存檔：以前的鋼是吹氧煉的；已經有鐵製工具的人當作會鍛打了 */
  if(st.abil&&st.abil.elec&&!st.pile)st.pile={n:3,life:3*PLIFE};   /* 舊存檔：原本的電池換成三層的伏打堆 */
  if(st.abil&&st.abil.beacon&&!st.abil.daniell){st.abil.daniell=true;st.found.tech_daniell=true;if(st.pile&&!st.pile.dan){st.pile.dan=true;st.pile.life=st.pile.n*PLIFE*4;}}   /* 舊存檔：信號塔已經亮了，電池直接算成丹尼爾電池 */
@@ -704,7 +707,7 @@ const SKILLS=[
  {id:'steel',n:'煉鋼',i:'🗡️',req:['pig'],d:s=>fnd(s,'steel')},{id:'fil',n:'碳絲',i:'〰️',req:['kiln'],d:s=>fnd(s,'filament')},{id:'dan',n:'丹尼爾電池',i:'🔋',req:['elec','cuso4'],d:s=>s.abil.daniell},{id:'lamp',n:'電燈',i:'💡',req:['steel','fil','glass','dan'],d:s=>s.abil.beacon},
  {id:'wheel',n:'水車',i:'🎡',req:['itool'],d:s=>hasSt(s,'wheel')},{id:'mag',n:'雷擊磁化',i:'🧲',req:['itool','ship'],d:s=>!!s.known._magnet},{id:'gen',n:'水力發電機',i:'🌀',req:['mag','elec','wheel'],d:s=>s.abil.gen},
  {id:'actc',n:'活性碳',i:'⚫',req:['char'],d:s=>fnd(s,'actcarbon')},{id:'mask',n:'防毒面具',i:'😷',req:['actc','glass'],d:s=>s.abil.mask},{id:'lake',n:'火山口酸湖',i:'🌋',req:['mask'],d:s=>!!s.known._acid},
- {id:'lens',n:'透鏡',i:'🔍',req:['glass'],d:s=>fnd(s,'lens')},{id:'scope',n:'望遠鏡',i:'🔭',req:['lens'],d:s=>s.abil.scope},{id:'ball',n:'氫氣球',i:'🎈',req:['scope','ely'],d:s=>hasSt(s,'balloon')},
+ {id:'lens',n:'透鏡',i:'🔍',req:['glass'],d:s=>fnd(s,'lens')},{id:'scope',n:'望遠鏡',i:'🔭',req:['lens'],d:s=>s.abil.scope},{id:'ball',n:'熱氣球',i:'🎈',req:['scope'],d:s=>hasSt(s,'balloon')},{id:'zep',n:'氫氣飛艇',i:'🛩️',req:['ball','gen','dan','ely'],d:s=>hasSt(s,'airship')},
  {id:'cloud',n:'雲頂島',i:'☁️',req:['ball'],d:s=>!!s.seen[4]},{id:'tart',n:'酒石晶體',i:'💎',req:['wine'],d:s=>fnd(s,'rochelle')},{id:'radio',n:'無線電',i:'📡',req:['gen','cloud','tart','lamp'],d:s=>s.abil.radio}];
 const SKMAP={};SKILLS.forEach(k=>SKMAP[k.id]=k);
 (function(){const dep=k=>k.t!=null?k.t:(k.t=k.req.length?1+Math.max(...k.req.map(r=>dep(SKMAP[r]))):0);SKILLS.forEach(dep);})();   /* 第幾層＝最長的前置鏈 */
@@ -716,7 +719,7 @@ const BADGES=[
  ['bronze','🟤','青銅時代','鑄出青銅',s=>s.found.bronze],['iron','⚙️','鐵器時代','煉出鐵',s=>fnd(s,'smelt_fe','smelt_fe2')],['glass','🔮','玻璃匠','熔出玻璃',s=>s.found.glass],
  ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['sulfur','🌋','硫磺礦工','在實驗室燒出二氧化硫',s=>fnd(s,'burn_s','burn_s_o2')],['bleach','🧴','消毒專家','做出漂白水',s=>s.found.bleach],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
  ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
- ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氫氣球抵達雲頂島',s=>!!s.seen[4]],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
+ ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氣球抵達雲頂島',s=>!!s.seen[4]],['zep','🛩️','天空的主人','造出氫氣飛艇',s=>hasSt(s,'airship')],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
  ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
  ['fail1','📝','失敗也是發現','累積 5 筆觀察紀錄',s=>nFound(s,'obs')>=5],['fail2','🧐','實驗狂','累積 15 筆觀察紀錄',s=>nFound(s,'obs')>=15],['fail3','🤯','什麼都要試一下','累積 25 筆觀察紀錄',s=>nFound(s,'obs')>=25],
  ['chem1','📗','初級化學家','發現 15 種化學反應',s=>nFound(s,'chem')>=15],['chem2','📘','資深化學家','發現 35 種化學反應',s=>nFound(s,'chem')>=35],['chem3','📕','反應大師','發現 55 種化學反應',s=>nFound(s,'chem')>=55],
@@ -737,10 +740,12 @@ function rodStrike(s){let hit=0;for(const st of s.st)if(st.type==='rod'&&st.done
 /* 水車：同一條河邊 11 格內的鼓風爐、高爐會自動鼓風 */
 function wheelNear(s,st){return !!st&&s.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-st.x,w.y-st.y)<11);}
 /* 氫氣球：在雲頂島和出發地之間來回 */
-/* 氫氣球：氣囊最多裝 6 份氫氣；飛行時氫氣會從布料慢慢漏掉，每份約撐 8 秒 */
-const GASMAX=6,GAS_T=8;
-const gasOf=st=>st.gas==null?GASMAX:st.gas;
-function balloonFill(s,st){const room=GASMAX-gasOf(st),n=Math.min(Math.floor(room+1e-6),s.inv.h2||0);if(n<=0)return{err:room<1?'氣囊已經鼓得滿滿的了。':'背包裡沒有氫氣。電解水就能得到。'};s.inv.h2-=n;st.gas=gasOf(st)+n;return{ok:true,n};}
+/* 熱氣球：火盆裡的燃料以「可以燒幾秒」計算，最多 60 秒；木頭一份 4 秒，木炭一份 10 秒。氫氣飛艇不用燃料 */
+const BURN={wood:4,charcoal:10},FUELMAX=60;
+const fuelOf=st=>st.type==='airship'?Infinity:(st.burn||0);
+function balloonLoad(s,st,k){const ks=k?[k]:['charcoal','wood'];let n=0,used={};
+ for(const it of ks)while((s.inv[it]||0)>0&&(st.burn||0)+BURN[it]<=FUELMAX+1e-6){s.inv[it]--;st.burn=(st.burn||0)+BURN[it];used[it]=(used[it]||0)+1;n++;if(k)break;}
+ if(!n)return{err:(st.burn||0)+Math.min(...ks.map(i=>BURN[i]))>FUELMAX?'火盆已經放滿了。':'背包裡沒有'+ks.map(i=>ITEMS[i].n).join('或')+'。'};return{ok:true,used};}
 /* 破船：第一次翻找可以拿到一點東西；線索隨時可以回來看 */
 const WRECK_LOOT={wood:2,fiber:4};
 /* 砍樹、敲石頭都要工具。第一把是破船上那把缺了口的小斧頭 */
@@ -985,7 +990,7 @@ const $=id=>document.getElementById(id);
 const fh=s=>s.replace(/([A-Za-z\)])(\d+)/g,'$1<sub>$2</sub>').replace(/->/g,'→');
 let S=newState();
 try{const j=JSON.parse(localStorage.getItem(SAVE)||'null');if(j&&j.v===3)S=loadState(j);}catch(e){}
-const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}};
+const save=()=>{if(typeof flySt!=='undefined'&&flySt)return;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}};   /* 飛行中不存檔 */
 const world=genWorld(SEED),{W,H,tiles,owner,hc,nodes}=world;
 const P={x:S.px||world.start.x,y:S.py||world.start.y,ang:0,swing:0};
 const tileAt=(x,y)=>(x<0||y<0||x>=W||y>=H)?SEA:tiles[y*W+x];
@@ -1312,6 +1317,8 @@ function stationModel(type){const g=new G.Group();
  else if(type==='wheel'){const w=new G.Group();w.add(mk(new G.TorusGeometry(.9,.07,6,16),'#7a5230',0,0,0),mk(new G.TorusGeometry(.9,.05,6,16),'#7a5230',0,0,.22));for(let i=0;i<8;i++){const sp=mk(new G.BoxGeometry(.06,1.8,.06),'#8a5f38',0,0,.11);sp.rotation.z=i*Math.PI/8;w.add(sp);const pd=mk(new G.BoxGeometry(.3,.05,.38),'#9a6b3c',Math.cos(i*Math.PI/4)*.9,Math.sin(i*Math.PI/4)*.9,.11);pd.rotation.z=i*Math.PI/4;w.add(pd);}
   w.position.set(0,1.05,.35);g.add(w);g.spin=w;g.add(mk(new G.BoxGeometry(.14,1.2,.14),'#6b4423',0,.6,.05),mk(new G.BoxGeometry(.14,1.2,.14),'#6b4423',0,.6,.75),mk(new G.BoxGeometry(.5,.4,.5),'#8a5f38',.6,.2,.35));}
  else if(type==='rod'){g.add(mk(new G.CylinderGeometry(.05,.08,4.2,6),'#5a5f66',0,2.1,0),mk(new G.ConeGeometry(.07,.4,6),'#c8743a',0,4.4,0),mk(new G.CylinderGeometry(.34,.42,.26,8),'#77736b',0,.13,0),mk(new G.TorusGeometry(.12,.025,5,8),'#c8743a',.22,1.3,0));const bar=mk(new G.BoxGeometry(.1,.7,.1),'#8a8f96',.22,1.3,0);g.bar=bar;g.add(bar);}
+ else if(type==='airship'){const env=mk(new G.SphereGeometry(1,16,12),'#c8cfd6',0,3.1,0);env.scale.set(1.05,1.05,2.6);g.add(env,mk(new G.TorusGeometry(1.06,.05,6,16),'#8a959e',0,3.1,.9),mk(new G.TorusGeometry(1.06,.05,6,16),'#8a959e',0,3.1,-.9),mk(new G.BoxGeometry(.06,.9,.7),'#a8432f',0,3.4,-2.5),mk(new G.BoxGeometry(.9,.06,.7),'#a8432f',0,3.1,-2.5),mk(new G.BoxGeometry(.7,.42,1.3),'#6b4423',0,.45,0),mk(new G.BoxGeometry(.74,.06,1.34),'#4a321c',0,.68,0));[[-.3,-.5],[.3,-.5],[-.3,.5],[.3,.5]].forEach(p=>g.add(mk(new G.CylinderGeometry(.015,.015,1.9,4),'#4a321c',p[0],1.6,p[1])));
+  const pr=new G.Group();pr.add(mk(new G.BoxGeometry(.9,.1,.03),'#5a5f66',0,0,0),mk(new G.BoxGeometry(.1,.9,.03),'#5a5f66',0,0,0));pr.position.set(0,.5,-.75);g.add(pr);g.prop=pr;}
  else if(type==='balloon'){g.add(mk(new G.SphereGeometry(1.15,14,12),'#e9c46a',0,3.3,0),mk(new G.TorusGeometry(1.14,.04,6,16).rotateX(Math.PI/2),'#c85a32',0,3.3,0),mk(new G.ConeGeometry(.75,1.1,12),'#e0b455',0,2.0,0).rotateX(Math.PI),mk(new G.BoxGeometry(.72,.46,.72),'#8a5f38',0,.35,0),mk(new G.BoxGeometry(.76,.06,.76),'#6b4423',0,.56,0));[[-.3,-.3],[.3,-.3],[-.3,.3],[.3,.3]].forEach(p=>g.add(mk(new G.CylinderGeometry(.015,.015,1.3,4),'#4a321c',p[0],1.2,p[1])));}
  else if(type==='radio'){g.add(mk(new G.BoxGeometry(.9,.5,.6),'#6b4423',0,.55,0),mk(new G.BoxGeometry(1.1,.08,.75),'#9a6b3c',0,.28,0),mk(new G.CylinderGeometry(.03,.03,3.6,5),'#c8743a',.35,2.3,0),mk(new G.CylinderGeometry(.16,.16,.3,10),'#c8743a',-.2,.9,0),mk(new G.SphereGeometry(.08,6,5),'#ffe45c',.12,.86,.15,{basic:1}));[[-.5,-.3],[.5,-.3],[-.5,.3],[.5,.3]].forEach(p=>g.add(mk(new G.BoxGeometry(.07,.28,.07),'#7a5230',p[0],.14,p[1])));const w=mk(new G.CylinderGeometry(.012,.012,1.6,4),'#c8743a',.35,3.9,0);w.rotation.z=Math.PI/2;g.add(w);}
  else if(type==='blast'){g.add(mk(new G.CylinderGeometry(.82,.88,.22,10),'#6e6b64',0,.11,0),mk(new G.CylinderGeometry(.45,.75,3,10),'#7a4f3a',0,1.5,0),mk(new G.CylinderGeometry(.34,.34,.08,10),'#2a1a12',0,3.01,0),mk(new G.BoxGeometry(.6,.3,.45),'#6b4423',-1.1,.22,0),mk(new G.BoxGeometry(.5,.12,.3),'#ff9a2e',.85,.08,0,{basic:1}));
@@ -1353,7 +1360,7 @@ const WRECK={type:'wreck',x:world.wreck.x+.5,y:world.wreck.y+.5,done:true};
 const allStations=()=>S.st.concat([TOWER,WRECK]);
 /* --- 擋路：樹、石頭、設施都不能穿過去 --- */
 const BLOCK={coal:.5,tree:.36,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
-const SRAD={wheel:1.1,rod:.5,balloon:.9,radio:.8,wreck:1.5,field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
+const SRAD={wheel:1.1,rod:.5,balloon:.9,airship:1.1,radio:.8,wreck:1.5,field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
 const nodeGrid=new Map();nodes.forEach(n=>nodeGrid.set(n.y*W+n.x,n));
 function bumpAt(nx,ny){const t=now(),tx=Math.floor(nx),ty=Math.floor(ny);   /* 只擋「越走越近」，所以萬一卡在裡面也走得出來 */
  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const n=nodeGrid.get((ty+dy)*W+tx+dx);if(!n||n.gone||n.cd>t)continue;const r=BLOCK[n.type];if(!r)continue;
@@ -1392,7 +1399,7 @@ function shoreNear(lab,r,px,py,skip){let best=null,bd=1e9;for(let y=1;y<H-1;y++)
   const d=Math.hypot(x+.5-px,y+.5-py);if(d<bd){bd=d;best={x:x+.5,y:y+.5};}}return best;}
 /* 保險：人在陸地上，可是走得到的岸邊一艘船都沒有（船被放到外海的小沙洲旁邊之類）→ 把船帶回來，不讓遊戲卡死 */
 function rescueBoat(){if(flySt||S.aboard||!S.boats.length)return false;const lab=landLab[Math.floor(P.y)*W+Math.floor(P.x)];if(lab==null||lab<0)return false;
- if(S.st.some(b=>b.type==='balloon'&&b.done&&landLab[Math.floor(b.y)*W+Math.floor(b.x)]===lab&&(gasOf(b)>=.5||(S.inv.h2||0)>0)))return false;   /* 身邊有能飛的氣球，就不必把船搬過來 */
+ if(S.st.some(b=>(b.type==='airship'||(b.type==='balloon'&&(fuelOf(b)>=2||(S.inv.wood||0)>0||(S.inv.charcoal||0)>0)))&&b.done&&landLab[Math.floor(b.y)*W+Math.floor(b.x)]===lab))return false;   /* 身邊有能飛的氣球，就不必把船搬過來 */
  if(S.boats.some(b=>boatLabs(b).includes(lab)))return false;
  const put=b=>{const p=shoreNear(lab,b.r,P.x,P.y,b);if(!p)return false;b.x=p.x;b.y=p.y;b.a=0;return true;};let n=0;
  S.boats.forEach(b=>{if(!boatLabs(b).some(l=>landN[l]>=40)&&put(b))n++;});   /* 停在小沙洲旁或漂在外海的，全部帶回來 */
@@ -1513,36 +1520,39 @@ $('zoom').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
 
 let curIsl=0,stepT=0;
 /* --- 氫氣球飛行 --- */
-var flySt=null;const flyG=stationModel('balloon');flyG.scale.set(1.3,1.3,1.3);flyG.visible=false;scene.add(flyG);P.alt=0;
+var flySt=null;const flyGs={balloon:stationModel('balloon'),airship:stationModel('airship')};for(const k in flyGs){flyGs[k].scale.set(1.3,1.3,1.3);flyGs[k].visible=false;scene.add(flyGs[k]);}let flyG=flyGs.balloon;P.alt=0;
+const FLYV={balloon:5,airship:9},FLYH={balloon:7,airship:8};
 const landOK=(x,y)=>{const t=tileAt(Math.floor(x),Math.floor(y));if(t===SEA||t===LAKE||t===RIVER||t===ACID||t===CRATER)return false;const f=flySt,ox=f&&f.x,oy=f&&f.y;if(f){f.x=f.y=-999;}const ok=!bumpAt(x,y);if(f){f.x=ox;f.y=oy;}return ok;};   /* 正在飛的氣球自己不算障礙 */
 function randomSpot(i){const c=[];const I=ISLANDS[i];for(let y=Math.max(1,Math.floor(I.cy-I.r));y<Math.min(H-1,I.cy+I.r);y++)for(let x=Math.max(1,Math.floor(I.cx-I.r));x<Math.min(W-1,I.cx+I.r);x++){if(owner[y*W+x]!==i)continue;const t=tiles[y*W+x];
   if((t===GRASS||t===SAND)&&!S.st.some(b=>Math.hypot(b.x-x-.5,b.y-y-.5)<2.5)&&!nodes.some(n=>!n.gone&&n.x===x&&n.y===y))c.push([x+.5,y+.5]);}
  const q=c[Math.floor(Math.random()*c.length)]||[world.start.x,world.start.y];return{x:q[0],y:q[1]};}
-function openBalloon(st){panel='balloon';balSt=st;const g=gasOf(st),h=S.inv.h2||0;
- openModal(head('🎈 氫氣球')+`<div class="savebox">氣囊裡的氫氣：<b>${g.toFixed(1)}</b>／${GASMAX}　｜　背包裡的氫氣：<b>${h}</b><br><span class="muted">飛行時氫氣會從氣囊慢慢漏掉，每份大約撐 ${GAS_T} 秒。漏光了，氣球就會往下掉，風把你吹到哪座島就是哪座島。</span></div>
- <p style="text-align:right;margin:10px 0 0"><button class="btn alt" data-act="bl-fill" style="margin-right:8px" ${g>GASMAX-1||!h?'disabled':''}>💨 灌進氫氣</button><button class="btn" data-act="bl-go" ${g<.5?'disabled':''}>🎈 升空</button></p>`);}
+function openBalloon(st){panel='balloon';balSt=st;const air=st.type==='airship',f=fuelOf(st),w=S.inv.wood||0,c=S.inv.charcoal||0;
+ openModal(head(air?'🛩️ 氫氣飛艇':'🎈 熱氣球')+(air?`<div class="savebox">氣囊灌滿了氫氣，電動機和電池也都接好了。<br><span class="muted">飛艇不用燃料，想飛多久就飛多久，速度也比熱氣球快。用方向鍵或點畫面操控，飛到陸地上空按 E 降落。</span></div>
+ <p style="text-align:right;margin:10px 0 0"><button class="btn" data-act="bl-go">🛩️ 起飛</button></p>`:`<div class="savebox">火盆裡的燃料：大約可以燒 <b>${Math.round(f)}</b> 秒（最多 ${FUELMAX} 秒）<br>背包裡：木頭 ${w}　木炭 ${c}<br><span class="muted">木頭一份燒 ${BURN.wood} 秒，木炭一份燒 ${BURN.charcoal} 秒。燃料燒完，氣球就會往下掉；在海上的話，會被風吹到不知道哪座島。</span></div>
+ <p style="text-align:right;margin:10px 0 0"><button class="btn alt" data-act="bl-wood" style="margin-right:6px" ${!w||f+BURN.wood>FUELMAX?'disabled':''}>🪵 放一份木頭</button><button class="btn alt" data-act="bl-char" style="margin-right:6px" ${!c||f+BURN.charcoal>FUELMAX?'disabled':''}>⚫ 放一份木炭</button><button class="btn alt" data-act="bl-full" style="margin-right:6px" ${(!w&&!c)||f+BURN.wood>FUELMAX?'disabled':''}>🔥 放滿</button><button class="btn" data-act="bl-go" ${f<2?'disabled':''}>🎈 升空</button></p>`));}
 let balSt=null;
-function takeOff(st){closeModal();flySt=st;st.flying=true;S.aboard=false;S.cur=-1;target=null;pending=null;P.x=st.x;P.y=st.y;P.alt=hAt(P.x,P.y);
+function takeOff(st){closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一次；飛行中不存檔，飛到一半關掉遊戲會回到這裡 */
+ flySt=st;st.flying=true;S.aboard=false;S.cur=-1;target=null;pending=null;P.x=st.x;P.y=st.y;P.alt=hAt(P.x,P.y);flyG=flyGs[st.type]||flyGs.balloon;
  const g=stObj.get(st);if(g)g.visible=false;flyG.visible=true;SFX.arrive();
- if(!S.known._flew){S.known._flew=true;storyQ.push('你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n<span class="muted">用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。</span>');showStory();}
- else toast('🎈 升空了！方向鍵或點畫面操控，E 降落。');save();}
+ if(!S.known._flew){S.known._flew=true;storyQ.push((st.type==='airship'?'電動機嗡嗡地轉起來，飛艇穩穩地離開地面。\n\n':'')+'你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n<span class="muted">用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。</span>');showStory();}
+ else toast((st.type==='airship'?'🛩️ 起飛了！':'🎈 升空了！')+'方向鍵或點畫面操控，E 降落。');}
 function landAt(x,y,msg){const st=flySt;flySt=null;st.flying=false;st.x=x;st.y=y;const g=stObj.get(st);if(g){g.visible=true;g.position.set(x,hAt(x,y),y);}flyG.visible=false;
  P.x=x;P.y=y+1.5;if(!free(P.x,P.y)){P.x=x+1.5;P.y=y;if(!free(P.x,P.y)){P.x=x;P.y=y;}}P.alt=0;target=null;pending=null;
  const o=owner[Math.floor(y)*W+Math.floor(x)];curIsl=o;if(!S.seen[o]){S.seen[o]=true;drawBase();}SFX.place();
  if(msg){storyQ.push(msg);showStory();}else toast('🎈 降落在'+ISLANDS[o].name+'。');S.px=P.x;S.py=P.y;save();after();}
 function tryLand(){if(landOK(P.x,P.y))return landAt(P.x,P.y);const t=tileAt(Math.floor(P.x),Math.floor(P.y));warn(t===SEA?'下面是海，找一塊陸地再降落。':t===CRATER||t===ACID?'下面是火山口，降不下去。':t===LAKE||t===RIVER?'下面是水，往旁邊飛一點。':'下面有東西擋著，換個地方。');}
-function gasOut(){const st=flySt;st.gas=0;
- if(landOK(P.x,P.y))return landAt(P.x,P.y,'氣囊越來越扁，吊籃一點一點往下沉。\n\n氫氣漏光了。你在'+ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].name+'著陸。\n\n<span class="muted">要再飛，得先灌進氫氣。</span>');
+function gasOut(){const st=flySt;st.burn=0;
+ if(landOK(P.x,P.y))return landAt(P.x,P.y,'火盆裡的火越來越小，氣囊慢慢塌下來，吊籃一點一點往下沉。\n\n燃料燒完了。你在'+ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].name+'著陸。\n\n<span class="muted">要再飛，得先在火盆裡放柴。</span>');
  const i=Math.floor(Math.random()*ISLANDS.length),p=randomSpot(i);
- landAt(p.x,p.y,'氣囊越來越扁，吊籃開始往下掉。下面只有海。\n\n一陣強風把你和氣球一起捲走，你緊緊抓著吊籃的邊——\n\n不知過了多久，吊籃重重摔在地上。你爬出來一看：這裡是<b>'+ISLANDS[i].name+'</b>。\n\n<span class="muted">要再飛，得先灌進氫氣。</span>');}
-function settleFlight(){const st=S.st.find(b=>b.type==='balloon'&&b.flying);if(!st)return;st.flying=false;st.gas=0;   /* 飛到一半關掉遊戲：下次打開時已經降落 */
+ landAt(p.x,p.y,'火盆熄了，氣囊越來越扁，吊籃開始往下掉。下面只有海。\n\n一陣強風把你和氣球一起捲走，你緊緊抓著吊籃的邊——\n\n不知過了多久，吊籃重重摔在地上。你爬出來一看：這裡是<b>'+ISLANDS[i].name+'</b>。\n\n<span class="muted">要再飛，得先砍些柴放進火盆。</span>');}
+function settleFlight(){const st=S.st.find(b=>(b.type==='balloon'||b.type==='airship')&&b.flying);if(!st)return;st.flying=false;if(st.type==='balloon')st.burn=0;   /* 飛到一半關掉遊戲：下次打開時已經降落 */
  if(!landOK(st.x,st.y)){const p=randomSpot(Math.floor(Math.random()*ISLANDS.length));st.x=p.x;st.y=p.y;}P.x=st.x;P.y=st.y+1.5;if(!free(P.x,P.y)){P.x=st.x;P.y=st.y;}S.px=P.x;S.py=P.y;}
 function flyUpdate(dt,dx,dy,manual){if(!manual&&target){dx=target.x-P.x;dy=target.y-P.y;if(Math.hypot(dx,dy)<.3){target=null;dx=dy=0;}}pending=null;
- const L=Math.hypot(dx,dy),sp=7*dt;if(L){P.x=Math.max(2,Math.min(W-2,P.x+dx/L*sp));P.y=Math.max(2,Math.min(H-2,P.y+dy/L*sp));P.ang=Math.atan2(dx/L,dy/L);P.mov=true;}
- flySt.x=P.x;flySt.y=P.y;flySt.gas=gasOf(flySt)-dt/GAS_T;
+ const L=Math.hypot(dx,dy),sp=(FLYV[flySt.type]||5)*dt;if(L){P.x=Math.max(2,Math.min(W-2,P.x+dx/L*sp));P.y=Math.max(2,Math.min(H-2,P.y+dy/L*sp));P.ang=Math.atan2(dx/L,dy/L);P.mov=true;}
+ flySt.x=P.x;flySt.y=P.y;if(flySt.type==='balloon')flySt.burn=fuelOf(flySt)-dt;
  const tx=Math.floor(P.x),ty=Math.floor(P.y);if(tileAt(tx,ty)!==SEA){const o=owner[ty*W+tx];if(o!==curIsl){curIsl=o;toast('📍 '+ISLANDS[o].name);}if(!S.seen[o]){S.seen[o]=true;drawBase();after();}}
- if(flySt.gas<=0)gasOut();}
-{const b=S.st.find(x=>x.type==='balloon'&&x.flying);if(b){settleFlight();const g=stObj.get(b);if(g)g.position.set(b.x,hAt(b.x,b.y),b.y);curIsl=owner[Math.floor(P.y)*W+Math.floor(P.x)];}}   /* 上次飛到一半就關掉遊戲：這次打開時已經落地 */
+ if(fuelOf(flySt)<=0)gasOut();}
+{const b=S.st.find(x=>(x.type==='balloon'||x.type==='airship')&&x.flying);if(b){settleFlight();const g=stObj.get(b);if(g)g.position.set(b.x,hAt(b.x,b.y),b.y);curIsl=owner[Math.floor(P.y)*W+Math.floor(P.x)];}}   /* 上次飛到一半就關掉遊戲：這次打開時已經落地 */
 function update(dt){
  P.mov=false;if(modalOpen)return;
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
@@ -1614,8 +1624,8 @@ function frame(t,dt){
  netAcc+=dt;if(netAcc>2){if(!modalOpen&&lbOn()&&S.share==null&&S.name&&S.abil.raft)askShare();   /* 造好木筏、要出海了，才問要不要上英雄榜 */
  const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!wireG)drawWires();if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
  const onSea=!flySt&&tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,gy=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA?0:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
- if(flySt){P.alt+=(Math.max(gy,0)+7-P.alt)*Math.min(1,dt*1.2);}const y=flySt?P.alt+Math.sin(t/700)*.12:onSea?Math.sin(t/400)*.05:gy;
- if(flySt){flyG.position.set(P.x,y-.62,P.y);flyG.rotation.y=P.ang;}
+ if(flySt){P.alt+=(Math.max(gy,0)+(FLYH[flySt.type]||7)-P.alt)*Math.min(1,dt*1.2);}const y=flySt?P.alt+Math.sin(t/700)*.12:onSea?Math.sin(t/400)*.05:gy;
+ if(flySt){flyG.position.set(P.x,y-.62,P.y);flyG.rotation.y=P.ang;if(flyG.prop)flyG.prop.rotation.z+=dt*25;}
  const wk=P.mov&&!onSea&&!flySt?Math.sin(t/90)*.55:0;
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:(P.mov?Math.abs(Math.sin(t/90))*.045:0);
  if(man.legL){man.legL.rotation.x=wk;man.legR.rotation.x=-wk;man.armL.rotation.x=-wk*.7;}
@@ -1646,7 +1656,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(t-promptT>200){promptT=t;const s=nearStation(),n=nearestNode();let p='WASD／方向鍵移動　E 互動　或直接點地面';
   const an=!s&&nearAnimal();
   if(!s&&boatNear(2.4)>=0)p='⛵ '+BOATN[S.boats[boatNear(2.4)].r]+'　按 E 上船';
-  if(flySt){const g=gasOf(flySt);p='🎈 飛行中　氫氣 '+Math.max(0,g).toFixed(1)+'／'+GASMAX+(g<1.5?'　⚠️ 快漏光了！':'')+'　｜　方向鍵或點畫面操控　E 降落';}
+  if(flySt){if(flySt.type==='airship')p='🛩️ 飛艇航行中　｜　方向鍵或點畫面操控　E 降落';else{const g=fuelOf(flySt);p='🎈 飛行中　燃料還能燒 '+Math.max(0,Math.ceil(g))+' 秒'+(g<10?'　⚠️ 快燒完了！':'')+'　｜　方向鍵或點畫面操控　E 降落';}}
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
@@ -1726,7 +1736,7 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
  if(st.type==='radio')return toast('📡 答答答。答——答——答——。答答答。');
  if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.soft){SFX.deny();toast('熟鐵棒吸起了幾粒鐵屑，才一轉眼又全掉了下來。太軟的鐵留不住磁。'+(r.isNew?'　📖 圖鑑新增：被雷打過的熟鐵':''));syncStation(st);return after();}
   if(r.hung){SFX.place();toast('把'+ITEMS[r.k].n+'棒放進銅線繞成的圈裡了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.k==='pigiron'?'（生鐵做的，磁力比鋼弱一些，但留得住）':'')+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''));}syncStation(st);return after();}
- if(st.type==='balloon')return openBalloon(st);
+ if(st.type==='balloon'||st.type==='airship')return openBalloon(st);
  if(d.house)return openHome(st);
  if(st.type==='field')return openFarm(st);
  bench.on=false;S.hydro=false;if(STN[st.type]){openFire(st.type);fireSt=st;if(STN[st.type].bellows&&wheelNear(S,st)){fire.auto=true;flog.push('🎡 河邊的水車替你拉著風箱，不用自己踩了。');}else if(STN[st.type].bellows&&st.fan){fire.auto=true;flog.push('⚡ 電動鼓風機嗡嗡地轉，不用自己踩風箱了。');}fireCtl();return;}openMix(st.type==='cell'?'cell':'table');}
@@ -2066,7 +2076,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.16',VDATE='2026-11-18';
+const VERSION='2.17',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2148,7 +2158,7 @@ $('mask').addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.act==='tab-tree'||d.act==='tab-badge'){treeTab=d.act==='tab-tree'?'tree':'badge';return render();}
  if(d.act==='from-v1'){let err='';try{err=loadText(JSON.stringify({game:'island-chemist',v:3,state:JSON.parse(localStorage.getItem('island_chemist_v3'))}));}catch(e){err='讀不到第一版的進度。';}if(err)return toast(err);closeHook=null;closeModal();hud();return;}
- if(d.act==='bl-fill'){const r=balloonFill(S,balSt);if(r.err){SFX.deny();toast(r.err);}else{SFX.water();toast('💨 灌進 '+r.n+' 份氫氣，氣囊鼓起來了。');save();}return openBalloon(balSt);}
+ if(d.act==='bl-wood'||d.act==='bl-char'||d.act==='bl-full'){const r=balloonLoad(S,balSt,d.act==='bl-wood'?'wood':d.act==='bl-char'?'charcoal':null);if(r.err){SFX.deny();toast(r.err);}else{SFX.place();toast('🔥 放進火盆：'+Object.keys(r.used).map(k=>ITEMS[k].n+' ×'+r.used[k]).join('、'));save();}return openBalloon(balSt);}
  if(d.act==='bl-go')return takeOff(balSt);
  if(d.act==='share-yes'||d.act==='share-no'){S.share=d.act==='share-yes';if(S.share)lbSend(true);return closeModal();}
  if(d.act==='lb-reload'){lbLoad();return render();}
@@ -2169,6 +2179,7 @@ $('mask').addEventListener('click',e=>{
  if(d.home)return homeDo(d.home);
  if(d.stash||d.take){const id=d.stash||d.take,n=+(d.n||1),m=d.stash?stash(S,homeSt,id,n):unstash(S,homeSt,id,n);if(m)SFX.place();else if(d.take)toast('背包裡的'+ITEMS[id].n+'已經滿 '+BAGCAP+' 份了');hud();save();return renderStore();}
  if(d.farm)return farmDo(d.farm);
+ if(flySt&&(d.act==='sv-dl'||d.act==='sv-dirsave'))return saveSay('✋ 飛行中不能存檔，降落後再存。');
  if(d.act==='sv-dl')return saveDownload();
  if(d.act==='sv-dir')return dirPick().then(()=>{if(panel==='save')render();});
  if(d.act==='sv-re')return dirReconnect();
