@@ -1724,12 +1724,14 @@ function takeOff(st){closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一
  const g=stObj.get(st);if(g)g.visible=false;flyG.visible=true;SFX.arrive();
  if(!S.known._flew){S.known._flew=true;storyQ.push((st.type==='airship'?'電動機嗡嗡地轉起來，飛艇穩穩地離開地面。\n\n':'')+'你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n<span class="muted">用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。</span>');showStory();}
  else toast((st.type==='airship'?'🛩️ 起飛了！':'🎈 升空了！')+'方向鍵或點畫面操控，E 降落。');}
-function landAt(x,y,msg){const st=flySt;flySt=null;st.flying=false;st.x=x;st.y=y;const g=stObj.get(st);if(g){g.visible=true;g.position.set(x,hAt(x,y),y);}flyG.visible=false;
+/* 降落：先在原地慢慢往下沉，碰到地面才真的落地 */
+function landAt(x,y,msg){if(!flySt||flySt.landing)return;flySt.landing={x,y,msg};P.x=x;P.y=y;flySt.x=x;flySt.y=y;target=null;pending=null;SFX.ui();}
+function landDone(x,y,msg){const st=flySt;delete st.landing;flySt=null;st.flying=false;st.x=x;st.y=y;const g=stObj.get(st);if(g){g.visible=true;g.position.set(x,hAt(x,y),y);}flyG.visible=false;
  P.x=x;P.y=y+1.5;if(!free(P.x,P.y)){P.x=x+1.5;P.y=y;if(!free(P.x,P.y)){P.x=x;P.y=y;}}P.alt=0;target=null;pending=null;
  const o=owner[Math.floor(y)*W+Math.floor(x)];curIsl=o;if(!S.seen[o]){S.seen[o]=true;drawBase();}SFX.place();
  if(ISLANDS[o].tepui&&!S.found.tech_tepui){S.found.tech_tepui=true;setTimeout(()=>toast('📖 圖鑑新增：平頂山與天使瀑布'),400);}
  if(msg){storyQ.push(msg);showStory();}else toast('🎈 降落在'+ISLANDS[o].name+'。');S.px=P.x;S.py=P.y;save();after();}
-function tryLand(){if(landOK(P.x,P.y))return landAt(P.x,P.y);const t=tileAt(Math.floor(P.x),Math.floor(P.y));warn(t===SEA?'下面是海，找一塊陸地再降落。':t===CRATER||t===ACID?'下面是火山口，降不下去。':t===LAKE||t===RIVER?'下面是水，往旁邊飛一點。':'下面有東西擋著，換個地方。');}
+function tryLand(){if(flySt&&flySt.landing)return;if(landOK(P.x,P.y))return landAt(P.x,P.y);const t=tileAt(Math.floor(P.x),Math.floor(P.y));warn(t===SEA?'下面是海，找一塊陸地再降落。':t===CRATER||t===ACID?'下面是火山口，降不下去。':t===LAKE||t===RIVER?'下面是水，往旁邊飛一點。':'下面有東西擋著，換個地方。');}
 function gasOut(){const st=flySt;st.burn=0;
  if(landOK(P.x,P.y))return landAt(P.x,P.y,'火盆裡的火越來越小，氣囊慢慢塌下來，吊籃一點一點往下沉。\n\n燃料燒完了。你在'+ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].name+'著陸。\n\n<span class="muted">要再飛，得先在火盆裡放柴。</span>');
  const i=Math.floor(Math.random()*5),p=randomSpot(i);
@@ -1746,7 +1748,7 @@ function update(dt){
  P.mov=false;if(modalOpen)return;
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
  const manual=dx||dy;if(manual){target=null;pending=null;}
- if(flySt)return flyUpdate(dt,dx,dy,manual);
+ if(flySt){if(flySt.landing){P.mov=false;return;}return flyUpdate(dt,dx,dy,manual);}
  if(pending&&pending.ani){const a=pending.ani;if(Math.hypot(a.x-P.x,a.y-P.y)<1.5){pending=null;target=null;useAnimal(a);return;}target={x:a.x,y:a.y};}
  if(pending&&pending.stn&&Math.hypot(pending.stn.x-P.x,pending.stn.y-P.y)<(SRAD[pending.stn.type]||.5)+.9){const s=pending.stn;pending=null;target=null;useStation(s);return;}
  if(pending&&pending.node&&Math.hypot(pending.node.x+.5-P.x,pending.node.y+.5-P.y)<1.25){target=null;const n=pending.node,nd=NODES[n.type];if(n.cd>now())pending=null;else if(nd.tool&&!S.abil[nd.tool]){hit(n);pending=null;}else if(hit(n))pending=null;return;}
@@ -1833,7 +1835,7 @@ function frame(t,dt){
  netAcc+=dt;if(netAcc>2){if(!modalOpen&&lbOn()&&S.share==null&&S.name&&S.abil.raft)askShare();   /* 造好木筏、要出海了，才問要不要上英雄榜 */
  const fl=Math.floor,back=safetyNet(S,nodes,netAcc,owner[fl(P.y)*W+fl(P.x)]);netAcc=0;back.forEach(i=>{const n=nodes[i];n.gone=false;n.hits=0;n.cd=0;setNode(n);});if(!wireG)drawWires();if(!modalOpen&&rescueBoat())toast('海流把你的船帶回這座島的岸邊了——小地圖上的白色方塊就是它。');}
  const onSea=!flySt&&tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,gy=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA?0:hAt(P.x,P.y),b=(curBoat()||{r:boatRank(S)}).r,tn=now();
- if(flySt){P.alt+=(Math.max(gy,0)+(FLYH[flySt.type]||7)-P.alt)*Math.min(1,dt*1.2);}const y=flySt?P.alt+Math.sin(t/700)*.12:onSea?Math.sin(t/400)*.05:gy;
+ if(flySt&&flySt.landing){const L=flySt.landing,to=gy+.62,d=P.alt-to;P.alt-=Math.min(d,Math.max(2.4*dt,d*dt*1.5));if(P.alt-to<.04){landDone(L.x,L.y,L.msg);}}else if(flySt){P.alt+=(Math.max(gy,0)+(FLYH[flySt.type]||7)-P.alt)*Math.min(1,dt*1.2);}const y=flySt?P.alt+Math.sin(t/700)*.12*(flySt.landing?Math.min(1,(P.alt-gy)/3):1):onSea?Math.sin(t/400)*.05:gy;
  if(flySt){flyG.position.set(P.x,y-.62,P.y);flyG.rotation.y=P.ang;if(flyG.prop)flyG.prop.rotation.z+=dt*25;}
  const wk=P.mov&&!onSea&&!flySt?Math.sin(t/90)*.55:0;
  hero.position.set(P.x,y,P.y);hero.rotation.y=P.ang;boat.visible=onSea;man.position.y=onSea?.16:(P.mov?Math.abs(Math.sin(t/90))*.045:0);
@@ -1865,7 +1867,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(t-promptT>200){promptT=t;const s=nearStation(),n=nearestNode();let p='WASD／方向鍵移動　E 互動　或直接點地面';
   const an=!s&&nearAnimal();
   if(!s&&boatNear(2.4)>=0)p='⛵ '+BOATN[S.boats[boatNear(2.4)].r]+'　按 E 上船';
-  if(flySt){if(flySt.type==='airship')p='🛩️ 飛艇航行中　｜　方向鍵或點畫面操控　E 降落';else{const g=fuelOf(flySt);p='🎈 飛行中　燃料還能燒 '+Math.max(0,Math.ceil(g))+' 秒'+(g<10?'　⚠️ 快燒完了！':'')+'　｜　方向鍵或點畫面操控　E 降落';}}
+  if(flySt){if(flySt.landing)p=flySt.type==='airship'?'🛩️ 降落中……':'🎈 降落中……';else if(flySt.type==='airship')p='🛩️ 飛艇航行中　｜　方向鍵或點畫面操控　E 降落';else{const g=fuelOf(flySt);p='🎈 飛行中　燃料還能燒 '+Math.max(0,Math.ceil(g))+' 秒'+(g<10?'　⚠️ 快燒完了！':'')+'　｜　方向鍵或點畫面操控　E 降落';}}
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
   else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮　按 E 轉動燈的方向':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
@@ -2358,7 +2360,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.29',VDATE='2026-11-18';
+const VERSION='2.30',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
