@@ -2095,7 +2095,8 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
  /* --- 溫度計 --- */
  const tx=480,ty0=40,ty1=290,yT=v=>ty1-(ty1-ty0)*Math.min(1,v/d.scale);c.fillStyle='#0d1114';c.fillRect(tx-7,ty0-4,14,ty1-ty0+8);c.fillStyle=T<450?'#c2571a':hc_;c.fillRect(tx-5,yT(T),10,ty1-yT(T));c.strokeStyle='#ccc';c.lineWidth=1.5;c.strokeRect(tx-7,ty0-4,14,ty1-ty0+8);
  c.font='11px sans-serif';c.textAlign='left';c.fillStyle='#aaa';for(let v=0;v<=d.scale;v+=d.scale>1000?400:200)c.fillText(v,tx+12,yT(v)+4);
- c.textAlign='right';for(const r of eligible(f)){const kn=S.found[r.id];c.strokeStyle=kn?'#e0b93a':'#888';c.beginPath();c.moveTo(tx-14,yT(r.T));c.lineTo(tx-7,yT(r.T));c.stroke();if(kn){c.fillStyle='#e0b93a';c.fillText(r.T+'°',tx-17,yT(r.T)+4);}}
+ c.textAlign='right';for(const r of eligible(f)){if(!S.found[r.id])continue;   /* 還沒做成過的反應不標溫度：第一次要自己摸索 */
+  c.strokeStyle='#e0b93a';c.beginPath();c.moveTo(tx-14,yT(r.T));c.lineTo(tx-7,yT(r.T));c.stroke();c.fillStyle='#e0b93a';c.fillText(r.T+'°',tx-17,yT(r.T)+4);}
  c.textAlign='center';c.fillStyle='#fff';c.font='bold 20px sans-serif';c.fillText(Math.round(T/5)*5+' °C',tx+5,24);c.font='12px sans-serif';c.fillStyle=T<450?'#aaa':hc_;c.fillText(fireName(T),tx+5,312);
  c.textAlign='left';c.fillStyle='#ddd';c.font='13px sans-serif';c.fillText('燃料　'+(FUELS.filter(k=>f.fuel[k]>.02).map(k=>ITEMS[k].n+' '+f.fuel[k].toFixed(1)).join('　')||'（空的）')+(f.lit?'':'　（還沒點火）'),10,322);}
 
@@ -2347,7 +2348,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.26',VDATE='2026-11-18';
+const VERSION='2.27',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
