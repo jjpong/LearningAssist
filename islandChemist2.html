@@ -49,8 +49,11 @@ sub{font-size:.72em}
 #bar button{font-size:15px;padding:9px 15px;white-space:nowrap}
 #bar button:active,#zoom button:active{transform:translateY(2px);box-shadow:0 1px 0 #5c4120,0 2px 5px rgba(0,0,0,.2)}
 #prompt{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);font-size:14px;font-weight:700;color:#fff8ea;background:rgba(24,22,18,.74);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid rgba(255,235,190,.28);padding:6px 16px;border-radius:99px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.28);letter-spacing:.02em}
-#toasts{position:fixed;left:50%;top:16px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:30}
-.toast{background:rgba(24,22,18,.88);backdrop-filter:blur(6px);border:1px solid rgba(255,230,175,.3);color:#fff9ec;font-size:14px;font-weight:600;padding:7px 16px;border-radius:99px;animation:pop .22s cubic-bezier(.2,.9,.3,1.2);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#toasts{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);display:flex;flex-direction:column;justify-content:flex-end;gap:6px;align-items:center;pointer-events:none;z-index:31;width:min(640px,94vw)}
+body.modal #toasts{bottom:auto;top:10px}body.modal .toast.stick{display:none}   /* 知識訊息在對話框打開時先藏起來，關掉再出現 */
+.toast{background:rgba(24,22,18,.88);backdrop-filter:blur(6px);border:1px solid rgba(255,230,175,.3);color:#fff9ec;font-size:14px;font-weight:600;padding:7px 16px;border-radius:16px;animation:pop .22s cubic-bezier(.2,.9,.3,1.2);white-space:normal;text-align:center;line-height:1.5;max-width:100%;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.toast.stick{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(40,32,20,.94);border:1.5px solid rgba(232,196,110,.75)}
+.toast .tx{flex:none;font:inherit;font-size:13px;line-height:1;border:none;border-radius:8px;padding:5px 7px;background:rgba(255,240,200,.18);color:#fff3d6;cursor:pointer}.toast .tx:hover{background:rgba(255,240,200,.32)}
 @keyframes pop{from{transform:scale(.82) translateY(-6px);opacity:0}}
 #mask{position:fixed;inset:0;background:rgba(12,20,28,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:20;padding:12px}
 #mask.show{display:flex}
@@ -116,7 +119,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 .savebox h4{margin:0 0 4px;font-size:16px;color:#3a2810}
 .savebox textarea{width:100%;height:64px;font:12px monospace;border:2px solid #d6c7a2;border-radius:8px;padding:6px;margin-top:6px}
 .filebtn{display:inline-block;position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:40px}
-@media(max-width:700px){#mini.big{width:92vw;bottom:auto;top:10px}#bar{gap:4px;padding:4px 6px}#bar button{font-size:12px;padding:8px 7px}#mini{width:136px;top:auto;bottom:68px}#zoom{top:auto;bottom:68px;right:156px;flex-wrap:wrap;width:82px}#prompt{bottom:122px}}
+@media(max-width:700px){#toasts{bottom:174px;left:8px;transform:none;width:calc(100vw - 64px);align-items:flex-start}body.modal #toasts{left:50%;transform:translateX(-50%);width:94vw;align-items:center}#mini.big{width:92vw;bottom:auto;top:10px}#bar{gap:4px;padding:4px 6px}#bar button{font-size:12px;padding:8px 7px}#mini{width:136px;top:auto;bottom:68px}#zoom{top:auto;bottom:172px;right:12px;flex-direction:column;gap:5px}#zoom button{width:36px;height:36px;font-size:16px}#prompt{bottom:72px;left:8px;transform:none;max-width:calc(100vw - 166px);white-space:normal;font-size:13px;padding:6px 12px;border-radius:14px}}
 </style>
 </head>
 <body>
@@ -1617,7 +1620,8 @@ function fogTick(dt){fogT-=dt;if(fogT>0)return;fogT=.25;
  if(tepKnown()&&!S.known._tepRev){S.known._tepRev=1;const I=ISLANDS[4];reveal(I.cx,I.cy,I.r*1.1,true);}
  for(let i=5;i<ISLANDS.length;i++){const I=ISLANDS[i];if(!S.known['_isl'+i]&&!fogged(I.cx,I.cy)){S.known['_isl'+i]=1;if(!S.seen[i])toast('🏝️ 霧散開了——那邊有一座沒去過的小島。');}}
  if(fogMsg&&!modalOpen){storyQ.push(fogMsg);fogMsg=null;showStory();return;}
- if(paintNote&&!modalOpen){paintNote=false;toast('🎨 進入青銅時代了！現在可以用顏料替衣服、帽子和房子換顏色（下方的「🎨 塗裝」）。');}}   /* 等對話框都關掉再說，才不會被蓋住 */
+ if(paintNote&&!modalOpen){paintNote=false;toast('🎨 進入青銅時代了！現在可以用顏料替衣服、帽子和房子換顏色（下方的「🎨 塗裝」）。',{stick:1});}
+ stickFlush();}   /* 等對話框都關掉再說，才不會被蓋住 */
 /* 望遠鏡：朝面對的方向看出去 90 格，左右各張開 12 度 */
 var scopeFx=null,scopeCd=0;
 function useScope(){if(modalOpen)return;if(!S.abil.scope)return;const tn=now();if(tn<scopeCd)return;scopeCd=tn+.8;
@@ -1669,7 +1673,15 @@ function useAnimal(a){const t=now(),cow=a.type==='cow';P.ang=Math.atan2(a.x-P.x,
  if(!S.known['_'+id]){S.known['_'+id]=true;storyQ.push(cow?'你擠了一罐牛奶。\n\n筆記的夾頁：「牛奶放久了會自己變酸、結塊。你不用等——往裡面加一點酸的東西試試。酒放久了，也會變成另一種酸的東西。」':'草叢裡有一顆還溫溫的蛋。\n\n筆記的夾頁：「蛋殼和貝殼是同一種東西。蛋白一加熱就回不去了。這兩件事，都值得做個實驗。」');}
  gain(id,1);}
 /* --- 提示訊息 --- */
-function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;$('toasts').appendChild(d);setTimeout(()=>d.remove(),2600);}
+var stickQ=[];
+/* 一般訊息：依長短停留 2.6～8 秒。知識性的（圖鑑新增，或特別指定的）留著，等玩家按 ✕；有對話框開著時先排隊，關掉再出現 */
+function toast(t,o){const stick=(o&&o.stick)||/📖/.test(t),box=$('toasts');
+ if(stick&&modalOpen){stickQ.push(t);return;}
+ const d=document.createElement('div');d.className='toast'+(stick?' stick':'');
+ if(stick){const s=document.createElement('span');s.textContent=t;const x=document.createElement('button');x.className='tx';x.textContent='✕';x.title='關閉';x.onclick=e=>{e.stopPropagation();d.remove();};d.append(s,x);
+  const old=box.querySelectorAll('.toast.stick');if(old.length>=3)old[0].remove();box.appendChild(d);return;}
+ d.textContent=t;box.appendChild(d);setTimeout(()=>d.remove(),Math.min(8000,2600+Math.max(0,t.length-20)*90));}
+function stickFlush(){if(stickQ.length&&!modalOpen)stickQ.splice(0).forEach(t=>toast(t,{stick:1}));}
 let warnT=0;function warn(t){if(now()>warnT){warnT=now()+2.5;SFX.deny();toast(t);}}
 
 /* --- 採集：砍樹、敲石頭要好幾下 --- */
@@ -1695,7 +1707,7 @@ function hit(nd){const d=NODES[nd.type],t=now();if(nd.gone||nd.cd>t||t<hitCd)ret
  setNode(nd);return false;}
 function nearWater(type){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(P.x)+dx,ty=Math.floor(P.y)+dy,tt=tileAt(tx,ty);if((tt===type||(type===LAKE&&tt===RIVER))&&Math.hypot(tx+.5-P.x,ty+.5-P.y)<1.8)return true;}return false;}
 function takeAcid(){if(!nearWater(ACID))return false;if(now()<waterCd)return true;waterCd=now()+.6;if(bagFull('acidlake')){fullWarn('acidlake');return true;}SFX.water();gain('acidlake',2);if(!S.known._acid){S.known._acid=true;S.found.tech_acidlake=true;SFX.discover();}after();return true;}
-function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;const it=type===SEA?'seawater':ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].soda?'sodawater':'water';if(bagFull(it)){fullWarn(it);return true;}SFX.water();{const room=BAGCAP-(S.inv[it]||0),byWheel=type===LAKE&&S.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-P.x,w.y-P.y)<5);gain(it,Math.min(room,byWheel?room:waterYield(S)));if(byWheel&&!S.known._wheelwater){S.known._wheelwater=true;toast('🎡 水車把水打了上來，一次就裝滿了。');}}if(it==='sodawater'&&!S.known._soda){S.known._soda=true;toast('🫧 這湖水摸起來滑滑的，嚐一點又苦又澀——不是淡水。');}return true;}
+function takeWater(type){if(!nearWater(type))return false;if(now()<waterCd)return true;waterCd=now()+.4;const it=type===SEA?'seawater':ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].soda?'sodawater':'water';if(bagFull(it)){fullWarn(it);return true;}SFX.water();{const room=BAGCAP-(S.inv[it]||0),byWheel=type===LAKE&&S.st.some(w=>w.type==='wheel'&&w.done&&Math.hypot(w.x-P.x,w.y-P.y)<5);gain(it,Math.min(room,byWheel?room:waterYield(S)));if(byWheel&&!S.known._wheelwater){S.known._wheelwater=true;toast('🎡 水車把水打了上來，一次就裝滿了。');}}if(it==='sodawater'&&!S.known._soda){S.known._soda=true;toast('🫧 這湖水摸起來滑滑的，嚐一點又苦又澀——不是淡水。',{stick:1});}return true;}
 function nearestNode(){let best=null,bd=1.5;for(const n of nodes){const d=Math.hypot(n.x+.5-P.x,n.y+.5-P.y);if(d<bd&&!n.gone&&n.cd<=now()){bd=d;best=n;}}return best;}
 function nearStation(){let best=null,bd=1.3;for(const s of allStations()){const d=Math.hypot(s.x-P.x,s.y-P.y)-(SRAD[s.type]||.5);if(d<bd){bd=d;best=s;}}return best;}   /* 以「離牆多遠」來算，大房子才碰得到 */
 function interact(){if(flySt)return tryLand();const s=nearStation();if(s)return useStation(s);if(boatNear(2.4)>=0)return board(boatNear(2.4));const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeAcid()||takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
@@ -1913,8 +1925,8 @@ function after(){const m=advanceQuests(S);badgeToast();lbSend();if(m.length){sto
 
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
-function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;if(mini.classList.contains('big')){mini.classList.remove('big');mini.style.cursor='zoom-in';}target=null;pending=null;for(const k in keys)keys[k]=false;}
-function closeModal(){if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;panel=null;const h=closeHook;closeHook=null;if(h)h();else if(storyQ.length)showStory();}
+function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;document.body.classList.add('modal');if(mini.classList.contains('big')){mini.classList.remove('big');mini.style.cursor='zoom-in';}target=null;pending=null;for(const k in keys)keys[k]=false;}
+function closeModal(){if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;document.body.classList.remove('modal');panel=null;const h=closeHook;closeHook=null;if(h)h();else if(storyQ.length)showStory();}
 function showStory(){const t=storyQ.shift();panel='story';SFX.page();openModal(`<div class="story">${t}</div><p style="text-align:right;margin:14px 0 0"><button class="btn" data-act="close">繼續</button></p>`);}
 const head=t=>`<h2><span>${t}</span><button class="x" data-act="close">關閉 ✕</button></h2>`;
 const ICO={};
@@ -1957,10 +1969,10 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
   else{if(a)SFX.place();toast((a?'放上 '+a+'。':'')+'還缺 '+Object.keys(r.missing).map(k=>ITEMS[k].n+'×'+r.missing[k]).join('、'));}
   after();return;}
  if(st===TOWER)return openBeam();
- if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。'+(S.abil.gen?'　🌀 發電機也跟著轉，這座島的建築可以拉銅線過來。':''));
+ if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。'+(S.abil.gen?'　🌀 發電機也跟著轉，這座島的建築可以拉銅線過來。':''),{stick:1});
  if(st.type==='radio')return toast('📡 答答答。答——答——答——。答答答。');
- if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.soft){SFX.deny();toast('熟鐵棒吸起了幾粒鐵屑，才一轉眼又全掉了下來。太軟的鐵留不住磁。'+(r.isNew?'　📖 圖鑑新增：被雷打過的熟鐵':''));syncStation(st);return after();}
-  if(r.hung){SFX.place();toast('把'+ITEMS[r.k].n+'棒放進銅線繞成的圈裡了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.k==='pigiron'?'（生鐵做的，磁力比鋼弱一些，但留得住）':'')+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''));}syncStation(st);return after();}
+ if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.soft){SFX.deny();toast('熟鐵棒吸起了幾粒鐵屑，才一轉眼又全掉了下來。太軟的鐵留不住磁。'+(r.isNew?'　📖 圖鑑新增：被雷打過的熟鐵':''),{stick:1});syncStation(st);return after();}
+  if(r.hung){SFX.place();toast('把'+ITEMS[r.k].n+'棒放進銅線繞成的圈裡了。現在——離遠一點，等雷打下來。');boltT=6+Math.random()*8;}else if(r.wait)toast('鐵棒掛著。雷還沒打下來，再等等。');else{SFX.discover();toast('🧲 拿到一根磁鐵！'+(r.k==='pigiron'?'（生鐵做的，磁力比鋼弱一些，但留得住）':'')+(r.isNew?'　📖 圖鑑新增：雷擊磁化':''),{stick:1});}syncStation(st);return after();}
  if(st.type==='balloon'||st.type==='airship')return openBalloon(st);
  if(d.house)return openHome(st);
  if(st.type==='field')return openFarm(st);
@@ -2050,6 +2062,12 @@ function drawItem(c,id,x,y,r){c.save();c.translate(x,y);c.scale(r/11,r/11);c.lin
   case 'glass':c.globalAlpha=.8;poly([[-10,9],[-7,-8],[3,-11],[11,2],[6,10]],'#bfe6e6','#6fa8a8');c.globalAlpha=1;line([[-5,-5],[-6,5]],'#fff',1.6);line([[2,-7],[7,2]],'#e6fbfb');break;
   case 'cabbage':blob(0,0,11,'#6a3490','#3f1d5a');c.strokeStyle='#c9a3e0';[8,5,2.5].forEach(q=>{c.beginPath();c.arc(1,1,q,2.4,5.6);c.stroke();});line([[0,10],[1,-8]],'#e6d0f2');break;
   case 'coconut':blob(0,0,11,'#7a5a3a','#3f2d1a');[[-3,-4],[3,-4],[0,1]].forEach(p=>blob(p[0],p[1],1.6,'#2a1d10'));line([[-8,5],[-4,8]],'#a8845a');line([[5,6],[8,3]],'#a8845a');break;
+  case 'camphorwood':[[-6,3,-.5,'#c9a46a'],[4,-3,.35,'#d8b77e'],[2,6,-.15,'#b98f55']].forEach(q=>{c.save();c.translate(q[0],q[1]);c.rotate(q[2]);c.fillStyle=q[3];c.fillRect(-8,-3,16,6);c.strokeStyle='#6e4f2a';c.strokeRect(-8,-3,16,6);line([[-6,-.5],[5,-.5]],'#9a7442');c.restore();});break;
+  case 'citronella':[[-8,-11,'#9cc45a'],[-3,-13,'#b5d36a'],[2,-12,'#88b24a'],[7,-10,'#a8cc62'],[10,-6,'#c2dc7a'],[-11,-5,'#88b24a']].forEach((q,i)=>{c.beginPath();c.moveTo(-1+i*.4,11);c.quadraticCurveTo(q[0]*.4,0,q[0],q[1]);c.strokeStyle=q[2];c.lineWidth=2.6;c.stroke();});c.lineWidth=1;poly([[-4,11],[4,11],[3,7],[-3,7]],'#7a9a44','#4a6a24');break;
+  case 'vanilla':[[-6,-.5,'#3a2a18'],[0,.2,'#4a3420'],[6,.6,'#2e2012']].forEach(q=>{c.save();c.translate(q[0],0);c.rotate(q[1]);c.beginPath();c.moveTo(0,-12);c.quadraticCurveTo(3,0,0,12);c.quadraticCurveTo(-2.4,0,0,-12);c.fillStyle=q[2];c.fill();c.strokeStyle='#120c06';c.stroke();line([[.2,-9],[.8,8]],'rgba(255,240,200,.25)');c.restore();});break;
+  case 'camphor':poly([[-11,8],[-8,-3],[-2,-5],[0,8]],'rgba(250,250,246,.95)','#a8b2b8');poly([[-2,9],[1,-10],[7,-8],[6,9]],'rgba(255,255,255,.97)','#a8b2b8');poly([[5,9],[8,-1],[12,1],[11,9]],'rgba(240,244,246,.95)','#a8b2b8');line([[2,-6],[3,5]],'#fff',1.5);break;
+  case 'pig_red':pile('#a3402c','#d9765e');break;case 'pig_yellow':pile('#c99a32','#ead07a');break;case 'pig_green':pile('#2f9a6a','#7fd2a8');break;case 'pig_blue':pile('#2f6fb8','#8fbff0');break;case 'pig_black':pile('#2c2b2a','#6a6866');break;
+  case 'naoh_s':case 'koh_s':[[-8,4,-.3],[0,-3,.4],[7,5,.1]].forEach(q=>{c.save();c.translate(q[0],q[1]);c.rotate(q[2]);c.beginPath();c.ellipse(0,0,6,3.4,0,0,7);c.fillStyle='#f6f4fa';c.fill();c.strokeStyle='#a8a4b8';c.stroke();c.restore();});break;
   case 'sugarcane':c.rotate(-.5);c.fillStyle='#b9c95a';c.fillRect(-13,-3.5,26,7);c.strokeStyle='#6f7a2c';c.strokeRect(-13,-3.5,26,7);[-6,1,8].forEach(q=>line([[q,-3.5],[q,3.5]],'#6f7a2c',1.6));break;
   case 'soap':c.fillStyle='#f6efd8';c.strokeStyle='#b9ad88';c.beginPath();c.moveTo(-11,-3);c.quadraticCurveTo(-11,-7,-7,-7);c.lineTo(7,-7);c.quadraticCurveTo(11,-7,11,-3);c.lineTo(11,4);c.quadraticCurveTo(11,8,7,8);c.lineTo(-7,8);c.quadraticCurveTo(-11,8,-11,4);c.closePath();c.fill();c.stroke();line([[-6,-3],[2,-3]],'#fff',1.6);break;
   case 'grain':[[-6,0],[0,-2],[6,1]].forEach((q,i)=>{line([[q[0],10],[q[0]+(i-1)*2,-2]],'#8f7d2c',1.4);for(let k=0;k<4;k++){c.beginPath();c.ellipse(q[0]+(i-1)*2+(k%2?2.4:-2.4),-3-k*2.4,2.4,1.4,k%2?.6:-.6,0,7);c.fillStyle='#e3c355';c.fill();}});break;
@@ -2406,7 +2424,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.32',VDATE='2026-11-18';
+const VERSION='2.33',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
