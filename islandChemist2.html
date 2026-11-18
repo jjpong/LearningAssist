@@ -511,6 +511,7 @@ const REACTIONS=[
  {id:'vanilla_ext',name:'用酒精萃取香草',kind:'phys',at:'table',inputs:[['vanilla','ethanol']],out:{vanillaext:1},eqx:'香草莢 + 酒精 → 香草精（萃取）',phen:'黑褐色的香草莢泡在酒精裡，透明的酒精慢慢染成琥珀色，香味越來越濃。',use:'這叫萃取：香草的香味分子（香草醛）在酒精裡溶得比在水裡好，就被「拉」進了酒精。泡茶、泡咖啡也是萃取，只是用的是熱水。',note:'香草是一種蘭花的果莢。1841 年，留尼旺島上一個 12 歲的奴隸少年愛德蒙，發明了用手替香草蘭授粉的方法，香草才能在原產地墨西哥以外大量種植。'},
  {id:'obs_vanilla_water',name:'香草莢泡水',kind:'obs',at:'table',inputs:[['vanilla','water']],out:{},eqx:'（香味分子不太溶於水）',phen:'泡了半天，水只沾上一點點淡淡的香味，顏色幾乎沒變。',use:'香草醛在水裡溶得不多。要把香味「拉」出來，得換一種更溶得了它的液體。',note:'材料沒有壞，撈起來還能再用。'},
  {id:'obs_camphor_sub',name:'加熱樟腦',kind:'obs',at:'heat',T:60,pot:1,fresh:1,lose:['camphor'],inputs:[['camphor']],out:{},eqx:'樟腦（固體）→ 樟腦（氣體）',phen:'白色的晶體沒有熔成液體，就一縷一縷變成氣體散掉了，整間屋子都是樟腦味。',use:'這叫昇華：固體直接變成氣體。衣櫃裡的樟腦丸越放越小，也是這個道理。',note:''},
+ {id:'obs_lens_quartz',name:'用整塊石英磨玻璃',kind:'obs',at:'table',inputs:[['glass','quartz']],out:{},eqx:'（磨不動）',phen:'石英在玻璃上刮出幾道細細的刮痕，可是磨了半天，玻璃還是平的。',use:'石英確實比玻璃硬，但整塊太大了，只刮得出刮痕，磨不出光滑的弧面。',note:'材料沒有壞，撈起來還能再用。'},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -2348,7 +2349,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.27',VDATE='2026-11-18';
+const VERSION='2.28',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
