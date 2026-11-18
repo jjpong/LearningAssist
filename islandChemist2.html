@@ -1589,7 +1589,7 @@ mini.addEventListener('click',()=>{mini.classList.toggle('big');mini.style.curso
 drawBase();
 
 /* --- 迷霧：地圖上沒看過的地方蓋著霧。走過、划過、飛過、被燈塔照過，霧才散開 --- */
-var FC=2,FW=Math.ceil(W/FC),FH=Math.ceil(H/FC),fogA=new Uint8Array(FW*FH),fogHid=new Uint8Array(FW*FH),fogC=document.createElement('canvas'),fogBig=document.createElement('canvas'),fogDirty=true,fogT=0,fogMsg=null;fogC.width=FW;fogC.height=FH;fogBig.width=W;fogBig.height=H;
+var FC=2,FW=Math.ceil(W/FC),FH=Math.ceil(H/FC),fogA=new Uint8Array(FW*FH),fogHid=new Uint8Array(FW*FH),fogC=document.createElement('canvas'),fogBig=document.createElement('canvas'),fogDirty=true,fogT=0,fogMsg=null,paintNote;   /* paintNote 不給初值：hud() 可能更早就設好了 */fogC.width=FW;fogC.height=FH;fogBig.width=W;fogBig.height=H;
 for(let j=0;j<FH;j++)for(let i=0;i<FW;i++){const x=Math.min(W-1,i*FC+1),y=Math.min(H-1,j*FC+1),I=ISLANDS[owner[y*W+x]];if(I.hidden&&Math.hypot(x-I.cx,y-I.cy)<I.r*1.35)fogHid[j*FW+i]=1;}   /* 雲頂島被雲包著，從海上看不見 */
 const tepKnown=()=>!!(S.abil.scope||S.seen[4]);   /* 燈塔照得到那團雲，卻照不進去；要望遠鏡才看得穿 */
 function fogEnc(){let s='';for(let i=0;i<fogA.length;i+=8){let b=0;for(let k=0;k<8;k++)if(fogA[i+k])b|=1<<k;s+=String.fromCharCode(b);}return btoa(s);}
@@ -1616,7 +1616,8 @@ function fogTick(dt){fogT-=dt;if(fogT>0)return;fogT=.25;
  reveal(P.x,P.y,flySt?45:S.aboard?25:20);
  if(tepKnown()&&!S.known._tepRev){S.known._tepRev=1;const I=ISLANDS[4];reveal(I.cx,I.cy,I.r*1.1,true);}
  for(let i=5;i<ISLANDS.length;i++){const I=ISLANDS[i];if(!S.known['_isl'+i]&&!fogged(I.cx,I.cy)){S.known['_isl'+i]=1;if(!S.seen[i])toast('🏝️ 霧散開了——那邊有一座沒去過的小島。');}}
- if(fogMsg&&!modalOpen){storyQ.push(fogMsg);fogMsg=null;showStory();}}
+ if(fogMsg&&!modalOpen){storyQ.push(fogMsg);fogMsg=null;showStory();return;}
+ if(paintNote&&!modalOpen){paintNote=false;toast('🎨 進入青銅時代了！現在可以用顏料替衣服、帽子和房子換顏色（下方的「🎨 塗裝」）。');}}   /* 等對話框都關掉再說，才不會被蓋住 */
 /* 望遠鏡：朝面對的方向看出去 90 格，左右各張開 12 度 */
 var scopeFx=null,scopeCd=0;
 function useScope(){if(modalOpen)return;if(!S.abil.scope)return;const tn=now();if(tn<scopeCd)return;scopeCd=tn+.8;
@@ -1893,7 +1894,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(dirH&&t-dirT>30000){dirT=t;dirSave(false);}requestAnimationFrame(loop);}
 
 /* --- 任務欄 --- */
-function hud(){{const sb=$('scopebtn');if(sb)sb.style.display=S.abil.scope?'':'none';const pb=$('paintbtn');if(pb)pb.style.display=paintOn(S)?'':'none';if(paintOn(S)&&!S.known._paint){S.known._paint=1;setTimeout(()=>toast('🎨 進入青銅時代了！現在可以用顏料替衣服、帽子和房子換顏色（下方的「🎨 塗裝」）。'),1500);}}{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
+function hud(){{const sb=$('scopebtn');if(sb)sb.style.display=S.abil.scope?'':'none';const pb=$('paintbtn');if(pb)pb.style.display=paintOn(S)?'':'none';if(paintOn(S)&&!S.known._paint){S.known._paint=1;paintNote=true;}}{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
  const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;{const N=questNotes(S,q);$('qhint').innerHTML='筆記：'+q.hint+N.tried.map(o=>`<div class="tried">✎ 試過「${o.name}」：${o.phen}</div>`).join('');}
  const lifeOn=S.abil.bronze_tools||LIFEQ.some(x=>qd[x.id]),sideOn=!!qd.q_1;
  $('qmore').innerHTML=(V_.behind.length?'⚑ 前面還有 '+V_.behind.length+' 項沒做（翻筆記看清單）<br>':'')+(lifeOn&&V_.life?'🍞 生活線：'+V_.life.goal:'');
@@ -2405,7 +2406,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.31',VDATE='2026-11-18';
+const VERSION='2.32',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
