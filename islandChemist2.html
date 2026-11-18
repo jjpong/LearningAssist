@@ -38,7 +38,8 @@ sub{font-size:.72em}
 #abil{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap}
 #abil span{font-size:11.5px;padding:2px 8px;border-radius:99px;background:rgba(222,210,182,.75);color:#8f856e;border:1px solid rgba(175,158,122,.35);transition:all .2s}
 #abil span.on{background:linear-gradient(135deg,#2f7854,#23593e);color:#fff;font-weight:700;border-color:#1c4731;box-shadow:0 1px 3px rgba(35,89,62,.3)}
-#mini{position:fixed;right:12px;top:12px;width:268px;border:3px solid #6e4f2a;border-radius:10px;image-rendering:auto;box-shadow:0 6px 20px rgba(20,15,8,.35),inset 0 0 0 1px rgba(255,255,255,.35);background:#2b6ca3}
+#mini.big{width:min(86vw,760px);z-index:30}
+#mini{cursor:zoom-in;position:fixed;right:12px;top:12px;width:268px;border:3px solid #6e4f2a;border-radius:10px;image-rendering:auto;box-shadow:0 6px 20px rgba(20,15,8,.35),inset 0 0 0 1px rgba(255,255,255,.35);background:#2b6ca3}
 #zoom{position:fixed;right:12px;top:212px;display:flex;gap:6px}
 #zoom button,#bar button{font:inherit;font-weight:700;border-radius:11px;border:2px solid #6e4f2a;background:linear-gradient(180deg,#fffaf0,#f3e3be);color:#432f13;cursor:pointer;box-shadow:0 3px 0 #5c4120,0 5px 12px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s,background .15s}
 #zoom button:hover,#bar button:hover{background:linear-gradient(180deg,#ffffff,#f9eccb)}
@@ -114,7 +115,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 .savebox h4{margin:0 0 4px;font-size:16px;color:#3a2810}
 .savebox textarea{width:100%;height:64px;font:12px monospace;border:2px solid #d6c7a2;border-radius:8px;padding:6px;margin-top:6px}
 .filebtn{display:inline-block;position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:40px}
-@media(max-width:700px){#bar{gap:4px;padding:4px 6px}#bar button{font-size:12px;padding:8px 7px}#mini{width:136px;top:auto;bottom:68px}#zoom{top:auto;bottom:68px;right:156px;flex-wrap:wrap;width:82px}#prompt{bottom:122px}}
+@media(max-width:700px){#mini.big{width:92vw;bottom:auto;top:10px}#bar{gap:4px;padding:4px 6px}#bar button{font-size:12px;padding:8px 7px}#mini{width:136px;top:auto;bottom:68px}#zoom{top:auto;bottom:68px;right:156px;flex-wrap:wrap;width:82px}#prompt{bottom:122px}}
 </style>
 </head>
 <body>
@@ -176,6 +177,12 @@ const ITEMS={
  lye:{n:'草木灰水',f:'K2CO3',c:'#d9d2bd',d:'草木灰泡水過濾出來的液體，含碳酸鉀，摸起來滑滑的。'},
  koh:{n:'氫氧化鉀溶液',f:'KOH',c:'#e9e4f5',d:'強鹼，有腐蝕性。古人叫它「苛性鉀」。'},
  coconut:{n:'椰子',f:'',c:'#7a5a3a',d:'果肉含有大量油脂。'},
+ camphorwood:{n:'樟木片',f:'',c:'#c9a46a',d:'樟樹削下來的木片，聞起來有一股衣櫃裡的味道——那就是樟腦。'},
+ camphor:{n:'樟腦',f:'C10H16O',c:'#f7f7f2',d:'白色、半透明的結晶，有很衝的清涼香味。放著不管會慢慢變小：它會直接從固體變成氣體。'},
+ citronella:{n:'香茅',f:'',c:'#a9c95a',d:'一叢一叢的長葉子，揉一揉有檸檬的香味。'},
+ citroil:{n:'香茅油',f:'',c:'#f0e08a',d:'淡黃色的精油，有濃濃的檸檬草香。不溶於水，蚊子不喜歡這個味道。'},
+ vanilla:{n:'香草莢',f:'',c:'#3a2a18',d:'香草蘭的果莢，曬乾、發酵過後變成黑褐色，香氣才出來。'},
+ vanillaext:{n:'香草精',f:'',c:'#b07a3a',d:'香草莢泡在酒精裡萃取出來的琥珀色液體，主要的香味分子叫香草醛。'},
  oil:{n:'椰子油',f:'',c:'#f3e7a8',d:'油脂，不溶於水。'},
  soap:{n:'肥皂',f:'',c:'#f6efd8',d:'一端親水、一端親油，所以能把油汙帶進水裡。'},
  malachite:{n:'孔雀石',f:'Cu2(OH)2CO3',c:'#27a56f',d:'翠綠色的含銅礦石。'},
@@ -224,22 +231,22 @@ const ITEMS={
  clwater:{n:'氯水',f:'',c:'#eef3be',d:'氯氣溶在水裡，淡淡的黃綠色。含有鹽酸和次氯酸，能漂白、能殺菌。'},
  bleach:{n:'漂白水',f:'NaClO',c:'#f3f6e2',d:'次氯酸鈉溶液。強力殺菌、漂白。絕對不能和酸性的清潔劑混用。'}
 };
-const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3']);
+const LIQ=new Set(['cola','vinegar','milk','seawater','water','limewater','indicator','carbonic','lye','koh','oil','h2so4','hcl','cuso4','juice','wine','ethanol','znso4','brine','naoh','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']);
 const GAS=new Set(['co2','h2','o2','cl2','so2']);
 /* 會燒焦的東西：放在火上卻沒有發生該有的反應，超過 300 °C 就毀了 */
-const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
+const ORG=new Set(['wood','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','soap']);
 /* 背包的分類 */
-const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','water','seawater']],
+const CATS=[['燃料',['wood','charcoal','coal','coke']],['採集來的材料',['fiber','clay','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','water','seawater']],
  ['礦物',['caco3','sand','quartz','natron','sulfur','malachite','cassiterite','hematite','magnetite','vitriol','smithsonite','galena']],['金屬',['copper','tin','bronze','sponge','iron','pigiron','steel','zinc','badiron','potassium','sodium']],
- ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3']],['氣體',['co2','h2','o2','cl2','so2']]];
+ ['農牧產品',['grain','flour','dough','risen','bread','egg','boiledegg','milk','curd','vinegar','compost','guano']],['固體產物',['ceramic','ash','salt','quicklime','slaked','mortar','cement','concrete','cuo','zno','glass','soap','actcarbon','filament','lens','magnet','tartar','rochelle','caramel','naoh_s','koh_s','camphor']],['溶液與液體',['limewater','indicator','carbonic','lye','koh','oil','juice','wine','ethanol','brine','h2so4','hcl','cuso4','znso4','naoh','cola','clwater','bleach','sodawater','acidlake','h2so3','citroil','vanillaext']],['氣體',['co2','h2','o2','cl2','so2']]];
 /* 實驗畫面裡的材料，照化學上物質分類的習慣排：元素 → 化合物（氧化物、酸、鹼、鹽、有機）→ 混合物。以主要成分為準 */
 const CHEM=[['金屬（元素）',['copper','tin','sponge','iron','zinc','potassium','sodium','magnet']],['非金屬（元素）',['sulfur','charcoal','coke','actcarbon','filament','h2','o2','cl2']],
  ['氧化物',['water','co2','so2','quicklime','cuo','zno','sand','quartz','cassiterite','hematite','magnetite']],
  ['酸',['carbonic','h2so3','vinegar','hcl','h2so4']],['鹼',['slaked','limewater','koh','naoh','koh_s','naoh_s']],
  ['鹽',['salt','bleach','brine','caco3','natron','ash','lye','malachite','smithsonite','vitriol','cuso4','znso4','guano','galena','tartar','rochelle']],
- ['有機化合物',['ethanol','oil','soap']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
- ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
- ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
+ ['有機化合物',['ethanol','oil','soap','camphor']],['合金（混合物）',['bronze','pigiron','steel','badiron']],
+ ['溶液（混合物）',['seawater','clwater','sodawater','acidlake','indicator','juice','wine','milk','cola','citroil','vanillaext']],['矽酸鹽材料',['clay','ceramic','glass','lens','mortar','cement','concrete']],
+ ['生物材料',['wood','coal','fiber','cabbage','coconut','sugarcane','camphorwood','citronella','vanilla','grain','flour','dough','risen','bread','egg','boiledegg','curd','compost','caramel']]];
 const KIND={chem:'化學變化',phys:'物理變化',obs:'觀察紀錄',tech:'科技原理'};
 const AT={heat:'用火加熱',table:'實驗桌（常溫）',still:'蒸餾器',cell:'電解槽'};
 
@@ -497,6 +504,12 @@ const REACTIONS=[
  {id:'dry_koh',name:'蒸乾氫氧化鉀溶液',kind:'phys',at:'heat',T:100,pot:1,defer:['soap'],inputs:[['koh']],out:{koh_s:1},eqx:'氫氧化鉀溶液 → 氫氧化鉀（固體）＋ 水蒸氣',phen:'水越煮越少，鍋底留下一層白色的固體。',use:'水跑掉了，溶在裡面的苛性鉀留下來。要讓它熔化，還得燒到三百多度。',note:'苛性鉀比燒鹼還會吸水，放在空氣裡一下子就變得濕濕黏黏。'},
  {id:'dissolve_naoh',name:'把燒鹼溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['naoh_s','water']],out:{naoh:1},eqx:'氫氧化鈉（固體）+ 水 → 氫氧化鈉溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
  {id:'dissolve_koh',name:'把苛性鉀溶進水裡',kind:'phys',at:'table',hot:1,inputs:[['koh_s','water']],out:{koh:1},eqx:'氫氧化鉀（固體）+ 水 → 氫氧化鉀溶液（放熱）',phen:'白色固體一溶進水裡，杯子馬上變得燙手。',use:'溶解是物理變化，卻可以放出大量的熱。所以稀釋強鹼要慢慢加，現實中還要戴手套和護目鏡。',note:''},
+ /* ===== 霧裡小島的香氣 ===== */
+ {id:'camphor_dist',name:'蒸餾樟木片',kind:'phys',at:'still',T:100,inputs:[['camphorwood','water']],out:{camphor:1},eqx:'樟木片 + 水蒸氣 → 樟腦（在冷凝管裡結晶）',phen:'水蒸氣帶著一股濃濃的樟腦味穿過樟木片。冷凝管的內壁和接收瓶口，慢慢結出一層雪白的晶體。',use:'這叫水蒸氣蒸餾：樟腦被水蒸氣一路帶出來，到了冷的地方，沒有先變成液體，就直接凝成固體——這是「凝華」，正好是昇華倒過來。',note:'十九世紀末，臺灣的樟腦產量曾經佔全世界的大半，被稱為「樟腦王國」。樟腦是早期塑膠「賽璐珞」的原料，也拿來防蟲。'},
+ {id:'citro_dist',name:'蒸餾香茅',kind:'phys',at:'still',T:100,inputs:[['citronella','water']],out:{citroil:1},eqx:'香茅 + 水蒸氣 → 香茅油 + 水（冷凝後分成兩層）',phen:'接收瓶裡的液體分成兩層：底下是清水，上面浮著一層淡黃色、帶著檸檬香的油。',use:'水蒸氣蒸餾：香茅油的沸點比水高、也不溶於水，卻會被水蒸氣一起帶出來。冷凝以後油比水輕，浮在上面，把上層倒出來就分開了。',note:'1950 年代，臺灣的香茅油產量是世界第一，大多拿去做香皂和防蚊液。'},
+ {id:'vanilla_ext',name:'用酒精萃取香草',kind:'phys',at:'table',inputs:[['vanilla','ethanol']],out:{vanillaext:1},eqx:'香草莢 + 酒精 → 香草精（萃取）',phen:'黑褐色的香草莢泡在酒精裡，透明的酒精慢慢染成琥珀色，香味越來越濃。',use:'這叫萃取：香草的香味分子（香草醛）在酒精裡溶得比在水裡好，就被「拉」進了酒精。泡茶、泡咖啡也是萃取，只是用的是熱水。',note:'香草是一種蘭花的果莢。1841 年，留尼旺島上一個 12 歲的奴隸少年愛德蒙，發明了用手替香草蘭授粉的方法，香草才能在原產地墨西哥以外大量種植。'},
+ {id:'obs_vanilla_water',name:'香草莢泡水',kind:'obs',at:'table',inputs:[['vanilla','water']],out:{},eqx:'（香味分子不太溶於水）',phen:'泡了半天，水只沾上一點點淡淡的香味，顏色幾乎沒變。',use:'香草醛在水裡溶得不多。要把香味「拉」出來，得換一種更溶得了它的液體。',note:'材料沒有壞，撈起來還能再用。'},
+ {id:'obs_camphor_sub',name:'加熱樟腦',kind:'obs',at:'heat',T:60,pot:1,fresh:1,lose:['camphor'],inputs:[['camphor']],out:{},eqx:'樟腦（固體）→ 樟腦（氣體）',phen:'白色的晶體沒有熔成液體，就一縷一縷變成氣體散掉了，整間屋子都是樟腦味。',use:'這叫昇華：固體直接變成氣體。衣櫃裡的樟腦丸越放越小，也是這個道理。',note:''},
  {id:'k_water',name:'把鉀丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['potassium','water']],out:{koh:1,h2:1},eq:'2K + 2H2O -> 2KOH + H2',phen:'鉀浮在水面上四處亂竄，嘶嘶作響，冒出紫色的火焰！',use:'鉀活潑到連水裡的氫都搶得出來，自己又變回氫氧化鉀。所以自然界找不到金屬鉀，只找得到它的化合物。',note:'現實中非常危險，只能用米粒大小，而且要有防護。'},
  {id:'na_water',name:'把鈉丟進水裡',kind:'chem',at:'table',hot:1,inputs:[['sodium','water']],out:{naoh:1,h2:1},eq:'2Na + 2H2O -> 2NaOH + H2',phen:'鈉熔成一顆銀色的小球，在水面上快速游動，嘶嘶冒氣，越來越小。',use:'鈉和水反應，放出氫氣，自己變成氫氧化鈉。反應比鉀溫和一些：同一族的金屬，越往下越活潑。',note:'現實中同樣危險。'},
  /* ===== 有意義的「失敗」 ===== */
@@ -653,6 +666,7 @@ const QUESTS=[
  {id:'s_koh',side:1,ch:'支線　更強的鹼',goal:'做出比草木灰水更強的鹼',hint:'「草木灰泡水是弱鹼，石灰水也是鹼。兩種倒在一起，沉下去的是什麼？留在水裡的又是什麼？」',rx:['causticize'],done:F('causticize')},
  {id:'s_airship',side:1,ch:'支線　天空',goal:'造一艘不用燒柴、想去哪就去哪的氫氣飛艇',hint:'「熱氣球得一直燒柴，風往哪吹也很難違抗。如果氣囊裡裝的是最輕的那種氣體呢？再加上一台會轉的電動機和一顆穩定的電池。」',done:HAS('airship')},
  {id:'s_davy',side:1,ch:'支線　更強的鹼',goal:'把藏在強鹼裡的金屬抓出來',hint:'「那種更強的鹼，在水裡通電只會冒出氫氣和氧氣。先把水煮乾，留下白色的固體；再讓固體自己熔化，接上電極試試。電壓要很高，伏打堆得疊得比平常高得多。」',rx:['molten_koh','molten_naoh'],done:s=>!!(s.found.molten_koh||s.found.molten_naoh)},
+ {id:'s_aroma',side:1,ch:'支線　霧裡的香氣',goal:'從小島的植物取得樟腦、香茅油和香草精',hint:'「霧裡還藏著幾座小島。有的樹聞起來像衣櫃，有的草聞起來像檸檬，有的藤上掛著黑色的豆莢。香氣會跟著水蒸氣跑，也溶得進酒精。」',rx:['camphor_dist','citro_dist','vanilla_ext'],done:s=>!!(s.found.camphor_dist&&s.found.citro_dist&&s.found.vanilla_ext)},
  {id:'s_sulfur',side:1,ch:'支線　火山的禮物',goal:'在火山口採到硫磺，帶回實驗室燒燒看',hint:'「火山口邊上結著一塊塊黃色的結晶。在露天的火上燒，煙一下就散了；在實驗桌上架起爐火來燒，才接得住。有氧氣的話，火焰會更漂亮。」',rx:['burn_s','burn_s_o2'],done:s=>!!(s.found.burn_s||s.found.burn_s_o2)},
  {id:'s_h2so3',side:1,ch:'支線　火山的禮物',goal:'讓燒硫磺冒出來的氣體溶進水裡',hint:'「二氧化碳溶進水裡是碳酸。那這種刺鼻的氣體呢？做出來以後，用紫色的汁液測測看。」',rx:['sulfurous'],done:F('sulfurous')},
  {id:'s_lakes',side:1,ch:'支線　火山的禮物',goal:'用指示劑比一比山頂和山腳的兩座湖',hint:'「同一座火山，一座湖在山頂的火山口裡，一座在山腳。各舀一罐，滴進紫色的汁液。」',rx:['ind_acidlake','ind_soda'],done:s=>!!(s.found.ind_acidlake&&s.found.ind_soda)},
@@ -775,7 +789,7 @@ const BADGES=[
  ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['sulfur','🌋','硫磺礦工','在實驗室燒出二氧化硫',s=>fnd(s,'burn_s','burn_s_o2')],['bleach','🧴','消毒專家','做出漂白水',s=>s.found.bleach],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
  ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
  ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氣球抵達雲頂島',s=>!!s.seen[4]],['zep','🛩️','天空的主人','造出氫氣飛艇',s=>hasSt(s,'airship')],['radio','📡','回音','用無線電得到回應',s=>s.abil.radio],
- ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
+ ['isl','🧭','探險家','踏上全部五座島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['islet','🏝️','霧裡的小島','找到藏在霧裡的三座小島',s=>[5,6,7].every(i=>s.seen[i])],['aroma','🌿','香氣獵人','取得樟腦、香茅油和香草精',s=>!!(s.found.camphor_dist&&s.found.citro_dist&&s.found.vanilla_ext)],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
  ['fail1','📝','失敗也是發現','累積 5 筆觀察紀錄',s=>nFound(s,'obs')>=5],['fail2','🧐','實驗狂','累積 15 筆觀察紀錄',s=>nFound(s,'obs')>=15],['fail3','🤯','什麼都要試一下','累積 25 筆觀察紀錄',s=>nFound(s,'obs')>=25],
  ['chem1','📗','初級化學家','發現 15 種化學反應',s=>nFound(s,'chem')>=15],['chem2','📘','資深化學家','發現 35 種化學反應',s=>nFound(s,'chem')>=35],['chem3','📕','反應大師','發現 55 種化學反應',s=>nFound(s,'chem')>=55],
  ['soap3','🧼','肥皂研究員','用三種不同的鹼做出肥皂',s=>['soap','soap_ash','soap_soda'].every(i=>s.found[i])],['clean','🙌','先洗手','洗過手再發酵成功',s=>s.known._washed&&s.found.ferment],
@@ -959,10 +973,14 @@ const ISLANDS=[
  {name:'雷鳴島',cx:246,cy:48,r:29,rank:3,rock:.6,lake:[13,9,3.7],ring:0,
   nodes:[['tree',95,[FOREST]],['smithsonite',11,[ROCK]],['coal',12,[ROCK]],['limestone',8,[ROCK]],['quartz',6,[ROCK]],['hematite',8,[ROCK]],['vine',11,[FOREST,GRASS]],['cabbage',6,[GRASS]]]},
  {name:'雲頂島',cx:52,cy:40,r:19,rank:4,rock:.55,lake:[1,2.5,2.2],ring:0,hidden:1,river:1,tepui:.64,
-  nodes:[['tree',48,[FOREST]],['galena',8,[ROCK]],['quartz',4,[ROCK]],['vine',8,[FOREST,GRASS]],['cabbage',4,[GRASS]]]}
+  nodes:[['tree',48,[FOREST]],['galena',8,[ROCK]],['quartz',4,[ROCK]],['vine',8,[FOREST,GRASS]],['cabbage',4,[GRASS]]]},
+ /* 藏在霧裡的小島。nodes 留空、資源放在 genWorld 最後才加，前面五座島的每樣東西編號都不變，舊存檔才不會亂掉。rank 和所在的海域相同，航行規則不變 */
+ {name:'樟樹島',cx:21,cy:110,r:10,rank:1,rock:2,lake:[0,0,0],ring:0,islet:[['camphor',14,[FOREST,GRASS]],['tree',16,[FOREST]],['vine',6,[FOREST,GRASS]]],nodes:[]},
+ {name:'香茅島',cx:110,cy:201,r:9.5,rank:1,rock:2,lake:[0,0,0],ring:0,islet:[['lemongrass',16,[GRASS,FOREST]],['tree',10,[FOREST]],['coconut',4,[SAND]]],nodes:[]},
+ {name:'香草島',cx:291,cy:104,r:10,rank:2,rock:2,lake:[0,0,0],ring:0,islet:[['vanilla',12,[FOREST,GRASS]],['tree',14,[FOREST]],['coconut',5,[SAND]],['vine',4,[FOREST,GRASS]]],nodes:[]}
 ];
 /* hp：要敲幾下；rock：外觀是岩石，敲開才知道成分；tool：需要的工具；regrow：幾秒後長回來（沒有這一項＝採完就沒了） */
-const NODES={tree:{item:'wood',n:4,hp:3,label:'樹',regrow:80},vine:{item:'fiber',n:2,label:'藤蔓',regrow:60},cabbage:{item:'cabbage',regrow:60},coconut:{item:'coconut',label:'椰子樹',regrow:60},sugarcane:{item:'sugarcane',regrow:60},
+const NODES={tree:{item:'wood',n:4,hp:3,label:'樹',regrow:80},vine:{item:'fiber',n:2,label:'藤蔓',regrow:60},cabbage:{item:'cabbage',regrow:60},coconut:{item:'coconut',label:'椰子樹',regrow:60},sugarcane:{item:'sugarcane',regrow:60},camphor:{item:'camphorwood',n:2,hp:3,label:'樟樹',regrow:90},lemongrass:{item:'citronella',n:2,label:'香茅草',regrow:60},vanilla:{item:'vanilla',label:'香草蘭',regrow:90},
  shell:{item:'caco3',n:2,label:'貝殼'},sandpile:{item:'sand',n:3,label:'沙堆'},clay:{item:'clay',n:8},natron:{item:'natron',n:3,label:'白色結晶',regrow:120},sulfur:{item:'sulfur',n:2,label:'硫磺結晶',regrow:120},
  quartz:{item:'quartz',rock:1,hp:3,n:4,vein:'白色透明'},limestone:{item:'caco3',rock:1,hp:3,n:4,vein:'灰白色',kn:'石灰石'},malachite:{item:'malachite',rock:1,hp:3,n:4,vein:'翠綠色'},cassiterite:{item:'cassiterite',rock:1,hp:3,n:4,vein:'深褐色'},
  wildgrain:{item:'grain',n:2,label:'野生穀物',regrow:70},guano:{item:'guano',n:3,label:'鳥糞石'},
@@ -973,14 +991,14 @@ function genWorld(seed){
  const hash=(x,y,k)=>{let h=Math.imul(x*374761393+y*668265263+k*1442695041+seed,1274126177);h^=h>>>13;h=Math.imul(h,1274126177);return((h^h>>>16)>>>0)/4294967296;};
  const sm=t=>t*t*(3-2*t);
  const noise=(x,y,k)=>{const xi=Math.floor(x),yi=Math.floor(y),fx=sm(x-xi),fy=sm(y-yi);const A=hash(xi,yi,k),B=hash(xi+1,yi,k),C=hash(xi,yi+1,k),D=hash(xi+1,yi+1,k);return A+(B-A)*fx+(C-A)*fy+(A-B-C+D)*fx*fy;};
- const eAt=(x,y)=>{let bi=0,bd=1e9;for(let i=0;i<ISLANDS.length;i++){const I=ISLANDS[i],d=Math.hypot(x-I.cx,y-I.cy)/I.r;if(d<bd){bd=d;bi=i;}}return[bi,1-bd+(noise(x/7.5,y/7.5,1)-.5)*.28+(noise(x/3.2,y/3.2,3)-.5)*.11];};
+ const eAt=(x,y,main)=>{let bi=0,bd=1e9;for(let i=0;i<ISLANDS.length;i++){const I=ISLANDS[i];if(main&&I.islet)continue;const d=Math.hypot(x-I.cx,y-I.cy)/I.r;if(d<bd){bd=d;bi=i;}}return[bi,1-bd+(noise(x/7.5,y/7.5,1)-.5)*.28+(noise(x/3.2,y/3.2,3)-.5)*.11];};
  const hOf=e=>Math.max(.2,(e-.16)*4.8+Math.max(0,e-.52)*2.1);
  const tiles=new Uint8Array(W*H),owner=new Uint8Array(W*H);
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const [i,e]=eAt(x+.5,y+.5),I=ISLANDS[i];let t;
   if(e<.16)t=SEA;else if(e<.25)t=SAND;else if(e>I.rock)t=ROCK;else t=noise(x/6,y/6,2)*.75+noise(x/2.8,y/2.8,4)*.25>.52?FOREST:GRASS;
   if(t!==SEA&&I.lake){const dl=Math.hypot(x+.5-I.cx-I.lake[0],y+.5-I.cy-I.lake[1]);if(dl<I.lake[2])t=LAKE;else if(dl<I.lake[2]+2.2&&I.ring)t=I.ring;}
   if(t!==SEA&&I.crater){const dc=Math.hypot(x+.5-I.cx,y+.5-I.cy);if(dc<I.crater*.42)t=ACID;else if(dc<I.crater)t=CRATER;}
-  tiles[y*W+x]=t;owner[y*W+x]=i;}
+  tiles[y*W+x]=t;owner[y*W+x]=t===SEA&&I.islet?eAt(x+.5,y+.5,1)[0]:i;}   /* 小島周圍的海仍屬於原本的海域：航行規則和海的顏色都不變 */
  /* 小河：從湖心往「離島中心最遠」的方向流到海，沿途微微蜿蜒。河很淺，可以涉水走過去 */
  ISLANDS.forEach((I,ii)=>{if(!I.river||I.tepui)return;const L=Math.hypot(I.lake[0],I.lake[1]),ux=I.lake[0]/L,uy=I.lake[1]/L;
   for(let d=I.lake[2]-.5;d<I.r*1.6;d+=.38){const w=Math.sin(d*.45)*2.0,x=Math.floor(I.cx+I.lake[0]+ux*d-uy*w),y=Math.floor(I.cy+I.lake[1]+uy*d+ux*w);if(x<1||y<1||x>=W-1||y>=H-1)break;
@@ -1037,6 +1055,8 @@ function genWorld(seed){
  ISLANDS.forEach((I,ii)=>{if(!I.crater)return;const c=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(owner[y*W+x]===ii&&tiles[y*W+x]===CRATER&&!used.has(x+','+y))c.push([x,y]);
   for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
   c.slice(0,6).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type:'sulfur',x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});});});
+ /* 霧裡的小島：資源最後才加 */
+ ISLANDS.forEach((I,ii)=>{if(!I.islet)return;I.islet.forEach(([type,n,ok])=>pickTiles(ii,n,ok).forEach(p=>{used.add(p[0]+','+p[1]);nodes.push({type,x:p[0],y:p[1],isl:ii,cd:0,hits:0,rot:rnd()*6.28,sc:.85+rnd()*.3});}));});
  /* 起點旁邊擱淺的破船：找一格離起點 3～6 格、沒有東西的沙地（不動用亂數，其他東西的位置都不變） */
  let wreck=null,wb=1e9;for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(tiles[y*W+x]!==SAND||owner[y*W+x]!==0||used.has(x+','+y))continue;const d=Math.hypot(x-I0.cx,y-sy);if(d<3.5||d>8)continue;
    let near=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(used.has((x+dx)+','+(y+dy)))near++;
@@ -1314,6 +1334,31 @@ const PART={
   {g:geo(new G.DodecahedronGeometry(.42,0),.12,.48),c:'#d6d1c0'},
   {g:gRot(new G.DodecahedronGeometry(.24,0),0,0,0,.18,.24,.1),c:'#f5f2e8'}
  ],
+ camphor:[
+  {g:geo(new G.CylinderGeometry(.14,.24,.9,7),.45),c:'#6a4a2c'},
+  {g:gRot(new G.IcosahedronGeometry(.62,0),0,0,0,0,1.25,0),c:'#3f8a43'},
+  {g:gRot(new G.IcosahedronGeometry(.46,0),0,0,0,.42,1.05,.18),c:'#56a24f'},
+  {g:gRot(new G.IcosahedronGeometry(.42,0),0,0,0,-.38,1.12,-.2),c:'#4b9748'},
+  {g:gRot(new G.IcosahedronGeometry(.34,0),0,0,0,.05,1.7,.05),c:'#6cb85c'}
+ ],
+ lemongrass:[
+  {g:gRot(new G.ConeGeometry(.08,1.4,4),.2,0,.12,0,.7,0),c:'#9cc45a'},
+  {g:gRot(new G.ConeGeometry(.08,1.25,4),-.3,0,.18,.12,.62,.08),c:'#b5d36a'},
+  {g:gRot(new G.ConeGeometry(.08,1.3,4),.12,0,-.35,-.13,.64,-.05),c:'#88b24a'},
+  {g:gRot(new G.ConeGeometry(.08,1.1,4),-.15,0,-.15,.03,.55,-.14),c:'#c2dc7a'},
+  {g:gRot(new G.ConeGeometry(.07,1.2,4),.35,0,.3,-.05,.58,.13),c:'#a8cc62'},
+  {g:geo(new G.CylinderGeometry(.2,.24,.14,6),.07),c:'#7a9a44'}
+ ],
+ vanilla:[
+  {g:geo(new G.CylinderGeometry(.06,.08,1.4,6),.7),c:'#7a5a3a'},
+  {g:gRot(new G.TorusGeometry(.13,.035,5,10),1.4,0,0,0,.4,0),c:'#3f8a3e'},
+  {g:gRot(new G.TorusGeometry(.12,.035,5,10),1.5,.6,0,0,.8,0),c:'#4b9a46'},
+  {g:gRot(new G.TorusGeometry(.11,.035,5,10),1.3,1.2,0,0,1.15,0),c:'#3f8a3e'},
+  {g:gRot(new G.SphereGeometry(.13,6,4),0,0,0,.14,.95,.04).scale(1,.55,1),c:'#5aa24f'},
+  {g:gRot(new G.CylinderGeometry(.022,.022,.34,5),0,0,.15,-.14,.82,.06),c:'#3a2a18'},
+  {g:gRot(new G.CylinderGeometry(.022,.022,.3,5),0,0,-.12,-.1,.84,-.07),c:'#4a3420'},
+  {g:gRot(new G.SphereGeometry(.06,6,4),0,0,0,.12,1.22,-.05),c:'#e8e2a0'}
+ ],
  quartz:rock('#f4f8fa',95),limestone:rock('#dfd9c8',25),malachite:rock('#22ad72',65),cassiterite:rock('#5e3f2d',75),hematite:rock('#b83b26',60),magnetite:rock('#1c1e24',90),vitriol:rock('#42d4b7',85),smithsonite:rock('#8bc6f2',75),coal:rock('#101116',85),galena:rock('#a8b3be',110)
 };
 const inst={},M4=new G.Matrix4(),Q=new G.Quaternion(),V3=new G.Vector3(),SC=new G.Vector3(),UP=new G.Vector3(0,1,0);
@@ -1344,7 +1389,8 @@ const tower=new G.Group();{const lamp=mk(new G.SphereGeometry(.38,12,10),'#55606
  tower.add(mk(new G.CylinderGeometry(.88,.98,.7,8),'#7d7a72',0,.35,0),mk(new G.CylinderGeometry(.46,.78,4.6,10),'#e8e2d5',0,2.9,0),
   mk(new G.CylinderGeometry(.66,.71,.55,10),'#b8452f',0,1.9,0),mk(new G.CylinderGeometry(.54,.59,.55,10),'#b8452f',0,3.7,0),
   mk(new G.CylinderGeometry(.68,.62,.24,10),'#4a4f55',0,5.25,0),glass,mk(new G.ConeGeometry(.58,.48,10),'#38755e',0,6.3,0),lamp,glow);
- tower.position.set(world.tower.x+.5,hAt(world.tower.x+.5,world.tower.y+.5),world.tower.y+.5);scene.add(tower);}
+ tower.position.set(world.tower.x+.5,hAt(world.tower.x+.5,world.tower.y+.5),world.tower.y+.5);scene.add(tower);
+ {const bg=new G.ConeGeometry(9,140,24,1,true);bg.translate(0,-70,0);bg.rotateZ(Math.PI/2-.035);const bm=new G.MeshBasicMaterial({color:'#fff1a8',transparent:true,opacity:.18,depthWrite:false,side:G.DoubleSide,blending:G.AdditiveBlending});const b=new G.Mesh(bg,bm);const bgp=new G.Group();bgp.position.y=5.75;bgp.add(b);bgp.visible=false;tower.add(bgp);tower.beam=bgp;}}
 const hero=new G.Group(),man=new G.Group(),boat=new G.Group();
 {const legL=mk(new G.CylinderGeometry(.07,.065,.28,6),'#3d4b56',-.09,.14,0),legR=mk(new G.CylinderGeometry(.07,.065,.28,6),'#3d4b56',.09,.14,0);
  man.legL=legL;man.legR=legR;man.add(legL,legR);
@@ -1435,7 +1481,7 @@ const TOWER={type:'tower',x:world.tower.x+.5,y:world.tower.y+.5,get have(){retur
 const WRECK={type:'wreck',x:world.wreck.x+.5,y:world.wreck.y+.5,done:true};
 const allStations=()=>S.st.concat([TOWER,WRECK]);
 /* --- 擋路：樹、石頭、設施都不能穿過去 --- */
-const BLOCK={coal:.5,tree:.36,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
+const BLOCK={coal:.5,tree:.36,camphor:.4,vanilla:.18,coconut:.3,quartz:.5,limestone:.5,malachite:.5,cassiterite:.5,hematite:.5,magnetite:.5,vitriol:.5,smithsonite:.5};
 const SRAD={wheel:1.1,rod:.5,balloon:.9,airship:1.1,radio:.8,wreck:1.5,field:.1,hut:1.05,cabin:1.3,brickhouse:1.3,highrise:1.4,blast:1.05,campfire:.55,kiln:1.05,table:.8,furnace:.9,still:.7,cell:.7,tower:1,raft:1,sail:1.1,ship:1.3};
 const nodeGrid=new Map();nodes.forEach(n=>nodeGrid.set(n.y*W+n.x,n));
 function bumpAt(nx,ny){const t=now(),tx=Math.floor(nx),ty=Math.floor(ny);   /* 只擋「越走越近」，所以萬一卡在裡面也走得出來 */
@@ -1509,24 +1555,74 @@ function applyState(st){for(const g of stObj.values())scene.remove(g);stObj.clea
  P.x=S.px||world.start.x;P.y=S.py||world.start.y;P.ang=0;target=null;pending=null;live=[];if(typeof lbOn==='function'&&lbOn()&&S.share==null&&S.name&&S.abil.raft)setTimeout(()=>{if(!modalOpen)askShare();},900);
  flySt=null;flyG.visible=false;settleFlight();offCliff();
  nodes.forEach((n,i)=>{n.cd=0;n.hits=0;n.gone=!!S.gone[i]&&!NODES[n.type].regrow;setNode(n);});farmCatchUp();S.st.forEach(syncStation);fixBoat();
- const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];hud();save();}
+ const tx=Math.floor(P.x),ty=Math.floor(P.y);curIsl=tileAt(tx,ty)===SEA?curIsl:owner[ty*W+tx];drawBase();storyQ=[];fogMsg=null;fogInit();hud();save();}
 
 /* --- 小地圖（含地形陰影、海岸線與島名） --- */
 const mini=$('mini'),mctx=mini.getContext('2d'),mbase=document.createElement('canvas');mini.width=mbase.width=W;mini.height=mbase.height=H;
 function drawBase(){const m=mbase.getContext('2d');
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=tiles[y*W+x],ii=owner[y*W+x],hid=ISLANDS[ii].hidden&&!S.abil.scope&&!S.seen[4];
-  if(hid){m.fillStyle=SEAC[0];m.fillRect(x,y,1,1);continue;}
-  if(t!==SEA&&!S.seen[ii]){m.fillStyle='#8c9fa9';m.fillRect(x,y,1,1);continue;}
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=tiles[y*W+x];
   let hex=tileHex(x,y);
   if(t!==SEA){const dh=(hc[y*(W+1)+x+1]-hc[y*(W+1)+x])+(hc[(y+1)*(W+1)+x]-hc[y*(W+1)+x]);
    if(dh>.18)hex=mixHex(hex,'#241c14',Math.min(.28,dh*.22));else if(dh<-.18)hex=mixHex(hex,'#fff9e6',Math.min(.22,-dh*.18));
    if([[1,0],[-1,0],[0,1],[0,-1]].some(d=>tiles[(y+d[1])*W+x+d[0]]===SEA))hex=mixHex(hex,'#5c4728',.32);}
   m.fillStyle=hex;m.fillRect(x,y,1,1);}
  m.font='bold 11px "Noto Sans TC",sans-serif';m.textAlign='center';
- ISLANDS.forEach((I,i)=>{if(I.hidden&&!S.abil.scope&&!S.seen[4])return;if(!S.seen[i])return;
+ ISLANDS.forEach((I,i)=>{if(!S.seen[i])return;
   m.strokeStyle='rgba(255,252,240,.85)';m.lineWidth=2.6;m.strokeText(I.name,I.cx,I.cy+I.r*.58);
   m.fillStyle='#3a2610';m.fillText(I.name,I.cx,I.cy+I.r*.58);});}
+mini.addEventListener('click',()=>{mini.classList.toggle('big');mini.style.cursor=mini.classList.contains('big')?'zoom-out':'zoom-in';});
 drawBase();
+
+/* --- 迷霧：地圖上沒看過的地方蓋著霧。走過、划過、飛過、被燈塔照過，霧才散開 --- */
+var FC=2,FW=Math.ceil(W/FC),FH=Math.ceil(H/FC),fogA=new Uint8Array(FW*FH),fogHid=new Uint8Array(FW*FH),fogC=document.createElement('canvas'),fogBig=document.createElement('canvas'),fogDirty=true,fogT=0,fogMsg=null;fogC.width=FW;fogC.height=FH;fogBig.width=W;fogBig.height=H;
+for(let j=0;j<FH;j++)for(let i=0;i<FW;i++){const x=Math.min(W-1,i*FC+1),y=Math.min(H-1,j*FC+1),I=ISLANDS[owner[y*W+x]];if(I.hidden&&Math.hypot(x-I.cx,y-I.cy)<I.r*1.35)fogHid[j*FW+i]=1;}   /* 雲頂島被雲包著，從海上看不見 */
+const tepKnown=()=>!!(S.abil.scope||S.seen[4]||S.known._beam4);
+function fogEnc(){let s='';for(let i=0;i<fogA.length;i+=8){let b=0;for(let k=0;k<8;k++)if(fogA[i+k])b|=1<<k;s+=String.fromCharCode(b);}return btoa(s);}
+function fogDec(str){fogA.fill(0);try{const s=atob(str);for(let i=0;i<s.length;i++){const b=s.charCodeAt(i);for(let k=0;k<8;k++)if((b>>k&1)&&i*8+k<fogA.length)fogA[i*8+k]=1;}return true;}catch(e){return false;}}
+function reveal(x,y,R,force){let n=0;const ci=x/FC,cj=y/FC,r=R/FC,tk=force||tepKnown();
+ for(let j=Math.max(0,Math.floor(cj-r));j<=Math.min(FH-1,Math.ceil(cj+r));j++)for(let i=Math.max(0,Math.floor(ci-r));i<=Math.min(FW-1,Math.ceil(ci+r));i++){const k=j*FW+i;
+  if(fogA[k]||(i+.5-ci)*(i+.5-ci)+(j+.5-cj)*(j+.5-cj)>r*r||(fogHid[k]&&!tk))continue;fogA[k]=1;n++;}
+ if(n){fogDirty=true;S.fog=fogEnc();}return n;}
+const fogged=(x,y)=>{const i=Math.floor(x/FC),j=Math.floor(y/FC);return i<0||j<0||i>=FW||j>=FH||!fogA[j*FW+i];};
+/* 讀檔時：有霧的紀錄就照著畫；沒有（新遊戲或舊存檔）就把去過的島、蓋過東西的地方先打開 */
+function fogInit(){if(S.fog&&fogDec(S.fog)){fogDirty=true;return;}
+ fogA.fill(0);const old=S.px!=null||(S.st&&S.st.length>0);
+ ISLANDS.forEach((I,i)=>{if(S.seen[i])reveal(I.cx,I.cy,I.r*1.1+10,true);});
+ (S.st||[]).forEach(st=>reveal(st.x,st.y,16,true));(S.boats||[]).forEach(b=>reveal(b.x,b.y,16,true));if(S.px!=null)reveal(S.px,S.py,20);
+ if(S.abil&&S.abil.beacon&&S.beam!=null)beamSweep(S.beam,true);
+ S.fog=fogEnc();fogDirty=true;
+ if(old&&!S.known._fog){S.known._fog=1;fogMsg='你攤開地圖，發現上面多了一層霧。\n\n去過的地方都還畫得清清楚楚；沒去過的海面，現在蓋著一片灰。\n\n筆記的夾頁：「霧裡還藏著幾座小島，上面長著別處沒有的植物。走過、划過、飛過的地方，霧就會散開——飛得越高，看得越遠。雷鳴島的燈塔點亮以後，也能把光照進霧裡。」\n\n<span class="muted">（點右上角的小地圖可以放大。）</span>';}
+ else S.known._fog=1;}
+function fogDraw(){fogDirty=false;const c=fogC.getContext('2d'),im=c.createImageData(FW,FH),d=im.data;
+ for(let k=0;k<FW*FH;k++){if(fogA[k])continue;const v=((k*2654435761)>>>0)%11;d[k*4]=44+v;d[k*4+1]=54+v;d[k*4+2]=64+v;d[k*4+3]=255;}c.putImageData(im,0,0);
+ const b=fogBig.getContext('2d');b.clearRect(0,0,W,H);b.imageSmoothingEnabled=true;try{b.filter='blur(1.6px)';}catch(e){}b.drawImage(fogC,-1,-1,FW*FC+2,FH*FC+2);try{b.filter='none';}catch(e){}}   /* 霧的邊緣暈開一點 */
+/* 每 0.25 秒：把身邊的霧打開。走路看得到 20 格、坐船 25 格、飛在天上 45 格 */
+function fogTick(dt){fogT-=dt;if(fogT>0)return;fogT=.25;
+ reveal(P.x,P.y,flySt?45:S.aboard?25:20);
+ if(tepKnown()&&!S.known._tepRev){S.known._tepRev=1;const I=ISLANDS[4];reveal(I.cx,I.cy,I.r*1.1,true);}
+ for(let i=5;i<ISLANDS.length;i++){const I=ISLANDS[i];if(!S.known['_isl'+i]&&!fogged(I.cx,I.cy)){S.known['_isl'+i]=1;if(!S.seen[i])toast('🏝️ 霧散開了——那邊有一座沒去過的小島。');}}
+ if(fogMsg&&!modalOpen){storyQ.push(fogMsg);fogMsg=null;showStory();}}
+/* 信號塔的光束：從塔頂照出去 200 格，左右各張開 9 度 */
+var BEAML=200,BEAMA=9;
+function beamSweep(a,quiet){const tx=world.tower.x+.5,ty=world.tower.y+.5,ux=Math.cos(a*Math.PI/180),uy=Math.sin(a*Math.PI/180),before=ISLANDS.map(I=>fogged(I.cx,I.cy));let n=0;
+ for(let d=4;d<=BEAML;d+=2.5)n+=reveal(tx+ux*d,ty+uy*d,Math.max(3,d*Math.tan(BEAMA*Math.PI/180)),true);
+ const hit=[];ISLANDS.forEach((I,i)=>{const dx=I.cx-tx,dy=I.cy-ty,L=Math.hypot(dx,dy),ang=Math.abs(((Math.atan2(dy,dx)*180/Math.PI-a)%360+540)%360-180);if(L<BEAML+I.r&&ang<BEAMA+Math.atan2(I.r,L)*180/Math.PI&&i!==3)hit.push(i);});
+ if(hit.includes(4))S.known._beam4=1;
+ return{n,hit,newly:hit.filter(i=>before[i]&&!fogged(ISLANDS[i].cx,ISLANDS[i].cy))};}
+const BEAMDIR=[['北',270],['東北',315],['東',0],['東南',45],['南',90],['西南',135],['西',180],['西北',225]];
+function beamName(a){let b=BEAMDIR[0],bd=999;for(const d of BEAMDIR){const e=Math.abs(((a-d[1])%360+540)%360-180);if(e<bd){bd=e;b=d;}}return (bd<1?'':'偏')+b[0]+'（'+Math.round(a)+'°）';}
+function openBeam(msg){panel='beam';const a=S.beam,cell=(d)=>d?`<button class="cond ${a===d[1]?'sel':''}" data-beam="set:${d[1]}" style="min-width:74px">${d[0]}</button>`:`<div style="text-align:center;font-size:30px">💡</div>`;
+ const g=[BEAMDIR[7],BEAMDIR[0],BEAMDIR[1],BEAMDIR[6],null,BEAMDIR[2],BEAMDIR[5],BEAMDIR[4],BEAMDIR[3]];
+ openModal(head('💡 雷鳴島信號塔')+`<p style="margin-top:0">燈座可以轉動。把光束照向遠方的海面，光照到的地方，地圖上的霧就會散開。</p>
+ <div style="display:grid;grid-template-columns:repeat(3,auto);gap:6px;justify-content:center;align-items:center;margin:8px 0">${g.map(cell).join('')}</div>
+ <div class="row" style="justify-content:center"><button class="btn alt" data-beam="rot:-15">↺ 往左轉 15°</button><button class="btn alt" data-beam="rot:15">往右轉 15° ↻</button></div>
+ <p class="muted" style="text-align:center">現在照向：<b>${a==null?'還沒轉過':beamName(a)}</b>　｜　光束長約 ${BEAML} 格</p>${msg?`<div class="log">${msg}</div>`:''}`);}
+function beamSet(a){a=((Math.round(a)%360)+360)%360;S.beam=a;const r=beamSweep(a);SFX.ui();const msg=[];
+ if(r.hit.includes(4)&&!S.seen[4]&&!S.abil.scope&&!S.known._beam4story){S.known._beam4story=1;storyQ.push('光束掃過西方的海面，照到一片厚厚的雲。\n\n雲的縫隙裡，露出一道又高又直的岩壁——一座從海裡直直升起來的平頂山，山頂比雲還高。\n\n那裡的四周都是暗礁，船靠不過去。<b>要上去，大概只能從天上。</b>');}
+ r.newly.forEach(i=>msg.push('🏝️ 光束照亮了'+(S.seen[i]?ISLANDS[i].name:'一座沒去過的小島')+'！'));
+ if(!msg.length)msg.push(r.n?'光束照亮了一片海面。':'這個方向都已經照過了。');
+ save();after();openBeam(msg.join('<br>'));}
+fogInit();
 
 /* --- 動物：在出生地附近慢慢走動 --- */
 function animalModel(type){const g=new G.Group();
@@ -1625,10 +1721,10 @@ function landAt(x,y,msg){const st=flySt;flySt=null;st.flying=false;st.x=x;st.y=y
 function tryLand(){if(landOK(P.x,P.y))return landAt(P.x,P.y);const t=tileAt(Math.floor(P.x),Math.floor(P.y));warn(t===SEA?'下面是海，找一塊陸地再降落。':t===CRATER||t===ACID?'下面是火山口，降不下去。':t===LAKE||t===RIVER?'下面是水，往旁邊飛一點。':'下面有東西擋著，換個地方。');}
 function gasOut(){const st=flySt;st.burn=0;
  if(landOK(P.x,P.y))return landAt(P.x,P.y,'火盆裡的火越來越小，氣囊慢慢塌下來，吊籃一點一點往下沉。\n\n燃料燒完了。你在'+ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].name+'著陸。\n\n<span class="muted">要再飛，得先在火盆裡放柴。</span>');
- const i=Math.floor(Math.random()*ISLANDS.length),p=randomSpot(i);
+ const i=Math.floor(Math.random()*5),p=randomSpot(i);
  landAt(p.x,p.y,'火盆熄了，氣囊越來越扁，吊籃開始往下掉。下面只有海。\n\n一陣強風把你和氣球一起捲走，你緊緊抓著吊籃的邊——\n\n不知過了多久，吊籃重重摔在地上。你爬出來一看：這裡是<b>'+ISLANDS[i].name+'</b>。\n\n<span class="muted">要再飛，得先砍些柴放進火盆。</span>');}
 function settleFlight(){const st=S.st.find(b=>(b.type==='balloon'||b.type==='airship')&&b.flying);if(!st)return;st.flying=false;if(st.type==='balloon')st.burn=0;   /* 飛到一半關掉遊戲：下次打開時已經降落 */
- if(!landOK(st.x,st.y)){const p=randomSpot(Math.floor(Math.random()*ISLANDS.length));st.x=p.x;st.y=p.y;}P.x=st.x;P.y=st.y+1.5;if(!free(P.x,P.y)){P.x=st.x;P.y=st.y;}S.px=P.x;S.py=P.y;}
+ if(!landOK(st.x,st.y)){const p=randomSpot(Math.floor(Math.random()*5));st.x=p.x;st.y=p.y;}P.x=st.x;P.y=st.y+1.5;if(!free(P.x,P.y)){P.x=st.x;P.y=st.y;}S.px=P.x;S.py=P.y;}
 function flyUpdate(dt,dx,dy,manual){if(!manual&&target){dx=target.x-P.x;dy=target.y-P.y;if(Math.hypot(dx,dy)<.3){target=null;dx=dy=0;}}pending=null;
  const L=Math.hypot(dx,dy),sp=(FLYV[flySt.type]||5)*dt;if(L){P.x=Math.max(2,Math.min(W-2,P.x+dx/L*sp));P.y=Math.max(2,Math.min(H-2,P.y+dy/L*sp));P.ang=Math.atan2(dx/L,dy/L);P.mov=true;}
  flySt.x=P.x;flySt.y=P.y;if(flySt.type==='balloon')flySt.burn=fuelOf(flySt)-dt;
@@ -1741,9 +1837,9 @@ function frame(t,dt){
  if(live.length)live=live.filter(n=>{if(n.gone)return false;if(n.cd>tn&&S.st.some(s=>Math.hypot(s.x-n.x-.5,s.y-n.y-.5)<1.7))n.cd=tn+n.rg;setNode(n);return n.cd>tn||(n.wob&&tn<n.wob);});
  for(const m of chips)if(m.life>0){m.life-=dt;m.v.y-=9*dt;m.position.addScaledVector(m.v,dt);if(m.life<=0)m.position.y=-9;}
  for(const [st,g] of stObj)if(g.flame&&g.flame.visible){const k=.85+Math.sin(t/90+st.x)*.15;g.flame.scale.set(k,.9+Math.sin(t/60+st.y)*.2,k);}
- const lit=!!S.abil.beacon;tower.lamp.material.color.set(lit?'#ffe45c':'#55606a');tower.glow.intensity=lit?.6+Math.sin(t/300)*.15:0;
+ const lit=!!S.abil.beacon;tower.lamp.material.color.set(lit?'#ffe45c':'#55606a');tower.glow.intensity=lit?.6+Math.sin(t/300)*.15:0;tower.beam.visible=lit&&S.beam!=null;if(tower.beam.visible){tower.beam.rotation.y=-S.beam*Math.PI/180;tower.beam.children[0].material.opacity=.17+Math.sin(t/400)*.04;}fogTick(dt);
  renderer.render(scene,camera);
- mctx.drawImage(mbase,0,0);mctx.fillStyle=lit?'#ffe45c':'#fff';mctx.fillRect(world.tower.x-1.5,world.tower.y-1.5,3.5,3.5);
+ mctx.drawImage(mbase,0,0);if(fogDirty)fogDraw();mctx.drawImage(fogBig,0,0);if(lit&&S.beam!=null){const a=S.beam*Math.PI/180,s=BEAMA*Math.PI/180,tx=world.tower.x+.5,ty=world.tower.y+.5;mctx.fillStyle='rgba(255,228,92,'+(.16+Math.sin(t/400)*.05)+')';mctx.beginPath();mctx.moveTo(tx,ty);mctx.lineTo(tx+Math.cos(a-s)*BEAML,ty+Math.sin(a-s)*BEAML);mctx.lineTo(tx+Math.cos(a+s)*BEAML,ty+Math.sin(a+s)*BEAML);mctx.closePath();mctx.fill();}if(!fogged(world.tower.x,world.tower.y)){mctx.fillStyle=lit?'#ffe45c':'#fff';mctx.fillRect(world.tower.x-1.5,world.tower.y-1.5,3.5,3.5);}
  for(const h of S.st)if(h.done&&BMAP[h.type].house){mctx.fillStyle='#a8432f';mctx.fillRect(h.x-2,h.y-2,4,4);mctx.fillStyle='#ffe9a8';mctx.fillRect(h.x-.8,h.y-.8,1.6,1.6);}
  S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;mctx.fillStyle='#4a321c';mctx.fillRect(bt.x-2.2,bt.y-2.2,4.4,4.4);mctx.fillStyle=bt.r===3?'#ffd35a':'#fff';mctx.fillRect(bt.x-1.2,bt.y-1.2,2.4,2.4);});
  mctx.save();mctx.translate(P.x,P.y);mctx.rotate(-P.ang);mctx.fillStyle='#e0322b';mctx.strokeStyle='#fff';mctx.lineWidth=1.1;
@@ -1761,7 +1857,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
   if(flySt){if(flySt.type==='airship')p='🛩️ 飛艇航行中　｜　方向鍵或點畫面操控　E 降落';else{const g=fuelOf(flySt);p='🎈 飛行中　燃料還能燒 '+Math.max(0,Math.ceil(g))+' 秒'+(g<10?'　⚠️ 快燒完了！':'')+'　｜　方向鍵或點畫面操控　E 降落';}}
   else if(an)p=an.type==='cow'?'🐄 牛　按 E 擠奶':'🐔 雞　按 E 找找有沒有蛋';
   else if(s&&s.type==='wreck')p='🚢 擱淺的破船　按 E 查看';
-  else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
+  else if(s){const d=BMAP[s.type];p=s.done?(s.type==='tower'?'💡 信號塔已經點亮　按 E 轉動燈的方向':s.type==='field'?'🌾 農田'+(s.farm&&s.farm.crop?(s.farm.g>=1?'（可以收成了）':'（成長 '+Math.round(s.farm.g*100)+'%）'):'（空的）')+'　按 E 照顧':d.house?d.icon+' '+d.n+'（'+(s.floors||1)+'/'+d.maxF+' 層）　按 E 進屋':'🖐 '+d.n+'　按 E 使用'):'🔨 '+d.n+'（未完成）　按 E 把材料放上去';}
   else if(n){const d=NODES[n.type],hp=hitsNeed(S,d);p=(toolFor(d)&&!S.abil[toolFor(d)])?'🔒 '+nodeName(n)+(toolFor(d)==='axe'?'　需要工具（去破船找找）':'　太硬了，需要'+BMAP[toolFor(d)].n):'🖐 '+nodeName(n)+'　按 E '+(d.rock?'敲':hp>1?'砍':'採集')+(hp>1?'（'+n.hits+'/'+hp+'）':'');}
   else if(nearWater(ACID))p='🧪 酸湖　按 E 用陶罐舀酸湖水';
   else if(nearWater(LAKE))p=ISLANDS[owner[Math.floor(P.y)*W+Math.floor(P.x)]].soda?'🫧 鹼湖　按 E 裝鹼湖水':'💧 湖水　按 E 裝淡水';else if(nearWater(SEA)&&tileAt(Math.floor(P.x),Math.floor(P.y))!==SEA)p='🌊 海　按 E 裝海水';
@@ -1790,7 +1886,7 @@ function after(){const m=advanceQuests(S);badgeToast();lbSend();if(m.length){sto
 
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
-function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;target=null;pending=null;for(const k in keys)keys[k]=false;}
+function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;if(mini.classList.contains('big')){mini.classList.remove('big');mini.style.cursor='zoom-in';}target=null;pending=null;for(const k in keys)keys[k]=false;}
 function closeModal(){if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;panel=null;const h=closeHook;closeHook=null;if(h)h();else if(storyQ.length)showStory();}
 function showStory(){const t=storyQ.shift();panel='story';SFX.page();openModal(`<div class="story">${t}</div><p style="text-align:right;margin:14px 0 0"><button class="btn" data-act="close">繼續</button></p>`);}
 const head=t=>`<h2><span>${t}</span><button class="x" data-act="close">關閉 ✕</button></h2>`;
@@ -1833,7 +1929,7 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
   if(r.done){SFX.done();burst(st.x,hAt(st.x,st.y),st.y,'#ffe9a8');toast(d.icon+' '+d.n+' 完成了！');if(d.dock)launch(st);if(d.house){st.floors=1;syncStation(st);}}
   else{if(a)SFX.place();toast((a?'放上 '+a+'。':'')+'還缺 '+Object.keys(r.missing).map(k=>ITEMS[k].n+'×'+r.missing[k]).join('、'));}
   after();return;}
- if(st===TOWER)return toast('信號塔亮著。');
+ if(st===TOWER)return openBeam();
  if(st.type==='wheel')return toast('🎡 水車轉個不停。這條河附近的鼓風爐和高爐，都不用自己踩風箱了。'+(S.abil.gen?'　🌀 發電機也跟著轉，這座島的建築可以拉銅線過來。':''));
  if(st.type==='radio')return toast('📡 答答答。答——答——答——。答答答。');
  if(st.type==='rod'){const r=rodUse(S,st);if(r.err)return warn(r.err);if(r.soft){SFX.deny();toast('熟鐵棒吸起了幾粒鐵屑，才一轉眼又全掉了下來。太軟的鐵留不住磁。'+(r.isNew?'　📖 圖鑑新增：被雷打過的熟鐵':''));syncStation(st);return after();}
@@ -2178,7 +2274,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.22',VDATE='2026-11-18';
+const VERSION='2.23',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2267,6 +2363,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='sv-share'){S.share=!(S.share===true);if(S.share){lbSend(true);saveMsg='✅ 已開啟紀錄，你會出現在英雄榜上。';}else{lbForget();saveMsg='✅ 已關閉紀錄，並請伺服器刪掉你在英雄榜上的資料。';}save();return render();}
  if(d.act==='sv-name'){const v=($('rename').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);if(!v)return saveSay('名字不能是空的。');S.name=v;hud();save();return saveSay('✅ 名字改成「'+v+'」了。');}
  if(d.act==='setname'){const v=($('pname').value||'').replace(/[<>&"'`\\]/g,'').trim().slice(0,10);S.name=v||'小化學家';return closeModal();}
+ if(d.beam){const [k,v]=d.beam.split(':');return beamSet(k==='set'?+v:(S.beam==null?180:S.beam)+(+v));}
  if(d.act==='close')return closeModal();
  if(d.zone){fz=d.zone;return fireCtl();}
  if(d.add)return fireAdd(d.add,+(d.n||1));
