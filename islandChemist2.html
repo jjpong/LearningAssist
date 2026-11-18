@@ -123,7 +123,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 <canvas id="cv"></canvas>
 <div id="quest"><div class="ch" id="qch"></div><div class="goal" id="qgoal"></div><div id="qmore"></div><button id="qtoggle">📓 翻看筆記（提示與任務清單）</button><div class="hint" id="qhint"></div><div id="qlist"></div><div id="score" title="點「圖鑑」看分數怎麼算"></div><div id="abil"></div></div>
 <canvas id="mini"></canvas>
-<div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
+<div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-scope="1" id="scopebtn" title="望遠鏡（Q）" style="display:none">🔭</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
 <div id="prompt"></div>
 <div id="bar"><button data-open="bag">🎒 背包</button><button data-open="build">🔨 建造</button><button data-open="codex">📖 圖鑑</button><button data-open="save">💾 存檔・讀檔</button><button data-open="tree">🏅 技能・徽章</button><button data-open="lb" id="lbbtn" style="display:none">🏆 英雄榜</button><button data-open="about" title="關於這個遊戲">ℹ️</button></div>
@@ -255,7 +255,7 @@ const AT={heat:'用火加熱',table:'實驗桌（常溫）',still:'蒸餾器',ce
 const BUILD=[
  {id:'campfire',n:'營火',icon:'🔥',era:'約 40 萬年前',req:[],need:{wood:3},d:'把木頭堆起來。之後走過去添柴、點火，就能燒東西。'},
  {id:'kiln',n:'陶窯',icon:'🏺',era:'約 2 萬年前',req:['pottery'],need:{clay:6},d:'用黏土砌成的窯。窯壁能把熱留住，比營火熱得多；窯室是封閉的，可以隔絕空氣。',entry:'tech_kiln'},
- {id:'table',n:'實驗桌',icon:'🧫',era:'',req:['pottery'],need:{wood:4},d:'擺上陶缽和陶罐：混合、溶解、過濾都在這裡做。'},
+ {id:'table',n:'實驗桌',icon:'🧫',era:'',req:['pottery'],need:{wood:4},d:'擺上陶缽、陶罐和一塊石砧：混合、溶解、過濾、研磨、敲打都在這裡做。'},
  {id:'raft',n:'木筏',icon:'🛶',era:'約 1 萬年前',dock:1,req:['pottery'],need:{wood:8,fiber:4,salt:2},grant:'raft',d:'要蓋在沙灘上。造好後會停在岸邊，走過去才能上船；可以渡過淺海。鹽用來醃糧食，陶罐用來裝淡水。',entry:'tech_raft'},
  {id:'furnace',n:'鼓風爐',icon:'⚒️',era:'約西元前 5000 年',req:['f:charcoal'],need:{clay:4,mortar:2,wood:2,fiber:2},d:'高高的爐身加上風箱。一邊燒一邊鼓風，可以超過 1200 °C。爐裡空氣充足，適合冶煉；要隔絕空氣悶東西，得用陶窯。',entry:'tech_furnace'},
  {id:'bucket',n:'木桶',icon:'🪣',era:'約西元前 2500 年',craft:1,req:['bronze_tools'],need:{wood:4,fiber:2},grant:'bucket',d:'把木板削得服服貼貼，再用纖維箍緊，就不會漏水。提一桶水抵得上跑好幾趟——一次可以裝 5 份。',entry:'tech_bucket'},
@@ -652,7 +652,7 @@ const QUESTS=[
   after:'一整池的酸。不只硫酸，聞起來還有鹽酸的味道。\n\n你想起在蒸餾器前面守著一點一點滴下來的那一小瓶。\n\n大自然從來不小氣，只是把東西混在一起、放在不好拿的地方。帶回實驗桌蒸餾，才分得開。'},
  {id:'q_lens',ch:'第五章　遠方',goal:'把玻璃磨成透鏡',hint:'「玻璃是透明的，但平平的玻璃只是窗戶。什麼東西比玻璃還硬，可以一點一點把它磨成弧形？你腳下到處都是。」',rx:['lens'],done:F('lens')},
  {id:'q_scope',ch:'第五章　遠方',goal:'做一支望遠鏡，看看海的另一邊',hint:'「透鏡 2、銅 1、木頭 1。」',done:A('scope'),
-  after:'你把望遠鏡對準西北方的海平線。\n\n那裡一直有一團散不掉的雲。雲的下面——是一座島。\n\n四周的海面泛著白色的碎浪：暗礁。沒有任何一艘船過得去。\n\n但如果不走海路呢？'},
+  after:'你把望遠鏡對準遠方的海平線。\n\n西邊那團怎麼也散不掉的雲，透過鏡片，看得清清楚楚：雲的縫隙裡，露出一道又高又直的岩壁——是一座島，山頂比雲還高。\n\n四周的海面泛著白色的碎浪：暗礁。沒有任何一艘船過得去。\n\n但如果不走海路呢？\n\n<span class="muted">（按 Q，或右上角的 🔭，可以朝你面對的方向望遠。遠方的霧會散開。）</span>'},
  {id:'q_balloon',ch:'第五章　遠方',goal:'造一個能載人的熱氣球',hint:'「藤蔓纖維 12（織氣囊）、木頭 4（吊籃）、陶器 1（火盆）。空氣燒熱了會變輕——煙為什麼總是往上飄？」',done:HAS('balloon')},
  {id:'q_4',ch:'第五章　遠方',goal:'乘熱氣球飛到雲裡的那座島',hint:'「走到熱氣球旁邊按 E，把柴火放進火盆就能升空。木頭燒得快，木炭耐燒得多。用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。燃料燒完，氣球就會往下掉——在海上的話，風把你吹到哪裡，就是哪裡。」',done:V(4),
   after:'雲頂島。\n\n沒有筆記，沒有陶罐，沒有任何人來過的痕跡。\n\n岩壁上嵌著一種鉛灰色的石頭，斷面亮得像鏡子，一塊一塊都是整齊的方塊。'},
@@ -1578,7 +1578,7 @@ drawBase();
 /* --- 迷霧：地圖上沒看過的地方蓋著霧。走過、划過、飛過、被燈塔照過，霧才散開 --- */
 var FC=2,FW=Math.ceil(W/FC),FH=Math.ceil(H/FC),fogA=new Uint8Array(FW*FH),fogHid=new Uint8Array(FW*FH),fogC=document.createElement('canvas'),fogBig=document.createElement('canvas'),fogDirty=true,fogT=0,fogMsg=null;fogC.width=FW;fogC.height=FH;fogBig.width=W;fogBig.height=H;
 for(let j=0;j<FH;j++)for(let i=0;i<FW;i++){const x=Math.min(W-1,i*FC+1),y=Math.min(H-1,j*FC+1),I=ISLANDS[owner[y*W+x]];if(I.hidden&&Math.hypot(x-I.cx,y-I.cy)<I.r*1.35)fogHid[j*FW+i]=1;}   /* 雲頂島被雲包著，從海上看不見 */
-const tepKnown=()=>!!(S.abil.scope||S.seen[4]||S.known._beam4);
+const tepKnown=()=>!!(S.abil.scope||S.seen[4]);   /* 燈塔照得到那團雲，卻照不進去；要望遠鏡才看得穿 */
 function fogEnc(){let s='';for(let i=0;i<fogA.length;i+=8){let b=0;for(let k=0;k<8;k++)if(fogA[i+k])b|=1<<k;s+=String.fromCharCode(b);}return btoa(s);}
 function fogDec(str){fogA.fill(0);try{const s=atob(str);for(let i=0;i<s.length;i++){const b=s.charCodeAt(i);for(let k=0;k<8;k++)if((b>>k&1)&&i*8+k<fogA.length)fogA[i*8+k]=1;}return true;}catch(e){return false;}}
 function reveal(x,y,R,force){let n=0;const ci=x/FC,cj=y/FC,r=R/FC,tk=force||tepKnown();
@@ -1604,10 +1604,19 @@ function fogTick(dt){fogT-=dt;if(fogT>0)return;fogT=.25;
  if(tepKnown()&&!S.known._tepRev){S.known._tepRev=1;const I=ISLANDS[4];reveal(I.cx,I.cy,I.r*1.1,true);}
  for(let i=5;i<ISLANDS.length;i++){const I=ISLANDS[i];if(!S.known['_isl'+i]&&!fogged(I.cx,I.cy)){S.known['_isl'+i]=1;if(!S.seen[i])toast('🏝️ 霧散開了——那邊有一座沒去過的小島。');}}
  if(fogMsg&&!modalOpen){storyQ.push(fogMsg);fogMsg=null;showStory();}}
+/* 望遠鏡：朝面對的方向看出去 90 格，左右各張開 12 度 */
+var scopeFx=null,scopeCd=0;
+function useScope(){if(modalOpen)return;if(!S.abil.scope)return;const tn=now();if(tn<scopeCd)return;scopeCd=tn+.8;
+ const a=Math.atan2(Math.cos(P.ang),Math.sin(P.ang))*180/Math.PI,ux=Math.sin(P.ang),uy=Math.cos(P.ang),before=ISLANDS.map(I=>fogged(I.cx,I.cy));let n=0;
+ for(let d=4;d<=90;d+=2.5)n+=reveal(P.x+ux*d,P.y+uy*d,Math.max(3,d*Math.tan(12*Math.PI/180)));
+ scopeFx={a,t:tn};SFX.ui();const dir=beamName((a+360)%360).replace(/（.*）/,'');
+ const neu=ISLANDS.map((I,i)=>i).filter(i=>before[i]&&!fogged(ISLANDS[i].cx,ISLANDS[i].cy));neu.forEach(i=>S.known['_isl'+i]=1);
+ toast('🔭 你舉起望遠鏡往'+dir+'方看——'+(neu.length?(neu.some(i=>!S.seen[i])?'海平線上有一座沒去過的島！':'看見了'+ISLANDS[neu[0]].name+'。'):n?'遠方的霧散開了一些。':'那個方向都看過了。'));save();}
+
 /* 信號塔的光束：從塔頂照出去 200 格，左右各張開 9 度 */
 var BEAML=200,BEAMA=9;
 function beamSweep(a,quiet){const tx=world.tower.x+.5,ty=world.tower.y+.5,ux=Math.cos(a*Math.PI/180),uy=Math.sin(a*Math.PI/180),before=ISLANDS.map(I=>fogged(I.cx,I.cy));let n=0;
- for(let d=4;d<=BEAML;d+=2.5)n+=reveal(tx+ux*d,ty+uy*d,Math.max(3,d*Math.tan(BEAMA*Math.PI/180)),true);
+ for(let d=4;d<=BEAML;d+=2.5)n+=reveal(tx+ux*d,ty+uy*d,Math.max(3,d*Math.tan(BEAMA*Math.PI/180)));
  const hit=[];ISLANDS.forEach((I,i)=>{const dx=I.cx-tx,dy=I.cy-ty,L=Math.hypot(dx,dy),ang=Math.abs(((Math.atan2(dy,dx)*180/Math.PI-a)%360+540)%360-180);if(L<BEAML+I.r&&ang<BEAMA+Math.atan2(I.r,L)*180/Math.PI&&i!==3)hit.push(i);});
  if(hit.includes(4))S.known._beam4=1;
  return{n,hit,newly:hit.filter(i=>before[i]&&!fogged(ISLANDS[i].cx,ISLANDS[i].cy))};}
@@ -1620,8 +1629,8 @@ function openBeam(msg){panel='beam';const a=S.beam,cell=(d)=>d?`<button class="c
  <div class="row" style="justify-content:center"><button class="btn alt" data-beam="rot:-15">↺ 往左轉 15°</button><button class="btn alt" data-beam="rot:15">往右轉 15° ↻</button></div>
  <p class="muted" style="text-align:center">現在照向：<b>${a==null?'還沒轉過':beamName(a)}</b>　｜　光束長約 ${BEAML} 格</p>${msg?`<div class="log">${msg}</div>`:''}`);}
 function beamSet(a){a=((Math.round(a)%360)+360)%360;S.beam=a;const r=beamSweep(a);SFX.ui();const msg=[];
- if(r.hit.includes(4)&&!S.seen[4]&&!S.abil.scope&&!S.known._beam4story){S.known._beam4story=1;storyQ.push('光束掃過西方的海面，照到一片厚厚的雲。\n\n雲的縫隙裡，露出一道又高又直的岩壁——一座從海裡直直升起來的平頂山，山頂比雲還高。\n\n那裡的四周都是暗礁，船靠不過去。<b>要上去，大概只能從天上。</b>');}
- r.newly.forEach(i=>msg.push('🏝️ 光束照亮了'+(S.seen[i]?ISLANDS[i].name:'一座沒去過的小島')+'！'));
+ if(r.hit.includes(4)&&!S.seen[4]&&!S.abil.scope&&!S.known._beam4story){S.known._beam4story=1;storyQ.push('光束掃過西方的海面，打在一大團厚厚的雲上。\n\n別處的雲早就散了，只有這一團一動也不動，像是黏在海面上。光照在上面，白白亮亮的，卻怎麼也透不進去。\n\n<b>雲的後面，好像有什麼東西。</b>可是從這裡，什麼也看不清楚。');}
+ r.newly.forEach(i=>S.known['_isl'+i]=1);r.newly.forEach(i=>msg.push('🏝️ 光束照亮了'+(S.seen[i]?ISLANDS[i].name:'一座沒去過的小島')+'！'));
  if(!msg.length)msg.push(r.n?'光束照亮了一片海面。':'這個方向都已經照過了。');
  save();after();openBeam(msg.join('<br>'));}
 fogInit();
@@ -1680,7 +1689,7 @@ function interact(){if(flySt)return tryLand();const s=nearStation();if(s)return 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();
  if(modalOpen){if(e.key==='Escape')closeModal();if(k===' '&&panel==='fire'){e.preventDefault();pump();}return;}
  keys[k]=true;if(k==='e'||k===' '){e.preventDefault();interact();}
- if(k==='b')openPanel('build');if(k==='m')openPanel('save');if(k==='c')openPanel('codex');if(k==='i')openPanel('bag');if(k.startsWith('arrow'))e.preventDefault();});
+ if(k==='q')useScope();if(k==='b')openPanel('build');if(k==='m')openPanel('save');if(k==='c')openPanel('codex');if(k==='i')openPanel('bag');if(k.startsWith('arrow'))e.preventDefault();});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 const ray=new G.Raycaster(),ndc=new G.Vector2();
@@ -1695,7 +1704,7 @@ cv.addEventListener('pointerdown',e=>{ndc.set(e.clientX/vw*2-1,-(e.clientY/vh)*2
  const t=tileAt(Math.floor(wx),Math.floor(wy));target={x:wx,y:wy};
  pending=(t===LAKE||(t===SEA&&!S.aboard))?{water:t}:null;});
 cv.addEventListener('wheel',e=>{dist=Math.max(7,Math.min(48,dist+Math.sign(e.deltaY)*2));},{passive:true});
-$('zoom').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.au)return audioToggle(b.dataset.au);dist=Math.max(7,Math.min(48,dist+ +b.dataset.z*4));});
+$('zoom').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.au)return audioToggle(b.dataset.au);if(b.dataset.scope)return useScope();dist=Math.max(7,Math.min(48,dist+ +b.dataset.z*4));});
 
 let curIsl=0,stepT=0;
 /* --- 氫氣球飛行 --- */
@@ -1841,7 +1850,7 @@ function frame(t,dt){
  for(const [st,g] of stObj)if(g.flame&&g.flame.visible){const k=.85+Math.sin(t/90+st.x)*.15;g.flame.scale.set(k,.9+Math.sin(t/60+st.y)*.2,k);}
  const lit=!!S.abil.beacon;tower.lamp.material.color.set(lit?'#ffe45c':'#55606a');tower.glow.intensity=lit?.6+Math.sin(t/300)*.15:0;tower.beam.visible=lit&&S.beam!=null;if(tower.beam.visible){tower.beam.rotation.y=-S.beam*Math.PI/180;tower.beam.children[0].material.opacity=.17+Math.sin(t/400)*.04;}fogTick(dt);
  renderer.render(scene,camera);
- mctx.drawImage(mbase,0,0);if(fogDirty)fogDraw();mctx.drawImage(fogBig,0,0);if(lit&&S.beam!=null){const a=S.beam*Math.PI/180,s=BEAMA*Math.PI/180,tx=world.tower.x+.5,ty=world.tower.y+.5;mctx.fillStyle='rgba(255,228,92,'+(.16+Math.sin(t/400)*.05)+')';mctx.beginPath();mctx.moveTo(tx,ty);mctx.lineTo(tx+Math.cos(a-s)*BEAML,ty+Math.sin(a-s)*BEAML);mctx.lineTo(tx+Math.cos(a+s)*BEAML,ty+Math.sin(a+s)*BEAML);mctx.closePath();mctx.fill();}if(!fogged(world.tower.x,world.tower.y)){mctx.fillStyle=lit?'#ffe45c':'#fff';mctx.fillRect(world.tower.x-1.5,world.tower.y-1.5,3.5,3.5);}
+ mctx.drawImage(mbase,0,0);if(fogDirty)fogDraw();mctx.drawImage(fogBig,0,0);if(lit&&S.beam!=null){const a=S.beam*Math.PI/180,s=BEAMA*Math.PI/180,tx=world.tower.x+.5,ty=world.tower.y+.5;mctx.fillStyle='rgba(255,228,92,'+(.16+Math.sin(t/400)*.05)+')';mctx.beginPath();mctx.moveTo(tx,ty);mctx.lineTo(tx+Math.cos(a-s)*BEAML,ty+Math.sin(a-s)*BEAML);mctx.lineTo(tx+Math.cos(a+s)*BEAML,ty+Math.sin(a+s)*BEAML);mctx.closePath();mctx.fill();}if(scopeFx&&now()-scopeFx.t<1.6){const a=scopeFx.a*Math.PI/180,s=12*Math.PI/180,al=.3*(1-(now()-scopeFx.t)/1.6);mctx.fillStyle='rgba(190,230,255,'+al+')';mctx.beginPath();mctx.moveTo(P.x,P.y);mctx.lineTo(P.x+Math.cos(a-s)*90,P.y+Math.sin(a-s)*90);mctx.lineTo(P.x+Math.cos(a+s)*90,P.y+Math.sin(a+s)*90);mctx.closePath();mctx.fill();}if(S.known._beam4&&!tepKnown()){const I=ISLANDS[4];mctx.fillStyle='rgba(236,240,244,.88)';[[0,0,1],[-.55,.15,.7],[.55,.1,.75],[.1,-.4,.65]].forEach(q=>{mctx.beginPath();mctx.ellipse(I.cx+q[0]*I.r,I.cy+q[1]*I.r,I.r*.75*q[2],I.r*.5*q[2],0,0,7);mctx.fill();});}if(!fogged(world.tower.x,world.tower.y)){mctx.fillStyle=lit?'#ffe45c':'#fff';mctx.fillRect(world.tower.x-1.5,world.tower.y-1.5,3.5,3.5);}
  for(const h of S.st)if(h.done&&BMAP[h.type].house){mctx.fillStyle='#a8432f';mctx.fillRect(h.x-2,h.y-2,4,4);mctx.fillStyle='#ffe9a8';mctx.fillRect(h.x-.8,h.y-.8,1.6,1.6);}
  S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;mctx.fillStyle='#4a321c';mctx.fillRect(bt.x-2.2,bt.y-2.2,4.4,4.4);mctx.fillStyle=bt.r===3?'#ffd35a':'#fff';mctx.fillRect(bt.x-1.2,bt.y-1.2,2.4,2.4);});
  mctx.save();mctx.translate(P.x,P.y);mctx.rotate(-P.ang);mctx.fillStyle='#e0322b';mctx.strokeStyle='#fff';mctx.lineWidth=1.1;
@@ -1869,7 +1878,7 @@ function loop(t){const raw=Math.min(.25,(t-last)/1000),dt=Math.min(.05,raw);last
  if(dirH&&t-dirT>30000){dirT=t;dirSave(false);}requestAnimationFrame(loop);}
 
 /* --- 任務欄 --- */
-function hud(){{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
+function hud(){{const sb=$('scopebtn');if(sb)sb.style.display=S.abil.scope?'':'none';}{const sc=score(S);$('score').innerHTML='👤 '+(S.name||'小化學家')+'　🏅 '+rankOf(Object.keys(S.badges||{}).length)+'　🏛 '+sc.era+'　文明分數 <b>'+sc.total+'</b>';}
  const V_=questView(S),q=V_.cur,qd=S.qd,free=q.id==='q_free';$('qch').textContent=q.ch+(free?'':'　（本章 '+V_.done+'/'+V_.total+'）');$('qgoal').textContent='▶ '+q.goal;{const N=questNotes(S,q);$('qhint').innerHTML='筆記：'+q.hint+N.tried.map(o=>`<div class="tried">✎ 試過「${o.name}」：${o.phen}</div>`).join('');}
  const lifeOn=S.abil.bronze_tools||LIFEQ.some(x=>qd[x.id]),sideOn=!!qd.q_1;
  $('qmore').innerHTML=(V_.behind.length?'⚑ 前面還有 '+V_.behind.length+' 項沒做（翻筆記看清單）<br>':'')+(lifeOn&&V_.life?'🍞 生活線：'+V_.life.goal:'');
@@ -2182,7 +2191,7 @@ function drawWires(){if(wireG)scene.remove(wireG);wireG=new G.Group();const pm=n
  scene.add(wireG);}
 function openBench(st){bench={on:true,fire:false,cond:false,elec:false,still:hasStill(st),cell:hasCell(st)};benchGo();}
 function benchGo(){if(bench.fire){openFire('still',true);fire.cond=bench.cond;fire.elec=bench.elec;flog=['桌上架了：爐火'+(bench.cond?'、冷凝管':'')+(bench.elec?'、電極':'')+'。把燃料和材料放進去，然後點火。'];fireCtl();}else openMix(bench.elec?'cell':'table',true);}
-const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'混合';
+const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'桌上動手（混合、研磨、敲打）';
 function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class="cond ${bench[k]&&ok?'sel':''}" data-bench="${k}" ${ok?'':'disabled'}>${label}</button>`;
  return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire&&!bench.elec)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
 function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
@@ -2274,7 +2283,7 @@ function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=ha
  openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
  ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次發酵）':'還沒洗——發酵前先回屋裡洗手'}</div>`:''}
  <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':'')):'<span class="muted">背包是空的。</span>'}
- <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'🥄 混合'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
+ <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'✋ 動手'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
 function drawMix(t){const cvs=$('mc');if(!cvs)return;const c=cvs.getContext('2d'),cell=mix.at==='cell',R=mix.res&&mix.res.r,el=R?(performance.now()-mix.t0)/1000:0,done=R&&el>.7,act=R&&R.kind!=='obs'&&el<6;
  c.clearRect(0,0,560,240);const bg=c.createLinearGradient(0,0,0,208);bg.addColorStop(0,'#252d35');bg.addColorStop(1,'#181e24');c.fillStyle=bg;c.fillRect(0,0,560,240);
  c.fillStyle='#725030';c.fillRect(0,208,560,32);c.fillStyle='#593d22';c.fillRect(0,208,560,4);
@@ -2349,7 +2358,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.28',VDATE='2026-11-18';
+const VERSION='2.29',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
