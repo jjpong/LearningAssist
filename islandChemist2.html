@@ -2040,7 +2040,7 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
  const isF=f.type==='furnace'||f.type==='blast';c.clearRect(0,0,Wd,Hd);const sky=c.createLinearGradient(0,0,0,Hd);sky.addColorStop(0,'#222d38');sky.addColorStop(1,'#12171d');c.fillStyle=sky;c.fillRect(0,0,Wd,Hd);
  if(f.lit||T>60){const rg=c.createRadialGradient(230,220,10,230,220,220);rg.addColorStop(0,`rgba(255,150,50,${Math.min(.28,(T-25)/900+.08)})`);rg.addColorStop(1,'rgba(255,120,30,0)');c.fillStyle=rg;c.fillRect(0,0,Wd,Hd);}
  c.fillStyle='#4a3d2e';c.fillRect(0,292,Wd,38);c.fillStyle='rgba(0,0,0,.22)';c.fillRect(0,292,Wd,4);
- const cx=230;let fy=285,chY=170;   /* fy：火的位置；chY：材料的位置 */
+ const cx=230;let fy=285,chY=170,vClip=null,vLiq=0;   /* fy：火的位置；chY：材料的位置；vClip：實驗桌容器的形狀 */
  /* --- 外殼 --- */
  if(f.type==='kiln'||f.type==='stove'){c.fillStyle=f.type==='stove'?'#8a4a3a':'#8a4a26';c.beginPath();c.moveTo(90,292);c.quadraticCurveTo(95,60,230,55);c.quadraticCurveTo(365,60,370,292);c.fill();
   c.fillStyle='#6b3a1e';c.fillRect(212,30,36,30);c.fillStyle='#1a120e';c.beginPath();c.ellipse(230,150,95,62,0,0,7);c.fill();c.fillStyle=hc_;c.globalAlpha=Math.min(.75,T/1300);c.beginPath();c.ellipse(230,150,95,62,0,0,7);c.fill();c.globalAlpha=1;
@@ -2054,16 +2054,13 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
   if(f.type==='blast'){c.fillStyle='#4a4f55';[80,150,220].forEach(y=>{const xo=150+(292-y)*.111;c.fillRect(xo-3,y,24,8);c.fillRect(460-xo-21,y,24,8);});   /* 鐵箍 */
    if(f.charge.pigiron>0||f.charge.steel>0){const g2=c.createLinearGradient(0,270,0,290);g2.addColorStop(0,'#fff3c0');g2.addColorStop(1,'#ff8a1e');c.fillStyle=g2;c.fillRect(184,276,92,10);c.fillRect(300,280,70,6);c.fillRect(364,280,6,12);}}   /* 鐵水 */
   chY=150;fy=284;}
- else if(f.type==='still'){c.fillStyle='#5a4632';c.fillRect(150,250,110,8);c.strokeStyle='#bfe6e6';c.lineWidth=3;c.fillStyle='rgba(191,230,230,.12)';c.beginPath();c.arc(205,195,50,0,7);c.fill();c.stroke();
-  c.beginPath();c.moveTo(192,148);c.lineTo(192,100);c.lineTo(300,100);c.lineTo(385,215);c.stroke();c.strokeStyle='#c8743a';c.lineWidth=9;c.beginPath();c.moveTo(315,120);c.lineTo(365,188);c.stroke();
-  c.strokeStyle='#bfe6e6';c.lineWidth=3;c.strokeRect(368,218,40,56);chY=205;fy=292;
-  if(Object.keys(f.prog).some(k=>f.prog[k]>0)){c.fillStyle='#cfe8ff';c.beginPath();c.arc(388,222+((t/6)%40),3,0,7);c.fill();c.fillRect(370,262,36,10);}}
+ else if(f.type==='still'){fy=292;drawBench(c,f,t);chY=f.elec?212:205;vClip=benchClip;vLiq=f.elec?222:198;}
  /* --- 燃料 --- */
  const nw=Math.ceil(f.fuel.wood-.02),fxw=isF?80:f.type==='still'?70:150;
  for(let i=0;i<Math.min(nw,14);i++){c.save();c.translate(cx-fxw/2+((i*37)%fxw),fy-6-(i%3)*7);c.rotate(((i*53)%40-20)/60);c.fillStyle=i%2?'#7a4f28':'#8a5a2c';c.fillRect(-22,-4,44,8);c.restore();}
  let fi=0;['charcoal','coal','coke'].forEach(fk=>{for(let i=0;i<Math.min(Math.ceil(f.fuel[fk]-.02),10);i++,fi++){const x=cx-fxw/2+((fi*29+11)%fxw),y=fy-5-(fi%3)*7;drawItem(c,fk,x,y,8);if(f.lit){c.fillStyle='rgba(255,120,30,.55)';c.beginPath();c.arc(x,y,4+Math.sin(t/100+fi),0,7);c.fill();}}});
  /* --- 火焰 --- */
- if(f.lit){const n=6+Math.round(f.power*2),hh=18+f.power*(f.type==='campfire'?16:9);
+ if(f.lit){const n=6+Math.round(f.power*2),hh=Math.min(f.type==='still'?44:999,18+f.power*(f.type==='campfire'?16:9));
   for(let i=0;i<n;i++){const x=cx-fxw/2+((i*47)%fxw),h=hh*(.55+.45*Math.sin(t/(90+i*7)+i*2)),w=9+f.power;
    const g=c.createLinearGradient(0,fy,0,fy-h);g.addColorStop(0,T>1100?'#fff6c8':'#ffd24a');g.addColorStop(.5,'#ff8a1e');g.addColorStop(1,'rgba(220,40,10,0)');c.fillStyle=g;
    c.beginPath();c.moveTo(x-w,fy);c.quadraticCurveTo(x-w*.4,fy-h*.5,x+Math.sin(t/120+i)*5,fy-h);c.quadraticCurveTo(x+w*.4,fy-h*.5,x+w,fy);c.fill();}
@@ -2073,10 +2070,11 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
  if(f.type==='campfire'){chY=liq.length?196:fy-34;
   if(liq.length){c.fillStyle='#b5651d';c.beginPath();c.moveTo(168,170);c.lineTo(292,170);c.quadraticCurveTo(286,232,230,232);c.quadraticCurveTo(174,232,168,170);c.fill();c.fillStyle='#3a2a22';c.fillRect(164,164,132,8);}}
  if(liq.length){const col=ITEMS[liq[0]].c;c.fillStyle=col;c.globalAlpha=.9;
-  if(f.type==='still'){c.beginPath();c.arc(205,195,47,.15,Math.PI-.15);c.fill();}else if(f.type==='campfire'){c.fillRect(176,176,108,10);}else{c.fillRect(180,chY+4,100,16);c.strokeStyle='#b5651d';c.lineWidth=4;c.strokeRect(178,chY-10,104,32);}
-  c.globalAlpha=1;if(T>=95&&Math.random()<.5)fpart.push({x:190+Math.random()*80,y:f.type==='still'?190:f.type==='campfire'?178:chY,vy:-30,life:.7,c:'#fff'});}
+  if(f.type==='still'&&vClip){c.save();vClip(c,f);c.clip();c.fillRect(150,vLiq,170,90);c.restore();}else if(f.type==='campfire'){c.fillRect(176,176,108,10);}else{c.fillRect(180,chY+4,100,16);c.strokeStyle='#b5651d';c.lineWidth=4;c.strokeRect(178,chY-10,104,32);}
+  c.globalAlpha=1;if(T>=95&&Math.random()<.5)fpart.push({x:f.type==='still'?212+Math.random()*36:190+Math.random()*80,y:f.type==='still'?vLiq:f.type==='campfire'?178:chY,vy:-30,life:.7,c:'#fff'});}
  const nar=isF||f.type==='still';let li=0;sol.forEach(k=>{for(let i=0;i<Math.min(6,Math.ceil(f.charge[k]));i++,li++){const per=nar?3:5,x=cx-(per-1)*14+(li%per)*28,y=(f.type==='campfire'&&liq.length?186:chY+18)-Math.floor(li/per)*25;
    drawItem(c,k,x,y,12);c.fillStyle=hc_;c.globalAlpha=Math.min(.42,T/1900);c.beginPath();c.arc(x,y,13,0,7);c.fill();c.globalAlpha=1;}});
+ if(f.type==='still')benchFront(c,f,t,T,sol);
  /* --- 進行中的變化 --- */
  let pi=0;for(const r of eligible(f)){const p=f.prog[r.id]||0;if(p<=0)continue;const y=14+pi*20;c.fillStyle='rgba(0,0,0,.5)';c.fillRect(120,y,220,14);c.fillStyle='#e0b93a';c.fillRect(120,y,220*p,14);
   c.fillStyle='#fff';c.font='12px sans-serif';c.textAlign='center';c.fillText(S.found[r.id]?r.name:'有東西正在改變……',230,y+11);pi++;}
@@ -2088,6 +2086,69 @@ function drawFire(t,dt){const cvs=$('sc');if(!cvs||!fire)return;const c=cvs.getC
  c.textAlign='right';for(const r of eligible(f)){const kn=S.found[r.id];c.strokeStyle=kn?'#e0b93a':'#888';c.beginPath();c.moveTo(tx-14,yT(r.T));c.lineTo(tx-7,yT(r.T));c.stroke();if(kn){c.fillStyle='#e0b93a';c.fillText(r.T+'°',tx-17,yT(r.T)+4);}}
  c.textAlign='center';c.fillStyle='#fff';c.font='bold 20px sans-serif';c.fillText(Math.round(T/5)*5+' °C',tx+5,24);c.font='12px sans-serif';c.fillStyle=T<450?'#aaa':hc_;c.fillText(fireName(T),tx+5,312);
  c.textAlign='left';c.fillStyle='#ddd';c.font='13px sans-serif';c.fillText('燃料　'+(FUELS.filter(k=>f.fuel[k]>.02).map(k=>ITEMS[k].n+' '+f.fuel[k].toFixed(1)).join('　')||'（空的）')+(f.lit?'':'　（還沒點火）'),10,322);}
+
+/* ===== 實驗桌上的爐火：底下加熱，上面是燒瓶（＋冷凝管）或坩堝（＋電極） ===== */
+function benchClip(c,f){c.beginPath();if(f.elec){c.moveTo(176,186);c.lineTo(284,186);c.lineTo(268,244);c.quadraticCurveTo(230,250,192,244);c.closePath();}else{c.arc(230,196,44,0,7);}}
+function benchActive(f,pred){return eligible(f).some(r=>(f.prog[r.id]||0)>0&&pred(r));}
+function drawBench(c,f,t){
+ /* 三腳架和陶土網 */
+ c.lineCap='round';c.strokeStyle='#5d6168';c.lineWidth=5;c.beginPath();c.moveTo(184,291);c.lineTo(196,253);c.moveTo(276,291);c.lineTo(264,253);c.moveTo(230,291);c.lineTo(230,253);c.stroke();
+ const gz=c.createLinearGradient(0,247,0,256);gz.addColorStop(0,'#a9aeb5');gz.addColorStop(1,'#6c7178');c.fillStyle=gz;c.fillRect(178,248,104,7);c.fillStyle='rgba(235,228,214,.85)';c.fillRect(204,249,52,5);
+ if(f.elec){drawPower(c,f,t);
+  /* 鐵架和夾子 */
+  c.fillStyle='#3d4046';c.fillRect(322,286,46,7);c.strokeStyle='#777c84';c.lineWidth=6;c.beginPath();c.moveTo(345,287);c.lineTo(345,86);c.stroke();
+  c.lineWidth=5;c.beginPath();c.moveTo(345,98);c.lineTo(190,98);c.stroke();c.fillStyle='#55595f';[208,252].forEach(x=>{c.fillRect(x-9,92,18,14);});
+  /* 陶土坩堝 */
+  const g=c.createLinearGradient(172,0,288,0);g.addColorStop(0,'#a8957a');g.addColorStop(.35,'#eadcc4');g.addColorStop(.7,'#d3c2a6');g.addColorStop(1,'#93816a');
+  c.fillStyle=g;c.beginPath();c.moveTo(170,182);c.lineTo(290,182);c.lineTo(272,247);c.quadraticCurveTo(230,255,188,247);c.closePath();c.fill();c.strokeStyle='#6e5f4b';c.lineWidth=2;c.stroke();
+  c.fillStyle='#2a221a';c.beginPath();c.ellipse(230,184,58,7,0,0,7);c.fill();c.strokeStyle='#b9a68a';c.lineWidth=3;c.beginPath();c.ellipse(230,183,60,8,0,0,7);c.stroke();}
+ else{
+  /* 圓底燒瓶 */
+  const gl=c.createRadialGradient(214,180,6,230,196,48);gl.addColorStop(0,'rgba(235,250,252,.24)');gl.addColorStop(1,'rgba(160,215,225,.10)');
+  c.fillStyle=gl;c.beginPath();c.arc(230,196,46,0,7);c.fill();c.fillStyle='rgba(160,215,225,.10)';c.fillRect(220,96,20,60);
+  c.strokeStyle='#cdeef2';c.lineWidth=2.5;c.beginPath();c.moveTo(220,153);c.lineTo(220,96);c.moveTo(240,153);c.lineTo(240,96);c.stroke();
+  c.beginPath();c.arc(230,196,46,-Math.PI/2+.22,Math.PI*1.5-.22);c.stroke();
+  if(f.cond!==false){
+   /* 蒸餾頭、冷凝管、接收瓶 */
+   c.fillStyle='#8a6a4a';c.fillRect(217,88,26,10);
+   c.strokeStyle='#cdeef2';c.lineWidth=2.5;c.beginPath();c.moveTo(240,104);c.lineTo(300,130);c.moveTo(240,114);c.lineTo(296,138);c.stroke();
+   c.save();c.translate(298,134);c.rotate(.74);
+   const jk=c.createLinearGradient(0,-13,0,13);jk.addColorStop(0,'rgba(140,200,235,.30)');jk.addColorStop(.5,'rgba(190,230,250,.52)');jk.addColorStop(1,'rgba(120,180,225,.32)');
+   c.fillStyle=jk;c.fillRect(0,-13,112,26);c.strokeStyle='#cdeef2';c.lineWidth=2;c.strokeRect(0,-13,112,26);
+   c.strokeStyle='rgba(235,250,255,.95)';c.lineWidth=2;c.beginPath();c.moveTo(-6,-3);c.lineTo(128,-3);c.moveTo(-6,3);c.lineTo(128,3);c.stroke();
+   c.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<4;i++){const x=((t/40+i*28)%104)+4;c.beginPath();c.arc(x,8,2,0,7);c.fill();}   /* 冷卻水流動 */
+   c.fillStyle='#4a7fa8';c.fillRect(92,13,8,14);c.fillRect(12,-27,8,14);c.restore();
+   c.font='11px sans-serif';c.textAlign='left';c.fillStyle='#8fc3df';c.fillText('冷水進',360,232);c.fillText('出',332,126);
+   /* 錐形接收瓶 */
+   c.fillStyle='rgba(160,215,225,.12)';c.beginPath();c.moveTo(397,236);c.lineTo(380,286);c.lineTo(432,286);c.lineTo(415,236);c.closePath();c.fill();
+   c.strokeStyle='#cdeef2';c.lineWidth=2.5;c.beginPath();c.moveTo(399,222);c.lineTo(399,238);c.lineTo(380,286);c.lineTo(432,286);c.lineTo(413,238);c.lineTo(413,222);c.stroke();
+   const got=Object.keys(f.did).filter(k=>RMAP[k].at==='still'&&!RMAP[k].open).reduce((a,k)=>a+f.did[k],0);
+   if(got){const hgt=Math.min(26,6+got*5),yb=286-hgt,w=(286-yb)/50*26;c.fillStyle='rgba(205,232,250,.75)';c.beginPath();c.moveTo(406-26+w,yb);c.lineTo(380,286);c.lineTo(432,286);c.lineTo(406+26-w,yb);c.closePath();c.fill();}
+   if(benchActive(f,r=>r.at==='still'&&!r.open&&!r.V)){c.fillStyle='#cfe8ff';const dy=(t/5)%38;c.beginPath();c.arc(406,224+dy,2.6,0,7);c.fill();}}
+  else{c.strokeStyle='#cdeef2';c.lineWidth=3;c.beginPath();c.moveTo(216,96);c.lineTo(244,96);c.stroke();}}}
+/* 電源：伏打堆一層一層疊起來；接上水力發電機時是一台發電機 */
+function drawPower(c,f,t){const hydro=freePower(S),p=pileOf(S),on=voltOf(S)>0;let top=[86,150],bot=[86,270];
+ if(hydro){c.fillStyle='#4a3a2a';c.fillRect(38,150,96,96);c.strokeStyle='#8a6a4a';c.lineWidth=2;c.strokeRect(38,150,96,96);
+  c.save();c.translate(86,198);c.rotate(t/220);c.strokeStyle='#c8743a';c.lineWidth=4;c.beginPath();c.arc(0,0,30,0,7);c.stroke();
+  c.fillStyle='#b33a3a';c.fillRect(-6,-26,12,52);c.fillStyle='#3a5fb3';c.fillRect(-6,0,12,26);c.restore();
+  c.fillStyle='#ddd';c.font='12px sans-serif';c.textAlign='center';c.fillText('水力發電機',86,262);top=[66,150];bot=[106,150];}
+ else if(p){const n=Math.max(1,p.n),hgt=Math.min(18,140/n);for(let i=0;i<n;i++){const y=286-i*hgt;
+   c.fillStyle='#9aa5ae';c.beginPath();c.ellipse(86,y,30,6,0,0,7);c.fill();c.fillStyle='#7a5a3a';c.fillRect(56,y-hgt*.5,60,hgt*.25);c.fillStyle='#c8743a';c.beginPath();c.ellipse(86,y-hgt*.55,30,6,0,0,7);c.fill();}
+  if(p.dan){c.fillStyle='rgba(47,143,224,.35)';c.fillRect(52,286-n*hgt-4,68,n*hgt+8);}
+  c.fillStyle='#ddd';c.font='12px sans-serif';c.textAlign='center';c.fillText((p.dan?'丹尼爾電池 ':'伏打堆 ')+p.n+' 層',86,306);top=[86,286-n*hgt-8];bot=[116,282];}
+ else{c.fillStyle='#888';c.font='12px sans-serif';c.textAlign='center';c.fillText('（沒有電源）',86,220);}
+ /* 導線：負極接到左邊的電極、正極接到右邊 */
+ const wire=(a,b,col)=>{c.strokeStyle=col;c.lineWidth=3;c.beginPath();c.moveTo(a[0],a[1]);c.bezierCurveTo(a[0],a[1]-60,b[0],b[1]-70,b[0],b[1]);c.stroke();};
+ if(hydro||p){wire(top,[208,92],'#c8743a');wire(bot,[252,92],'#c8743a');
+  if(on&&benchActive(f,r=>!!r.V)){c.save();c.setLineDash([6,10]);c.lineDashOffset=-t/25;wire(top,[208,92],'rgba(255,230,120,.9)');wire(bot,[252,92],'rgba(255,230,120,.9)');c.restore();}}}
+/* 電極畫在材料前面，才會插進熔融的東西裡 */
+function benchFront(c,f,t,T,sol){if(!f.elec)return;const act=benchActive(f,r=>!!r.V);
+ if(T>=300&&sol.length){const g=c.createLinearGradient(0,212,0,247);g.addColorStop(0,'rgba(255,246,220,.85)');g.addColorStop(1,'rgba(255,190,110,.75)');c.save();benchClip(c,f);c.clip();c.fillStyle=g;c.fillRect(160,214,140,40);c.restore();}   /* 熔化了 */
+ [[208,'#2f3236','−'],[252,'#2f3236','＋']].forEach(([x,col,lab])=>{const gr=c.createLinearGradient(x-4,0,x+4,0);gr.addColorStop(0,'#1c1e21');gr.addColorStop(.5,'#5a5f66');gr.addColorStop(1,'#1c1e21');
+  c.fillStyle=gr;c.fillRect(x-4,104,8,134);c.fillStyle='#e6e6e6';c.font='bold 15px sans-serif';c.textAlign='center';c.fillText(lab,x+(lab==='−'?-14:14),124);});
+ if(act){if(Math.random()<.5)fpart.push({x:252+(Math.random()-.5)*8,y:236,vy:-28-Math.random()*16,life:.8,c:'#fff'});   /* 正極冒氣泡 */
+  c.fillStyle='#eef3f6';for(let i=0;i<4;i++){c.beginPath();c.arc(202+((i*7+t/90)%12),226+i*4,2.4,0,7);c.fill();}   /* 負極長出金屬小珠 */
+  if(Math.random()<.18){c.strokeStyle='#ffe066';c.lineWidth=2;c.beginPath();const x=208+(Math.random()-.5)*12;c.moveTo(x,232);c.lineTo(x+(Math.random()-.5)*14,222);c.stroke();}}}
 
 /* ===== 進屋：倉庫、室內實驗室、加蓋 ===== */
 let homeSt=null,homeMsg='';
@@ -2109,9 +2170,9 @@ function openBench(st){bench={on:true,fire:false,cond:false,elec:false,still:has
 function benchGo(){if(bench.fire){openFire('still',true);fire.cond=bench.cond;fire.elec=bench.elec;flog=['桌上架了：爐火'+(bench.cond?'、冷凝管':'')+(bench.elec?'、電極':'')+'。把燃料和材料放進去，然後點火。'];fireCtl();}else openMix(bench.elec?'cell':'table',true);}
 const benchMode=()=>bench.fire?(bench.cond?'蒸餾':'加熱')+(bench.elec?'＋通電':''):bench.elec?'電解溶液':'混合';
 function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class="cond ${bench[k]&&ok?'sel':''}" data-bench="${k}" ${ok?'':'disabled'}>${label}</button>`;
- return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
+ return `<div class="row" style="align-items:center"><b>桌上的裝置：</b>${b('fire','🔥 爐火',bench.still)}${b('cond','💧 冷凝管',bench.still&&bench.fire&&!bench.elec)}${b('elec','⚡ 電極',bench.cell)}</div><div class="muted">現在是：<b>${benchMode()}</b>${bench.elec?'　｜　'+powerText():''}${bench.still?'':'　｜　爐火和冷凝管要先在屋裡安裝蒸餾器'}${bench.cell?'':'　｜　電極要先安裝伏打堆'}</div>`;}
 function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
- bench[k]=!bench[k];SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
+ bench[k]=!bench[k];if(k==='elec'&&bench.elec)bench.cond=false;SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
 function openHome(st){bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
  const need=d.floor&&fl<d.maxF?Object.keys(d.floor).map(k=>{const have=(st.fl&&st.fl[k]||0)+(S.inv[k]||0);return `<span class="${have>=d.floor[k]?'ok':'no'}">${ITEMS[k].n} ${Math.min(have,d.floor[k])}/${d.floor[k]}</span>`;}).join(''):'';
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
@@ -2274,7 +2335,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。把遊戲放到自己的網站（例如 GitHub Pages）並用 Chrome 或 Edge 開啟，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.23',VDATE='2026-11-18';
+const VERSION='2.24',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
