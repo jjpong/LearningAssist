@@ -118,6 +118,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 .need .ok{color:#2f6f4f;font-weight:700}.need .no{color:#a8432f;font-weight:700}
 .story{font-size:16px;line-height:1.9;white-space:pre-line}
 .muted{color:#847d69;font-size:13px}
+.srchbar{display:flex;gap:6px;align-items:center;margin:8px 0 6px}.srch{flex:1;min-width:0;font-size:15px;padding:7px 10px;border:2px solid #d4c39a;border-radius:10px;background:#fffdf6;font-family:inherit}.srch:focus{outline:none;border-color:#b98b3e}.srchx{border:0;background:#eadfc4;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px}.srchnone{display:block;margin:6px 0}
 .pair{display:inline-flex;gap:3px}.pair .plus{margin-left:0}
 .cgrp{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px dashed #e0d5b8}.cgrp:first-child{border-top:0}.cname{flex:none;width:92px;font-size:12px;font-weight:700;color:#8a5a22;padding-top:8px;line-height:1.3}
 @media(max-width:700px){.cname{width:58px}}
@@ -1752,6 +1753,7 @@ function nearStation(){let best=null,bd=1.3;for(const s of allStations()){const 
 function interact(){if(flySt)return tryLand();if(shipNear())return openBoardShip();const s=nearStation();if(s)return useStation(s);if(boatNear(2.4)>=0)return board(boatNear(2.4));const an=nearAnimal();if(an)return useAnimal(an);const n=nearestNode();if(n)return hit(n);if(takeAcid()||takeWater(LAKE)||takeWater(SEA))return;toast('附近沒有可以用的東西');}
 
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+ if(e.target&&e.target.tagName==='INPUT'&&e.target.classList.contains('srch')){if(e.key==='Escape')e.target.blur();return;}
  if(modalOpen&&panel==='radio'&&k===' '){e.preventDefault();if(!e.repeat)radioDown(e);return;}
  if(endingOn)return;
  if(modalOpen){if(e.key==='Escape')closeModal();if(k===' '&&panel==='fire'){e.preventDefault();pump();}return;}
@@ -1789,8 +1791,9 @@ let balSt=null;
 function takeOff(st){closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一次；飛行中不存檔，飛到一半關掉遊戲會回到這裡 */
  flySt=st;st.flying=true;S.aboard=false;S.cur=-1;target=null;pending=null;P.x=st.x;P.y=st.y;P.alt=hAt(P.x,P.y);flyG=flyGs[st.type]||flyGs.balloon;
  const g=stObj.get(st);if(g)g.visible=false;flyG.visible=true;SFX.arrive();
+ const fk='_fly_'+st.type,first=!S.known[fk];S.known[fk]=true;
  if(!S.known._flew){S.known._flew=true;storyQ.push((st.type==='airship'?'電動機嗡嗡地轉起來，飛艇穩穩地離開地面。\n\n':'')+'你解開繩子。\n\n吊籃晃了一下，地面慢慢變小——樹、爐子、你走過的每一條路，都縮成了地圖。\n\n<span class="muted">用方向鍵或點畫面操控方向，飛到陸地上空按 E 降落。</span>');showStory();}
- else toast((st.type==='airship'?'🛩️ 起飛了！':'🎈 升空了！')+'方向鍵或點畫面操控，E 降落。');}
+ else if(first)toast((st.type==='airship'?'🛩️ 起飛了！':'🎈 升空了！')+'方向鍵或點畫面操控，E 降落。');}   /* 每種飛行器只在第一次提醒怎麼操作 */
 /* 降落：先在原地慢慢往下沉，碰到地面才真的落地 */
 function landAt(x,y,msg){if(!flySt||flySt.landing)return;flySt.landing={x,y,msg};P.x=x;P.y=y;flySt.x=x;flySt.y=y;target=null;pending=null;SFX.ui();}
 function landDone(x,y,msg){const st=flySt;delete st.landing;flySt=null;st.flying=false;st.x=x;st.y=y;const g=stObj.get(st);if(g){g.visible=true;g.position.set(x,hAt(x,y),y);}flyG.visible=false;
@@ -1966,6 +1969,7 @@ function after(){const m=advanceQuests(S);badgeToast();lbSend();if(m.length){sto
 
 /* --- 視窗 --- */
 let modalOpen=false,panel=null,closeHook=null;
+new MutationObserver(()=>{if(srchQ)applySrch();const a=document.activeElement;if(performance.now()-srchAt<4000&&(!a||a===document.body)){const i=document.querySelector('#modal .srch');if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n);}catch(e){}}}})   /* 正在打字時畫面剛好重畫（例如爐子裡起了反應），把游標放回搜尋框 */.observe(document.getElementById('modal')||document.body,{childList:true,subtree:true});
 function openModal(html){$('modal').innerHTML=html;$('mask').classList.add('show');modalOpen=true;document.body.classList.add('modal');if(mini.classList.contains('big')){mini.classList.remove('big');mini.style.cursor='zoom-in';}target=null;pending=null;for(const k in keys)keys[k]=false;}
 function closeModal(){if(panel==='radio'&&radio){beepOff(radio.osc);radio=null;}if(panel==='fire'&&fire)endFire();$('mask').classList.remove('show');modalOpen=false;document.body.classList.remove('modal');panel=null;const h=closeHook;closeHook=null;
  if(homeIn&&!h){homeIn=false;if(S.clean>0){S.clean=0;toast('🚪 走出屋子了。手碰過外面的東西，下次進屋做食物實驗前要再洗一次。');}}   /* 離開屋子：手又髒了 */if(h)h();else if(storyQ.length)showStory();}
@@ -1979,6 +1983,16 @@ function ico(id){if(!ICO[id]){const cv=document.createElement('canvas');cv.width
   c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=2.4;c.beginPath();c.moveTo(20,24);c.lineTo(20,43);c.stroke();}
  else if(GAS.has(id)){/* 氣體：集氣瓶裡的氣泡 */[[20,36,11],[36,30,9],[28,17,7]].forEach(b=>{c.beginPath();c.arc(b[0],b[1],b[2],0,7);c.fillStyle=col;c.globalAlpha=.75;c.fill();c.globalAlpha=1;c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=1.6;c.stroke();c.beginPath();c.arc(b[0]-b[2]*.35,b[1]-b[2]*.35,b[2]*.22,0,7);c.fillStyle='#fff';c.fill();});}
  else drawItem(c,id,28,28,22);ICO[id]=cv.toDataURL();}return `<img class="ii" alt="" src="${ICO[id]}">`;}
+/* 搜尋：背包、倉庫、實驗桌、爐子選材料時，打名稱或化學式就只顯示符合的東西 */
+let srchQ='',srchK='';
+const srchBox=key=>{if(key!==srchK){srchK=key;srchQ='';}return `<div class="srchbar"><input class="srch" type="text" autocomplete="off" placeholder="🔍 找東西：打名稱或化學式（例如：鐵、Fe）" value="${srchQ.replace(/"/g,'&quot;')}"><button class="srchx" title="清除">✕</button></div>`;};
+function applySrch(){const q=srchQ.trim().toLowerCase();
+ document.querySelectorAll('#modal .srchable').forEach(box=>{let n=0;
+  box.querySelectorAll('button.item').forEach(b=>{const u=b.closest('.pair')||b.closest('.entry')||b,t=((b.querySelector('b')||{}).textContent||'')+' '+((b.querySelector('small')||{}).textContent||''),ok=!q||t.toLowerCase().includes(q);u.style.display=ok?'':'none';if(ok)n++;});
+  box.querySelectorAll('.cgrp,.sgrp').forEach(g=>{g.style.display=[...g.querySelectorAll('button.item')].some(b=>(b.closest('.pair')||b.closest('.entry')||b).style.display!=='none')?'':'none';});
+  let no=box.querySelector(':scope>.srchnone');if(q&&!n&&box.querySelector('button.item')){if(!no){no=document.createElement('span');no.className='muted srchnone';box.appendChild(no);}const tx='找不到「'+srchQ.trim()+'」。';if(no.textContent!==tx)no.textContent=tx;}   /* 只在文字真的變了才改，免得觸發重畫偵測又跑一次 */else if(no)no.remove();});}
+let srchAt=-1e9;document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('srch')){srchQ=e.target.value;srchAt=performance.now();applySrch();}});
+document.addEventListener('click',e=>{const x=e.target.closest&&e.target.closest('.srchx');if(!x)return;e.stopPropagation();srchQ='';const i=x.parentNode.querySelector('.srch');if(i){i.value='';i.focus();}applySrch();},true);
 const chip=(id,extra,cls,noc)=>{const it=ITEMS[id];return `<button class="item ${cls||''}" ${extra||''}>${ico(id)}<b>${it.n}</b>${it.f?`<small>${fh(it.f)}</small>`:''}${noc?'':`<span>×${S.inv[id]||0}</span>`}</button>`;};
 const ORDER=CATS.flatMap(c=>c[1]);Object.keys(ITEMS).forEach(k=>{if(!ORDER.includes(k))ORDER.push(k);});
 const have=()=>ORDER.filter(id=>S.inv[id]>0);
@@ -2027,7 +2041,7 @@ function openFire(type,indoor){fire=newFire(type,indoor);fz='fuel';flog=['把燃
 function fireCtl(){if(!$('ctl'))return;const d=STN[fire.type],fuelZone=fz==='fuel',list=have().filter(id=>fuelZone?!!FUEL[id]:true);
  const known=fire.lit&&eligible(fire).length&&eligible(fire).every(r=>S.found[r.id]);
  $('ctl').innerHTML=`${benchBar()}<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
- ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:chemGroups(list,one);})()}
+ ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:srchBox('fire')+'<div class="srchable">'+chemGroups(list,one)+'</div>';})()}
  ${fireTakeRow()}
  <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}${d.bellows&&S.abil.motor&&fireSt&&!fire.auto?(h=>`<button class="btn alt" data-act="fan" ${h?'':'disabled'}>💨 裝電動鼓風機${h?'（拉線要銅 '+h.cost+'）':'<small>　這座島沒有水力發電機</small>'}</button>`)(hydroFor(fireSt)):''}
  ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>${fent?`<div class="result ${fent.isNew?'new':''}">${fent.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(fent.r)}</div>`:''}`;}
@@ -2440,8 +2454,8 @@ function renderStore(){const st=homeSt;st.store=st.store||{};const inb=have(),in
  const pr=(id,attr,n)=>`<span class="pair"><button class="item" ${attr}="${id}">${ico(id)}<b>${ITEMS[id].n}</b><span>×${n}</span></button><button class="plus" ${attr}="${id}" data-n="99">全部</button></span>`;
  const keep=$('modal').scrollTop;
  openModal(`<h2><span>📦 倉庫</span><button class="x" data-home="back">← 回屋裡</button></h2><p class="muted" style="margin-top:0">背包裡每種東西最多帶 ${BAGCAP} 份。東西存在這間屋子裡，要用的時候得回來拿。點一下搬 1 份。</p>
- <h3>背包 → 存進倉庫</h3><div class="grid">${inb.length?inb.map(id=>pr(id,'data-stash',S.inv[id])).join(''):'<span class="muted">背包是空的。</span>'}</div>
- <h3>倉庫 → 拿回背包</h3><div class="grid">${ins.length?ins.map(id=>pr(id,'data-take',st.store[id])).join(''):'<span class="muted">倉庫是空的。</span>'}</div>`);$('modal').scrollTop=keep;}
+ ${srchBox('store')}<h3>背包 → 存進倉庫</h3><div class="grid srchable">${inb.length?inb.map(id=>pr(id,'data-stash',S.inv[id])).join(''):'<span class="muted">背包是空的。</span>'}</div>
+ <h3>倉庫 → 拿回背包</h3><div class="grid srchable">${ins.length?ins.map(id=>pr(id,'data-take',st.store[id])).join(''):'<span class="muted">倉庫是空的。</span>'}</div>`);$('modal').scrollTop=keep;}
 function drawHome(){const cvs=$('hc');if(!cvs||!homeSt)return;const c=cvs.getContext('2d'),d=BMAP[homeSt.type],lab=d.lab,W2=560,H2=220;
  const wall={hut:'#cdb478',cabin:'#b98a55',brickhouse:'#d9a384',highrise:'#dfe3e6'}[homeSt.type],floor={hut:'#8a7450',cabin:'#8a5f38',brickhouse:'#a8765a',highrise:'#9aa3aa'}[homeSt.type];
  c.fillStyle=wall;c.fillRect(0,0,W2,160);c.fillStyle=floor;c.fillRect(0,160,W2,60);c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=1;
@@ -2499,7 +2513,7 @@ function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=ha
  const keepScroll=$('modal').scrollTop;
  openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
  ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次食物實驗）':'還沒洗——發酵前先在屋裡洗手'}</div>`:''}
- <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':'')):'<span class="muted">背包是空的。</span>'}
+ <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?srchBox('mix')+'<div class="srchable">'+chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':''))+'</div>':'<span class="muted">背包是空的。</span>'}
  <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'✋ 動手'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
 function drawMix(t){const cvs=$('mc');if(!cvs)return;const c=cvs.getContext('2d'),cell=mix.at==='cell',R=mix.res&&mix.res.r,el=R?(performance.now()-mix.t0)/1000:0,done=R&&el>.7,act=R&&R.kind!=='obs'&&el<6;
  c.clearRect(0,0,560,240);const bg=c.createLinearGradient(0,0,0,208);bg.addColorStop(0,'#252d35');bg.addColorStop(1,'#181e24');c.fillStyle=bg;c.fillRect(0,0,560,240);
@@ -2575,7 +2589,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.40',VDATE='2026-11-18';
+const VERSION='2.41',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2639,7 +2653,7 @@ function render(){
  if(panel==='lb')return openModal(lbHTML());
  if(panel==='tree')return openModal(treeHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
- if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join(''):'';}).join(''):'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
+ if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?srchBox('bag')+'<div class="srchable">'+CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<div class="sgrp"><h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join('')+'</div>':'';}).join('')+'</div>':'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
  if(panel==='build'){const card=t=>{
    const done=t.craft||t.dock||t.inLab?S.abil[t.grant]:t.fixed?S.abil.beacon:false,n=S.st.filter(x=>x.type===t.id&&x.done).length,miss=t.req.filter(q=>!hasReq(S,q));
    const lst=o=>Object.keys(o).map(k=>{const v=stock(S,k);return `<span class="${v>=o[k]?'ok':'no'}">${ITEMS[k].n}${k==='iron'&&S.found.steel?'（或鋼）':''} ${v}/${o[k]}</span>`;}).join('');
