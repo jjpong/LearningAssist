@@ -90,6 +90,16 @@ body.modal #toasts{bottom:auto;top:10px}body.modal .toast.stick{display:none}   
 .result{margin-top:10px;border-radius:12px;padding:12px 14px;background:#eef6ff;border:2px solid #9cc3ea;font-size:14px;line-height:1.68;box-shadow:0 3px 10px rgba(0,0,0,.06)}
 .result.fail{background:#f3efe6;border-color:#c9c0aa}
 .result.new{background:linear-gradient(180deg,#fff9dc,#fff1b8);border-color:#dfaf2b}
+.scwrap{position:relative;width:100%;max-width:560px;margin:0 auto}
+#rcard{position:absolute;left:8px;top:8px;width:64%;max-height:min(70vh,max(calc(100% - 16px),250px));overflow:auto;z-index:4;margin:0;box-shadow:0 6px 22px rgba(0,0,0,.35);animation:rcin .25s ease-out}
+#rcard:empty{display:none}
+@keyframes rcin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.rchead{display:flex;align-items:center;gap:6px;margin:-2px 0 4px;font-size:13px}.rchead .rct{flex:1;font-weight:bold}
+.rcb{border:0;background:rgba(0,0,0,.08);border-radius:7px;padding:3px 9px;cursor:pointer;font-size:13px;font-family:inherit}.rcb:disabled{opacity:.35;cursor:default}
+.rcx{background:#7a5a2e;color:#fff;font-weight:bold}
+.rcauto{height:3px;background:#dfaf2b;border-radius:2px;margin-top:6px;transform-origin:left;animation:rcbar 3s linear forwards}@keyframes rcbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+#rcard .gico>*{width:20px!important;height:20px!important;vertical-align:-4px;margin-right:2px}
+@media(max-width:700px){#rcard{left:4px;top:4px;width:calc(100% - 8px)}}
 .eq{font-size:17px;font-weight:700;margin:4px 0;font-family:"Times New Roman","Noto Serif TC",serif}
 .tag{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;color:#fff;background:#2f6f4f;margin-right:6px}
 .tag.k-phys{background:#2f6ea8}.tag.k-obs{background:#857a5e}.tag.k-tech{background:#c2571a}
@@ -2000,6 +2010,17 @@ const have=()=>ORDER.filter(id=>S.inv[id]>0);
 function chemGroups(ids,fn){const seen=new Set(),out=[];const row=(nm,g)=>`<div class="cgrp"><span class="cname">${nm}</span><div class="grid">${g.map(fn).join('')}</div></div>`;
  for(const [nm,L] of CHEM){const g=L.filter(id=>ids.includes(id));if(g.length){g.forEach(i=>seen.add(i));out.push(row(nm,g));}}
  const rest=ids.filter(i=>!seen.has(i));if(rest.length)out.push(row('其他',rest));return out.join('')+'<div class="muted" style="margin-top:4px">依照主要成分分類：木炭和焦炭算是碳，草木灰算是碳酸鉀；酸和鹼的水溶液，放在酸、鹼裡。</div>';}   /* 依分類排序 */
+/* 反應結果卡：浮在爐子、燒瓶、陶缽的畫面上，按 ✕ 才關；連續好幾個結果疊成一張，可以前後翻。快轉時幾秒後自己關掉。 */
+let rc={list:[],i:0,auto:0};
+const rcReset=()=>{rc={list:[],i:0,auto:0,t0:rc.t0};};   /* t0：這次混合的結果已經顯示過，關掉後重畫畫面不會再跳出來 */
+function rcInner(){if(!rc.list.length)return '';const e=rc.list[rc.i],n=rc.list.length;
+ return `<div class="rchead"><span class="rct">${e.t}${e.k>1?'　×'+e.k:''}</span>${n>1?`<button class="rcb rcp" ${rc.i?'':'disabled'}>◀</button><span>${rc.i+1}／${n}</span><button class="rcb rcn" ${rc.i<n-1?'':'disabled'}>▶</button>`:''}<button class="rcb rcx" title="關閉">✕</button></div>${e.html}${rc.auto?'<div class="muted" style="font-size:12px;margin-top:4px">⏩ 快轉中，稍後自動關閉</div><div class="rcauto"></div>':''}`;}
+function rcDraw(){const el=$('rcard');if(!el)return;const n=rc.list.length;el.className=n?'result '+(rc.list[rc.i].cls||''):'';el.innerHTML=rcInner();}
+function rcPush(e){const last=rc.list[rc.list.length-1];if(last&&e.id&&last.id===e.id)last.k=(last.k||1)+1;else rc.list.push(Object.assign({k:1},e));
+ rc.i=rc.list.length-1;rc.auto=(fire&&ffast)?performance.now()+3000:0;rcDraw();}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.rcb');if(!b||!$('rcard')||!$('rcard').contains(b))return;e.stopPropagation();
+ if(b.classList.contains('rcx'))rcReset();else if(b.classList.contains('rcp'))rc.i=Math.max(0,rc.i-1);else if(b.classList.contains('rcn'))rc.i=Math.min(rc.list.length-1,rc.i+1);rcDraw();},true);
+const gotHTML=out=>{const o=Object.keys(out||{}).filter(k=>ITEMS[k]);return o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>'<span class="gico">'+ico(k)+'</span>'+ITEMS[k].n+' ×'+out[k]).join('、')}</div>`:'';};
 function entryHTML(r){return `<div><span class="tag k-${r.kind}">${KIND[r.kind]}</span><b>${r.name}</b></div><div class="eq">${r.eq?fh(r.eq):r.eqx}</div>
  ${AT[r.at]?`<div><span class="lbl">條件：</span>${AT[r.at]}${r.T&&r.kind!=='obs'?'，'+r.T+' °C 以上':''}${r.closed?'，隔絕空氣':''}${r.needs?'，需要冷凝管':''}</div>`:''}
  <div><span class="lbl">現象：</span>${r.phen}</div><div><span class="lbl">知識：</span>${r.use}</div>${r.note?`<div class="muted">🔍 真實世界：${r.note}</div>`:''}`;}
@@ -2036,15 +2057,15 @@ function useStation(st){if(st.type==='wreck')return openWreck();const d=BMAP[st.
 
 /* ===== 火：營火、陶窯、鼓風爐、蒸餾器共用 ===== */
 let fire=null,fz='fuel',flog=[],fent=null,fsum=false,ffast=false,fpart=[],fseen=false;
-function openFire(type,indoor){fire=newFire(type,indoor);fz='fuel';flog=['把燃料和材料放進去，然後點火。'];fent=null;fsum=false;ffast=false;fpart=[];fseen=false;panel='fire';
- openModal(head(bench.on?'🧪 實驗桌（室內）':type==='stove'?'🔥 爐灶（室內）':BMAP[type].icon+' '+BMAP[type].n+(indoor?'（室內）':''))+`<canvas class="scene" id="sc" width="560" height="330"></canvas><div id="ctl"></div>`);fireCtl();}
+function openFire(type,indoor){fire=newFire(type,indoor);fz='fuel';flog=['把燃料和材料放進去，然後點火。'];fent=null;rcReset();fsum=false;ffast=false;fpart=[];fseen=false;panel='fire';
+ openModal(head(bench.on?'🧪 實驗桌（室內）':type==='stove'?'🔥 爐灶（室內）':BMAP[type].icon+' '+BMAP[type].n+(indoor?'（室內）':''))+`<div class="scwrap"><canvas class="scene" id="sc" width="560" height="330"></canvas><div id="rcard"></div></div><div id="ctl"></div>`);rcDraw();fireCtl();}
 function fireCtl(){if(!$('ctl'))return;const d=STN[fire.type],fuelZone=fz==='fuel',list=have().filter(id=>fuelZone?!!FUEL[id]:true);
  const known=fire.lit&&eligible(fire).length&&eligible(fire).every(r=>S.found[r.id]);
  $('ctl').innerHTML=`${benchBar()}<div class="log">${flog.slice(-4).join('<br>')}</div><div class="row"><b>放到：</b><button class="cond ${fuelZone?'sel':''}" data-zone="fuel">🔥 ${d.fuel}</button><button class="cond ${fuelZone?'':'sel'}" data-zone="charge">📥 ${d.charge}</button></div>
  ${(()=>{const one=id=>`<span class="pair">`+chip(id,`data-add="${id}"`)+((S.inv[id]>=5)?`<button class="plus" data-add="${id}" data-n="5">＋5</button>`:'')+`</span>`;if(!list.length)return `<span class="muted">${fuelZone?'背包裡沒有燃料。':'背包是空的。'}</span>`;return fuelZone?`<div class="grid">${list.map(one).join('')}</div>`:srchBox('fire')+'<div class="srchable">'+chemGroups(list,one)+'</div>';})()}
  ${fireTakeRow()}
  <div class="row"><button class="btn fire" data-act="ignite" ${fire.lit?'disabled':''}>🔥 點火</button>${d.bellows?'<button class="btn air" data-act="pump">🌬 鼓風（空白鍵）</button>':''}${d.bellows&&S.abil.motor&&fireSt&&!fire.auto?(h=>`<button class="btn alt" data-act="fan" ${h?'':'disabled'}>💨 裝電動鼓風機${h?'（拉線要銅 '+h.cost+'）':'<small>　這座島沒有水力發電機</small>'}</button>`)(hydroFor(fireSt)):''}
- ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>${fent?`<div class="result ${fent.isNew?'new':''}">${fent.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(fent.r)}</div>`:''}`;}
+ ${known?`<button class="btn alt" data-act="fast">${ffast?'⏸ 恢復正常速度':'⏩ 已經學會了，快轉'}</button>`:''}<button class="btn" data-act="close">熄火，全部取出</button></div>`;}
 /* 放錯了可以拿回來：燃料、爐料、接住的氣體，一份一份或整項取出，不必熄火 */
 function fireTakeRow(){const f=fire,rows=[],put=(w,id,n)=>{n=Math.floor(n+1e-6);if(n<=0||!ITEMS[id])return;
   rows.push(`<span class="pair"><button class="item" data-out="${w}:${id}">${ico(id)}<b>${ITEMS[id].n}</b><small>${w==='fuel'?'燃料':w==='out'?'接住的氣體':'材料'}</small><span>×${n}</span></button>${n>1?`<button class="plus" data-out="${w}:${id}" data-n="99">全部</button>`:''}</span>`);};
@@ -2064,12 +2085,12 @@ function fireAdd(id,n){const d=STN[fire.type];n=Math.min(n,S.inv[id]||0);if(n<=0
  S.inv[id]-=n;fireCtl();}
 function pump(){if(fire&&STN[fire.type].bellows){fire.bell=Math.min(1,fire.bell+.28);SFX.pump();}}
 function showSummary(){if(fsum)return;fsum=true;const r=fireSummary(fire,S);
- r.obs.forEach(o=>{flog.push('🔎 '+o.r.name+'：'+o.r.phen+o.r.use);fent=o;});r.hints.forEach(h=>flog.push('🤔 '+h));
- const L=Object.keys(r.lost);if(L.length){SFX.deny();flog.push('💨 浪費掉了：'+L.map(k=>ITEMS[k].n+'×'+r.lost[k]).join('、')+(r.why.length?'（'+r.why.join('；')+'）':'')+'。');}hud();save();fireCtl();}
-function fireStep(dt,t){const d=STN[fire.type],k=ffast?6:1;if(ffast&&d.bellows)fire.bell=1;
+ r.obs.forEach(o=>{flog.push('🔎 '+o.r.name+'：'+o.r.phen+o.r.use);fent=o;rcPush({id:o.r.id,cls:o.isNew?'new':'fail',t:o.isNew?'✨ 新發現！已記入知識圖鑑':'🔎 觀察',html:entryHTML(o.r)});});r.hints.forEach(h=>{flog.push('🤔 '+h);rcPush({cls:'fail',t:'🤔 想一想',html:h});});
+ const L=Object.keys(r.lost);if(L.length){SFX.deny();const t=L.map(k=>ITEMS[k].n+'×'+r.lost[k]).join('、')+(r.why.length?'（'+r.why.join('；')+'）':'');flog.push('💨 浪費掉了：'+t+'。');rcPush({cls:'fail',t:'💨 浪費掉了',html:t+'。'});}hud();save();fireCtl();}
+function fireStep(dt,t){const d=STN[fire.type],k=ffast?6:1;if(rc.auto&&performance.now()>rc.auto){rcReset();rcDraw();}if(ffast&&d.bellows)fire.bell=1;
  const sub=Math.max(1,Math.ceil(dt/.05)),steps=sub*(ffast?6:1);for(let i=0;i<steps;i++){if(fire.auto&&fire.lit)fire.bell=1;const ev=fireTick(fire,dt/sub,S);
   for(const e of ev){if(e.t==='out'){flog.push('火熄了。最高溫度 '+Math.round(fire.peak/10)*10+' °C。');showSummary();ffast=false;fseen=true;SFX.out();}
-   else{flog.push('✅ '+(e.mix?'一混合就反應：':Math.round(fire.T/10)*10+' °C：')+e.r.name+(e.isNew?'　✨ 新發現':''));if(e.isNew||!fent||!fent.isNew)fent=e;if(e.isNew){SFX.discover();toast('✨ 新發現：'+e.r.name);}else SFX.react();
+   else{flog.push('✅ '+(e.mix?'一混合就反應：':Math.round(fire.T/10)*10+' °C：')+e.r.name+(e.isNew?'　✨ 新發現':''));fent=e;rcPush({id:e.r.id,cls:e.isNew?'new':'',t:e.isNew?'✨ 新發現！已記入知識圖鑑':'✅ '+(e.mix?'一混合就反應':'反應了（'+Math.round(fire.T/10)*10+' °C）'),html:entryHTML(e.r)+gotHTML(e.r.out)});if(e.isNew)SFX.discover();else SFX.react();
     for(let j=0;j<8;j++)fpart.push({x:200+Math.random()*60,y:150,vy:-30-Math.random()*40,life:1.2,c:'#ddd'});storyQ.push(...advanceQuests(S));hud();save();}
    fireCtl();}}
  if(fire)drawFire(t,dt);}
@@ -2509,12 +2530,13 @@ let mix={at:'table',sel:[],res:null,t0:0,shown:[]};
 function openMix(at,indoor){mix={at,indoor:!!indoor,sel:[],res:null,t0:0,shown:[]};panel='mix';renderMix();}
 function renderMix(){mix.sel=mix.sel.filter(id=>S.inv[id]>0||mix.res);const h=have(),cell=mix.at==='cell';let res='';const R=mix.res;
  if(R){if(R.err)res=`<div class="result fail">${R.err}</div>`;else if(R.none)res=`<div class="result fail">沒有觀察到明顯的變化。換個組合試試？${R.lost?`<br><b>💨 ${R.lost.map(k=>ITEMS[k].n).join('和')}混在一起，已經分不開，浪費掉了。</b>`:''}<div class="muted">（不是每種組合都看得出變化；看不出來，不代表現實中一定沒有反應。）</div></div>`;
-  else{const o=Object.keys(R.r.out);res=`<div class="result ${R.isNew?'new':''}">${R.isNew?'<b>✨ 新發現！已記入知識圖鑑</b><br>':''}${entryHTML(R.r)}${o.length?`<div style="margin-top:6px"><span class="lbl">得到：</span>${o.map(k=>ITEMS[k].n+' ×'+R.r.out[k]).join('、')}</div>`:''}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 釀葡萄酒的罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
+  else{res=`<div class="result ${R.isNew?'new':''}">${entryHTML(R.r)}${gotHTML(R.r.out)}${R.bonus==='tartar'?'<div style="margin-top:6px"><b>🔎 釀葡萄酒的罐子內壁結了一層粗糙的結晶，你把它刮了下來：酒石 ×1</b></div>':''}${R.lost?`<div style="margin-top:6px"><b>💨 浪費掉了：${R.lost.map(k=>ITEMS[k].n).join('、')}</b></div>`:''}</div>`;}}
  const keepScroll=$('modal').scrollTop;
- openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<canvas class="scene" id="mc" width="560" height="240"></canvas>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
+ if(R&&mix.t0!==rc.t0){rc={list:[{cls:R.err||R.none?'fail':R.isNew?'new':'',t:R.err?'⚠️ 做不了':R.none?'🔎 結果':R.isNew?'✨ 新發現！已記入知識圖鑑':'✅ 反應',html:res.replace(/^<div class="result[^"]*">/,'').replace(/<\/div>$/,'')}],i:0,auto:0,t0:mix.t0};}
+ openModal(head((bench.on?'🧪 實驗桌':cell?'⚡ 電解槽':'🧫 實驗桌')+(mix.indoor?'（室內）':''))+`<div class="scwrap"><canvas class="scene" id="mc" width="560" height="240"></canvas><div id="rcard">${rcInner()}</div></div>${benchBar()}${cell&&!bench.on?'<div class="muted">⚡ '+powerText()+'</div>':''}
  ${mix.indoor&&!cell?`<div class="muted">🧼 手：${S.clean>0?'乾淨（還能做 '+S.clean+' 次食物實驗）':'還沒洗——發酵前先在屋裡洗手'}</div>`:''}
  <h3>把材料放進${cell?'電解槽':'陶缽'}（最多 3 種，點一下放入／取出）</h3>${h.length?srchBox('mix')+'<div class="srchable">'+chemGroups(h,id=>chip(id,`data-item="${id}"`,mix.sel.includes(id)?'sel':''))+'</div>':'<span class="muted">背包是空的。</span>'}
- <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'✋ 動手'}</button></div>${res}`);if(R)$('modal').scrollTop=keepScroll;}
+ <div class="row"><button class="btn ${cell?'air':''}" data-act="mix" ${mix.sel.length?'':'disabled'}>${cell?'⚡ 接上電池':'✋ 動手'}</button></div>`);rcDraw();if(R)$('modal').scrollTop=keepScroll;}
 function drawMix(t){const cvs=$('mc');if(!cvs)return;const c=cvs.getContext('2d'),cell=mix.at==='cell',R=mix.res&&mix.res.r,el=R?(performance.now()-mix.t0)/1000:0,done=R&&el>.7,act=R&&R.kind!=='obs'&&el<6;
  c.clearRect(0,0,560,240);const bg=c.createLinearGradient(0,0,0,208);bg.addColorStop(0,'#252d35');bg.addColorStop(1,'#181e24');c.fillStyle=bg;c.fillRect(0,0,560,240);
  c.fillStyle='#725030';c.fillRect(0,208,560,32);c.fillStyle='#593d22';c.fillRect(0,208,560,4);
@@ -2589,7 +2611,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.41',VDATE='2026-11-18';
+const VERSION='2.42',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2690,7 +2712,7 @@ $('mask').addEventListener('click',e=>{
  if(d.act==='ignite'){if(FUELS.every(k=>fire.fuel[k]<=0))return toast('先放燃料。');fire.lit=true;SFX.ignite();flog.push('🔥 點火了。');if(!S.abil.fire){S.abil.fire=true;S.found.tech_fire=true;S.st.forEach(syncStation);storyQ.push(...advanceQuests(S));hud();save();}return fireCtl();}
  if(d.act==='pump')return pump();
  if(d.act==='fan'){const r=wireTo(fireSt,'fan');if(r.err){SFX.deny();toast(r.err);}else{SFX.done();fire.auto=true;flog.push('⚡ 用了 '+r.cost+' 個銅拉線。電動鼓風機轉起來了，不用再踩風箱。');save();}return fireCtl();}
- if(d.act==='fast'){ffast=!ffast;return fireCtl();}
+ if(d.act==='fast'){ffast=!ffast;rc.auto=(ffast&&rc.list.length)?performance.now()+3000:0;rcDraw();return fireCtl();}
  if(d.item){const i=mix.sel.indexOf(d.item);mix.res=null;if(i>=0)mix.sel.splice(i,1);else if(mix.sel.length<3)mix.sel.push(d.item);else toast('最多放 3 種材料');return renderMix();}
  if(d.act==='mix'){mix.shown=mix.sel.slice();mix.res=mixReact(S,mix.sel,mix.at,mix.indoor);mix.t0=performance.now();{const R=mix.res;if(mix.at==='cell'&&!R.err)SFX.zap();if(R.lost)SFX.deny();if(R.r){if(Object.keys(R.r.out).some(k=>GAS.has(k)))SFX.bubble();if(R.r.boom)SFX.boom();else if(R.r.hot)SFX.hiss();R.isNew?SFX.discover():SFX.react();}else SFX.ui();}storyQ.push(...advanceQuests(S));hud();save();renderMix();$('modal').scrollTop=0;if(mix.res&&mix.res.r&&mix.res.r.boom)try{$('modal').animate([{transform:'translate(0,0)'},{transform:'translate(-14px,6px)'},{transform:'translate(12px,-8px)'},{transform:'translate(-8px,4px)'},{transform:'translate(5px,-2px)'},{transform:'translate(0,0)'}],{duration:450});}catch(e){}return;}
  if(d.home==='back'){homeMsg='';return openHome(homeSt);}
