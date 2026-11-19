@@ -340,9 +340,9 @@ const REACTIONS=[
   phen:'鍋裡結出一團灰白色、滑膩的渣，沉在水底。拿來搓手，一點泡沫也沒有。',use:'氫氧化鈣也是鹼，油脂一樣被皂化了；但生成的脂肪酸鈣不溶於水，起不了泡，洗不掉油。能當肥皂的，是溶於水的鈉皂和鉀皂。',note:'用含鈣、鎂多的「硬水」洗澡，肥皂會變成一層洗不掉的皂垢，就是同一種東西。'},
  {id:'soap_ash',name:'用草木灰水做肥皂',kind:'chem',at:'heat',T:90,pot:1,inputs:[['oil','lye'],['oil','ash','water']],out:{soap:1},eqx:'油脂 + 草木灰水（碳酸鉀溶液）→ 脂肪酸鉀（肥皂）+ 甘油',
   phen:'油和灰水一起煮很久，慢慢乳化變稠，冷卻後成了黃白色的軟皂。',use:'草木灰水含碳酸鉀，水解後是鹼性，也能讓油脂皂化。古人就是這樣用灰和動植物油做肥皂的。',note:'碳酸鉀的鹼性比氫氧化鉀弱，所以要煮得比較久；做出來的也是軟皂。'},
- {id:'malachite',name:'加熱孔雀石',kind:'chem',at:'heat',T:350,inputs:[['malachite']],out:{cuo:2,co2:1},eq:'Cu2(OH)2CO3 -> 2CuO + H2O + CO2',
+ {id:'malachite',lab:1,name:'加熱孔雀石',kind:'chem',at:'heat',T:350,inputs:[['malachite']],out:{cuo:2,co2:1},eq:'Cu2(OH)2CO3 -> 2CuO + H2O + CO2',
   phen:'翠綠色的石頭漸漸變成黑色。',use:'分解反應：一種物質變成三種。黑色的是氧化銅。',note:''},
- {id:'zn_calc',name:'加熱菱鋅礦',kind:'chem',at:'heat',T:300,inputs:[['smithsonite']],out:{zno:1,co2:1},eq:'ZnCO3 -> ZnO + CO2',
+ {id:'zn_calc',lab:1,name:'加熱菱鋅礦',kind:'chem',at:'heat',T:300,inputs:[['smithsonite']],out:{zno:1,co2:1},eq:'ZnCO3 -> ZnO + CO2',
   phen:'礦石變成白色粉末，並放出氣體。',use:'碳酸鹽受熱分解成金屬氧化物和二氧化碳，和燒貝殼是同一類反應。',note:''},
  {id:'charcoal',name:'悶燒木頭成木炭',kind:'chem',at:'heat',T:300,closed:1,inputs:[['wood']],out:{charcoal:1},eqx:'木頭 —(隔絕空氣加熱)→ 木炭 + 水蒸氣 + 可燃氣體',
   phen:'窯口冒出白煙，窯室裡的木頭變黑、變輕，卻沒有燒成灰。',use:'同樣是加熱木頭：爐膛裡空氣充足，燒成灰；窯室裡隔絕空氣，留下碳。',note:'真實製炭要悶上好幾天。'},
@@ -426,7 +426,7 @@ const REACTIONS=[
  {id:'rochelle',name:'製作酒石晶體',kind:'chem',at:'heat',T:80,pot:1,inputs:[['tartar','natron','water'],['tartar','sodawater'],['tartar','naoh']],out:{rochelle:1},eqx:'酒石（酒石酸氫鉀）+ 含鈉的鹼（碳酸鈉或氫氧化鈉）→ 酒石酸鉀鈉',phen:'酒石在溫熱的鹼水裡冒著細泡溶掉了。放涼以後，杯底慢慢長出一顆透明的大晶體。',use:'酒石是酸性的鹽，遇到碳酸鈉會冒二氧化碳，生成更容易溶解、也更容易長成大晶體的酒石酸鉀鈉。這種晶體一被擠壓就產生電，一通電就振動。',note:'這叫「壓電效應」。早期的麥克風、耳機和唱針，用的就是這種晶體。'},
  {id:'caramel',name:'把糖水熬成焦糖',kind:'chem',at:'heat',T:170,pot:1,inputs:[['juice']],out:{caramel:1},eqx:'蔗糖 —(約 170 °C)→ 焦糖 + 水',phen:'水先滾乾，糖漿從透明變成金黃、再變成深褐色，冒出又甜又苦的香氣。',use:'糖受熱到一百七十度左右會分解、互相結合，變成幾百種有顏色、有香氣的新物質。這是化學變化——焦糖再也變不回白糖。',note:'再燒下去就只剩黑色的碳了：糖是碳、氫、氧組成的。'},
  {id:'cola',name:'調一瓶可樂',kind:'phys',at:'table',inputs:[['caramel','carbonic']],out:{cola:1},eqx:'焦糖 + 碳酸水 → 可樂（混合）',phen:'褐色的糖漿在冒泡的水裡化開。喝一口——氣泡在舌頭上炸開，甜中帶一點苦。',use:'汽水的「氣」就是溶在水裡的二氧化碳。打開瓶子壓力變小，二氧化碳就跑出來。',note:'真正的可樂還加了磷酸和香料。配方是商業機密。'},
- {id:'unslake',name:'加熱熟石灰',kind:'chem',at:'heat',T:520,inputs:[['slaked']],out:{quicklime:1},eq:'Ca(OH)2 -> CaO + H2O',phen:'白色粉末冒出水氣，變得更乾、更輕。',use:'熟石灰加熱到五百多度會把水吐出來，變回生石灰。加水變熟石灰、加熱變回生石灰——這個反應可以來回走。',note:'所以灰泥砌的爐子，內壁其實一直在失水、吸水之間循環。'},
+ {id:'unslake',lab:1,name:'加熱熟石灰',kind:'chem',at:'heat',T:520,inputs:[['slaked']],out:{quicklime:1},eq:'Ca(OH)2 -> CaO + H2O',phen:'白色粉末冒出水氣，變得更乾、更輕。',use:'熟石灰加熱到五百多度會把水吐出來，變回生石灰。加水變熟石灰、加熱變回生石灰——這個反應可以來回走。',note:'所以灰泥砌的爐子，內壁其實一直在失水、吸水之間循環。'},
  {id:'dry_lime',name:'煮乾石灰水',kind:'phys',at:'heat',T:100,pot:1,not:['oil'],inputs:[['limewater']],out:{slaked:1},eqx:'澄清石灰水 → 水蒸氣 + 熟石灰（析出）',phen:'水煮乾了，鍋底留下一層薄薄的白色粉末。',use:'石灰水是熟石灰溶在水裡。把水趕走，溶質就留下來——和煮海水得到食鹽是同一個道理。',note:'氫氧化鈣很難溶，所以留下來的粉末只有一點點。'},
  {id:'roast_vitriol',name:'在火上直接燒綠礬',kind:'chem',at:'heat',T:480,inputs:[['vitriol']],out:{hematite:1},eqx:'硫酸亞鐵 —(加熱)→ 氧化鐵 + 二氧化硫 + 三氧化硫',phen:'藍綠色的晶體先變白，再變成紅褐色的粉末，同時冒出嗆鼻的白煙，一下就散掉了。',use:'綠礬受熱分解，留下的紅色粉末是氧化鐵（鐵紅），和赤鐵礦是同一種東西。真正值錢的是那陣白煙——可惜在敞開的火上，它全跑掉了。',note:'如果能把那陣煙接住、讓它溶進水裡呢？'},
  {id:'carb_acid',name:'碳酸鹽遇到酸',kind:'chem',at:'table',inputs:[['natron','vinegar'],['natron','hcl'],['natron','h2so4'],['lye','vinegar'],['lye','hcl'],['lye','h2so4'],['sodawater','vinegar'],['sodawater','hcl'],['sodawater','h2so4'],['ash','vinegar'],['ash','hcl'],['ash','h2so4'],['natron','h2so3'],['sodawater','h2so3'],['lye','h2so3'],['natron','acidlake'],['lye','acidlake'],['ash','acidlake']],out:{co2:1},eqx:'碳酸鹽 + 酸 → 鹽 + 水 + 二氧化碳',phen:'一碰到酸就嘶嘶作響，冒出大量氣泡。',use:'天然鹼和鹼湖水裡是碳酸鈉，草木灰和草木灰水裡是碳酸鉀，貝殼是碳酸鈣——名字裡有「碳酸」的，遇到酸都會放出二氧化碳。',note:'這是檢驗碳酸鹽最簡單的方法。'},
@@ -2563,7 +2563,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.37',VDATE='2026-11-18';
+const VERSION='2.38',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
