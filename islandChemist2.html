@@ -942,7 +942,18 @@ function mixReact(s,ids,at,indoor){
 function newFire(type,indoor){return{type,indoor:!!indoor,made:{},sulf:0,fuel:{wood:0,charcoal:0,coal:0,coke:0},charge:{},out:{},T:25,Teq:25,lit:false,bell:0,prog:{},peak:25,burned:0,did:{},power:0};}
 function eligible(f){const d=STN[f.type],at=d.at||'heat',L=[];
  for(const r of REACTIONS){if(!atOK(d,r)||r.kind==='obs')continue;if(r.closed&&!d.closed)continue;if(r.indoor&&!f.indoor)continue;if(r.not&&r.not.some(i=>f.charge[i]>=1))continue;if(r.V&&!f.elec)continue;if(r.air&&d.closed)continue;if(r.fresh&&r.inputs.some(a=>a.some(i=>f.made[i])))continue;if(r.at==='still'&&!r.open&&f.cond===false)continue;if(r.inputs.some(a=>a.every(i=>f.charge[i]>=1)))L.push(r);}return L.filter(r=>!r.defer||!L.some(x=>r.defer.includes(x.id)));}
+/* 燒瓶裡也會先「混合」：放進去的東西彼此一碰就反應（和實驗桌混合一樣），之後才輪到加熱。
+   只算兩樣以上的混合；磨粉、鍛打、發酵這類單一動作不算。整組材料剛好是加熱配方或更大的混合配方時，讓那個配方優先。 */
+const MIXF=REACTIONS.filter(r=>r.at==='table'&&r.kind!=='obs'&&!r.clean&&r.inputs.some(a=>a.length>=2));
+function flaskMix(f,s){const has=(r,a)=>a.every(i=>f.charge[i]>=((r.n&&r.n[i])||1)),sup=(a,b)=>b.length>=a.length&&a.every(i=>b.includes(i));
+ const C=[];for(const r of MIXF){if(r.indoor&&!f.indoor)continue;if(r.needs&&!s.abil[r.needs])continue;const a=r.inputs.find(a=>a.length>=2&&has(r,a)&&!a.some(i=>f.hm&&f.hm[i]));if(a)C.push([r,a]);}   /* 加熱蒸出來的東西流進接收瓶，不會回頭和瓶裡的東西混 */
+ if(!C.length)return null;const H=eligible(f).map(r=>r.inputs.find(a=>a.every(i=>f.charge[i]>=1))).filter(Boolean);
+ for(const [r,a] of C){if(H.some(b=>sup(a,b)))continue;if(C.some(([r2,b])=>r2!==r&&b.length>a.length&&sup(a,b)))continue;return[r,a];}return null;}
 function fireTick(f,dt,s){const d=STN[f.type],ev=[];
+ if(d.at==='still'){const m=flaskMix(f,s);if(!m)f.prog._mix=0;else{const[r,a]=m;f.prog._mix=(f.prog._mix||0)+dt/1.2;
+  if(f.prog._mix>=1){f.prog._mix=0;const keep=r.back?a.find(i=>i!=='water'):null;a.forEach(i=>{if(i!==keep)f.charge[i]-=(r.n&&r.n[i])||1;});
+   for(const o in r.out){const tgt=GAS.has(o)?f.out:f.charge;tgt[o]=(tgt[o]||0)+r.out[o];f.made[o]=1;}
+   const isNew=!s.found[r.id];s.found[r.id]=true;f.did[r.id]=(f.did[r.id]||0)+1;ev.push({t:'react',r,isNew,mix:1});}}}
  if(f.lit){let tot=0;for(const k of FUELS)tot+=f.fuel[k];
   if(tot<1){f.lit=false;for(const k of FUELS)f.fuel[k]=0;ev.push({t:'out'});}
   else{const burn=Math.min(tot,d.maxBurn),air=d.bellows?.65+.65*f.bell:1;let hv=0,cap=0;for(const k of FUELS){const fr=f.fuel[k]/tot;hv+=fr*FUEL[k].hv;cap+=fr*FUEL[k].cap;}
@@ -957,7 +968,7 @@ function fireTick(f,dt,s){const d=STN[f.type],ev=[];
    a.forEach(i=>f.charge[i]--);if(r.V)pileUse(s);
    let R=r,out=r.out;if(r.sulfur&&(f.sulf>.3||a.includes('coal'))){R=RMAP.obs_coal_iron;out={badiron:1};}   /* 燒過生煤：硫混進鐵裡 */
    for(const o in out){if(o==='co2')continue;   /* 爐火裡生成的二氧化碳直接從爐口散掉，接不住 */
-    const tgt=GAS.has(o)?f.out:f.charge;tgt[o]=(tgt[o]||0)+out[o];f.made[o]=1;}
+    const tgt=GAS.has(o)?f.out:f.charge;tgt[o]=(tgt[o]||0)+out[o];f.made[o]=1;(f.hm||(f.hm={}))[o]=1;}
    const isNew=!s.found[R.id];s.found[R.id]=true;f.did[r.id]=(f.did[r.id]||0)+1;if(R.grant)s.abil[R.grant]=true;ev.push({t:'react',r:R,isNew});}}
  return ev;}
 /* 火熄了以後：哪些東西沒反應？為什麼？ */
@@ -2043,7 +2054,7 @@ function showSummary(){if(fsum)return;fsum=true;const r=fireSummary(fire,S);
 function fireStep(dt,t){const d=STN[fire.type],k=ffast?6:1;if(ffast&&d.bellows)fire.bell=1;
  const sub=Math.max(1,Math.ceil(dt/.05)),steps=sub*(ffast?6:1);for(let i=0;i<steps;i++){if(fire.auto&&fire.lit)fire.bell=1;const ev=fireTick(fire,dt/sub,S);
   for(const e of ev){if(e.t==='out'){flog.push('火熄了。最高溫度 '+Math.round(fire.peak/10)*10+' °C。');showSummary();ffast=false;fseen=true;SFX.out();}
-   else{flog.push('✅ '+Math.round(fire.T/10)*10+' °C：'+e.r.name+(e.isNew?'　✨ 新發現':''));if(e.isNew||!fent||!fent.isNew)fent=e;if(e.isNew){SFX.discover();toast('✨ 新發現：'+e.r.name);}else SFX.react();
+   else{flog.push('✅ '+(e.mix?'一混合就反應：':Math.round(fire.T/10)*10+' °C：')+e.r.name+(e.isNew?'　✨ 新發現':''));if(e.isNew||!fent||!fent.isNew)fent=e;if(e.isNew){SFX.discover();toast('✨ 新發現：'+e.r.name);}else SFX.react();
     for(let j=0;j<8;j++)fpart.push({x:200+Math.random()*60,y:150,vy:-30-Math.random()*40,life:1.2,c:'#ddd'});storyQ.push(...advanceQuests(S));hud();save();}
    fireCtl();}}
  if(fire)drawFire(t,dt);}
@@ -2563,7 +2574,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.38',VDATE='2026-11-18';
+const VERSION='2.39',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
