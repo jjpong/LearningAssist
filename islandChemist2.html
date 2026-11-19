@@ -924,6 +924,7 @@ function mixReact(s,ids,at,indoor){
  if(!ids.length)return{err:'先放入材料。'};
  for(const id of ids)if(!(s.inv[id]>0))return{err:ITEMS[id].n+' 不夠了。'};
  const k=rkey(ids);let r=REACTIONS.find(r=>r.at===at&&r.inputs.some(a=>rkey(a)===k));
+ if(!r&&at==='cell'&&ids.length>1&&ids.includes('water')){const k2=rkey(ids.filter(i=>i!=='water'));r=REACTIONS.find(x=>x.at==='cell'&&x.inputs.some(a=>rkey(a)===k2));}   /* 電解槽裡多加淡水只是把溶液沖淡，照原本的溶液電解 */
  if(!r&&at==='table'&&ids.includes('sodawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='sodawater'?'water':i));   /* 拿鹼湖水當淡水用：整份走樣 */
   if(REACTIONS.some(x=>x.at==='table'&&x.kind!=='obs'&&x.inputs.some(a=>rkey(a)===k2))){r=RMAP.obs_sodawater;ids.forEach(id=>s.inv[id]--);const isNew=!s.found[r.id];s.found[r.id]=true;return{r,isNew,lost:ids.slice()};}}
  if(!r&&at==='table'&&ids.includes('seawater')&&!ids.includes('water')){const k2=rkey(ids.map(i=>i==='seawater'?'water':i));   /* 拿海水當淡水用：反應會發生，但成品混了鹽，整份報廢 */
@@ -2574,7 +2575,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.39',VDATE='2026-11-18';
+const VERSION='2.40',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
