@@ -90,6 +90,8 @@ body.modal #toasts{bottom:auto;top:10px}body.modal .toast.stick{display:none}   
 .result{margin-top:10px;border-radius:12px;padding:12px 14px;background:#eef6ff;border:2px solid #9cc3ea;font-size:14px;line-height:1.68;box-shadow:0 3px 10px rgba(0,0,0,.06)}
 .result.fail{background:#f3efe6;border-color:#c9c0aa}
 .result.new{background:linear-gradient(180deg,#fff9dc,#fff1b8);border-color:#dfaf2b}
+#buffs:empty{display:none}#buffs{margin-top:6px;font-size:13px;line-height:1.6}#buffs span{display:inline-block;background:#fff3c4;border:1px solid #dfaf2b;border-radius:8px;padding:1px 8px;margin:2px 4px 0 0}#buffs span.dk{background:#f3e1f0;border-color:#a0559a}
+.mealsum{margin:8px 0;padding:8px 12px;border-radius:10px;background:#fffdf6;border:2px dashed #d4c39a;font-size:14px;line-height:1.7}.mealsum .ok{color:#2f7a3a;font-weight:bold}.mealsum .no{color:#aaa}
 .scwrap{display:flex;gap:10px;align-items:flex-start;width:100%}
 .scwrap>.scene{flex:1 1 0;min-width:0}
 #rcard{flex:0 0 300px;max-height:360px;overflow:auto;margin:0;box-shadow:0 4px 14px rgba(0,0,0,.18);animation:rcin .25s ease-out}   /* 結果卡放在畫面旁邊，不蓋住爐子和燒瓶 */
@@ -142,7 +144,7 @@ table.lb tr.me td{background:#fff3c4;font-weight:700}
 </head>
 <body>
 <canvas id="cv"></canvas>
-<div id="quest"><div class="ch" id="qch"></div><div class="goal" id="qgoal"></div><div id="qmore"></div><button id="qtoggle">📓 翻看筆記（提示與任務清單）</button><div class="hint" id="qhint"></div><div id="qlist"></div><div id="score" title="點「圖鑑」看分數怎麼算"></div><div id="abil"></div></div>
+<div id="quest"><div class="ch" id="qch"></div><div class="goal" id="qgoal"></div><div id="qmore"></div><button id="qtoggle">📓 翻看筆記（提示與任務清單）</button><div class="hint" id="qhint"></div><div id="qlist"></div><div id="score" title="點「圖鑑」看分數怎麼算"></div><div id="buffs"></div><div id="abil"></div></div>
 <canvas id="mini"></canvas>
 <div id="zoom"><button data-au="bgm" title="背景音樂 開／關">🎵</button><button data-au="sfx" title="音效 開／關">🔊</button><button data-scope="1" id="scopebtn" title="望遠鏡（Q）" style="display:none">🔭</button><button data-z="-1" title="拉近">＋</button><button data-z="1" title="拉遠">－</button></div>
 <div id="toasts"></div>
@@ -830,7 +832,7 @@ const BADGES=[
  ['bronze','🟤','青銅時代','鑄出青銅',s=>s.found.bronze],['iron','⚙️','鐵器時代','煉出鐵',s=>fnd(s,'smelt_fe','smelt_fe2')],['glass','🔮','玻璃匠','熔出玻璃',s=>s.found.glass],
  ['alch','⚗️','鍊金術士','蒸餾出硫酸',s=>s.found.h2so4],['elec','🔋','馴服電的人','疊出伏打堆',s=>s.abil.elec],['davy','🧨','戴維的學生','用電抓出鉀或鈉',s=>!!(s.found.molten_koh||s.found.molten_naoh)],['sulfur','🌋','硫磺礦工','在實驗室燒出二氧化硫',s=>fnd(s,'burn_s','burn_s_o2')],['bleach','🧴','消毒專家','做出漂白水',s=>s.found.bleach],['steel','🗡️','鋼鐵意志','煉出鋼',s=>s.found.steel],
  ['lamp','💡','黑夜裡的光','點亮信號塔',s=>s.abil.beacon],['thor','🌩️','借雷的人','用雷電做出磁鐵',s=>!!s.known._magnet],['gen','🌀','法拉第的學生','做出發電機',s=>s.abil.gen],
- ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氣球抵達雲頂島',s=>!!s.seen[4]],['zep','🛩️','天空的主人','造出氫氣飛艇',s=>hasSt(s,'airship')],['radio','📡','回音','用無線電得到回應',s=>!!s.known._echo],['home','🏠','回家','登上回家的船',s=>!!s.known._home],
+ ['mask','🌋','火山口的訪客','從酸湖舀到硫酸',s=>!!s.known._acid],['sky','🎈','離開地面','乘氣球抵達雲頂島',s=>!!s.seen[4]],['zep','🛩️','天空的主人','造出氫氣飛艇',s=>hasSt(s,'airship')],['radio','📡','回音','用無線電得到回應',s=>!!s.known._echo],['home','🏠','回家','登上回家的船',s=>!!s.known._home],['meal','🍳','營養滿分的早餐','一頓早餐吃齊主食、蛋白質、乳品和水果',s=>!!s.known._meal4],
  ['isl','🧭','探險家','踏上五座大島',s=>[0,1,2,3,4].every(i=>s.seen[i])],['islet','🏝️','霧裡的小島','找到藏在霧裡的三座小島',s=>[5,6,7].every(i=>s.seen[i])],['aroma','🌿','香氣獵人','取得樟腦、香茅油和香草精',s=>!!(s.found.camphor_dist&&s.found.citro_dist&&s.found.vanilla_ext)],['boats','⚓','船長','木筏、帆船、遠洋帆船都造過',s=>s.abil.raft&&s.abil.sail&&s.abil.ship],
  ['fail1','📝','失敗也是發現','累積 5 筆觀察紀錄',s=>nFound(s,'obs')>=5],['fail2','🧐','實驗狂','累積 15 筆觀察紀錄',s=>nFound(s,'obs')>=15],['fail3','🤯','什麼都要試一下','累積 25 筆觀察紀錄',s=>nFound(s,'obs')>=25],
  ['chem1','📗','初級化學家','發現 15 種化學反應',s=>nFound(s,'chem')>=15],['chem2','📘','資深化學家','發現 35 種化學反應',s=>nFound(s,'chem')>=35],['chem3','📕','反應大師','發現 55 種化學反應',s=>nFound(s,'chem')>=55],
@@ -1567,7 +1569,7 @@ function shoreSea(isl,r){const I=ISLANDS[isl];if(!boatOK(r,I.rank))return null;l
 function launch(st){const i=S.st.indexOf(st);if(i>=0)S.st.splice(i,1);const g=stObj.get(st);if(g){scene.remove(g);stObj.delete(st);}
  const r=BOATT[st.type],p=nearestSea(st.x,st.y,r)||{x:st.x,y:st.y,a:0};S.boats.push({x:p.x,y:p.y,a:0,r});
  toast(BOATN[r]+'下水了，停在岸邊。走過去就能上船。'+(r>1?'原來的船還留在原地，一樣可以用。':''));}
-function board(i){const b=S.boats[i];if(!b)return;S.cur=i;P.x=b.x;P.y=b.y;P.ang=b.a||0;S.aboard=true;target=null;pending=null;SFX.water();toast('上了'+BOATN[b.r]+'。靠岸往陸地走就會下船。'+(b.r===3?'（吃水深，進不了淺海）':''));save();}
+function board(i){const b=S.boats[i];if(!b)return;if(drunkLv()){target=null;pending=null;return warn('🥴 喝了酒不能駕船。等酒退了、頭腦清楚了再出海。');}S.cur=i;P.x=b.x;P.y=b.y;P.ang=b.a||0;S.aboard=true;target=null;pending=null;SFX.water();toast('上了'+BOATN[b.r]+'。靠岸往陸地走就會下船。'+(b.r===3?'（吃水深，進不了淺海）':''));save();}
 function boatNear(r){if(S.aboard)return -1;let bi=-1,bd=r;S.boats.forEach((b,i)=>{const d=Math.hypot(b.x-P.x,b.y-P.y);if(d<bd){bd=d;bi=i;}});return bi;}
 function fixBoat(){const fl=Math.floor,sea=tileAt(fl(P.x),fl(P.y))===SEA,here=rankAt(fl(P.x),fl(P.y));if(!Array.isArray(S.boats))S.boats=[];
  if(!S.boats.length&&boatRank(S)>0){   /* 舊存檔：以前只有一艘會升級的船，現在每一艘都留著 */
@@ -1799,7 +1801,7 @@ function openBalloon(st){panel='balloon';balSt=st;const air=st.type==='airship',
  <p style="text-align:right;margin:10px 0 0"><button class="btn" data-act="bl-go">🛩️ 起飛</button></p>`:`<div class="savebox">火盆裡的燃料：大約可以燒 <b>${Math.round(f)}</b> 秒（最多 ${FUELMAX} 秒）<br>背包裡：木頭 ${w}　木炭 ${c}<br><span class="muted">木頭一份燒 ${BURN.wood} 秒，木炭一份燒 ${BURN.charcoal} 秒。燃料燒完，氣球就會往下掉；在海上的話，會被風吹到不知道哪座島。</span></div>
  <p style="text-align:right;margin:10px 0 0"><button class="btn alt" data-act="bl-wood" style="margin-right:6px" ${!w||f+BURN.wood>FUELMAX?'disabled':''}>🪵 放一份木頭</button><button class="btn alt" data-act="bl-char" style="margin-right:6px" ${!c||f+BURN.charcoal>FUELMAX?'disabled':''}>⚫ 放一份木炭</button><button class="btn alt" data-act="bl-full" style="margin-right:6px" ${(!w&&!c)||f+BURN.wood>FUELMAX?'disabled':''}>🔥 放滿</button><button class="btn" data-act="bl-go" ${f<2?'disabled':''}>🎈 升空</button></p>`));}
 let balSt=null;
-function takeOff(st){closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一次；飛行中不存檔，飛到一半關掉遊戲會回到這裡 */
+function takeOff(st){if(drunkLv()){SFX.deny();return toast('🥴 喝了酒不能駕駛'+(st.type==='airship'?'飛艇':'熱氣球')+'。等酒退了再飛。');}closeModal();S.px=P.x;S.py=P.y;save();   /* 起飛前存一次；飛行中不存檔，飛到一半關掉遊戲會回到這裡 */
  flySt=st;st.flying=true;S.aboard=false;S.cur=-1;target=null;pending=null;P.x=st.x;P.y=st.y;P.alt=hAt(P.x,P.y);flyG=flyGs[st.type]||flyGs.balloon;
  const g=stObj.get(st);if(g)g.visible=false;flyG.visible=true;SFX.arrive();
  const fk='_fly_'+st.type,first=!S.known[fk];S.known[fk]=true;
@@ -1827,6 +1829,7 @@ function flyUpdate(dt,dx,dy,manual){if(!manual&&target){dx=target.x-P.x;dy=targe
 {const b=S.st.find(x=>(x.type==='balloon'||x.type==='airship')&&x.flying);if(b){settleFlight();const g=stObj.get(b);if(g)g.position.set(b.x,hAt(b.x,b.y),b.y);curIsl=owner[Math.floor(P.y)*W+Math.floor(P.x)];}}   /* 上次飛到一半就關掉遊戲：這次打開時已經落地 */
 function update(dt){
  P.mov=false;if(modalOpen)return;
+ buffTick(dt);
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
  const manual=dx||dy;if(manual){target=null;pending=null;}
  if(flySt){if(flySt.landing){P.mov=false;return;}return flyUpdate(dt,dx,dy,manual);}
@@ -1836,8 +1839,9 @@ function update(dt){
  if(pending&&pending.water!=null&&target&&nearWater(pending.water)&&Math.hypot(target.x-P.x,target.y-P.y)<2.4){takeWater(pending.water);pending=null;target=null;}
  if(!manual&&target){dx=target.x-P.x;dy=target.y-P.y;if(Math.hypot(dx,dy)<.12||now()-targetT>45){target=null;pending=null;dx=dy=0;}}
  const L=Math.hypot(dx,dy);if(!L)return;dx/=L;dy/=L;
+ {const dl=drunkLv();if(dl&&!S.aboard){if(now()>(P.dkT||0)){P.dkT=now()+.4;P.dkA=Math.random()<DRUNKP[dl]?(Math.random()*2-1)*Math.PI:null;}if(P.dkA!=null){const c=Math.cos(P.dkA),s=Math.sin(P.dkA);const nx=dx*c-dy*s;dy=dx*s+dy*c;dx=nx;}}}   /* 喝醉：每一小步有機率往別的方向歪 */
  if(pending&&pending.boat&&boatNear(2)>=0){board(boatNear(2));return;}
- const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,sp=(onSea?9.5:5.5)*dt;let moved=false,hitObj=false;
+ const onSea=tileAt(Math.floor(P.x),Math.floor(P.y))===SEA,sp=(onSea?9.5:5.5*(1+(S.buff?S.buff.spd:0)))*dt;let moved=false,hitObj=false;
  let vx=dx*sp,vy=dy*sp;const ob=onSea?null:bumpAt(P.x+vx,P.y+vy);
  if(ob){hitObj=true;let nx=P.x-ob.x,ny=P.y-ob.y;const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;   /* 被圓形的東西擋住：沿著它的邊滑過去 */
   const dot=vx*nx+vy*ny;vx-=dot*nx;vy-=dot*ny;const l=Math.hypot(vx,vy);
@@ -1925,7 +1929,7 @@ function frame(t,dt){
  parkedG.forEach(g=>g.visible=false);S.boats.forEach((bt,i)=>{if(S.aboard&&i===S.cur)return;const g=parkedG[bt.r-1];g.visible=true;g.position.set(bt.x,Math.sin(t/400+1+i)*.05,bt.y);g.rotation.y=bt.a||0;});
  man.arm.rotation.x=tn<P.swing?-1.6+Math.sin((P.swing-tn)/.25*Math.PI)*2.2:wk*.45;
  if(onSea)for(let r=1;r<=3;r++)boat.m[r].visible=r===b;
- camera.position.set(P.x,y+dist*.8,P.y+dist*.62);camera.lookAt(P.x,y+.4,P.y);
+ camera.position.set(P.x,y+dist*.8,P.y+dist*.62);{const dl=drunkLv();if(dl){const tt=performance.now()/1000;camera.position.x+=Math.sin(tt*1.1)*.35*dl;camera.position.y+=Math.sin(tt*.7)*.2*dl;}}camera.lookAt(P.x,y+.4,P.y);
  if(target){marker.visible=true;marker.position.set(target.x,(tileAt(Math.floor(target.x),Math.floor(target.y))===SEA?0:hAt(target.x,target.y))+.08,target.y);marker.scale.setScalar(1+Math.sin(t/150)*.15);}else marker.visible=false;
  /* 蓋了東西的地方，樹不會再長回來 */
  if(live.length)live=live.filter(n=>{if(n.gone)return false;if(n.cd>tn&&S.st.some(s=>Math.hypot(s.x-n.x-.5,s.y-n.y-.5)<1.7))n.cd=tn+n.rg;setNode(n);return n.cd>tn||(n.wob&&tn<n.wob);});
@@ -2445,11 +2449,42 @@ function benchBar(){if(!bench.on)return '';const b=(k,label,ok)=>`<button class=
 function benchToggle(k){if(k==='fire'){if(bench.fire&&fire){const got=fireCollect(fire,S),g=Object.keys(got).map(x=>ITEMS[x].n+'×'+got[x]).join('、');if(g)toast('取回：'+g);}bench.fire=!bench.fire;SFX.ui();return benchGo();}
  bench[k]=!bench[k];if(k==='elec'&&bench.elec)bench.cond=false;SFX.ui();if(bench.fire){fire.cond=bench.cond;fire.elec=bench.elec;return fireCtl();}return benchGo();}
 var homeIn=false;
+/* 早餐：在屋裡挑食物一起吃。吃到的營養類別越多，走路越快、撐越久。含糖飲料好喝但不算營養；酒會讓人走路歪掉，醉了不能駕駛。 */
+const FOODG={bread:'staple',boiledegg:'protein',pidan:'protein',milk:'dairy',grape:'fruit',coconut:'fruit',cola:'sweet',grapejuice:'sweet',juice:'sweet',grapewine:'alcohol',wine:'alcohol'};
+const FGN={staple:'主食',protein:'蛋白質',dairy:'乳品',fruit:'水果'},FGS=['staple','protein','dairy','fruit'];
+const MEALB=[null,{spd:.1,t:90},{spd:.2,t:120},{spd:.3,t:180},{spd:.4,t:240}],DRUNKP=[0,.1,.3,1];
+const drunkLv=()=>S.drunk&&S.drunk.n>0?Math.min(3,S.drunk.n):0;
+const mmss=t=>{t=Math.max(0,Math.ceil(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+let meal={sel:[],msg:''};
+function openMeal(){panel='meal';meal.sel=meal.sel.filter(id=>S.inv[id]>0);const L=Object.keys(FOODG).filter(id=>S.inv[id]>0&&ITEMS[id]);
+ const gs=new Set(meal.sel.map(id=>FOODG[id])),n=FGS.filter(g=>gs.has(g)).length,b=MEALB[n];
+ openModal(head('🍽️ 吃早餐')+`<div class="muted">從背包挑想吃的東西擺上餐桌，每樣吃一份。吃到的營養種類越多，走起路來越有力。</div>
+ ${L.length?`<div class="grid" style="margin-top:8px">${L.map(id=>chip(id,`data-meal="${id}"`,meal.sel.includes(id)?'sel':'')).join('')}</div>`:'<p class="muted">背包裡沒有能吃的東西。麵包、熟蛋、皮蛋、牛奶、葡萄、椰子都可以當早餐。</p>'}
+ <div class="mealsum">營養：${FGS.map(g=>`<span class="${gs.has(g)?'ok':'no'}">${gs.has(g)?'✔':'○'} ${FGN[g]}</span>`).join('　')}　<b>${'★'.repeat(n)+'☆'.repeat(4-n)}</b><br>
+ ${b?'吃完：走路快 '+Math.round(b.spd*100)+'%，大約 '+Math.round(b.t/60*10)/10+' 分鐘':'<span class="muted">還沒有主食、蛋白質、乳品或水果，吃了也沒什麼力氣。</span>'}
+ ${gs.has('sweet')?'<br>🥤 含糖飲料很好喝，但主要是糖，營養不多，不算進營養種類。':''}
+ ${gs.has('alcohol')?'<br><b>🍷 有酒：喝了會醉，走路會歪掉，醉了不能駕駛任何交通工具。</b>':''}</div>
+ <div class="row"><button class="btn" data-act="eat" ${meal.sel.length?'':'disabled'}>🍽️ 開動</button></div>${meal.msg?`<div class="result">${meal.msg}</div>`:''}`);}
+function eatMeal(){const sel=meal.sel.filter(id=>S.inv[id]>0);if(!sel.length)return;sel.forEach(id=>S.inv[id]--);
+ const gs=new Set(sel.map(id=>FOODG[id])),n=FGS.filter(g=>gs.has(g)).length,b=MEALB[n],wine=sel.filter(id=>FOODG[id]==='alcohol').length,m=[];
+ m.push(n>=3?'你坐在屋前，配著海浪聲，吃了來到這座島之後最像樣的一頓早餐。':n?'你坐下來，好好吃了一頓。':'你吃了點東西。');
+ if(b){if(!S.buff||S.buff.spd<b.spd||S.buff.t<b.t)S.buff={spd:Math.max(b.spd,S.buff?S.buff.spd:0),t:Math.max(b.t,S.buff?S.buff.t:0)};m.push('⚡ 吃飽了：走路快 '+Math.round(S.buff.spd*100)+'%，大約 '+mmss(S.buff.t)+'。');}
+ if(gs.has('sweet'))m.push('🥤 甜飲料讓人心情很好，不過裡面主要是糖，營養不多。');
+ if(n===4&&!S.known._meal4){S.known._meal4=1;storyQ.push('<b>🍳 營養滿分的早餐</b>\n\n主食給你力氣，蛋和牛奶給你蛋白質，水果補上維生素。\n\n這些食物，每一樣都是你親手從這座島上一點一點做出來的：發酵的麵團、加熱凝固的蛋白質、擠出來的牛奶、摘下來的果子。');}
+ meal.sel=[];if(wine)m.push(drinkWine(wine,true));meal.msg=m.join('<br>');SFX.done();after();hud();save();openMeal();}
+function drinkWine(k,quiet){k=k||1;if(S.aboard||flySt){toast('在船上、在天上別喝酒——先回到陸地上。');return '';}
+ const was=drunkLv();S.drunk={n:Math.min(6,(S.drunk?S.drunk.n:0)+k),t:90};const lv=drunkLv();
+ if(!S.known._drunk){S.known._drunk=1;storyQ.push('<b>🍷 酒精讓人走不穩</b>\n\n酒裡的酒精（乙醇，C₂H₅OH）很快就從胃和腸被吸收進血液，跑到腦部。\n\n它會影響負責平衡和協調的小腦，所以喝了酒走路會歪、反應會變慢，自己卻常常以為沒事。喝得越多，越控制不了。\n\n<b>所以：喝了酒不能開車、不能駕駛任何交通工具。現實中，未滿 18 歲不可以喝酒。</b>\n\n身體要花好幾個小時才能把酒精慢慢代謝掉，在那之前只能等。');}
+ const t='🥴 喝了酒，頭有點暈：走路時每一步有 '+Math.round(DRUNKP[lv]*100)+'% 會往別的方向歪。醉了不能駕駛，大約 '+mmss((S.drunk.n-1)*90+S.drunk.t)+' 後才會完全清醒。';
+ if(!quiet){SFX.deny();toast(t);after();save();}return t;}
+function buffTick(dt){if(S.buff&&S.buff.t>0){S.buff.t-=dt;if(S.buff.t<=0){S.buff=null;toast('早餐的力氣用完了，走路恢復正常。');}}
+ if(S.drunk&&S.drunk.n>0){S.drunk.t-=dt;if(S.drunk.t<=0){S.drunk.n--;S.drunk.t=90;if(!S.drunk.n){S.drunk=null;toast('😌 酒退了，頭腦清楚了，可以駕駛了。');}}}
+ const el=$('buffs');if(!el)return;const dl=drunkLv(),h=(S.buff?`<span>⚡ 吃飽了：走路快 ${Math.round(S.buff.spd*100)}%　${mmss(S.buff.t)}</span>`:'')+(dl?`<span class="dk">🥴 醉了：${dl>=3?'每一步都亂走':Math.round(DRUNKP[dl]*100)+'% 會走歪'}，不能駕駛　${mmss((S.drunk.n-1)*90+S.drunk.t)}</span>`:'');if(el.innerHTML!==h)el.innerHTML=h;}
 function openHome(st){homeIn=true;bench.on=false;fireSt=null;S.hydro=!!st.wire;homeSt=st;panel='home';SFX.ui();const d=BMAP[st.type],fl=st.floors||1,lab=d.lab;
  const need=d.floor&&fl<d.maxF?Object.keys(d.floor).map(k=>{const have=(st.fl&&st.fl[k]||0)+(S.inv[k]||0);return `<span class="${have>=d.floor[k]?'ok':'no'}">${ITEMS[k].n} ${Math.min(have,d.floor[k])}/${d.floor[k]}</span>`;}).join(''):'';
  const btn=(act,label,ok,why)=>`<button class="btn ${ok?'':'alt'}" data-home="${act}" ${ok?'':'disabled'} style="margin:3px 0">${label}${ok?'':'<small>　'+why+'</small>'}</button>`;
  openModal(head(d.icon+' '+d.n+'　'+fl+'/'+d.maxF+' 層')+`<canvas class="scene" id="hc" width="560" height="220"></canvas>${homeMsg?`<div class="log">${homeMsg}</div>`:''}
- <div class="row">${btn('store','📦 倉庫',true)}${btn('bench','🧪 實驗桌（混合・加熱・蒸餾・電解）',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
+ <div class="row">${btn('store','📦 倉庫',true)}${btn('meal','🍽️ 吃早餐',true)}${btn('bench','🧪 實驗桌（混合・加熱・蒸餾・電解）',lab>=1,'木屋以上才有')}${btn('stove','🔥 爐灶',lab>=2,'磚瓦屋以上才有')}</div>
  <div class="row" style="align-items:center">${hasStill(st)?'<span class="muted">⚗️ 蒸餾器已安裝　</span>':btn('mkstill','⚗️ 安裝蒸餾器　玻璃 '+(S.inv.glass||0)+'/3、銅 '+(S.inv.copper||0)+'/1',lab>=1&&!!S.found.glass,lab>=1?'還不會做玻璃':'木屋以上才裝得了')}${hasCell(st)?'':btn('mkcell','⚡ 安裝伏打堆與電解槽　'+Object.keys(BMAP.cell.need).map(k=>ITEMS[k].n+' '+(S.inv[k]||0)+'/'+BMAP.cell.need[k]).join('、'),lab>=2&&S.abil.distill,lab>=2?'要先有蒸餾器':'磚瓦屋以上才裝得了')}</div>
  ${hasCell(st)?`<div class="row" style="align-items:center"><span class="muted">⚡ ${powerText()}　</span>${freePower(S)||!S.pile?'':btn('pileadd','＋ 加疊一層（鋅 1、銅 1）',S.pile.n<PMAX,'已經最高了')+btn('pilefix','🔁 換新鋅片',S.pile.life<S.pile.n*pcap(S.pile),'還不用換')+(S.pile.dan?'':btn('piledan','🔋 改裝成丹尼爾電池　硫酸銅溶液 '+(S.inv.cuso4||0)+'/1、硫酸鋅溶液 '+(S.inv.znso4||0)+'/1、陶器 '+(S.inv.ceramic||0)+'/1',true))}</div>`:''}
  ${hasCell(st)&&S.abil.gen&&!S.legacyGen?`<div class="row" style="align-items:center">${st.wire?'<span class="muted">🧵 這間屋子已經用銅線接上水力發電機。</span>':(h=>btn('wire','🧵 從水力發電機拉銅線過來'+(h?'（銅 '+h.cost+'）':''),!!h,'這座島沒有裝了發電機的水車'))(hydroFor(st))}</div>`:''}
@@ -2465,6 +2500,7 @@ function homeDo(act){const st=homeSt,back=()=>{closeHook=()=>{homeMsg='';openHom
  if(act==='wire'){const r=wireTo(st,'wire');if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg='🧵 用了 '+r.cost+' 個銅，把線從水車一路拉到屋裡。從此這間實驗室的電又穩又足。';}hud();save();return openHome(st);}
  if(act==='pileadd'||act==='pilefix'){const r=act==='pileadd'?pileAdd(S):pileFix(S);if(r.err){SFX.deny();homeMsg=r.err;}else{SFX.done();homeMsg=act==='pileadd'?'⚡ 伏打堆加高了一層，現在 '+S.pile.n+' 層。':'🔁 換上了新的鋅片和鹽水，伏打堆又有力了。';}hud();save();return openHome(st);}
  if(act==='store'){panel='store';return renderStore();}
+ if(act==='meal'){back();meal={sel:[],msg:''};return openMeal();}
  if(act==='table'){back();return openMix('table',true);}
  if(act==='cell'){back();return openMix('cell',true);}
  if(act==='stove'){back();return openFire('stove',true);}
@@ -2612,7 +2648,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.43',VDATE='2026-11-18';
+const VERSION='2.44',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
@@ -2676,7 +2712,7 @@ function render(){
  if(panel==='lb')return openModal(lbHTML());
  if(panel==='tree')return openModal(treeHTML());
  if(panel==='save'){openModal(saveHTML());const fi=$('svfile');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const err=loadText(String(rd.result));if(err)saveSay(err);else{closeModal();toast('已讀取存檔：'+f.name);}};rd.onerror=()=>saveSay('讀不到這個檔案。');rd.readAsText(f);};}
- if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?srchBox('bag')+'<div class="srchable">'+CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<div class="sgrp"><h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span></div>`).join('')+'</div>':'';}).join('')+'</div>':'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
+ if(panel==='bag'){const h=have();openModal(head('🎒 背包')+(h.length?srchBox('bag')+'<div class="srchable">'+CATS.map(([nm,ids])=>{const L=ids.filter(id=>S.inv[id]>0);return L.length?`<div class="sgrp"><h3>${nm}</h3>`+L.map(id=>`<div class="entry" style="padding:7px 10px;margin-bottom:5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(id)}<span class="muted" style="flex:1;min-width:200px">${ITEMS[id].d}</span>${FOODG[id]==='alcohol'?`<button class="btn alt" data-act="drink" data-id="${id}">🍷 喝一份</button>`:''}</div>`).join('')+'</div>':'';}).join('')+'</div>':'<p class="muted">空空的。到島上走走，靠近樹或石頭按 E。</p>')+`<p style="margin-top:16px"><button class="btn warn" data-act="reset">重新開始遊戲</button></p>`);}
  if(panel==='build'){const card=t=>{
    const done=t.craft||t.dock||t.inLab?S.abil[t.grant]:t.fixed?S.abil.beacon:false,n=S.st.filter(x=>x.type===t.id&&x.done).length,miss=t.req.filter(q=>!hasReq(S,q));
    const lst=o=>Object.keys(o).map(k=>{const v=stock(S,k);return `<span class="${v>=o[k]?'ok':'no'}">${ITEMS[k].n}${k==='iron'&&S.found.steel?'（或鋼）':''} ${v}/${o[k]}</span>`;}).join('');
@@ -2719,6 +2755,9 @@ $('mask').addEventListener('click',e=>{
  if(d.home==='back'){homeMsg='';return openHome(homeSt);}
  if(d.bench)return benchToggle(d.bench);
  if(d.home)return homeDo(d.home);
+ if(d.meal){const i=meal.sel.indexOf(d.meal);if(i>=0)meal.sel.splice(i,1);else meal.sel.push(d.meal);meal.msg='';SFX.ui();return openMeal();}
+ if(d.act==='eat')return eatMeal();
+ if(d.act==='drink'){if(!(S.inv[d.id]>0))return;if(S.aboard||flySt)return drinkWine(1);S.inv[d.id]--;drinkWine(1);return openPanel('bag');}
  if(d.stash||d.take){const id=d.stash||d.take,n=+(d.n||1),m=d.stash?stash(S,homeSt,id,n):unstash(S,homeSt,id,n);if(m)SFX.place();else if(d.take)toast('背包裡的'+ITEMS[id].n+'已經滿 '+BAGCAP+' 份了');hud();save();return renderStore();}
  if(d.farm)return farmDo(d.farm);
  if(flySt&&(d.act==='sv-dl'||d.act==='sv-dirsave'))return saveSay('✋ 飛行中不能存檔，降落後再存。');
