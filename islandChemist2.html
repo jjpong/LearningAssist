@@ -90,8 +90,9 @@ body.modal #toasts{bottom:auto;top:10px}body.modal .toast.stick{display:none}   
 .result{margin-top:10px;border-radius:12px;padding:12px 14px;background:#eef6ff;border:2px solid #9cc3ea;font-size:14px;line-height:1.68;box-shadow:0 3px 10px rgba(0,0,0,.06)}
 .result.fail{background:#f3efe6;border-color:#c9c0aa}
 .result.new{background:linear-gradient(180deg,#fff9dc,#fff1b8);border-color:#dfaf2b}
-.scwrap{position:relative;width:100%;max-width:560px;margin:0 auto}
-#rcard{position:absolute;left:8px;top:8px;width:64%;max-height:min(70vh,max(calc(100% - 16px),250px));overflow:auto;z-index:4;margin:0;box-shadow:0 6px 22px rgba(0,0,0,.35);animation:rcin .25s ease-out}
+.scwrap{display:flex;gap:10px;align-items:flex-start;width:100%}
+.scwrap>.scene{flex:1 1 0;min-width:0}
+#rcard{flex:0 0 300px;max-height:360px;overflow:auto;margin:0;box-shadow:0 4px 14px rgba(0,0,0,.18);animation:rcin .25s ease-out}   /* 結果卡放在畫面旁邊，不蓋住爐子和燒瓶 */
 #rcard:empty{display:none}
 @keyframes rcin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .rchead{display:flex;align-items:center;gap:6px;margin:-2px 0 4px;font-size:13px}.rchead .rct{flex:1;font-weight:bold}
@@ -99,7 +100,7 @@ body.modal #toasts{bottom:auto;top:10px}body.modal .toast.stick{display:none}   
 .rcx{background:#7a5a2e;color:#fff;font-weight:bold}
 .rcauto{height:3px;background:#dfaf2b;border-radius:2px;margin-top:6px;transform-origin:left;animation:rcbar 3s linear forwards}@keyframes rcbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 #rcard .gico>*{width:20px!important;height:20px!important;vertical-align:-4px;margin-right:2px}
-@media(max-width:700px){#rcard{left:4px;top:4px;width:calc(100% - 8px)}}
+@media(max-width:760px){.scwrap{flex-direction:column;align-items:stretch}.scwrap>.scene{flex:none;width:100%}#rcard{flex:none;max-height:none}}   /* 窄螢幕：放在畫面正下方 */
 .eq{font-size:17px;font-weight:700;margin:4px 0;font-family:"Times New Roman","Noto Serif TC",serif}
 .tag{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;color:#fff;background:#2f6f4f;margin-right:6px}
 .tag.k-phys{background:#2f6ea8}.tag.k-obs{background:#857a5e}.tag.k-tech{background:#c2571a}
@@ -2611,7 +2612,7 @@ function saveHTML(){const q=questView(S).cur;
    <div class="row">${dirWait?'<button class="btn" data-act="sv-re">🔗 重新連上之前的資料夾</button>':''}<button class="btn ${dirWait?'alt':''}" data-act="sv-dir">📁 選擇存檔資料夾</button></div>`}</div>`
   :`<div class="savebox"><h4>存檔資料夾</h4><span class="muted">${inFrame?'現在這個頁面是嵌在別的網頁裡的，瀏覽器不允許它直接寫入你的資料夾。請用上面的「下載存檔檔」，再自己放進資料夾。用電腦版的 Chrome 或 Edge 直接打開遊戲的網址，這裡就會出現「選擇存檔資料夾」。':'這個瀏覽器不支援直接寫入資料夾（需要電腦版的 Chrome 或 Edge）。請用上面的「下載存檔檔」。'}</span></div>`)+
  '';}
-const VERSION='2.42',VDATE='2026-11-18';
+const VERSION='2.43',VDATE='2026-11-18';
 let treeTab='tree';
 function treeHTML(){const st=skillState(S),nb=Object.keys(S.badges||{}).length,nd=SKILLS.filter(k=>st[k.id]==='done').length;
  const tabs=`<div class="row" style="margin-bottom:10px"><button class="btn ${treeTab==='tree'?'':'alt'}" data-act="tab-tree">🌳 技能樹（${nd}/${SKILLS.length}）</button><button class="btn ${treeTab==='badge'?'':'alt'}" data-act="tab-badge">🏅 徽章（${nb}/${BADGES.length}）</button></div>`;
